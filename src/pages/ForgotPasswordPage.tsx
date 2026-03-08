@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../auth/useAuth'
 import { AuthScaffold } from '../components/AuthScaffold'
 import { TextField } from '../components/TextField'
+import { hasLetterAndNumber, passwordRuleText } from '../lib/password'
 import { supabase } from '../lib/supabase'
 
 function detectRecoveryMode(search: string, hash: string) {
@@ -66,7 +67,12 @@ export function ForgotPasswordPage() {
     setNotice(null)
 
     if (newPassword.trim().length < 6) {
-      setError('新密码至少需要 6 位。')
+      setError(passwordRuleText)
+      return
+    }
+
+    if (!hasLetterAndNumber(newPassword)) {
+      setError(passwordRuleText)
       return
     }
 
@@ -120,8 +126,9 @@ export function ForgotPasswordPage() {
               label="新密码"
               minLength={6}
               name="newPassword"
+              note={passwordRuleText}
               onChange={(event) => setNewPassword(event.target.value)}
-              placeholder="至少 6 位"
+              placeholder="至少 6 位，需包含字母和数字"
               required
               type="password"
               value={newPassword}

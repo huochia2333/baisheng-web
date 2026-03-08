@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../auth/useAuth'
 import { AuthScaffold } from '../components/AuthScaffold'
 import { TextField } from '../components/TextField'
+import { hasLetterAndNumber, passwordRuleText } from '../lib/password'
 import { supabase } from '../lib/supabase'
 
 export function RegisterPage() {
@@ -35,7 +36,12 @@ export function RegisterPage() {
     }
 
     if (password.trim().length < 6) {
-      setError('密码至少需要 6 位。')
+      setError(passwordRuleText)
+      return
+    }
+
+    if (!hasLetterAndNumber(password)) {
+      setError(passwordRuleText)
       return
     }
 
@@ -120,9 +126,9 @@ export function RegisterPage() {
           label="密码"
           minLength={6}
           name="password"
-          note="密码至少需要 6 位。"
+          note={passwordRuleText}
           onChange={(event) => setPassword(event.target.value)}
-          placeholder="至少 6 位"
+          placeholder="至少 6 位，需包含字母和数字"
           required
           type="password"
           value={password}
