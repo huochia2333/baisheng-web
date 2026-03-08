@@ -1,0 +1,82 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+  font-family: "Aptos", "Trebuchet MS", sans-serif;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+html {
+  min-width: 320px;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at top left, rgba(34, 211, 238, 0.3), transparent 28%),
+    radial-gradient(circle at 85% 10%, rgba(249, 115, 22, 0.18), transparent 24%),
+    linear-gradient(135deg, #04111f 0%, #071b2e 48%, #0e2732 100%);
+  color: #f8fafc;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+::selection {
+  background: rgba(34, 211, 238, 0.28);
+}
+
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus {
+  -webkit-text-fill-color: #f8fafc;
+  -webkit-box-shadow: 0 0 0 1000px rgba(255, 255, 255, 0.08) inset;
+  transition: background-color 9999s ease-in-out 0s;
+}
+
+@layer base {
+  * {
+    @apply box-border;
+  }
+
+  a {
+    @apply text-cyan-200 transition hover:text-cyan-100;
+  }
+}
+
+@layer components {
+  .glass-panel {
+    @apply rounded-[28px] border border-white/15 bg-white/10 shadow-[0_24px_70px_rgba(2,12,27,0.35)] backdrop-blur-2xl;
+  }
+
+  .glass-label {
+    @apply mb-2 block text-xs font-semibold uppercase tracking-[0.24em] text-slate-200/75;
+  }
+
+  .glass-input {
+    @apply w-full rounded-2xl border border-white/15 bg-white/10 px-4 py-3 text-sm text-white outline-none transition placeholder:text-slate-300/45 focus:border-cyan-300/40 focus:bg-white/15 focus:ring-2 focus:ring-cyan-300/20 disabled:cursor-not-allowed disabled:opacity-60;
+  }
+
+  .glass-button {
+    @apply inline-flex items-center justify-center rounded-2xl bg-cyan-300 px-4 py-3 text-sm font-semibold text-slate-950 transition hover:bg-cyan-200 disabled:cursor-not-allowed disabled:opacity-60;
+  }
+
+  .ghost-button {
+    @apply inline-flex items-center justify-center rounded-2xl border border-white/15 bg-white/10 px-4 py-3 text-sm font-medium text-white transition hover:border-white/25 hover:bg-white/15 disabled:cursor-not-allowed disabled:opacity-60;
+  }
+
+  .info-chip {
+    @apply inline-flex items-center rounded-full border border-white/15 bg-white/10 px-3 py-1 text-[11px] font-medium uppercase tracking-[0.22em] text-slate-100/85;
+  }
+
+  .soft-divider {
+    @apply border-t border-white/10;
+  }
+}
