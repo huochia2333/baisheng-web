@@ -761,9 +761,6 @@ export function AdminMyClient() {
               <h3 className="text-2xl font-bold tracking-tight text-[#486782]">
                 身份证明与多媒体
               </h3>
-              <p className="mt-1 text-sm text-[#6f7980]">
-                当前页面已接入 Supabase 的 user_privacy_requests、user_privacy_data 和 user_media_assets。
-              </p>
             </div>
           </div>
 
@@ -1098,7 +1095,6 @@ export function AdminMyClient() {
               <p className="font-label text-[11px] font-semibold tracking-[0.18em] text-[#7d8890] uppercase">
                 所在城市
               </p>
-              <p className="mt-1 text-sm text-[#67727b]">这里保存到 `user_profiles.city`。</p>
             </div>
           </div>
 
