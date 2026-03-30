@@ -22,6 +22,7 @@ import {
 import { getBrowserSupabaseClient } from "@/lib/supabase";
 import {
   getDefaultWorkspaceBasePath,
+  getRoleFromAccessToken,
   getRoleFromCurrentSession,
   type AppRole,
 } from "@/lib/user-self-service";
@@ -130,7 +131,7 @@ export function AdminShell({ children }: AdminShellProps) {
     void syncRole();
 
     const { data: authListener } = supabase.auth.onAuthStateChange(
-      async (_event, session) => {
+      (_event, session) => {
         if (!isMounted) {
           return;
         }
@@ -141,7 +142,8 @@ export function AdminShell({ children }: AdminShellProps) {
           return;
         }
 
-        await syncRole();
+        setRole(getRoleFromAccessToken(session.access_token));
+        setRoleResolved(true);
       },
     );
 
@@ -192,16 +194,27 @@ export function AdminShell({ children }: AdminShellProps) {
 
     setLogoutPending(true);
 
-    const { error } = await supabase.auth.signOut();
+    try {
+      const { error } = await supabase.auth.signOut();
 
-    if (error) {
+      if (error) {
+        throw error;
+      }
+
+      setRole(null);
+      setRoleResolved(true);
+
+      if (typeof window !== "undefined") {
+        window.location.replace("/login");
+        return;
+      }
+
+      router.replace("/login");
+    } catch (error) {
+      setLogoutError(getErrorMessage(error));
+    } finally {
       setLogoutPending(false);
-      setLogoutError(error.message);
-      return;
     }
-
-    router.replace("/login");
-    router.refresh();
   };
 
   return (
@@ -328,4 +341,8 @@ export function AdminShell({ children }: AdminShellProps) {
       </div>
     </div>
   );
+}
+
+function getErrorMessage(error: unknown) {
+  return error instanceof Error ? error.message : "当前服务暂时不可用，请稍后再试。";
 }

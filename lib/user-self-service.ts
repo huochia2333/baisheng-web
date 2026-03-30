@@ -1,4 +1,4 @@
-import type { SupabaseClient, User } from "@supabase/supabase-js";
+import type { Session, SupabaseClient, User } from "@supabase/supabase-js";
 
 export type AppRole =
   | "administrator"
@@ -79,6 +79,9 @@ export type CurrentUserBundle = {
 
 const USER_MEDIA_BUCKET = "user-media";
 const SIGNED_URL_TTL_SECONDS = 60 * 60;
+const AUTH_SESSION_TIMEOUT_MS = 15_000;
+
+let currentSessionRequest: Promise<Session | null> | null = null;
 
 export function getRoleFromUser(user: User | null | undefined): AppRole | null {
   const role = normalizeOptionalString(user?.app_metadata?.role);
@@ -100,16 +103,46 @@ export function getRoleFromUser(user: User | null | undefined): AppRole | null {
 export async function getRoleFromCurrentSession(
   supabase: SupabaseClient,
 ): Promise<AppRole | null> {
-  const {
-    data: { session },
-    error,
-  } = await supabase.auth.getSession();
+  const { role } = await getCurrentSessionContext(supabase);
+  return role;
+}
 
-  if (error) {
-    throw error;
+export async function getCurrentSession(
+  supabase: SupabaseClient,
+): Promise<Session | null> {
+  if (!currentSessionRequest) {
+    currentSessionRequest = withTimeout(
+      supabase.auth.getSession().then(({ data, error }) => {
+        if (error) {
+          throw error;
+        }
+
+        return data.session;
+      }),
+      AUTH_SESSION_TIMEOUT_MS,
+      "登录状态检查超时，请刷新页面后重试。",
+    ).finally(() => {
+      currentSessionRequest = null;
+    });
   }
 
-  return getRoleFromAccessToken(session?.access_token);
+  return currentSessionRequest;
+}
+
+export async function getCurrentSessionContext(
+  supabase: SupabaseClient,
+): Promise<{
+  session: Session | null;
+  user: User | null;
+  role: AppRole | null;
+}> {
+  const session = await getCurrentSession(supabase);
+
+  return {
+    session,
+    user: session?.user ?? null,
+    role: getRoleFromAccessToken(session?.access_token),
+  };
 }
 
 export function getRoleFromAccessToken(accessToken: string | null | undefined): AppRole | null {
@@ -161,17 +194,7 @@ export function getDefaultSignedInPathForRole(role: AppRole | null) {
 export async function getCurrentUserBundle(
   supabase: SupabaseClient,
 ): Promise<CurrentUserBundle | null> {
-  const [
-    {
-      data: { user },
-      error: userError,
-    },
-    role,
-  ] = await Promise.all([supabase.auth.getUser(), getRoleFromCurrentSession(supabase)]);
-
-  if (userError) {
-    throw userError;
-  }
+  const { user, role } = await getCurrentSessionContext(supabase);
 
   if (!user) {
     return null;
@@ -237,6 +260,7 @@ export async function getCurrentUserBundle(
     supabase,
     user,
     profileResult.data,
+    role,
   );
 
   const mediaAssets = await Promise.all(
@@ -376,12 +400,11 @@ async function syncProfileFromAuthMetadataIfPossible(
   supabase: SupabaseClient,
   user: User,
   profile: UserProfileRow | null,
+  role: AppRole | null,
 ) {
   if (!profile) {
     return profile;
   }
-
-  const role = await getRoleFromCurrentSession(supabase);
   const metadataCity = normalizeOptionalString(user.user_metadata?.city);
 
   if (!metadataCity || profile.city) {
@@ -457,4 +480,20 @@ function normalizeOptionalString(value: unknown) {
 
   const normalized = value.trim();
   return normalized.length > 0 ? normalized : null;
+}
+
+function withTimeout<T>(
+  promise: Promise<T>,
+  timeoutMs: number,
+  message: string,
+) {
+  return new Promise<T>((resolve, reject) => {
+    const timeoutId = globalThis.setTimeout(() => {
+      reject(new Error(message));
+    }, timeoutMs);
+
+    promise.then(resolve, reject).finally(() => {
+      globalThis.clearTimeout(timeoutId);
+    });
+  });
 }

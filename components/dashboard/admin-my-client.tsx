@@ -372,18 +372,21 @@ export function AdminMyClient() {
         ? `${window.location.origin}/forgot-password`
         : undefined;
 
-    const { error } = await supabase.auth.resetPasswordForEmail(authUser.email, {
-      redirectTo,
-    });
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(authUser.email, {
+        redirectTo,
+      });
 
-    if (error) {
-      setBusyKey(null);
+      if (error) {
+        throw error;
+      }
+
+      setPageNotice({ tone: "success", message: "重置密码邮件已发送，请检查你的邮箱。" });
+    } catch (error) {
       setPageNotice({ tone: "error", message: toErrorMessage(error) });
-      return;
+    } finally {
+      setBusyKey(null);
     }
-
-    setBusyKey(null);
-    setPageNotice({ tone: "success", message: "重置密码邮件已发送，请检查你的邮箱。" });
   };
 
   const copyInviteCode = async () => {

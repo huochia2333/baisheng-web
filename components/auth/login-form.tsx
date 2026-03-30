@@ -8,6 +8,7 @@ import { ArrowRight, Check, LockKeyhole, Mail } from "lucide-react";
 
 import { getBrowserSupabaseClient } from "@/lib/supabase";
 import {
+  getCurrentSession,
   getDefaultSignedInPathForRole,
   getRoleFromAccessToken,
 } from "@/lib/user-self-service";
@@ -40,33 +41,34 @@ export function LoginForm({
     let isMounted = true;
 
     const checkSession = async () => {
-      const {
-        data: { session },
-        error: sessionError,
-      } = await supabase.auth.getSession();
+      try {
+        const session = await getCurrentSession(supabase);
 
-      if (!isMounted) {
-        return;
+        if (!isMounted) {
+          return;
+        }
+
+        if (session?.user) {
+          const nextPath = getDefaultSignedInPathForRole(
+            getRoleFromAccessToken(session.access_token),
+          );
+
+          startTransition(() => {
+            router.replace(nextPath);
+          });
+          return;
+        }
+      } catch (sessionError) {
+        if (!isMounted) {
+          return;
+        }
+
+        setError(formatAuthError(getErrorMessage(sessionError)));
+      } finally {
+        if (isMounted) {
+          setCheckingSession(false);
+        }
       }
-
-      if (sessionError) {
-        setError(formatAuthError(sessionError.message));
-        setCheckingSession(false);
-        return;
-      }
-
-      if (session?.user) {
-        const nextPath = getDefaultSignedInPathForRole(
-          getRoleFromAccessToken(session.access_token),
-        );
-
-        startTransition(() => {
-          router.replace(nextPath);
-        });
-        return;
-      }
-
-      setCheckingSession(false);
     };
 
     void checkSession();
@@ -104,26 +106,28 @@ export function LoginForm({
       return;
     }
 
-    const { error: signInError } = await supabase.auth.signInWithPassword({
-      email: email.trim(),
-      password,
-    });
+    try {
+      const { data, error: signInError } = await supabase.auth.signInWithPassword({
+        email: email.trim(),
+        password,
+      });
 
-    if (signInError) {
+      if (signInError) {
+        throw signInError;
+      }
+
+      startTransition(() => {
+        router.replace(
+          getDefaultSignedInPathForRole(
+            getRoleFromAccessToken(data.session?.access_token),
+          ),
+        );
+      });
+    } catch (signInError) {
+      setError(formatAuthError(getErrorMessage(signInError)));
+    } finally {
       setSubmitting(false);
-      setError(formatAuthError(signInError.message));
-      return;
     }
-
-    const {
-      data: { session },
-    } = await supabase.auth.getSession();
-
-    startTransition(() => {
-      router.replace(
-        getDefaultSignedInPathForRole(getRoleFromAccessToken(session?.access_token)),
-      );
-    });
   };
 
   if (checkingSession || !supabase) {
@@ -230,4 +234,8 @@ function formatAuthError(message: string) {
   }
 
   return message;
+}
+
+function getErrorMessage(error: unknown) {
+  return error instanceof Error ? error.message : "当前服务暂时不可用，请稍后再试。";
 }

@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { ArrowRight, LockKeyhole, Mail, ShieldCheck } from "lucide-react";
 
 import { getBrowserSupabaseClient } from "@/lib/supabase";
+import { getCurrentSession } from "@/lib/user-self-service";
 
 import { AuthFeedback } from "./auth-feedback";
 import { AuthField } from "./auth-field";
@@ -38,24 +39,32 @@ export function ForgotPasswordForm() {
     let isMounted = true;
 
     const syncRecoveryState = async () => {
-      if (recoveryHint) {
-        setMode("reset");
+      try {
+        if (recoveryHint) {
+          setMode("reset");
+        }
+
+        const session = await getCurrentSession(supabase);
+
+        if (!isMounted) {
+          return;
+        }
+
+        if (recoveryHint && session?.user) {
+          setRecoveryReady(true);
+          setNotice("重置链接验证成功，请设置新的登录密码。");
+        }
+      } catch (sessionError) {
+        if (!isMounted) {
+          return;
+        }
+
+        setError(formatForgotPasswordError(getErrorMessage(sessionError)));
+      } finally {
+        if (isMounted) {
+          setCheckingRecovery(false);
+        }
       }
-
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-
-      if (!isMounted) {
-        return;
-      }
-
-      if (recoveryHint && session?.user) {
-        setRecoveryReady(true);
-        setNotice("重置链接验证成功，请设置新的登录密码。");
-      }
-
-      setCheckingRecovery(false);
     };
 
     void syncRecoveryState();
@@ -123,20 +132,23 @@ export function ForgotPasswordForm() {
     const redirectTo =
       typeof window !== "undefined" ? `${window.location.origin}/forgot-password` : undefined;
 
-    const { error: resetError } = await supabase.auth.resetPasswordForEmail(email.trim(), {
-      redirectTo,
-    });
+    try {
+      const { error: resetError } = await supabase.auth.resetPasswordForEmail(email.trim(), {
+        redirectTo,
+      });
 
-    if (resetError) {
+      if (resetError) {
+        throw resetError;
+      }
+
+      setMode("sent");
+      setCooldownRemaining(30);
+      setNotice("重置密码邮件已发送，请检查邮箱并点击邮件里的链接继续。");
+    } catch (resetError) {
+      setError(formatForgotPasswordError(getErrorMessage(resetError)));
+    } finally {
       setSubmitting(false);
-      setError(formatForgotPasswordError(resetError.message));
-      return;
     }
-
-    setSubmitting(false);
-    setMode("sent");
-    setCooldownRemaining(30);
-    setNotice("重置密码邮件已发送，请检查邮箱并点击邮件里的链接继续。");
   };
 
   const handleUpdatePassword = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -162,19 +174,27 @@ export function ForgotPasswordForm() {
       return;
     }
 
-    const { error: updateError } = await supabase.auth.updateUser({ password });
+    try {
+      const { error: updateError } = await supabase.auth.updateUser({ password });
 
-    if (updateError) {
+      if (updateError) {
+        throw updateError;
+      }
+
+      const { error: signOutError } = await supabase.auth.signOut();
+
+      if (signOutError) {
+        throw signOutError;
+      }
+
+      startTransition(() => {
+        router.replace("/login?passwordReset=1");
+      });
+    } catch (updateError) {
+      setError(formatForgotPasswordError(getErrorMessage(updateError)));
+    } finally {
       setSubmitting(false);
-      setError(formatForgotPasswordError(updateError.message));
-      return;
     }
-
-    await supabase.auth.signOut();
-
-    startTransition(() => {
-      router.replace("/login?passwordReset=1");
-    });
   };
 
   if (checkingRecovery || !supabase) {
@@ -302,4 +322,8 @@ function formatForgotPasswordError(message: string) {
   }
 
   return message;
+}
+
+function getErrorMessage(error: unknown) {
+  return error instanceof Error ? error.message : "当前服务暂时不可用，请稍后再试。";
 }

@@ -1,7 +1,7 @@
 import type { SupabaseClient, User } from "@supabase/supabase-js";
 
 import {
-  getRoleFromCurrentSession,
+  getCurrentSessionContext,
   type AppRole,
   type MediaKind,
   type PrivacyRequestStatus,
@@ -45,17 +45,7 @@ export type PendingMediaReviewWithPreview = PendingMediaReviewRow & {
 export async function getCurrentReviewerContext(
   supabase: SupabaseClient,
 ): Promise<{ user: User; role: AppRole | null } | null> {
-  const [
-    {
-      data: { user },
-      error,
-    },
-    role,
-  ] = await Promise.all([supabase.auth.getUser(), getRoleFromCurrentSession(supabase)]);
-
-  if (error) {
-    throw error;
-  }
+  const { user, role } = await getCurrentSessionContext(supabase);
 
   if (!user) {
     return null;

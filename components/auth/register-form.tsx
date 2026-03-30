@@ -15,6 +15,7 @@ import {
 
 import { getBrowserSupabaseClient } from "@/lib/supabase";
 import {
+  getCurrentSession,
   getDefaultSignedInPathForRole,
   getRoleFromAccessToken,
 } from "@/lib/user-self-service";
@@ -44,33 +45,34 @@ export function RegisterForm() {
     let isMounted = true;
 
     const checkSession = async () => {
-      const {
-        data: { session },
-        error: sessionError,
-      } = await supabase.auth.getSession();
+      try {
+        const session = await getCurrentSession(supabase);
 
-      if (!isMounted) {
-        return;
+        if (!isMounted) {
+          return;
+        }
+
+        if (session?.user) {
+          const nextPath = getDefaultSignedInPathForRole(
+            getRoleFromAccessToken(session.access_token),
+          );
+
+          startTransition(() => {
+            router.replace(nextPath);
+          });
+          return;
+        }
+      } catch (sessionError) {
+        if (!isMounted) {
+          return;
+        }
+
+        setError(formatAuthError(getErrorMessage(sessionError)));
+      } finally {
+        if (isMounted) {
+          setCheckingSession(false);
+        }
       }
-
-      if (sessionError) {
-        setError(formatAuthError(sessionError.message));
-        setCheckingSession(false);
-        return;
-      }
-
-      if (session?.user) {
-        const nextPath = getDefaultSignedInPathForRole(
-          getRoleFromAccessToken(session.access_token),
-        );
-
-        startTransition(() => {
-          router.replace(nextPath);
-        });
-        return;
-      }
-
-      setCheckingSession(false);
     };
 
     void checkSession();
@@ -101,39 +103,43 @@ export function RegisterForm() {
     const redirectUrl =
       typeof window !== "undefined" ? `${window.location.origin}/login` : undefined;
 
-    const { data, error: signUpError } = await supabase.auth.signUp({
-      email: email.trim(),
-      password,
-      options: {
-        emailRedirectTo: redirectUrl,
-        data: {
-          name: name.trim(),
-          phone: phone.trim(),
-          referral_code: normalizedInviteCode,
+    try {
+      const { data, error: signUpError } = await supabase.auth.signUp({
+        email: email.trim(),
+        password,
+        options: {
+          emailRedirectTo: redirectUrl,
+          data: {
+            name: name.trim(),
+            phone: phone.trim(),
+            referral_code: normalizedInviteCode,
+          },
         },
-      },
-    });
+      });
 
-    if (signUpError) {
-      setSubmitting(false);
-      setError(formatAuthError(signUpError.message));
-      return;
-    }
+      if (signUpError) {
+        throw signUpError;
+      }
 
-    if (data.session?.user) {
-      const nextPath = getDefaultSignedInPathForRole(
-        getRoleFromAccessToken(data.session.access_token),
-      );
+      if (data.session?.user) {
+        const nextPath = getDefaultSignedInPathForRole(
+          getRoleFromAccessToken(data.session.access_token),
+        );
+
+        startTransition(() => {
+          router.replace(nextPath);
+        });
+        return;
+      }
 
       startTransition(() => {
-        router.replace(nextPath);
+        router.replace("/login?registered=1");
       });
-      return;
+    } catch (signUpError) {
+      setError(formatAuthError(getErrorMessage(signUpError)));
+    } finally {
+      setSubmitting(false);
     }
-
-    startTransition(() => {
-      router.replace("/login?registered=1");
-    });
   };
 
   if (checkingSession || !supabase) {
@@ -273,4 +279,8 @@ function formatAuthError(message: string) {
   }
 
   return message;
+}
+
+function getErrorMessage(error: unknown) {
+  return error instanceof Error ? error.message : "当前服务暂时不可用，请稍后再试。";
 }
