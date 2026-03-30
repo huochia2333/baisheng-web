@@ -79,9 +79,13 @@ export type CurrentUserBundle = {
 
 const USER_MEDIA_BUCKET = "user-media";
 const SIGNED_URL_TTL_SECONDS = 60 * 60;
-const AUTH_SESSION_TIMEOUT_MS = 15_000;
+const AUTH_SESSION_TIMEOUT_MS = 8_000;
+const AUTH_SESSION_RETRY_DELAY_MS = 350;
+const AUTH_SESSION_TIMEOUT_MESSAGE = "登录状态同步较慢，请稍后重试。";
 
 let currentSessionRequest: Promise<Session | null> | null = null;
+let currentSessionSnapshot: Session | null | undefined;
+let sessionTrackingReady = false;
 
 export function getRoleFromUser(user: User | null | undefined): AppRole | null {
   const role = normalizeOptionalString(user?.app_metadata?.role);
@@ -110,18 +114,14 @@ export async function getRoleFromCurrentSession(
 export async function getCurrentSession(
   supabase: SupabaseClient,
 ): Promise<Session | null> {
-  if (!currentSessionRequest) {
-    currentSessionRequest = withTimeout(
-      supabase.auth.getSession().then(({ data, error }) => {
-        if (error) {
-          throw error;
-        }
+  ensureSessionTracking(supabase);
 
-        return data.session;
-      }),
-      AUTH_SESSION_TIMEOUT_MS,
-      "登录状态检查超时，请刷新页面后重试。",
-    ).finally(() => {
+  if (currentSessionSnapshot !== undefined) {
+    return currentSessionSnapshot;
+  }
+
+  if (!currentSessionRequest) {
+    currentSessionRequest = resolveCurrentSession(supabase).finally(() => {
       currentSessionRequest = null;
     });
   }
@@ -482,6 +482,67 @@ function normalizeOptionalString(value: unknown) {
   return normalized.length > 0 ? normalized : null;
 }
 
+async function resolveCurrentSession(supabase: SupabaseClient) {
+  try {
+    const session = await withTimeout(
+      fetchCurrentSession(supabase),
+      AUTH_SESSION_TIMEOUT_MS,
+      AUTH_SESSION_TIMEOUT_MESSAGE,
+    );
+
+    currentSessionSnapshot = session;
+    return session;
+  } catch (error) {
+    if (currentSessionSnapshot !== undefined) {
+      return currentSessionSnapshot;
+    }
+
+    if (!isSessionTimeoutError(error)) {
+      throw error;
+    }
+
+    await delay(AUTH_SESSION_RETRY_DELAY_MS);
+
+    if (currentSessionSnapshot !== undefined) {
+      return currentSessionSnapshot;
+    }
+
+    const retriedSession = await withTimeout(
+      fetchCurrentSession(supabase),
+      AUTH_SESSION_TIMEOUT_MS,
+      AUTH_SESSION_TIMEOUT_MESSAGE,
+    );
+
+    currentSessionSnapshot = retriedSession;
+    return retriedSession;
+  }
+}
+
+async function fetchCurrentSession(supabase: SupabaseClient) {
+  const {
+    data: { session },
+    error,
+  } = await supabase.auth.getSession();
+
+  if (error) {
+    throw error;
+  }
+
+  return session;
+}
+
+function ensureSessionTracking(supabase: SupabaseClient) {
+  if (sessionTrackingReady) {
+    return;
+  }
+
+  sessionTrackingReady = true;
+
+  supabase.auth.onAuthStateChange((_event, session) => {
+    currentSessionSnapshot = session;
+  });
+}
+
 function withTimeout<T>(
   promise: Promise<T>,
   timeoutMs: number,
@@ -495,5 +556,15 @@ function withTimeout<T>(
     promise.then(resolve, reject).finally(() => {
       globalThis.clearTimeout(timeoutId);
     });
+  });
+}
+
+function isSessionTimeoutError(error: unknown) {
+  return error instanceof Error && error.message === AUTH_SESSION_TIMEOUT_MESSAGE;
+}
+
+function delay(timeoutMs: number) {
+  return new Promise<void>((resolve) => {
+    globalThis.setTimeout(resolve, timeoutMs);
   });
 }

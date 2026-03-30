@@ -250,7 +250,13 @@ export function AdminMyClient() {
   const videoAssets = mediaAssets.filter((asset) => asset.kind === "video");
   const photoStatus = getMediaStatus(photoAssets);
   const videoStatus = getMediaStatus(videoAssets);
-  const certified = Boolean(approvedIdentityValue && approvedPassportValue);
+  const verificationStatus: ReviewStatus =
+    identityStatus === "approved"
+      ? "approved"
+      : identityStatus === "pending"
+        ? "pending"
+        : "empty";
+  const certified = verificationStatus === "approved";
 
   const displayName =
     normalizeOptionalString(profile?.name) ??
@@ -284,24 +290,21 @@ export function AdminMyClient() {
   const assets = [
     {
       key: "identity" as const,
-      title: "身份资料",
-      subtitle: "基础信息",
+      title: "基础信息",
       status: getStatusLabel("identity", identityStatus),
       tone: identityStatus,
       body: <IdPreview />,
     },
     {
       key: "passport" as const,
-      title: "旅行证件",
-      subtitle: "通行信息",
+      title: "通行信息",
       status: getStatusLabel("passport", passportStatus),
       tone: passportStatus,
       body: <PassportPreview />,
     },
     {
       key: "photos" as const,
-      title: "个人媒体",
-      subtitle: "个人照片",
+      title: "个人照片",
       status: getStatusLabel("photos", photoStatus),
       tone: photoStatus,
       body: (
@@ -315,8 +318,7 @@ export function AdminMyClient() {
     },
     {
       key: "videos" as const,
-      title: "个人媒体",
-      subtitle: "个人视频",
+      title: "个人视频",
       status: getStatusLabel("videos", videoStatus),
       tone: videoStatus,
       body: <VideoPreview count={videoAssets.length} title={videoAssets[0]?.original_name} />,
@@ -716,18 +718,28 @@ export function AdminMyClient() {
             <section
               className={cn(
                 "rounded-[24px] border p-6 shadow-[0_12px_30px_rgba(96,113,128,0.06)]",
-                certified ? "border-[#d9e8dc] bg-[#edf5ef]" : "border-[#ecdcb1] bg-[#fbf5e6]",
+                certified
+                  ? "border-[#d9e8dc] bg-[#edf5ef]"
+                  : verificationStatus === "pending"
+                    ? "border-[#ecdcb1] bg-[#fbf5e6]"
+                    : "border-[#ebdfd2] bg-[#fbf6ef]",
               )}
             >
               <div className="flex items-center gap-4">
                 <div
                   className={cn(
                     "flex h-12 w-12 items-center justify-center rounded-full text-white",
-                    certified ? "bg-[#4c7259]" : "bg-[#b7892f]",
+                    certified
+                      ? "bg-[#4c7259]"
+                      : verificationStatus === "pending"
+                        ? "bg-[#b7892f]"
+                        : "bg-[#b07a4f]",
                   )}
                 >
                   {certified ? (
                     <BadgeCheck className="size-5" />
+                  ) : verificationStatus === "pending" ? (
+                    <ShieldAlert className="size-5" />
                   ) : (
                     <ShieldAlert className="size-5" />
                   )}
@@ -736,7 +748,11 @@ export function AdminMyClient() {
                   <p
                     className={cn(
                       "text-xs font-semibold tracking-[0.16em] uppercase",
-                      certified ? "text-[#4c7259]" : "text-[#87631e]",
+                      certified
+                        ? "text-[#4c7259]"
+                        : verificationStatus === "pending"
+                          ? "text-[#87631e]"
+                          : "text-[#8b6240]",
                     )}
                   >
                     实名认证状态
@@ -744,19 +760,27 @@ export function AdminMyClient() {
                   <p
                     className={cn(
                       "mt-1 text-lg font-bold",
-                      certified ? "text-[#355443]" : "text-[#6f5318]",
+                      certified
+                        ? "text-[#355443]"
+                        : verificationStatus === "pending"
+                          ? "text-[#6f5318]"
+                          : "text-[#704d31]",
                     )}
                   >
-                    {certified ? "通过认证" : "未认证"}
+                    {certified
+                      ? "通过认证"
+                      : verificationStatus === "pending"
+                        ? "审核中"
+                        : "未认证"}
                   </p>
                 </div>
               </div>
               <p className="mt-4 text-sm leading-7 text-[#6e7780]">
                 {certified
-                  ? "身份证与护照都已经通过审核。"
-                  : identityStatus === "pending" || passportStatus === "pending"
-                    ? "身份证或护照已提交，当前还在待审核。"
-                    : "身份证与护照通过审核后，这里会显示通过认证。"}
+                  ? "身份证资料已经通过审核，当前账号已完成实名认证。"
+                  : verificationStatus === "pending"
+                    ? "身份证资料已提交，当前正在审核中。"
+                    : "身份证资料通过审核后，这里会显示通过认证。"}
               </p>
             </section>
           </aside>
@@ -784,10 +808,7 @@ export function AdminMyClient() {
               >
                 <div className="flex items-start justify-between gap-3">
                   <div>
-                    <p className="font-label text-[11px] font-semibold tracking-[0.18em] text-[#7d8890] uppercase">
-                      {asset.subtitle}
-                    </p>
-                    <p className="mt-2 text-sm font-semibold text-[#2b3942]">
+                    <p className="text-sm font-semibold text-[#2b3942]">
                       {asset.title}
                     </p>
                   </div>
