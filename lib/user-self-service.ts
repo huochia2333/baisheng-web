@@ -97,17 +97,77 @@ export function getRoleFromUser(user: User | null | undefined): AppRole | null {
   return null;
 }
 
+export async function getRoleFromCurrentSession(
+  supabase: SupabaseClient,
+): Promise<AppRole | null> {
+  const {
+    data: { session },
+    error,
+  } = await supabase.auth.getSession();
+
+  if (error) {
+    throw error;
+  }
+
+  return getRoleFromAccessToken(session?.access_token);
+}
+
+export function getRoleFromAccessToken(accessToken: string | null | undefined): AppRole | null {
+  if (!accessToken) {
+    return null;
+  }
+
+  const payload = decodeJwtPayload(accessToken);
+  const appMetadata =
+    typeof payload === "object" && payload !== null && "app_metadata" in payload
+      ? payload.app_metadata
+      : null;
+
+  const role =
+    typeof appMetadata === "object" && appMetadata !== null && "role" in appMetadata
+      ? normalizeOptionalString(appMetadata.role)
+      : null;
+
+  if (
+    role === "administrator" ||
+    role === "operator" ||
+    role === "manager" ||
+    role === "salesman" ||
+    role === "finance" ||
+    role === "client"
+  ) {
+    return role;
+  }
+
+  return null;
+}
+
 export function getDefaultSignedInPath() {
-  return "/admin/my";
+  return getDefaultSignedInPathForRole(null);
+}
+
+export function getDefaultWorkspaceBasePath(role: AppRole | null) {
+  if (role === "salesman") {
+    return "/salesman";
+  }
+
+  return "/admin";
+}
+
+export function getDefaultSignedInPathForRole(role: AppRole | null) {
+  return `${getDefaultWorkspaceBasePath(role)}/my`;
 }
 
 export async function getCurrentUserBundle(
   supabase: SupabaseClient,
 ): Promise<CurrentUserBundle | null> {
-  const {
-    data: { user },
-    error: userError,
-  } = await supabase.auth.getUser();
+  const [
+    {
+      data: { user },
+      error: userError,
+    },
+    role,
+  ] = await Promise.all([supabase.auth.getUser(), getRoleFromCurrentSession(supabase)]);
 
   if (userError) {
     throw userError;
@@ -194,7 +254,7 @@ export async function getCurrentUserBundle(
 
   return {
     authUser: user,
-    role: getRoleFromUser(user),
+    role,
     profile: syncedProfile,
     privacyData: privacyDataResult.data,
     privacyRequests: privacyRequestsResult.data ?? [],
@@ -321,7 +381,7 @@ async function syncProfileFromAuthMetadataIfPossible(
     return profile;
   }
 
-  const role = getRoleFromUser(user);
+  const role = await getRoleFromCurrentSession(supabase);
   const metadataCity = normalizeOptionalString(user.user_metadata?.city);
 
   if (!metadataCity || profile.city) {
@@ -363,6 +423,31 @@ function sanitizeFileName(fileName: string) {
     .replace(/[^a-zA-Z0-9._-]/g, "")
     .replace(/^-+/, "")
     .slice(0, 120);
+}
+
+function decodeJwtPayload(accessToken: string) {
+  const segments = accessToken.split(".");
+
+  if (segments.length < 2) {
+    return null;
+  }
+
+  try {
+    return JSON.parse(atob(normalizeBase64Url(segments[1])));
+  } catch {
+    return null;
+  }
+}
+
+function normalizeBase64Url(input: string) {
+  const base64 = input.replace(/-/g, "+").replace(/_/g, "/");
+  const padding = base64.length % 4;
+
+  if (padding === 0) {
+    return base64;
+  }
+
+  return `${base64}${"=".repeat(4 - padding)}`;
 }
 
 function normalizeOptionalString(value: unknown) {

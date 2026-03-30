@@ -18,7 +18,7 @@ export async function generateMetadata({
   };
 }
 
-export default async function AdminSectionPage({ params }: SectionPageProps) {
+export default async function SalesmanSectionPage({ params }: SectionPageProps) {
   const { section } = await params;
   const copy = getWorkspaceSectionCopy(section) ?? {
     title: "业务工作台",
@@ -29,7 +29,7 @@ export default async function AdminSectionPage({ params }: SectionPageProps) {
   return (
     <AdminSectionPlaceholder
       description={copy.description}
-      homeHref="/admin/my"
+      homeHref="/salesman/my"
       title={copy.title}
     />
   );

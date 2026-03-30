@@ -6,18 +6,17 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowRight, LockKeyhole, Mail, ShieldCheck } from "lucide-react";
 
-import { getSupabaseClient } from "@/lib/supabase";
+import { getBrowserSupabaseClient } from "@/lib/supabase";
 
 import { AuthFeedback } from "./auth-feedback";
 import { AuthField } from "./auth-field";
 import { Button } from "../ui/button";
 
-const supabase = getSupabaseClient();
-
 type ForgotPasswordMode = "request" | "sent" | "reset";
 
 export function ForgotPasswordForm() {
   const router = useRouter();
+  const supabase = getBrowserSupabaseClient();
   const [mode, setMode] = useState<ForgotPasswordMode>("request");
   const [checkingRecovery, setCheckingRecovery] = useState(true);
   const [recoveryReady, setRecoveryReady] = useState(false);
@@ -32,6 +31,10 @@ export function ForgotPasswordForm() {
   const recoveryHint = useMemo(() => getRecoveryHint(), []);
 
   useEffect(() => {
+    if (!supabase) {
+      return;
+    }
+
     let isMounted = true;
 
     const syncRecoveryState = async () => {
@@ -82,7 +85,7 @@ export function ForgotPasswordForm() {
       isMounted = false;
       authListener.subscription.unsubscribe();
     };
-  }, [recoveryHint]);
+  }, [recoveryHint, supabase]);
 
   useEffect(() => {
     if (cooldownRemaining <= 0) {
@@ -110,6 +113,12 @@ export function ForgotPasswordForm() {
     setSubmitting(true);
     setError(null);
     setNotice(null);
+
+    if (!supabase) {
+      setSubmitting(false);
+      setError("当前服务暂时不可用，请稍后再试。");
+      return;
+    }
 
     const redirectTo =
       typeof window !== "undefined" ? `${window.location.origin}/forgot-password` : undefined;
@@ -147,6 +156,12 @@ export function ForgotPasswordForm() {
 
     setSubmitting(true);
 
+    if (!supabase) {
+      setSubmitting(false);
+      setError("当前服务暂时不可用，请稍后再试。");
+      return;
+    }
+
     const { error: updateError } = await supabase.auth.updateUser({ password });
 
     if (updateError) {
@@ -162,7 +177,7 @@ export function ForgotPasswordForm() {
     });
   };
 
-  if (checkingRecovery) {
+  if (checkingRecovery || !supabase) {
     return (
       <div className="rounded-[26px] border border-[#dfe5ea] bg-white/75 px-5 py-6 text-sm leading-7 text-[#647380] shadow-[0_12px_28px_rgba(115,127,139,0.06)]">
         正在检查密码重置状态...

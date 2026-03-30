@@ -18,7 +18,7 @@ import {
   Video,
 } from "lucide-react";
 
-import { getSupabaseClient } from "@/lib/supabase";
+import { getBrowserSupabaseClient } from "@/lib/supabase";
 import {
   createPrivacyRequest,
   deleteUserMediaAssets,
@@ -56,10 +56,9 @@ import { DashboardDialog } from "./dashboard-dialog";
 import { PhotoStackPreview, type PhotoThumbnail } from "./photo-stack-preview";
 import { Button } from "../ui/button";
 
-const supabase = getSupabaseClient();
-
 export function AdminMyClient() {
   const router = useRouter();
+  const supabase = getBrowserSupabaseClient();
   const photoInputRef = useRef<HTMLInputElement>(null);
   const videoInputRef = useRef<HTMLInputElement>(null);
 
@@ -87,6 +86,10 @@ export function AdminMyClient() {
   const [busyKey, setBusyKey] = useState<string | null>(null);
 
   useEffect(() => {
+    if (!supabase) {
+      return;
+    }
+
     let isMounted = true;
 
     const loadBundle = async () => {
@@ -157,7 +160,11 @@ export function AdminMyClient() {
       isMounted = false;
       authListener.subscription.unsubscribe();
     };
-  }, [router]);
+  }, [router, supabase]);
+
+  if (!supabase) {
+    return <LoadingState />;
+  }
 
   const refreshBundle = async ({
     dialogMessage,
@@ -537,13 +544,13 @@ export function AdminMyClient() {
 
   const dialogDescription =
     activeDialog === "identity"
-      ? "身份证号会提交到 user_privacy_requests，并在审核通过后写入 user_privacy_data。"
+      ? "提交后会进入审核流程，审核通过后会同步更新你的身份资料。"
       : activeDialog === "passport"
-        ? "护照号码会提交到 user_privacy_requests，并在审核通过后写入 user_privacy_data。"
+        ? "提交后会进入审核流程，审核通过后会同步更新你的通行资料。"
         : activeDialog === "photos"
-          ? "上传的个人照片会写入 user-media bucket，并在 user_media_assets 中进入待审核状态。"
+          ? "上传后会进入待审核，审核通过后会展示在你的个人资料中。"
           : activeDialog === "videos"
-            ? "上传的个人视频会写入 user-media bucket，并在 user_media_assets 中进入待审核状态。"
+            ? "上传后会进入待审核，审核通过后会展示在你的个人资料中。"
             : "";
 
   const dialogActions =

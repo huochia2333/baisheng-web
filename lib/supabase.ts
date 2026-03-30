@@ -30,3 +30,11 @@ export function getSupabaseClient() {
 
   return supabaseClient;
 }
+
+export function getBrowserSupabaseClient() {
+  if (typeof window === "undefined") {
+    return null;
+  }
+
+  return getSupabaseClient();
+}

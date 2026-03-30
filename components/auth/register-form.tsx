@@ -13,17 +13,19 @@ import {
   UserRound,
 } from "lucide-react";
 
-import { getSupabaseClient } from "@/lib/supabase";
-import { getDefaultSignedInPath } from "@/lib/user-self-service";
+import { getBrowserSupabaseClient } from "@/lib/supabase";
+import {
+  getDefaultSignedInPathForRole,
+  getRoleFromAccessToken,
+} from "@/lib/user-self-service";
 
 import { AuthFeedback } from "./auth-feedback";
 import { AuthField } from "./auth-field";
 import { Button } from "../ui/button";
 
-const supabase = getSupabaseClient();
-
 export function RegisterForm() {
   const router = useRouter();
+  const supabase = getBrowserSupabaseClient();
   const [checkingSession, setCheckingSession] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -35,6 +37,10 @@ export function RegisterForm() {
   const [acceptedTerms, setAcceptedTerms] = useState(false);
 
   useEffect(() => {
+    if (!supabase) {
+      return;
+    }
+
     let isMounted = true;
 
     const checkSession = async () => {
@@ -54,8 +60,12 @@ export function RegisterForm() {
       }
 
       if (session?.user) {
+        const nextPath = getDefaultSignedInPathForRole(
+          getRoleFromAccessToken(session.access_token),
+        );
+
         startTransition(() => {
-          router.replace(getDefaultSignedInPath());
+          router.replace(nextPath);
         });
         return;
       }
@@ -68,7 +78,7 @@ export function RegisterForm() {
     return () => {
       isMounted = false;
     };
-  }, [router]);
+  }, [router, supabase]);
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -80,6 +90,12 @@ export function RegisterForm() {
 
     setSubmitting(true);
     setError(null);
+
+    if (!supabase) {
+      setSubmitting(false);
+      setError("当前服务暂时不可用，请稍后再试。");
+      return;
+    }
 
     const normalizedInviteCode = inviteCode.trim().toUpperCase();
     const redirectUrl =
@@ -105,8 +121,12 @@ export function RegisterForm() {
     }
 
     if (data.session?.user) {
+      const nextPath = getDefaultSignedInPathForRole(
+        getRoleFromAccessToken(data.session.access_token),
+      );
+
       startTransition(() => {
-        router.replace(getDefaultSignedInPath());
+        router.replace(nextPath);
       });
       return;
     }
@@ -116,7 +136,7 @@ export function RegisterForm() {
     });
   };
 
-  if (checkingSession) {
+  if (checkingSession || !supabase) {
     return (
       <div className="rounded-[26px] border border-[#dfe5ea] bg-white/75 px-5 py-6 text-sm leading-7 text-[#647380] shadow-[0_12px_28px_rgba(115,127,139,0.06)]">
         正在检查当前登录状态...

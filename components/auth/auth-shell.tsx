@@ -129,7 +129,7 @@ export function AuthShell({
 
               <header className="mb-10 space-y-3">
                 <p className="font-label text-[11px] font-semibold tracking-[0.22em] text-[#5d7388] uppercase">
-                  Secure Workspace Access
+                    安全登录入口
                 </p>
                 <h2 className="text-[40px] leading-[1.08] font-bold tracking-[-0.04em] text-[#21303a] sm:text-[46px]">
                   {headerTitle}

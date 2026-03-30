@@ -4,11 +4,13 @@ import { ArrowRight, Sparkles } from "lucide-react";
 type AdminSectionPlaceholderProps = {
   title: string;
   description: string;
+  homeHref?: string;
 };
 
 export function AdminSectionPlaceholder({
   title,
   description,
+  homeHref = "/admin/my",
 }: AdminSectionPlaceholderProps) {
   return (
     <section className="mx-auto flex w-full max-w-[1320px] flex-col gap-6">
@@ -23,14 +25,14 @@ export function AdminSectionPlaceholder({
 
         <div className="mt-8 flex flex-wrap gap-3">
           <Link
-            href="/admin/my"
+            href={homeHref}
             className="inline-flex h-12 items-center gap-2 rounded-full bg-[#486782] px-5 text-sm font-medium text-white transition-colors hover:bg-[#3e5f79]"
           >
-            查看管理员我的页
+            查看我的页
             <ArrowRight className="size-4" />
           </Link>
           <div className="rounded-full border border-[#d8dcdf] bg-[#f6f5f2] px-4 py-3 text-sm text-[#70808e]">
-            当前模块将在管理员基础权限上继续扩展
+            当前模块会继续按角色扩展对应能力
           </div>
         </div>
       </div>
