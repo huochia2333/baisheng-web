@@ -9,17 +9,15 @@
 - 管理员后台首页
 - 管理员「我的」页面
 
-## 目录说明
+## 当前正式目录
 
-目前工作区里存在两份相同代码：
-- `D:\code\code-project\web`
-  - 本地开发目录
+当前正式项目目录为：
 - `D:\code\code-project\baisheng-web`
-  - 已连接 GitHub 仓库 `huochia2333/baisheng-web` 的同步目录
 
-当前这份 README 位于 `baisheng-web` 目录，并且这个目录已经连接 GitHub 远端。
+这个目录已经连接 GitHub 仓库：
+- `huochia2333/baisheng-web`
 
-如果后续继续开发，建议统一只使用一份目录，避免两个目录内容再次不同步。
+旧的 `web` 目录已经废弃，不再作为正式开发目录使用。
 
 ## 本地启动
 
@@ -75,7 +73,6 @@ NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=你的 Supabase Publishable Key
 ## Supabase Auth 配置
 
 在 Supabase 后台建议配置：
-
 - Site URL
   - `https://account.pt5china.com`
 - Redirect URLs
