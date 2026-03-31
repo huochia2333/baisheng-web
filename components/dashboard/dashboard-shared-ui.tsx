@@ -92,7 +92,7 @@ export function VideoPreview({ count, title }: { count: number; title?: string }
           <Video className="size-3.5" />
           Video
         </div>
-        <span className="text-xs">{count ? `${count} 条视频` : "请上传个人视频"}</span>
+        {count ? <span className="text-xs">{count} 条视频</span> : null}
       </div>
       <div className="flex flex-1 items-center justify-center">
         <div className="flex h-14 w-14 items-center justify-center rounded-full bg-white/90 text-[#486782]">

@@ -1,5 +1,6 @@
 import type { SupabaseClient, User } from "@supabase/supabase-js";
 
+import { withRequestTimeout } from "./request-timeout";
 import {
   getCurrentSessionContext,
   type AppRole,
@@ -60,13 +61,15 @@ export async function getCurrentReviewerContext(
 export async function getPendingPrivacyReviews(
   supabase: SupabaseClient,
 ): Promise<PendingPrivacyReviewRow[]> {
-  const { data, error } = await supabase
-    .from("pending_user_privacy_requests")
-    .select(
-      "request_id,user_id,name,email,passport_requests,id_card_requests,status,type,created_at",
-    )
-    .order("created_at", { ascending: false })
-    .returns<PendingPrivacyReviewRow[]>();
+  const { data, error } = await withRequestTimeout(
+    supabase
+      .from("pending_user_privacy_requests")
+      .select(
+        "request_id,user_id,name,email,passport_requests,id_card_requests,status,type,created_at",
+      )
+      .order("created_at", { ascending: false })
+      .returns<PendingPrivacyReviewRow[]>(),
+  );
 
   if (error) {
     throw error;
@@ -78,13 +81,15 @@ export async function getPendingPrivacyReviews(
 export async function getPendingMediaReviews(
   supabase: SupabaseClient,
 ): Promise<PendingMediaReviewWithPreview[]> {
-  const { data, error } = await supabase
-    .from("pending_user_media_assets")
-    .select(
-      "asset_id,user_id,name,email,kind,bucket_name,storage_path,original_name,mime_type,file_size_bytes,status,created_at",
-    )
-    .order("created_at", { ascending: false })
-    .returns<PendingMediaReviewRow[]>();
+  const { data, error } = await withRequestTimeout(
+    supabase
+      .from("pending_user_media_assets")
+      .select(
+        "asset_id,user_id,name,email,kind,bucket_name,storage_path,original_name,mime_type,file_size_bytes,status,created_at",
+      )
+      .order("created_at", { ascending: false })
+      .returns<PendingMediaReviewRow[]>(),
+  );
 
   if (error) {
     throw error;
@@ -92,17 +97,19 @@ export async function getPendingMediaReviews(
 
   const rows = data ?? [];
 
-  return Promise.all(
-    rows.map(async (row) => {
-      const { data: signedUrlData, error: signedUrlError } = await supabase.storage
-        .from(row.bucket_name)
-        .createSignedUrl(row.storage_path, SIGNED_URL_TTL_SECONDS);
+  return withRequestTimeout(
+    Promise.all(
+      rows.map(async (row) => {
+        const { data: signedUrlData, error: signedUrlError } = await supabase.storage
+          .from(row.bucket_name)
+          .createSignedUrl(row.storage_path, SIGNED_URL_TTL_SECONDS);
 
-      return {
-        ...row,
-        previewUrl: signedUrlError ? null : (signedUrlData?.signedUrl ?? null),
-      } satisfies PendingMediaReviewWithPreview;
-    }),
+        return {
+          ...row,
+          previewUrl: signedUrlError ? null : (signedUrlData?.signedUrl ?? null),
+        } satisfies PendingMediaReviewWithPreview;
+      }),
+    ),
   );
 }
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { ReactNode } from "react";
 
 import { useRouter } from "next/navigation";
@@ -19,16 +19,32 @@ import {
   createAdminOrder,
   deleteAdminOrder,
   getAdminOrders,
+  getAdminOrderSupplementaryDetail,
   getCurrentOrderViewerContext,
+  getOrderDiscountTypeOptions,
   getOrderTypeOptions,
   getOrderUserOptions,
+  getPurchaseOrderTypeOptions,
+  getServiceOrderTypeOptions,
   updateAdminOrder,
+  type AdminOrderDetailValue,
   type AdminOrderRow,
+  type AdminOrderSupplementaryDetail,
   type BusinessCategoryOption,
   type CreateAdminOrderInput,
+  type OrderDiscountTypeOption,
   type OrderUserOption,
+  type PurchaseOrderTypeOption,
+  type ServiceOrderTypeOption,
 } from "@/lib/admin-orders";
+import {
+  markBrowserCloudSyncActivity,
+  resetBrowserCloudSyncState,
+  shouldRecoverBrowserCloudSyncState,
+} from "@/lib/browser-sync-recovery";
 import { getBrowserSupabaseClient } from "@/lib/supabase";
+import { useDelayedTimeoutWarning } from "@/lib/use-delayed-timeout-warning";
+import { useResumeRecovery } from "@/lib/use-resume-recovery";
 import { cn } from "@/lib/utils";
 
 import {
@@ -38,7 +54,7 @@ import {
   normalizeOptionalString,
   toErrorMessage,
   type NoticeTone,
-} from "./admin-my-shared";
+} from "./dashboard-shared-ui";
 import { DashboardDialog } from "./dashboard-dialog";
 import { Button } from "../ui/button";
 
@@ -57,7 +73,11 @@ type OrderFormState = {
   orderType: string;
   createdAt: string;
   reviewedAt: string;
-  orderRemark: string;
+  purchaseSubtype: string;
+  purchaseDetails: string;
+  serviceSubtype: string;
+  serviceDiscount: string;
+  serviceDetails: string;
 };
 
 const ORDER_STATUS_OPTIONS = [
@@ -74,11 +94,15 @@ export function AdminOrdersClient() {
   const supabase = getBrowserSupabaseClient();
 
   const [loading, setLoading] = useState(true);
+  const [syncGeneration, setSyncGeneration] = useState(0);
   const [hasPermission, setHasPermission] = useState<boolean | null>(null);
   const [pageFeedback, setPageFeedback] = useState<PageFeedback>(null);
   const [orders, setOrders] = useState<AdminOrderRow[]>([]);
   const [userOptions, setUserOptions] = useState<OrderUserOption[]>([]);
   const [typeOptions, setTypeOptions] = useState<BusinessCategoryOption[]>([]);
+  const [purchaseTypeOptions, setPurchaseTypeOptions] = useState<PurchaseOrderTypeOption[]>([]);
+  const [serviceTypeOptions, setServiceTypeOptions] = useState<ServiceOrderTypeOption[]>([]);
+  const [discountOptions, setDiscountOptions] = useState<OrderDiscountTypeOption[]>([]);
   const [currentViewerId, setCurrentViewerId] = useState<string | null>(null);
   const [filters, setFilters] = useState({
     orderEntryUser: "",
@@ -95,24 +119,49 @@ export function AdminOrdersClient() {
 
   const [selectedOrder, setSelectedOrder] = useState<AdminOrderRow | null>(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [editDialogFeedback, setEditDialogFeedback] = useState<PageFeedback>(null);
+  const [editSupplementaryLoading, setEditSupplementaryLoading] = useState(false);
   const [editPending, setEditPending] = useState(false);
   const [editOriginalOrderNumber, setEditOriginalOrderNumber] = useState<string | null>(null);
   const [editFormState, setEditFormState] = useState<OrderFormState>(() =>
     createOrderFormState(),
   );
   const [deletePending, setDeletePending] = useState(false);
+  const loadingStateRef = useRef(true);
+  const editSupplementaryLoadTokenRef = useRef(0);
+  const { clearPendingTimeoutWarning, scheduleTimeoutWarning } =
+    useDelayedTimeoutWarning();
+
+  loadingStateRef.current = loading;
+
+  const recoverCloudSync = useCallback(() => {
+    clearPendingTimeoutWarning();
+    resetBrowserCloudSyncState();
+    markBrowserCloudSyncActivity();
+    setSyncGeneration((current) => current + 1);
+  }, [clearPendingTimeoutWarning]);
 
   useEffect(() => {
     if (!supabase) {
       return;
     }
 
+    if (shouldRecoverBrowserCloudSyncState()) {
+      recoverCloudSync();
+      return;
+    }
+
     let isMounted = true;
+    const showLoading = loadingStateRef.current;
 
     const loadOrders = async ({ showLoading }: { showLoading: boolean }) => {
+      let warningDelayed = false;
+
       if (showLoading && isMounted) {
         setLoading(true);
       }
+
+      clearPendingTimeoutWarning();
 
       try {
         const viewer = await getCurrentOrderViewerContext(supabase);
@@ -134,14 +183,27 @@ export function AdminOrdersClient() {
           setOrders([]);
           setUserOptions([]);
           setTypeOptions([]);
+          setPurchaseTypeOptions([]);
+          setServiceTypeOptions([]);
+          setDiscountOptions([]);
           setPageFeedback(null);
           return;
         }
 
-        const [nextOrders, nextUserOptions, nextTypeOptions] = await Promise.all([
+        const [
+          nextOrders,
+          nextUserOptions,
+          nextTypeOptions,
+          nextPurchaseTypeOptions,
+          nextServiceTypeOptions,
+          nextDiscountOptions,
+        ] = await Promise.all([
           getAdminOrders(supabase),
           getOrderUserOptions(supabase),
           getOrderTypeOptions(supabase),
+          getPurchaseOrderTypeOptions(supabase),
+          getServiceOrderTypeOptions(supabase),
+          getOrderDiscountTypeOptions(supabase),
         ]);
 
         if (!isMounted) {
@@ -151,6 +213,9 @@ export function AdminOrdersClient() {
         setOrders(nextOrders);
         setUserOptions(nextUserOptions);
         setTypeOptions(nextTypeOptions);
+        setPurchaseTypeOptions(nextPurchaseTypeOptions);
+        setServiceTypeOptions(nextServiceTypeOptions);
+        setDiscountOptions(nextDiscountOptions);
         setPageFeedback(null);
         setCreateFormState((current) =>
           applyOrderFormDefaults(current, {
@@ -163,18 +228,35 @@ export function AdminOrdersClient() {
           return;
         }
 
-        setPageFeedback({
-          tone: "error",
-          message: toOrderErrorMessage(error),
+        warningDelayed = scheduleTimeoutWarning(error, () => {
+          if (!isMounted) {
+            return;
+          }
+
+          setPageFeedback({
+            tone: "error",
+            message: toOrderErrorMessage(error),
+          });
+
+          if (showLoading) {
+            setLoading(false);
+          }
         });
+
+        if (!warningDelayed) {
+          setPageFeedback({
+            tone: "error",
+            message: toOrderErrorMessage(error),
+          });
+        }
       } finally {
-        if (showLoading && isMounted) {
+        if (showLoading && isMounted && !warningDelayed) {
           setLoading(false);
         }
       }
     };
 
-    void loadOrders({ showLoading: true });
+    void loadOrders({ showLoading });
 
     const { data: authListener } = supabase.auth.onAuthStateChange(
       async (_event, session) => {
@@ -195,7 +277,18 @@ export function AdminOrdersClient() {
       isMounted = false;
       authListener.subscription.unsubscribe();
     };
-  }, [router, supabase]);
+  }, [
+    clearPendingTimeoutWarning,
+    recoverCloudSync,
+    router,
+    scheduleTimeoutWarning,
+    supabase,
+    syncGeneration,
+  ]);
+
+  useResumeRecovery(recoverCloudSync, {
+    enabled: Boolean(supabase),
+  });
 
   const summary = useMemo(() => {
     return {
@@ -212,6 +305,12 @@ export function AdminOrdersClient() {
   const orderTypeMetaById = useMemo(() => {
     return new Map(
       typeOptions.map((option) => [option.id, getOrderTypeMetaFromCategory(option.category)]),
+    );
+  }, [typeOptions]);
+
+  const orderCategoryByTypeId = useMemo(() => {
+    return new Map(
+      typeOptions.map((option) => [option.id, normalizeOptionalString(option.category)]),
     );
   }, [typeOptions]);
 
@@ -252,9 +351,44 @@ export function AdminOrdersClient() {
   const openEditDialog = (order: AdminOrderRow) => {
     setPageFeedback(null);
     setSelectedOrder(null);
+    setEditDialogFeedback(null);
     setEditOriginalOrderNumber(order.order_number);
     setEditFormState(createOrderFormStateFromOrder(order));
     setEditDialogOpen(true);
+
+    if (!supabase) {
+      return;
+    }
+
+    const loadToken = editSupplementaryLoadTokenRef.current + 1;
+    editSupplementaryLoadTokenRef.current = loadToken;
+    setEditSupplementaryLoading(true);
+
+    void getAdminOrderSupplementaryDetail(supabase, order.order_number)
+      .then((detail) => {
+        if (editSupplementaryLoadTokenRef.current !== loadToken) {
+          return;
+        }
+
+        setEditFormState(createOrderFormStateFromOrder(order, detail));
+      })
+      .catch((error) => {
+        if (editSupplementaryLoadTokenRef.current !== loadToken) {
+          return;
+        }
+
+        setEditDialogFeedback({
+          tone: "error",
+          message: toOrderErrorMessage(error),
+        });
+      })
+      .finally(() => {
+        if (editSupplementaryLoadTokenRef.current !== loadToken) {
+          return;
+        }
+
+        setEditSupplementaryLoading(false);
+      });
   };
 
   const updateCreateFormField = <Key extends keyof OrderFormState>(
@@ -272,6 +406,7 @@ export function AdminOrdersClient() {
     key: Key,
     value: OrderFormState[Key],
   ) => {
+    setEditDialogFeedback(null);
     setEditFormState((current) => ({
       ...current,
       [key]: value,
@@ -283,7 +418,7 @@ export function AdminOrdersClient() {
       return;
     }
 
-    const parsed = parseOrderForm(createFormState);
+    const parsed = parseCreateOrderForm(createFormState, orderCategoryByTypeId);
 
     if (!parsed.ok) {
       setCreateDialogFeedback({ tone: "error", message: parsed.message });
@@ -324,14 +459,15 @@ export function AdminOrdersClient() {
       return;
     }
 
-    const parsed = parseOrderForm(editFormState);
+    const parsed = parseCreateOrderForm(editFormState, orderCategoryByTypeId);
 
     if (!parsed.ok) {
-      setPageFeedback({ tone: "error", message: parsed.message });
+      setEditDialogFeedback({ tone: "error", message: parsed.message });
       return;
     }
 
     setEditPending(true);
+    setEditDialogFeedback(null);
     setPageFeedback(null);
 
     try {
@@ -346,6 +482,7 @@ export function AdminOrdersClient() {
         ),
       );
       setEditDialogOpen(false);
+      setEditDialogFeedback(null);
       setEditOriginalOrderNumber(null);
       setSelectedOrder(updatedOrder);
       setPageFeedback({
@@ -353,7 +490,7 @@ export function AdminOrdersClient() {
         message: `订单 ${updatedOrder.order_number} 已更新成功。`,
       });
     } catch (error) {
-      setPageFeedback({
+      setEditDialogFeedback({
         tone: "error",
         message: toOrderErrorMessage(error),
       });
@@ -604,10 +741,14 @@ export function AdminOrdersClient() {
         description="填写订单基础信息后，系统会立即将新订单写入订单列表。"
         feedback={createDialogFeedback}
         formState={createFormState}
+        mode="create"
         open={createDialogOpen}
+        orderDiscountOptions={discountOptions}
         orderTypeOptions={typeOptions}
         orderUserOptions={userOptions}
         pending={createPending}
+        purchaseOrderTypeOptions={purchaseTypeOptions}
+        serviceOrderTypeOptions={serviceTypeOptions}
         submitLabel="创建订单"
         title="创建订单"
         onFieldChange={updateCreateFormField}
@@ -627,11 +768,17 @@ export function AdminOrdersClient() {
 
       <OrderFormDialog
         description="编辑后会立即覆盖当前订单信息，并同步更新订单详情。"
+        feedback={editDialogFeedback}
         formState={editFormState}
+        mode="edit"
         open={editDialogOpen}
+        orderDiscountOptions={discountOptions}
         orderTypeOptions={typeOptions}
         orderUserOptions={userOptions}
         pending={editPending}
+        purchaseOrderTypeOptions={purchaseTypeOptions}
+        serviceOrderTypeOptions={serviceTypeOptions}
+        supplementaryLoading={editSupplementaryLoading}
         submitLabel="保存修改"
         title="编辑订单"
         onFieldChange={updateEditFormField}
@@ -642,6 +789,9 @@ export function AdminOrdersClient() {
 
           if (!open) {
             setEditOriginalOrderNumber(null);
+            setEditDialogFeedback(null);
+            setEditSupplementaryLoading(false);
+            editSupplementaryLoadTokenRef.current += 1;
           }
 
           setEditDialogOpen(open);
@@ -655,6 +805,7 @@ export function AdminOrdersClient() {
         onEdit={openEditDialog}
         order={selectedOrder}
         orderTypeMetaById={orderTypeMetaById}
+        supabase={supabase}
         userLabelById={userLabelById}
         onOpenChange={(open) => {
           if (!open) {
@@ -734,6 +885,7 @@ function FilterField({
 }
 
 function OrderFormDialog({
+  mode,
   title,
   description,
   submitLabel,
@@ -741,12 +893,17 @@ function OrderFormDialog({
   open,
   pending,
   formState,
+  orderDiscountOptions,
   orderTypeOptions,
   orderUserOptions,
+  purchaseOrderTypeOptions,
+  serviceOrderTypeOptions,
+  supplementaryLoading = false,
   onOpenChange,
   onFieldChange,
   onSubmit,
 }: {
+  mode: "create" | "edit";
   title: string;
   description: string;
   submitLabel: string;
@@ -754,8 +911,12 @@ function OrderFormDialog({
   open: boolean;
   pending: boolean;
   formState: OrderFormState;
+  orderDiscountOptions: OrderDiscountTypeOption[];
   orderTypeOptions: BusinessCategoryOption[];
   orderUserOptions: OrderUserOption[];
+  purchaseOrderTypeOptions: PurchaseOrderTypeOption[];
+  serviceOrderTypeOptions: ServiceOrderTypeOption[];
+  supplementaryLoading?: boolean;
   onOpenChange: (open: boolean) => void;
   onFieldChange: <Key extends keyof OrderFormState>(
     key: Key,
@@ -763,23 +924,30 @@ function OrderFormDialog({
   ) => void;
   onSubmit: () => void;
 }) {
+  const selectedOrderCategory = useMemo(() => {
+    return (
+      orderTypeOptions.find((option) => option.id === formState.orderType)?.category ?? null
+    );
+  }, [formState.orderType, orderTypeOptions]);
+  const isFormBusy = pending || supplementaryLoading;
+
   return (
     <DashboardDialog
       actions={
         <>
-          <Button onClick={() => onOpenChange(false)} type="button" variant="outline">
-            取消
-          </Button>
-          <Button
-            className="bg-[#486782] text-white hover:bg-[#3e5f79]"
-            disabled={pending}
-            onClick={onSubmit}
-            type="button"
-          >
-            {pending ? (
-              <LoaderCircle className="size-4 animate-spin" />
-            ) : (
-              <PencilLine className="size-4" />
+            <Button onClick={() => onOpenChange(false)} type="button" variant="outline">
+              取消
+            </Button>
+            <Button
+              className="bg-[#486782] text-white hover:bg-[#3e5f79]"
+              disabled={isFormBusy}
+              onClick={onSubmit}
+              type="button"
+            >
+              {isFormBusy ? (
+                <LoaderCircle className="size-4 animate-spin" />
+              ) : (
+                <PencilLine className="size-4" />
             )}
             {submitLabel}
           </Button>
@@ -795,10 +963,10 @@ function OrderFormDialog({
 
         <div className="grid gap-5 md:grid-cols-2">
         <OrderField label="订单编号" required>
-          <input
-            className={fieldInputClassName}
-            disabled={pending}
-            onChange={(event) => onFieldChange("orderNumber", event.target.value)}
+            <input
+              className={fieldInputClassName}
+              disabled={isFormBusy}
+              onChange={(event) => onFieldChange("orderNumber", event.target.value)}
             placeholder="请输入订单编号"
             type="text"
             value={formState.orderNumber}
@@ -806,9 +974,9 @@ function OrderFormDialog({
         </OrderField>
 
         <OrderField label="原始货币" required>
-          <input
-            className={fieldInputClassName}
-            disabled={pending}
+            <input
+              className={fieldInputClassName}
+              disabled={isFormBusy}
             onChange={(event) => onFieldChange("originalCurrency", event.target.value)}
             placeholder="例如 USD、CNY、EUR"
             type="text"
@@ -817,9 +985,9 @@ function OrderFormDialog({
         </OrderField>
 
         <OrderField label="金额总计" required>
-          <input
-            className={fieldInputClassName}
-            disabled={pending}
+            <input
+              className={fieldInputClassName}
+              disabled={isFormBusy}
             min="0"
             onChange={(event) => onFieldChange("amount", event.target.value)}
             placeholder="请输入金额总计"
@@ -830,9 +998,9 @@ function OrderFormDialog({
         </OrderField>
 
         <OrderField label="当日汇率" required>
-          <input
-            className={fieldInputClassName}
-            disabled={pending}
+            <input
+              className={fieldInputClassName}
+              disabled={isFormBusy}
             min="0"
             onChange={(event) => onFieldChange("dailyExchangeRate", event.target.value)}
             placeholder="请输入当日汇率"
@@ -843,9 +1011,9 @@ function OrderFormDialog({
         </OrderField>
 
         <OrderField label="公司成交汇率" required>
-          <input
-            className={fieldInputClassName}
-            disabled={pending}
+            <input
+              className={fieldInputClassName}
+              disabled={isFormBusy}
             min="0"
             onChange={(event) => onFieldChange("transactionRate", event.target.value)}
             placeholder="请输入公司成交汇率"
@@ -856,9 +1024,9 @@ function OrderFormDialog({
         </OrderField>
 
         <OrderField label="人民币总计" required>
-          <input
-            className={fieldInputClassName}
-            disabled={pending}
+            <input
+              className={fieldInputClassName}
+              disabled={isFormBusy}
             min="0"
             onChange={(event) => onFieldChange("rmbAmount", event.target.value)}
             placeholder="请输入人民币总计"
@@ -871,7 +1039,7 @@ function OrderFormDialog({
         <OrderField label="订单录入员" required>
           <select
             className={fieldInputClassName}
-            disabled={pending}
+            disabled={isFormBusy}
             onChange={(event) => onFieldChange("orderEntryUser", event.target.value)}
             value={formState.orderEntryUser}
           >
@@ -887,7 +1055,7 @@ function OrderFormDialog({
         <OrderField label="订单客户" required>
           <select
             className={fieldInputClassName}
-            disabled={pending}
+            disabled={isFormBusy}
             onChange={(event) => onFieldChange("orderingUser", event.target.value)}
             value={formState.orderingUser}
           >
@@ -903,7 +1071,7 @@ function OrderFormDialog({
         <OrderField label="订单状态" required>
           <select
             className={fieldInputClassName}
-            disabled={pending}
+            disabled={isFormBusy}
             onChange={(event) => onFieldChange("orderStatus", event.target.value)}
             value={formState.orderStatus}
           >
@@ -918,7 +1086,7 @@ function OrderFormDialog({
         <OrderField label="订单类型" required>
           <select
             className={fieldInputClassName}
-            disabled={pending}
+            disabled={isFormBusy}
             onChange={(event) => onFieldChange("orderType", event.target.value)}
             value={formState.orderType}
           >
@@ -934,7 +1102,7 @@ function OrderFormDialog({
         <OrderField label="创建日期" required>
           <input
             className={fieldInputClassName}
-            disabled={pending}
+            disabled={isFormBusy}
             onChange={(event) => onFieldChange("createdAt", event.target.value)}
             type="datetime-local"
             value={formState.createdAt}
@@ -944,25 +1112,124 @@ function OrderFormDialog({
         <OrderField label="最后一次改动日期" required>
           <input
             className={fieldInputClassName}
-            disabled={pending}
+            disabled={isFormBusy}
             onChange={(event) => onFieldChange("reviewedAt", event.target.value)}
             type="datetime-local"
             value={formState.reviewedAt}
           />
         </OrderField>
 
+        {selectedOrderCategory === "purchase" ? (
           <div className="md:col-span-2">
-            <OrderField label="订单备注">
-              <textarea
-                className={fieldTextareaClassName}
-                disabled={pending}
-                onChange={(event) => onFieldChange("orderRemark", event.target.value)}
-                placeholder="可填写订单补充说明、跟进记录或特殊情况"
-                rows={4}
-                value={formState.orderRemark}
-              />
-            </OrderField>
+            <OrderSupplementaryFormSection
+              description={
+                mode === "create"
+                  ? "当前订单类型为采购订单，请继续填写采购子表信息。订单明细支持 JSON，也支持每行一个“字段: 内容”。"
+                  : "当前订单类型为采购订单，可直接修改采购子表信息。订单明细支持 JSON，也支持每行一个“字段: 内容”。"
+              }
+              title="采购订单信息"
+            >
+              {supplementaryLoading ? (
+                <div className="flex items-center gap-3 rounded-[18px] border border-[#ebe7e1] bg-white px-4 py-3 text-sm text-[#60707d]">
+                  <LoaderCircle className="size-4 animate-spin" />
+                  正在加载采购订单信息...
+                </div>
+              ) : null}
+              <div className="grid gap-5 md:grid-cols-2">
+                <OrderField label="采购小类" required>
+                  <select
+                    className={fieldInputClassName}
+                    disabled={isFormBusy}
+                    onChange={(event) => onFieldChange("purchaseSubtype", event.target.value)}
+                    value={formState.purchaseSubtype}
+                  >
+                    <option value="">请选择采购小类</option>
+                    {purchaseOrderTypeOptions.map((option) => (
+                      <option key={option.id} value={option.id}>
+                        {formatPurchaseOrderSubtype(option.business_subcategory)}
+                      </option>
+                    ))}
+                  </select>
+                </OrderField>
+              </div>
+
+              <OrderField label="采购订单明细">
+                <textarea
+                  className={fieldTextareaClassName}
+                  disabled={isFormBusy}
+                  onChange={(event) => onFieldChange("purchaseDetails", event.target.value)}
+                  placeholder={'可填写 JSON，或按行输入，例如：\n商品名称: iPhone 16 Pro\n数量: 2\n收货城市: 上海'}
+                  rows={6}
+                  value={formState.purchaseDetails}
+                />
+              </OrderField>
+            </OrderSupplementaryFormSection>
           </div>
+        ) : null}
+
+        {selectedOrderCategory === "service" ? (
+          <div className="md:col-span-2">
+            <OrderSupplementaryFormSection
+              description={
+                mode === "create"
+                  ? "当前订单类型为服务订单，请继续填写服务子表信息。订单明细支持 JSON，也支持每行一个“字段: 内容”。"
+                  : "当前订单类型为服务订单，可直接修改服务子表信息。订单明细支持 JSON，也支持每行一个“字段: 内容”。"
+              }
+              title="服务订单信息"
+            >
+              {supplementaryLoading ? (
+                <div className="flex items-center gap-3 rounded-[18px] border border-[#ebe7e1] bg-white px-4 py-3 text-sm text-[#60707d]">
+                  <LoaderCircle className="size-4 animate-spin" />
+                  正在加载服务订单信息...
+                </div>
+              ) : null}
+              <div className="grid gap-5 md:grid-cols-2">
+                <OrderField label="服务小类" required>
+                  <select
+                    className={fieldInputClassName}
+                    disabled={isFormBusy}
+                    onChange={(event) => onFieldChange("serviceSubtype", event.target.value)}
+                    value={formState.serviceSubtype}
+                  >
+                    <option value="">请选择服务小类</option>
+                    {serviceOrderTypeOptions.map((option) => (
+                      <option key={option.id} value={option.id}>
+                        {formatServiceOrderSubtype(option.business_subcategory)}
+                      </option>
+                    ))}
+                  </select>
+                </OrderField>
+
+                <OrderField label="订单折扣" required>
+                  <select
+                    className={fieldInputClassName}
+                    disabled={isFormBusy}
+                    onChange={(event) => onFieldChange("serviceDiscount", event.target.value)}
+                    value={formState.serviceDiscount}
+                  >
+                    <option value="">请选择订单折扣</option>
+                    {orderDiscountOptions.map((option) => (
+                      <option key={option.id} value={option.id}>
+                        {formatDiscountRatioValue(option.discount_ratio)}
+                      </option>
+                    ))}
+                  </select>
+                </OrderField>
+              </div>
+
+              <OrderField label="服务订单明细">
+                <textarea
+                  className={fieldTextareaClassName}
+                  disabled={isFormBusy}
+                  onChange={(event) => onFieldChange("serviceDetails", event.target.value)}
+                  placeholder={'可填写 JSON，或按行输入，例如：\n服务日期: 2026-04-02\n服务地点: 上海浦东机场\n接待人数: 3'}
+                  rows={6}
+                  value={formState.serviceDetails}
+                />
+              </OrderField>
+            </OrderSupplementaryFormSection>
+          </div>
+        ) : null}
         </div>
       </div>
     </DashboardDialog>
@@ -973,6 +1240,7 @@ function OrderDetailsDialog({
   order,
   userLabelById,
   orderTypeMetaById,
+  supabase,
   onEdit,
   onDelete,
   deletePending,
@@ -981,12 +1249,66 @@ function OrderDetailsDialog({
   order: AdminOrderRow | null;
   userLabelById: Map<string, string>;
   orderTypeMetaById: Map<string, ReturnType<typeof getOrderTypeMetaFromCategory>>;
+  supabase: NonNullable<ReturnType<typeof getBrowserSupabaseClient>>;
   onEdit: (order: AdminOrderRow) => void;
   onDelete: () => void;
   deletePending: boolean;
   onOpenChange: (open: boolean) => void;
 }) {
   const typeMeta = resolveOrderTypeMeta(order?.order_type ?? null, orderTypeMetaById);
+  const orderNumber = order?.order_number ?? null;
+  const [supplementaryState, setSupplementaryState] = useState<{
+    orderNumber: string | null;
+    detail: AdminOrderSupplementaryDetail | null;
+    error: string | null;
+  }>({
+    orderNumber: null,
+    detail: null,
+    error: null,
+  });
+
+  useEffect(() => {
+    if (!orderNumber) {
+      return;
+    }
+
+    let isActive = true;
+
+    void getAdminOrderSupplementaryDetail(supabase, orderNumber)
+      .then((detail) => {
+        if (!isActive) {
+          return;
+        }
+
+        setSupplementaryState({
+          orderNumber,
+          detail,
+          error: null,
+        });
+      })
+      .catch((error) => {
+        if (!isActive) {
+          return;
+        }
+
+        setSupplementaryState({
+          orderNumber,
+          detail: null,
+          error: toOrderErrorMessage(error),
+        });
+      });
+
+    return () => {
+      isActive = false;
+    };
+  }, [orderNumber, supabase]);
+
+  const supplementaryLoading =
+    orderNumber !== null && supplementaryState.orderNumber !== orderNumber;
+  const supplementaryDetail =
+    supplementaryState.orderNumber === orderNumber ? supplementaryState.detail : null;
+  const supplementaryError =
+    supplementaryState.orderNumber === orderNumber ? supplementaryState.error : null;
 
   return (
     <DashboardDialog
@@ -1014,47 +1336,123 @@ function OrderDetailsDialog({
           </>
         ) : null
       }
-      description={order ? "查看订单的完整金额、汇率、人员与备注信息。" : undefined}
+      description={order ? "查看订单的完整金额、汇率、人员信息以及关联表单内容。" : undefined}
       onOpenChange={onOpenChange}
       open={order !== null}
       title={order ? `订单 ${order.order_number}` : "订单详情"}
     >
       {order ? (
-        <div className="grid gap-5 md:grid-cols-2">
-          <OrderDetailCard label="订单编号" value={order.order_number} />
-          <OrderDetailCard label="订单状态" value={getStatusLabel(order.order_status)} />
-          <OrderDetailCard label="订单类型" value={typeMeta.label} />
-          <OrderDetailCard label="原始货币" value={formatCurrencyCode(order.original_currency)} />
-          <OrderDetailCard label="金额总计" value={formatMoneyValue(order.amount)} />
-          <OrderDetailCard label="人民币总计" value={formatMoneyValue(order.rmb_amount)} />
-          <OrderDetailCard label="当日汇率" value={formatRateValue(order.daily_exchange_rate)} />
-          <OrderDetailCard
-            label="公司成交汇率"
-            value={formatRateValue(order.transaction_rate)}
-          />
-          <OrderDetailCard
-            label="订单录入员"
-            value={resolveOrderUserLabel(order.order_entry_user, userLabelById)}
-          />
-          <OrderDetailCard
-            label="订单客户"
-            value={resolveOrderUserLabel(order.ordering_user, userLabelById)}
-          />
-          <OrderDetailCard label="创建日期" value={formatDateTime(order.created_at)} />
-          <OrderDetailCard
-            label="最后一次改动日期"
-            value={formatDateTime(order.reviewed_at)}
-          />
-          <div className="md:col-span-2">
+        <div className="space-y-6">
+          <div className="grid gap-5 md:grid-cols-2">
+            <OrderDetailCard label="订单编号" value={order.order_number} />
+            <OrderDetailCard label="订单状态" value={getStatusLabel(order.order_status)} />
+            <OrderDetailCard label="订单类型" value={typeMeta.label} />
+            <OrderDetailCard label="原始货币" value={formatCurrencyCode(order.original_currency)} />
+            <OrderDetailCard label="金额总计" value={formatMoneyValue(order.amount)} />
+            <OrderDetailCard label="人民币总计" value={formatMoneyValue(order.rmb_amount)} />
+            <OrderDetailCard label="当日汇率" value={formatRateValue(order.daily_exchange_rate)} />
             <OrderDetailCard
-              label="订单备注"
-              multiline
-              value={normalizeOptionalString(order.order_remark) ?? "暂无备注"}
+              label="公司成交汇率"
+              value={formatRateValue(order.transaction_rate)}
+            />
+            <OrderDetailCard
+              label="订单录入员"
+              value={resolveOrderUserLabel(order.order_entry_user, userLabelById)}
+            />
+            <OrderDetailCard
+              label="订单客户"
+              value={resolveOrderUserLabel(order.ordering_user, userLabelById)}
+            />
+            <OrderDetailCard label="创建日期" value={formatDateTime(order.created_at)} />
+            <OrderDetailCard
+              label="最后一次改动日期"
+              value={formatDateTime(order.reviewed_at)}
             />
           </div>
+
+          <OrderSupplementaryDetailsSection
+            detail={supplementaryDetail}
+            error={supplementaryError}
+            loading={supplementaryLoading}
+          />
         </div>
       ) : null}
     </DashboardDialog>
+  );
+}
+
+function OrderSupplementaryDetailsSection({
+  detail,
+  loading,
+  error,
+}: {
+  detail: AdminOrderSupplementaryDetail | null;
+  loading: boolean;
+  error: string | null;
+}) {
+  const detailItems = useMemo(
+    () => (detail ? flattenOrderDetailItems(detail.details) : []),
+    [detail],
+  );
+
+  if (loading) {
+    return (
+      <div className="rounded-[24px] border border-[#ebe7e1] bg-[#f9f7f4] px-5 py-4 shadow-[0_10px_24px_rgba(96,113,128,0.05)]">
+        <div className="flex items-center gap-3 text-sm text-[#60707d]">
+          <LoaderCircle className="size-4 animate-spin" />
+          正在加载关联表单内容...
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return <PageBanner tone="error">{error}</PageBanner>;
+  }
+
+  if (!detail) {
+    return <PageBanner tone="info">当前订单还没有对应的采购单或服务单表单内容。</PageBanner>;
+  }
+
+  const formTitle = detail.kind === "purchase" ? "采购订单表单" : "服务订单表单";
+  const subtypeLabel = detail.kind === "purchase" ? "采购小类" : "服务小类";
+  const subtypeValue =
+    detail.kind === "purchase"
+      ? formatPurchaseOrderSubtype(detail.subtype)
+      : formatServiceOrderSubtype(detail.subtype);
+
+  return (
+    <section className="rounded-[28px] border border-[#ebe7e1] bg-[#f9f7f4] p-5 shadow-[0_10px_24px_rgba(96,113,128,0.05)] sm:p-6">
+      <div className="flex flex-col">
+        <h3 className="text-lg font-semibold text-[#23313a]">{formTitle}</h3>
+      </div>
+
+      <div className="mt-5 grid gap-5 md:grid-cols-2">
+        <OrderDetailCard label="来源表单" value={formTitle} />
+        <OrderDetailCard label={subtypeLabel} value={subtypeValue} />
+        {detail.kind === "service" ? (
+          <OrderDetailCard
+            label="订单折扣"
+            value={formatDiscountRatioValue(detail.discountRatio)}
+          />
+        ) : null}
+
+        {detailItems.length > 0 ? (
+          detailItems.map((item, index) => (
+            <OrderDetailCard
+              key={`${item.label}-${index}`}
+              label={item.label}
+              multiline
+              value={item.value}
+            />
+          ))
+        ) : (
+          <div className="md:col-span-2">
+            <PageBanner tone="info">当前关联表单还没有填写更多明细内容。</PageBanner>
+          </div>
+        )}
+      </div>
+    </section>
   );
 }
 
@@ -1075,6 +1473,26 @@ function OrderField({
       </div>
       {children}
     </label>
+  );
+}
+
+function OrderSupplementaryFormSection({
+  title,
+  description,
+  children,
+}: {
+  title: string;
+  description: string;
+  children: ReactNode;
+}) {
+  return (
+    <section className="rounded-[24px] border border-[#ebe7e1] bg-[#f9f7f4] p-5 shadow-[0_10px_24px_rgba(96,113,128,0.05)]">
+      <div className="mb-5">
+        <h3 className="text-lg font-semibold text-[#23313a]">{title}</h3>
+        <p className="mt-2 text-sm leading-7 text-[#66717a]">{description}</p>
+      </div>
+      <div className="space-y-5">{children}</div>
+    </section>
   );
 }
 
@@ -1199,11 +1617,11 @@ function StatusTag({
 const fieldInputClassName =
   "h-12 w-full rounded-[18px] border border-[#e1ddd7] bg-[#fbfaf8] px-4 text-[15px] text-[#23313a] outline-none transition focus:border-[#bfd2e1] focus:ring-4 focus:ring-[#bfd2e1]/30 disabled:cursor-not-allowed disabled:opacity-70";
 
+const fieldTextareaClassName =
+  "w-full rounded-[18px] border border-[#e1ddd7] bg-[#fbfaf8] px-4 py-3 text-[15px] leading-7 text-[#23313a] outline-none transition focus:border-[#bfd2e1] focus:ring-4 focus:ring-[#bfd2e1]/30 disabled:cursor-not-allowed disabled:opacity-70";
+
 const filterInputClassName =
   "h-12 w-full rounded-[18px] border border-[#e1ddd7] bg-white px-4 text-[15px] text-[#23313a] outline-none transition placeholder:text-[#98a2aa] focus:border-[#bfd2e1] focus:ring-4 focus:ring-[#bfd2e1]/30";
-
-const fieldTextareaClassName =
-  "w-full rounded-[18px] border border-[#e1ddd7] bg-[#fbfaf8] px-4 py-3 text-[15px] text-[#23313a] outline-none transition focus:border-[#bfd2e1] focus:ring-4 focus:ring-[#bfd2e1]/30 disabled:cursor-not-allowed disabled:opacity-70";
 
 function createOrderFormState(defaults?: {
   orderEntryUser?: string;
@@ -1222,11 +1640,18 @@ function createOrderFormState(defaults?: {
     orderType: defaults?.orderType ?? "",
     createdAt: getNowDateTimeInputValue(),
     reviewedAt: getNowDateTimeInputValue(),
-    orderRemark: "",
+    purchaseSubtype: "",
+    purchaseDetails: "",
+    serviceSubtype: "",
+    serviceDiscount: "",
+    serviceDetails: "",
   };
 }
 
-function createOrderFormStateFromOrder(order: AdminOrderRow): OrderFormState {
+function createOrderFormStateFromOrder(
+  order: AdminOrderRow,
+  supplementaryDetail?: AdminOrderSupplementaryDetail | null,
+): OrderFormState {
   return {
     orderNumber: order.order_number,
     originalCurrency: formatCurrencyCode(order.original_currency),
@@ -1240,7 +1665,20 @@ function createOrderFormStateFromOrder(order: AdminOrderRow): OrderFormState {
     orderType: normalizeOptionalString(order.order_type) ?? "",
     createdAt: toDateTimeInputValue(order.created_at),
     reviewedAt: toDateTimeInputValue(order.reviewed_at),
-    orderRemark: normalizeOptionalString(order.order_remark) ?? "",
+    purchaseSubtype:
+      supplementaryDetail?.kind === "purchase" ? supplementaryDetail.subtypeId : "",
+    purchaseDetails:
+      supplementaryDetail?.kind === "purchase"
+        ? stringifyOrderDetailsForTextarea(supplementaryDetail.details)
+        : "",
+    serviceSubtype:
+      supplementaryDetail?.kind === "service" ? supplementaryDetail.subtypeId : "",
+    serviceDiscount:
+      supplementaryDetail?.kind === "service" ? supplementaryDetail.discountId : "",
+    serviceDetails:
+      supplementaryDetail?.kind === "service"
+        ? stringifyOrderDetailsForTextarea(supplementaryDetail.details)
+        : "",
   };
 }
 
@@ -1279,7 +1717,7 @@ function toDateTimeInputValue(value: string | null | undefined) {
   return localTime.toISOString().slice(0, 16);
 }
 
-function parseOrderForm(
+function parseBaseOrderForm(
   formState: OrderFormState,
 ):
   | { ok: true; payload: CreateAdminOrderInput }
@@ -1290,7 +1728,6 @@ function parseOrderForm(
   const orderingUser = formState.orderingUser.trim();
   const orderStatus = formState.orderStatus.trim();
   const orderType = formState.orderType.trim();
-  const orderRemark = normalizeOptionalString(formState.orderRemark);
 
   if (!orderNumber) return { ok: false, message: "请输入订单编号。" };
   if (!originalCurrency) return { ok: false, message: "请输入原始货币。" };
@@ -1332,9 +1769,148 @@ function parseOrderForm(
       orderType,
       createdAt: createdAt.toISOString(),
       reviewedAt: reviewedAt.toISOString(),
-      orderRemark,
     },
   };
+}
+
+function parseCreateOrderForm(
+  formState: OrderFormState,
+  orderCategoryByTypeId: Map<string, string | null>,
+):
+  | { ok: true; payload: CreateAdminOrderInput }
+  | { ok: false; message: string } {
+  const baseParsed = parseBaseOrderForm(formState);
+
+  if (!baseParsed.ok) {
+    return baseParsed;
+  }
+
+  const orderCategory = orderCategoryByTypeId.get(formState.orderType.trim()) ?? null;
+
+  if (orderCategory === "purchase") {
+    const purchaseSubtype = formState.purchaseSubtype.trim();
+
+    if (!purchaseSubtype) {
+      return { ok: false, message: "请选择采购小类。" };
+    }
+
+    const purchaseDetails = parseFlexibleOrderDetails(formState.purchaseDetails, "采购订单明细");
+
+    if (typeof purchaseDetails === "string") {
+      return { ok: false, message: purchaseDetails };
+    }
+
+    return {
+      ok: true,
+      payload: {
+        ...baseParsed.payload,
+        supplementary: {
+          kind: "purchase",
+          subtypeId: purchaseSubtype,
+          details: purchaseDetails,
+        },
+      },
+    };
+  }
+
+  if (orderCategory === "service") {
+    const serviceSubtype = formState.serviceSubtype.trim();
+    const serviceDiscount = formState.serviceDiscount.trim();
+
+    if (!serviceSubtype) {
+      return { ok: false, message: "请选择服务小类。" };
+    }
+
+    if (!serviceDiscount) {
+      return { ok: false, message: "请选择订单折扣。" };
+    }
+
+    const serviceDetails = parseFlexibleOrderDetails(formState.serviceDetails, "服务订单明细");
+
+    if (typeof serviceDetails === "string") {
+      return { ok: false, message: serviceDetails };
+    }
+
+    return {
+      ok: true,
+      payload: {
+        ...baseParsed.payload,
+        supplementary: {
+          kind: "service",
+          subtypeId: serviceSubtype,
+          discountId: serviceDiscount,
+          details: serviceDetails,
+        },
+      },
+    };
+  }
+
+  return baseParsed;
+}
+
+function stringifyOrderDetailsForTextarea(value: AdminOrderDetailValue) {
+  if (value === null) {
+    return "";
+  }
+
+  if (typeof value === "object" && !Array.isArray(value) && Object.keys(value).length === 0) {
+    return "";
+  }
+
+  if (Array.isArray(value) && value.length === 0) {
+    return "";
+  }
+
+  if (typeof value === "string") {
+    return value;
+  }
+
+  return JSON.stringify(value, null, 2);
+}
+
+function parseFlexibleOrderDetails(
+  value: string,
+  label: string,
+): AdminOrderDetailValue | string {
+  const normalized = value.trim();
+
+  if (!normalized) {
+    return {};
+  }
+
+  try {
+    return JSON.parse(normalized) as AdminOrderDetailValue;
+  } catch {
+    const lines = normalized
+      .split(/\r?\n/)
+      .map((line) => line.trim())
+      .filter(Boolean);
+
+    const detailEntries = lines.map((line) => {
+      const chineseSeparatorIndex = line.indexOf("：");
+      const separatorIndex =
+        chineseSeparatorIndex >= 0 ? chineseSeparatorIndex : line.indexOf(":");
+
+      if (separatorIndex <= 0) {
+        return null;
+      }
+
+      const key = line.slice(0, separatorIndex).trim();
+      const rawValue = line.slice(separatorIndex + 1).trim();
+
+      if (!key) {
+        return null;
+      }
+
+      return [key, rawValue] as const;
+    });
+
+    if (detailEntries.some((entry) => entry === null)) {
+      return `${label}格式不正确，请填写 JSON，或按“字段: 内容”逐行输入。`;
+    }
+
+    return Object.fromEntries(detailEntries as Array<readonly [string, string]>);
+  }
 }
 
 function parseRequiredNumber(value: string, label: string) {
@@ -1432,6 +2008,156 @@ function resolveOrderTypeMeta(
   return orderTypeMetaById.get(normalizedValue) ?? getOrderTypeMetaFromCategory(normalizedValue);
 }
 
+function formatPurchaseOrderSubtype(value: string | null | undefined) {
+  const normalizedValue = normalizeOptionalString(value);
+
+  if (!normalizedValue) {
+    return "待补充";
+  }
+
+  return (
+    {
+      sourcing: "货源采购",
+      dropshipping: "一件代发",
+      tourist_shopping: "旅游购物",
+      group_buying: "团购",
+    } satisfies Record<string, string>
+  )[normalizedValue] ?? normalizedValue;
+}
+
+function formatServiceOrderSubtype(value: string | null | undefined) {
+  const normalizedValue = normalizeOptionalString(value);
+
+  if (!normalizedValue) {
+    return "待补充";
+  }
+
+  return (
+    {
+      tour_escort: "旅游陪同",
+      medical_escort: "医疗陪同",
+      digital_survival: "数字化生存",
+      airport_transfer: "机场接送",
+      car_service: "用车服务",
+      vip_recharge: "VIP 充值",
+    } satisfies Record<string, string>
+  )[normalizedValue] ?? normalizedValue;
+}
+
+function formatDiscountRatioValue(value: number | string | null | undefined) {
+  const parsed = parseNumericValue(value);
+
+  if (parsed === null) {
+    return "待补充";
+  }
+
+  return new Intl.NumberFormat("zh-CN", {
+    style: "percent",
+    maximumFractionDigits: 2,
+    minimumFractionDigits: 0,
+  }).format(parsed);
+}
+
+type FlattenedOrderDetailItem = {
+  label: string;
+  value: string;
+};
+
+function flattenOrderDetailItems(value: AdminOrderDetailValue): FlattenedOrderDetailItem[] {
+  return flattenOrderDetailValue(value);
+}
+
+function flattenOrderDetailValue(
+  value: AdminOrderDetailValue,
+  parentLabel?: string,
+): FlattenedOrderDetailItem[] {
+  if (value === null) {
+    return parentLabel ? [{ label: parentLabel, value: "-" }] : [];
+  }
+
+  if (typeof value === "string" || typeof value === "number" || typeof value === "boolean") {
+    return [
+      {
+        label: parentLabel ?? "表单内容",
+        value: formatOrderDetailPrimitive(value),
+      },
+    ];
+  }
+
+  if (Array.isArray(value)) {
+    if (value.length === 0) {
+      return parentLabel ? [{ label: parentLabel, value: "-" }] : [];
+    }
+
+    if (value.every(isOrderDetailPrimitive)) {
+      return [
+        {
+          label: parentLabel ?? "表单内容",
+          value: value.map((item) => formatOrderDetailPrimitive(item)).join("、"),
+        },
+      ];
+    }
+
+    return value.flatMap((item, index) =>
+      flattenOrderDetailValue(
+        item,
+        parentLabel ? `${parentLabel} / 第 ${index + 1} 项` : `第 ${index + 1} 项`,
+      ),
+    );
+  }
+
+  const entries = Object.entries(value);
+
+  if (entries.length === 0) {
+    return parentLabel ? [{ label: parentLabel, value: "-" }] : [];
+  }
+
+  return entries.flatMap(([key, childValue]) =>
+    flattenOrderDetailValue(
+      childValue,
+      parentLabel ? `${parentLabel} / ${formatOrderDetailKey(key)}` : formatOrderDetailKey(key),
+    ),
+  );
+}
+
+function isOrderDetailPrimitive(
+  value: AdminOrderDetailValue,
+): value is string | number | boolean | null {
+  return value === null || typeof value === "string" || typeof value === "number" || typeof value === "boolean";
+}
+
+function formatOrderDetailPrimitive(value: string | number | boolean | null) {
+  if (value === null) {
+    return "-";
+  }
+
+  if (typeof value === "boolean") {
+    return value ? "是" : "否";
+  }
+
+  if (typeof value === "number") {
+    return new Intl.NumberFormat("zh-CN", {
+      maximumFractionDigits: 6,
+    }).format(value);
+  }
+
+  const normalizedValue = value.trim();
+  return normalizedValue || "-";
+}
+
+function formatOrderDetailKey(key: string) {
+  const normalizedKey = key
+    .replace(/([a-z0-9])([A-Z])/g, "$1 $2")
+    .replace(/[_-]+/g, " ")
+    .trim();
+
+  if (!normalizedKey) {
+    return key;
+  }
+
+  return normalizedKey.charAt(0).toUpperCase() + normalizedKey.slice(1);
+}
+
 function getStatusLabel(status: string | null | undefined) {
   const normalizedStatus = normalizeOptionalString(status);
 
@@ -1501,7 +2227,7 @@ function toOrderErrorMessage(error: unknown) {
   }
 
   if (baseMessage.includes("violates foreign key constraint")) {
-    return "请选择有效的订单录入员、订单客户和订单类型。";
+    return "请选择有效的订单录入员、订单客户、订单类型，以及对应的采购/服务子表选项。";
   }
 
   return baseMessage;

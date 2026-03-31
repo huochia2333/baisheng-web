@@ -38,3 +38,7 @@ export function getBrowserSupabaseClient() {
 
   return getSupabaseClient();
 }
+
+export function resetBrowserSupabaseClient() {
+  supabaseClient = undefined;
+}

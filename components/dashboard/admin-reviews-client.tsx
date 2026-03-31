@@ -1,7 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import { useRouter } from "next/navigation";
 import {
@@ -26,7 +26,14 @@ import {
   type PendingMediaReviewWithPreview,
   type PendingPrivacyReviewRow,
 } from "@/lib/admin-reviews";
+import {
+  markBrowserCloudSyncActivity,
+  resetBrowserCloudSyncState,
+  shouldRecoverBrowserCloudSyncState,
+} from "@/lib/browser-sync-recovery";
 import { getBrowserSupabaseClient } from "@/lib/supabase";
+import { useDelayedTimeoutWarning } from "@/lib/use-delayed-timeout-warning";
+import { useResumeRecovery } from "@/lib/use-resume-recovery";
 import { cn } from "@/lib/utils";
 
 import {
@@ -35,7 +42,7 @@ import {
   normalizeOptionalString,
   toErrorMessage,
   type NoticeTone,
-} from "./admin-my-shared";
+} from "./dashboard-shared-ui";
 import { DashboardDialog } from "./dashboard-dialog";
 import { Button } from "../ui/button";
 
@@ -49,24 +56,47 @@ export function AdminReviewsClient() {
 
   const [activeTab, setActiveTab] = useState<ReviewTab>("privacy");
   const [loading, setLoading] = useState(true);
+  const [syncGeneration, setSyncGeneration] = useState(0);
   const [hasPermission, setHasPermission] = useState<boolean | null>(null);
   const [pageFeedback, setPageFeedback] = useState<PageFeedback>(null);
   const [privacyRows, setPrivacyRows] = useState<PendingPrivacyReviewRow[]>([]);
   const [mediaRows, setMediaRows] = useState<PendingMediaReviewWithPreview[]>([]);
   const [busyRows, setBusyRows] = useState<Record<string, BusyAction>>({});
   const [previewAsset, setPreviewAsset] = useState<PendingMediaReviewWithPreview | null>(null);
+  const loadingStateRef = useRef(true);
+  const { clearPendingTimeoutWarning, scheduleTimeoutWarning } =
+    useDelayedTimeoutWarning();
+
+  loadingStateRef.current = loading;
+
+  const recoverCloudSync = useCallback(() => {
+    clearPendingTimeoutWarning();
+    resetBrowserCloudSyncState();
+    markBrowserCloudSyncActivity();
+    setSyncGeneration((current) => current + 1);
+  }, [clearPendingTimeoutWarning]);
 
   useEffect(() => {
     if (!supabase) {
       return;
     }
 
+    if (shouldRecoverBrowserCloudSyncState()) {
+      recoverCloudSync();
+      return;
+    }
+
     let isMounted = true;
+    const showLoading = loadingStateRef.current;
 
     const loadPage = async ({ showLoading }: { showLoading: boolean }) => {
+      let warningDelayed = false;
+
       if (showLoading && isMounted) {
         setLoading(true);
       }
+
+      clearPendingTimeoutWarning();
 
       try {
         const reviewer = await getCurrentReviewerContext(supabase);
@@ -107,18 +137,35 @@ export function AdminReviewsClient() {
           return;
         }
 
-        setPageFeedback({
-          tone: "error",
-          message: toErrorMessage(error),
+        warningDelayed = scheduleTimeoutWarning(error, () => {
+          if (!isMounted) {
+            return;
+          }
+
+          setPageFeedback({
+            tone: "error",
+            message: toErrorMessage(error),
+          });
+
+          if (showLoading) {
+            setLoading(false);
+          }
         });
+
+        if (!warningDelayed) {
+          setPageFeedback({
+            tone: "error",
+            message: toErrorMessage(error),
+          });
+        }
       } finally {
-        if (showLoading && isMounted) {
+        if (showLoading && isMounted && !warningDelayed) {
           setLoading(false);
         }
       }
     };
 
-    void loadPage({ showLoading: true });
+    void loadPage({ showLoading });
 
     const { data: authListener } = supabase.auth.onAuthStateChange(
       async (_event, session) => {
@@ -139,7 +186,18 @@ export function AdminReviewsClient() {
       isMounted = false;
       authListener.subscription.unsubscribe();
     };
-  }, [router, supabase]);
+  }, [
+    clearPendingTimeoutWarning,
+    recoverCloudSync,
+    router,
+    scheduleTimeoutWarning,
+    supabase,
+    syncGeneration,
+  ]);
+
+  useResumeRecovery(recoverCloudSync, {
+    enabled: Boolean(supabase),
+  });
 
   if (!supabase) {
     return <ReviewLoadingState />;

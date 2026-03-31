@@ -1,5 +1,5 @@
-import { AdminMyClient } from "@/components/dashboard/admin-my-client";
+import { DashboardSharedMyClient } from "@/components/dashboard/dashboard-shared-my-client";
 
 export default function AdminMyPage() {
-  return <AdminMyClient />;
+  return <DashboardSharedMyClient />;
 }

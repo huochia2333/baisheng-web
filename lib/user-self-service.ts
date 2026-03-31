@@ -1,5 +1,7 @@
 import type { Session, SupabaseClient, User } from "@supabase/supabase-js";
 
+import { withRequestTimeout } from "./request-timeout";
+
 export type AppRole =
   | "administrator"
   | "operator"
@@ -86,6 +88,12 @@ const AUTH_SESSION_TIMEOUT_MESSAGE = "登录状态同步较慢，请稍后重试
 let currentSessionRequest: Promise<Session | null> | null = null;
 let currentSessionSnapshot: Session | null | undefined;
 let sessionTrackingReady = false;
+
+export function resetCurrentSessionCache() {
+  currentSessionRequest = null;
+  currentSessionSnapshot = undefined;
+  sessionTrackingReady = false;
+}
 
 export function getRoleFromUser(user: User | null | undefined): AppRole | null {
   const role = normalizeOptionalString(user?.app_metadata?.role);
@@ -184,11 +192,26 @@ export function getDefaultWorkspaceBasePath(role: AppRole | null) {
     return "/salesman";
   }
 
+  if (isPlaceholderWorkspaceRole(role)) {
+    return "/workspace";
+  }
+
   return "/admin";
 }
 
 export function getDefaultSignedInPathForRole(role: AppRole | null) {
   return `${getDefaultWorkspaceBasePath(role)}/my`;
+}
+
+export function isPlaceholderWorkspaceRole(
+  role: AppRole | null,
+): role is "operator" | "manager" | "finance" | "client" {
+  return (
+    role === "operator" ||
+    role === "manager" ||
+    role === "finance" ||
+    role === "client"
+  );
 }
 
 export async function getCurrentUserBundle(
@@ -201,40 +224,42 @@ export async function getCurrentUserBundle(
   }
 
   const [profileResult, privacyDataResult, privacyRequestsResult, vipResult, mediaResult] =
-    await Promise.all([
-      supabase
-        .from("user_profiles")
-        .select("user_id,name,phone,email,status,city,referral_code,created_at")
-        .eq("user_id", user.id)
-        .maybeSingle<UserProfileRow>(),
-      supabase
-        .from("user_privacy_data")
-        .select("user_id,passport,id_card")
-        .eq("user_id", user.id)
-        .maybeSingle<UserPrivacyDataRow>(),
-      supabase
-        .from("user_privacy_requests")
-        .select(
-          "id,user_id,passport_requests,id_card_requests,status,reviewer_user_id,created_at,review_at,type",
-        )
-        .eq("user_id", user.id)
-        .order("created_at", { ascending: false })
-        .returns<UserPrivacyRequestRow[]>(),
-      supabase
-        .from("user_vip_data")
-        .select("user_id,status,category")
-        .eq("user_id", user.id)
-        .maybeSingle<UserVipDataRow>(),
-      supabase
-        .from("user_media_assets")
-        .select(
-          "id,user_id,kind,bucket_name,storage_path,original_name,mime_type,file_size_bytes,status,reviewer_user_id,created_at,reviewed_at,purge_after",
-        )
-        .eq("user_id", user.id)
-        .neq("status", "denied")
-        .order("created_at", { ascending: false })
-        .returns<UserMediaAssetRow[]>(),
-    ]);
+    await withRequestTimeout(
+      Promise.all([
+        supabase
+          .from("user_profiles")
+          .select("user_id,name,phone,email,status,city,referral_code,created_at")
+          .eq("user_id", user.id)
+          .maybeSingle<UserProfileRow>(),
+        supabase
+          .from("user_privacy_data")
+          .select("user_id,passport,id_card")
+          .eq("user_id", user.id)
+          .maybeSingle<UserPrivacyDataRow>(),
+        supabase
+          .from("user_privacy_requests")
+          .select(
+            "id,user_id,passport_requests,id_card_requests,status,reviewer_user_id,created_at,review_at,type",
+          )
+          .eq("user_id", user.id)
+          .order("created_at", { ascending: false })
+          .returns<UserPrivacyRequestRow[]>(),
+        supabase
+          .from("user_vip_data")
+          .select("user_id,status,category")
+          .eq("user_id", user.id)
+          .maybeSingle<UserVipDataRow>(),
+        supabase
+          .from("user_media_assets")
+          .select(
+            "id,user_id,kind,bucket_name,storage_path,original_name,mime_type,file_size_bytes,status,reviewer_user_id,created_at,reviewed_at,purge_after",
+          )
+          .eq("user_id", user.id)
+          .neq("status", "denied")
+          .order("created_at", { ascending: false })
+          .returns<UserMediaAssetRow[]>(),
+      ]),
+    );
 
   if (profileResult.error) {
     throw profileResult.error;
@@ -263,17 +288,19 @@ export async function getCurrentUserBundle(
     role,
   );
 
-  const mediaAssets = await Promise.all(
-    (mediaResult.data ?? []).map(async (asset) => {
-      const { data, error } = await supabase.storage
-        .from(asset.bucket_name)
-        .createSignedUrl(asset.storage_path, SIGNED_URL_TTL_SECONDS);
+  const mediaAssets = await withRequestTimeout(
+    Promise.all(
+      (mediaResult.data ?? []).map(async (asset) => {
+        const { data, error } = await supabase.storage
+          .from(asset.bucket_name)
+          .createSignedUrl(asset.storage_path, SIGNED_URL_TTL_SECONDS);
 
-      return {
-        ...asset,
-        previewUrl: error ? null : (data?.signedUrl ?? null),
-      } satisfies UserMediaAssetWithPreview;
-    }),
+        return {
+          ...asset,
+          previewUrl: error ? null : (data?.signedUrl ?? null),
+        } satisfies UserMediaAssetWithPreview;
+      }),
+    ),
   );
 
   return {
@@ -415,12 +442,24 @@ async function syncProfileFromAuthMetadataIfPossible(
     return profile;
   }
 
-  const { data, error } = await supabase
-    .from("user_profiles")
-    .update({ city: metadataCity })
-    .eq("user_id", user.id)
-    .select("user_id,name,phone,email,status,city,referral_code,created_at")
-    .maybeSingle<UserProfileRow>();
+  let data: UserProfileRow | null = null;
+  let error: Error | null = null;
+
+  try {
+    const result = await withRequestTimeout(
+      supabase
+        .from("user_profiles")
+        .update({ city: metadataCity })
+        .eq("user_id", user.id)
+        .select("user_id,name,phone,email,status,city,referral_code,created_at")
+        .maybeSingle<UserProfileRow>(),
+    );
+
+    data = result.data;
+    error = result.error;
+  } catch {
+    return profile;
+  }
 
   if (error) {
     return profile;
@@ -484,10 +523,12 @@ function normalizeOptionalString(value: unknown) {
 
 async function resolveCurrentSession(supabase: SupabaseClient) {
   try {
-    const session = await withTimeout(
+    const session = await withRequestTimeout(
       fetchCurrentSession(supabase),
-      AUTH_SESSION_TIMEOUT_MS,
-      AUTH_SESSION_TIMEOUT_MESSAGE,
+      {
+        timeoutMs: AUTH_SESSION_TIMEOUT_MS,
+        message: AUTH_SESSION_TIMEOUT_MESSAGE,
+      },
     );
 
     currentSessionSnapshot = session;
@@ -507,10 +548,12 @@ async function resolveCurrentSession(supabase: SupabaseClient) {
       return currentSessionSnapshot;
     }
 
-    const retriedSession = await withTimeout(
+    const retriedSession = await withRequestTimeout(
       fetchCurrentSession(supabase),
-      AUTH_SESSION_TIMEOUT_MS,
-      AUTH_SESSION_TIMEOUT_MESSAGE,
+      {
+        timeoutMs: AUTH_SESSION_TIMEOUT_MS,
+        message: AUTH_SESSION_TIMEOUT_MESSAGE,
+      },
     );
 
     currentSessionSnapshot = retriedSession;
@@ -540,22 +583,6 @@ function ensureSessionTracking(supabase: SupabaseClient) {
 
   supabase.auth.onAuthStateChange((_event, session) => {
     currentSessionSnapshot = session;
-  });
-}
-
-function withTimeout<T>(
-  promise: Promise<T>,
-  timeoutMs: number,
-  message: string,
-) {
-  return new Promise<T>((resolve, reject) => {
-    const timeoutId = globalThis.setTimeout(() => {
-      reject(new Error(message));
-    }, timeoutMs);
-
-    promise.then(resolve, reject).finally(() => {
-      globalThis.clearTimeout(timeoutId);
-    });
   });
 }
 

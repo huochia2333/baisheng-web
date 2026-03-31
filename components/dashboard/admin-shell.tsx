@@ -17,6 +17,7 @@ import {
   UserRound,
   UsersRound,
   WalletCards,
+  type LucideIcon,
 } from "lucide-react";
 
 import { getBrowserSupabaseClient } from "@/lib/supabase";
@@ -28,7 +29,25 @@ import {
 } from "@/lib/user-self-service";
 import { cn } from "@/lib/utils";
 
-const sharedNavItems = [
+type NavItem = {
+  segment: string;
+  label: string;
+  icon: LucideIcon;
+};
+
+type WorkspaceConfig = {
+  accountLabel: string;
+  basePath: string;
+  initials: string;
+  navItems: Array<NavItem & { href: string }>;
+  subtitle: string;
+  title: string;
+  workspaceLabel: string;
+};
+
+const placeholderNavItems: NavItem[] = [{ segment: "my", label: "我的", icon: UserRound }];
+
+const sharedNavItems: NavItem[] = [
   { segment: "my", label: "我的", icon: UserRound },
   { segment: "orders", label: "订单", icon: ShoppingCart },
   { segment: "referrals", label: "推荐树", icon: GitBranchPlus },
@@ -36,30 +55,50 @@ const sharedNavItems = [
   { segment: "commission", label: "佣金", icon: WalletCards },
   { segment: "exchange-rates", label: "汇率", icon: ArrowLeftRight },
   { segment: "tasks", label: "任务", icon: ClipboardList },
-] as const;
+];
 
-const adminNavItems = [
+const adminNavItems: NavItem[] = [
   ...sharedNavItems,
   { segment: "reviews", label: "审核", icon: ShieldCheck },
-] as const;
+];
+
+function getHintedBasePath(pathname: string) {
+  if (pathname.startsWith("/salesman")) {
+    return "/salesman";
+  }
+
+  if (pathname.startsWith("/workspace")) {
+    return "/workspace";
+  }
+
+  return "/admin";
+}
 
 function getWorkspaceConfig(
   role: AppRole | null,
   resolved: boolean,
   pathname: string,
-) {
-  const hintedBasePath = pathname.startsWith("/salesman") ? "/salesman" : "/admin";
-  const basePath = resolved ? getDefaultWorkspaceBasePath(role) : hintedBasePath;
-  const salesmanWorkspace = basePath === "/salesman";
-  const navConfig = salesmanWorkspace ? sharedNavItems : adminNavItems;
-  const navItems = navConfig.map((item) => ({
+): WorkspaceConfig {
+  const hintedBasePath = getHintedBasePath(pathname);
+  const basePath = resolved && role ? getDefaultWorkspaceBasePath(role) : hintedBasePath;
+  const navSource =
+    basePath === "/workspace"
+      ? placeholderNavItems
+      : basePath === "/salesman"
+        ? sharedNavItems
+        : adminNavItems;
+  const navItems = navSource.map((item) => ({
     ...item,
     href: `${basePath}/${item.segment}`,
   }));
 
-  if (!resolved && !salesmanWorkspace) {
+  if (basePath === "/workspace") {
+    return getPlaceholderWorkspaceConfig(role, basePath, navItems);
+  }
+
+  if (!resolved && basePath === "/admin") {
     return {
-      accountLabel: "工作台账户",
+      accountLabel: "工作台账号",
       basePath,
       initials: "WS",
       navItems,
@@ -69,26 +108,90 @@ function getWorkspaceConfig(
     };
   }
 
-  if (salesmanWorkspace) {
+  if (basePath === "/salesman") {
     return {
-      accountLabel: "业务员账户",
+      accountLabel: "业务员账号",
       basePath,
       initials: "YW",
       navItems,
-      subtitle: "业务拓展岗",
-      title: "业务员",
+      subtitle: "业务拓展岗位",
+      title: "业务工作台",
       workspaceLabel: "业务中心",
     };
   }
 
   return {
-    accountLabel: "管理员账户",
+    accountLabel: "管理员账号",
     basePath,
     initials: "AD",
     navItems,
-    subtitle: "系统管理层",
-    title: "管理员",
+    subtitle: "系统管理岗位",
+    title: "管理工作台",
     workspaceLabel: "管理中心",
+  };
+}
+
+function getPlaceholderWorkspaceConfig(
+  role: AppRole | null,
+  basePath: string,
+  navItems: Array<NavItem & { href: string }>,
+): WorkspaceConfig {
+  if (role === "operator") {
+    return {
+      accountLabel: "运营账号",
+      basePath,
+      initials: "OP",
+      navItems,
+      subtitle: "当前仅开放我的页面",
+      title: "运营工作台",
+      workspaceLabel: "运营中心",
+    };
+  }
+
+  if (role === "manager") {
+    return {
+      accountLabel: "经理账号",
+      basePath,
+      initials: "MG",
+      navItems,
+      subtitle: "当前仅开放我的页面",
+      title: "经理工作台",
+      workspaceLabel: "经理中心",
+    };
+  }
+
+  if (role === "finance") {
+    return {
+      accountLabel: "财务账号",
+      basePath,
+      initials: "FN",
+      navItems,
+      subtitle: "当前仅开放我的页面",
+      title: "财务工作台",
+      workspaceLabel: "财务中心",
+    };
+  }
+
+  if (role === "client") {
+    return {
+      accountLabel: "客户账号",
+      basePath,
+      initials: "CL",
+      navItems,
+      subtitle: "当前仅开放我的页面",
+      title: "客户工作台",
+      workspaceLabel: "客户中心",
+    };
+  }
+
+  return {
+    accountLabel: "角色账号",
+    basePath,
+    initials: "MY",
+    navItems,
+    subtitle: "当前仅开放我的页面",
+    title: "我的工作台",
+    workspaceLabel: "角色中心",
   };
 }
 
@@ -130,22 +233,20 @@ export function AdminShell({ children }: AdminShellProps) {
 
     void syncRole();
 
-    const { data: authListener } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
-        if (!isMounted) {
-          return;
-        }
+    const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (!isMounted) {
+        return;
+      }
 
-        if (!session?.user) {
-          setRole(null);
-          setRoleResolved(true);
-          return;
-        }
-
-        setRole(getRoleFromAccessToken(session.access_token));
+      if (!session?.user) {
+        setRole(null);
         setRoleResolved(true);
-      },
-    );
+        return;
+      }
+
+      setRole(getRoleFromAccessToken(session.access_token));
+      setRoleResolved(true);
+    });
 
     return () => {
       isMounted = false;
@@ -160,15 +261,17 @@ export function AdminShell({ children }: AdminShellProps) {
 
     const currentBasePath = pathname.startsWith("/salesman")
       ? "/salesman"
-      : pathname.startsWith("/admin")
-        ? "/admin"
-        : null;
+      : pathname.startsWith("/workspace")
+        ? "/workspace"
+        : pathname.startsWith("/admin")
+          ? "/admin"
+          : null;
 
     if (!currentBasePath) {
       return;
     }
 
-    const desiredBasePath = getDefaultWorkspaceBasePath(role);
+    const desiredBasePath = role ? getDefaultWorkspaceBasePath(role) : currentBasePath;
 
     if (currentBasePath === desiredBasePath) {
       return;
@@ -296,10 +399,16 @@ export function AdminShell({ children }: AdminShellProps) {
               </div>
 
               <div className="flex items-center gap-3">
-                <button className="flex h-10 w-10 items-center justify-center rounded-full text-[#486782] transition-colors hover:bg-white">
+                <button
+                  className="flex h-10 w-10 items-center justify-center rounded-full text-[#486782] transition-colors hover:bg-white"
+                  type="button"
+                >
                   <Bell className="size-[18px]" />
                 </button>
-                <button className="hidden items-center gap-3 rounded-full bg-[#f1efeb] py-1.5 pl-1.5 pr-4 transition-colors hover:bg-[#e8e5e0] sm:flex">
+                <button
+                  className="hidden items-center gap-3 rounded-full bg-[#f1efeb] py-1.5 pl-1.5 pr-4 transition-colors hover:bg-[#e8e5e0] sm:flex"
+                  type="button"
+                >
                   <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#5b7890] text-xs font-semibold text-white">
                     {workspace.initials}
                   </div>

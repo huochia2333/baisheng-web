@@ -1,5 +1,3 @@
-import { Images } from "lucide-react";
-
 import { cn } from "@/lib/utils";
 
 export type PhotoThumbnail = {
@@ -58,14 +56,8 @@ export function PhotoStackPreview({
         </div>
       ))}
 
-      <div className="absolute inset-x-4 bottom-4 z-30 rounded-[14px] bg-white/78 px-4 py-3 backdrop-blur-sm">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2 text-[#486782]">
-            <Images className="size-4" />
-            <span className="text-sm font-semibold">叠放展示个人照片</span>
-          </div>
-          <span className="text-xs font-medium text-[#7b858d]">{footerLabel}</span>
-        </div>
+      <div className="absolute inset-x-4 bottom-4 z-30 flex justify-end rounded-[14px] bg-white/78 px-4 py-3 backdrop-blur-sm">
+        <span className="text-xs font-medium text-[#7b858d]">{footerLabel}</span>
       </div>
     </div>
   );

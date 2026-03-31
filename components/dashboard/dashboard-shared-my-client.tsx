@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import { useRouter } from "next/navigation";
 import {
@@ -19,6 +19,13 @@ import {
 } from "lucide-react";
 
 import { getBrowserSupabaseClient } from "@/lib/supabase";
+import {
+  markBrowserCloudSyncActivity,
+  resetBrowserCloudSyncState,
+  shouldRecoverBrowserCloudSyncState,
+} from "@/lib/browser-sync-recovery";
+import { useResumeRecovery } from "@/lib/use-resume-recovery";
+import { useDelayedTimeoutWarning } from "@/lib/use-delayed-timeout-warning";
 import {
   createPrivacyRequest,
   deleteUserMediaAssets,
@@ -51,12 +58,15 @@ import {
   toErrorMessage,
   ValueCard,
   VideoPreview,
-} from "./admin-my-shared";
+} from "./dashboard-shared-ui";
 import { DashboardDialog } from "./dashboard-dialog";
-import { PhotoStackPreview, type PhotoThumbnail } from "./photo-stack-preview";
+import {
+  PhotoStackPreview,
+  type PhotoThumbnail,
+} from "./dashboard-shared-photo-stack-preview";
 import { Button } from "../ui/button";
 
-export function AdminMyClient() {
+export function DashboardSharedMyClient() {
   const router = useRouter();
   const supabase = getBrowserSupabaseClient();
   const photoInputRef = useRef<HTMLInputElement>(null);
@@ -64,6 +74,7 @@ export function AdminMyClient() {
 
   const [bundle, setBundle] = useState<CurrentUserBundle | null>(null);
   const [loading, setLoading] = useState(true);
+  const [syncGeneration, setSyncGeneration] = useState(0);
   const [pageError, setPageError] = useState<string | null>(null);
   const [pageNotice, setPageNotice] = useState<{ tone: NoticeTone; message: string } | null>(
     null,
@@ -84,15 +95,42 @@ export function AdminMyClient() {
   const [identityEditing, setIdentityEditing] = useState(false);
   const [passportEditing, setPassportEditing] = useState(false);
   const [busyKey, setBusyKey] = useState<string | null>(null);
+  const bundleStateRef = useRef<CurrentUserBundle | null>(null);
+  const loadingStateRef = useRef(true);
+  const { clearPendingTimeoutWarning, scheduleTimeoutWarning } =
+    useDelayedTimeoutWarning();
+
+  bundleStateRef.current = bundle;
+  loadingStateRef.current = loading;
+
+  const recoverCloudSync = useCallback(() => {
+    clearPendingTimeoutWarning();
+    resetBrowserCloudSyncState();
+    markBrowserCloudSyncActivity();
+    setSyncGeneration((current) => current + 1);
+  }, [clearPendingTimeoutWarning]);
 
   useEffect(() => {
     if (!supabase) {
       return;
     }
 
+    if (shouldRecoverBrowserCloudSyncState()) {
+      recoverCloudSync();
+      return;
+    }
+
     let isMounted = true;
+    const showLoading = loadingStateRef.current || !bundleStateRef.current;
+
+    if (showLoading) {
+      setLoading(true);
+    }
 
     const loadBundle = async () => {
+      let warningDelayed = false;
+      clearPendingTimeoutWarning();
+
       try {
         const nextBundle = await getCurrentUserBundle(supabase);
 
@@ -112,9 +150,20 @@ export function AdminMyClient() {
           return;
         }
 
-        setPageError(toErrorMessage(error));
+        warningDelayed = scheduleTimeoutWarning(error, () => {
+          if (!isMounted) {
+            return;
+          }
+
+          setPageError(toErrorMessage(error));
+          setLoading(false);
+        });
+
+        if (!warningDelayed) {
+          setPageError(toErrorMessage(error));
+        }
       } finally {
-        if (isMounted) {
+        if (isMounted && !warningDelayed) {
           setLoading(false);
         }
       }
@@ -133,6 +182,8 @@ export function AdminMyClient() {
           return;
         }
 
+        clearPendingTimeoutWarning();
+
         try {
           const nextBundle = await getCurrentUserBundle(supabase);
 
@@ -146,12 +197,23 @@ export function AdminMyClient() {
           }
 
           setBundle(nextBundle);
+          setPageError(null);
         } catch (error) {
           if (!isMounted) {
             return;
           }
 
-          setPageError(toErrorMessage(error));
+          const warningDelayed = scheduleTimeoutWarning(error, () => {
+            if (!isMounted) {
+              return;
+            }
+
+            setPageError(toErrorMessage(error));
+          });
+
+          if (!warningDelayed) {
+            setPageError(toErrorMessage(error));
+          }
         }
       },
     );
@@ -160,7 +222,18 @@ export function AdminMyClient() {
       isMounted = false;
       authListener.subscription.unsubscribe();
     };
-  }, [router, supabase]);
+  }, [
+    clearPendingTimeoutWarning,
+    recoverCloudSync,
+    router,
+    scheduleTimeoutWarning,
+    supabase,
+    syncGeneration,
+  ]);
+
+  useResumeRecovery(recoverCloudSync, {
+    enabled: Boolean(supabase),
+  });
 
   if (!supabase) {
     return <LoadingState />;
@@ -176,6 +249,8 @@ export function AdminMyClient() {
     quiet?: boolean;
   } = {}) => {
     try {
+      clearPendingTimeoutWarning();
+
       if (!quiet) {
         setBusyKey("refresh");
       }
@@ -198,11 +273,20 @@ export function AdminMyClient() {
         setPageNotice({ tone: "success", message: pageMessage });
       }
     } catch (error) {
-      const message = toErrorMessage(error);
-      if (activeDialog) {
-        setDialogNotice({ tone: "error", message });
-      } else {
-        setPageError(message);
+      const applyError = () => {
+        const message = toErrorMessage(error);
+
+        if (activeDialog) {
+          setDialogNotice({ tone: "error", message });
+        } else {
+          setPageError(message);
+        }
+      };
+
+      const warningDelayed = scheduleTimeoutWarning(error, applyError);
+
+      if (!warningDelayed) {
+        applyError();
       }
     } finally {
       if (!quiet) {
@@ -216,7 +300,34 @@ export function AdminMyClient() {
   }
 
   if (!bundle) {
-    return null;
+    return (
+      <section className="mx-auto flex w-full max-w-[1320px] flex-col gap-6">
+        <PageBanner tone="error">
+          {pageError ?? "云端资料暂时不可用，请刷新页面后重试。"}
+        </PageBanner>
+        <section className="rounded-[28px] border border-white/85 bg-white/72 p-6 shadow-[0_18px_45px_rgba(96,113,128,0.06)] xl:p-8">
+          <EmptyState
+            description="当前页面依赖云端登录态和资料查询。刚从闲置状态恢复时，如果同步请求没有返回，现在会直接提示失败，你可以重新同步而不是一直停留在加载中。"
+            icon={<Search className="size-6" />}
+            title="资料同步没有完成"
+          />
+          <div className="mt-6 flex justify-center">
+            <Button
+              className="h-11 rounded-full bg-[#486782] px-5 text-white hover:bg-[#3e5f79]"
+              disabled={busyKey !== null}
+              onClick={recoverCloudSync}
+            >
+              {busyKey === "refresh" ? (
+                <LoaderCircle className="size-4 animate-spin" />
+              ) : (
+                <RefreshCw className="size-4" />
+              )}
+              重新同步资料
+            </Button>
+          </div>
+        </section>
+      </section>
+    );
   }
 
   const { authUser, mediaAssets, privacyData, privacyRequests, profile, vipData } = bundle;
