@@ -4,9 +4,10 @@ import { withRequestTimeout } from "./request-timeout";
 import { getCurrentSessionContext, type AppRole } from "./user-self-service";
 
 const ADMIN_ORDER_SELECT =
-  "order_number,original_currency,amount,daily_exchange_rate,transaction_rate,rmb_amount,order_entry_user,ordering_user,order_status,order_type,created_at,reviewed_at,deleted_at";
+  "id,order_number,original_currency,amount,daily_exchange_rate,transaction_rate,rmb_amount,order_entry_user,ordering_user,order_status,order_type,created_at,reviewed_at,deleted_at";
 
 export type AdminOrderRow = {
+  id: string;
   order_number: string;
   original_currency: string | null;
   amount: number | string | null;
@@ -110,7 +111,7 @@ export type CreateAdminOrderSupplementaryInput =
     };
 
 type PurchaseOrderRecord = {
-  order_number: string;
+  order_overview_id: string;
   order_type: string;
   order_details: AdminOrderDetailValue;
 };
@@ -120,7 +121,7 @@ type PurchaseOrderTypeRecord = {
 };
 
 type ServiceOrderRecord = {
-  order_number: string;
+  order_overview_id: string;
   order_type: string;
   order_discount: string;
   order_details: AdminOrderDetailValue;
@@ -132,6 +133,11 @@ type ServiceOrderTypeRecord = {
 
 type OrderDiscountTypeRecord = {
   discount_ratio: number | string | null;
+};
+
+type OrderOverviewReference = {
+  id: string;
+  order_number: string;
 };
 
 type ExistingSupplementaryRecord =
@@ -272,9 +278,9 @@ export async function getAdminOrderSupplementaryDetail(
   supabase: SupabaseClient,
   orderNumber: string,
 ): Promise<AdminOrderSupplementaryDetail | null> {
-  const normalizedOrderNumber = orderNumber.trim();
+  const overview = await getOrderOverviewReference(supabase, orderNumber);
 
-  if (!normalizedOrderNumber) {
+  if (!overview) {
     return null;
   }
 
@@ -282,15 +288,15 @@ export async function getAdminOrderSupplementaryDetail(
     withRequestTimeout(
       supabase
         .from("purchase_order")
-        .select("order_number,order_type,order_details")
-        .eq("order_number", normalizedOrderNumber)
+        .select("order_overview_id,order_type,order_details")
+        .eq("order_overview_id", overview.id)
         .maybeSingle<PurchaseOrderRecord>(),
     ),
     withRequestTimeout(
       supabase
         .from("service_order")
-        .select("order_number,order_type,order_discount,order_details")
-        .eq("order_number", normalizedOrderNumber)
+        .select("order_overview_id,order_type,order_discount,order_details")
+        .eq("order_overview_id", overview.id)
         .maybeSingle<ServiceOrderRecord>(),
     ),
   ]);
@@ -318,7 +324,7 @@ export async function getAdminOrderSupplementaryDetail(
 
     return {
       kind: "purchase",
-      orderNumber: purchaseResult.data.order_number,
+      orderNumber: overview.order_number,
       subtypeId: purchaseResult.data.order_type,
       subtype: purchaseType?.business_subcategory ?? null,
       details: purchaseResult.data.order_details,
@@ -353,7 +359,7 @@ export async function getAdminOrderSupplementaryDetail(
 
     return {
       kind: "service",
-      orderNumber: serviceResult.data.order_number,
+      orderNumber: overview.order_number,
       subtypeId: serviceResult.data.order_type,
       subtype: serviceTypeResult.data?.business_subcategory ?? null,
       discountId: serviceResult.data.order_discount,
@@ -399,12 +405,12 @@ export async function createAdminOrder(
 
   if (supplementary) {
     try {
-      await insertAdminOrderSupplementary(supabase, data.order_number, supplementary);
+      await insertAdminOrderSupplementary(supabase, data.id, supplementary);
     } catch (supplementaryError) {
       const { error: rollbackError } = await supabase
         .from("order_overview")
         .delete()
-        .eq("order_number", data.order_number);
+        .eq("id", data.id);
 
       if (rollbackError) {
         throw new Error(
@@ -431,13 +437,13 @@ export async function updateAdminOrder(
 
   const previousSupplementary = await getExistingSupplementaryRecord(
     supabase,
-    input.originalOrderNumber,
+    previousOrder.id,
   );
   const orderNumberChanged = input.originalOrderNumber !== input.orderNumber;
   const supplementary = input.supplementary ?? null;
 
   if (orderNumberChanged && previousSupplementary) {
-    await deleteAdminOrderSupplementary(supabase, input.originalOrderNumber);
+    await deleteAdminOrderSupplementary(supabase, previousOrder.id);
   }
 
   const { data, error } = await supabase
@@ -474,14 +480,14 @@ export async function updateAdminOrder(
 
   try {
     if (!orderNumberChanged) {
-      await deleteAdminOrderSupplementary(supabase, input.originalOrderNumber);
+      await deleteAdminOrderSupplementary(supabase, previousOrder.id);
     }
 
     if (supplementary) {
-      await insertAdminOrderSupplementary(supabase, data.order_number, supplementary);
+      await insertAdminOrderSupplementary(supabase, data.id, supplementary);
     }
   } catch (supplementaryError) {
-    await rollbackUpdatedOrder(supabase, data.order_number, previousOrder, previousSupplementary);
+    await rollbackUpdatedOrder(supabase, data.id, previousOrder, previousSupplementary);
     throw supplementaryError;
   }
 
@@ -521,23 +527,48 @@ async function getAdminOrderByNumber(
   return data ?? null;
 }
 
-async function getExistingSupplementaryRecord(
+async function getOrderOverviewReference(
   supabase: SupabaseClient,
   orderNumber: string,
+): Promise<OrderOverviewReference | null> {
+  const normalizedOrderNumber = orderNumber.trim();
+
+  if (!normalizedOrderNumber) {
+    return null;
+  }
+
+  const { data, error } = await withRequestTimeout(
+    supabase
+      .from("order_overview")
+      .select("id,order_number")
+      .eq("order_number", normalizedOrderNumber)
+      .maybeSingle<OrderOverviewReference>(),
+  );
+
+  if (error) {
+    throw error;
+  }
+
+  return data ?? null;
+}
+
+async function getExistingSupplementaryRecord(
+  supabase: SupabaseClient,
+  orderOverviewId: string,
 ): Promise<ExistingSupplementaryRecord | null> {
   const [purchaseResult, serviceResult] = await Promise.all([
     withRequestTimeout(
       supabase
         .from("purchase_order")
-        .select("order_number,order_type,order_details")
-        .eq("order_number", orderNumber)
+        .select("order_overview_id,order_type,order_details")
+        .eq("order_overview_id", orderOverviewId)
         .maybeSingle<PurchaseOrderRecord>(),
     ),
     withRequestTimeout(
       supabase
         .from("service_order")
-        .select("order_number,order_type,order_discount,order_details")
-        .eq("order_number", orderNumber)
+        .select("order_overview_id,order_type,order_discount,order_details")
+        .eq("order_overview_id", orderOverviewId)
         .maybeSingle<ServiceOrderRecord>(),
     ),
   ]);
@@ -569,14 +600,14 @@ async function getExistingSupplementaryRecord(
 
 async function deleteAdminOrderSupplementary(
   supabase: SupabaseClient,
-  orderNumber: string,
+  orderOverviewId: string,
 ) {
   const [purchaseDeleteResult, serviceDeleteResult] = await Promise.all([
     withRequestTimeout(
-      supabase.from("purchase_order").delete().eq("order_number", orderNumber),
+      supabase.from("purchase_order").delete().eq("order_overview_id", orderOverviewId),
     ),
     withRequestTimeout(
-      supabase.from("service_order").delete().eq("order_number", orderNumber),
+      supabase.from("service_order").delete().eq("order_overview_id", orderOverviewId),
     ),
   ]);
 
@@ -616,11 +647,11 @@ async function restoreExistingSupplementaryRecord(
 
 async function rollbackUpdatedOrder(
   supabase: SupabaseClient,
-  currentOrderNumber: string,
+  currentOrderId: string,
   previousOrder: AdminOrderRow,
   previousSupplementary: ExistingSupplementaryRecord | null,
 ) {
-  await deleteAdminOrderSupplementary(supabase, currentOrderNumber);
+  await deleteAdminOrderSupplementary(supabase, currentOrderId);
 
   const { error } = await supabase
     .from("order_overview")
@@ -639,7 +670,7 @@ async function rollbackUpdatedOrder(
       reviewed_at: previousOrder.reviewed_at,
       deleted_at: previousOrder.deleted_at,
     })
-    .eq("order_number", currentOrderNumber);
+    .eq("id", currentOrderId);
 
   if (error) {
     throw new Error(`更新子表失败，且订单总表回滚失败：${String(error.message ?? error)}`);
@@ -650,12 +681,12 @@ async function rollbackUpdatedOrder(
 
 async function insertAdminOrderSupplementary(
   supabase: SupabaseClient,
-  orderNumber: string,
+  orderOverviewId: string,
   supplementary: CreateAdminOrderSupplementaryInput,
 ) {
   if (supplementary.kind === "purchase") {
     const { error } = await supabase.from("purchase_order").insert({
-      order_number: orderNumber,
+      order_overview_id: orderOverviewId,
       order_type: supplementary.subtypeId,
       order_details: supplementary.details,
     });
@@ -668,7 +699,7 @@ async function insertAdminOrderSupplementary(
   }
 
   const { error } = await supabase.from("service_order").insert({
-    order_number: orderNumber,
+    order_overview_id: orderOverviewId,
     order_type: supplementary.subtypeId,
     order_discount: supplementary.discountId,
     order_details: supplementary.details,

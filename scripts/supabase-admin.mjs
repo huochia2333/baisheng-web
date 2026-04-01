@@ -117,25 +117,41 @@ const handlers = {
       throw new Error(`order_overview: ${overviewError.message}`);
     }
 
-    const [purchaseResult, serviceResult] = await Promise.all([
-      supabase.from("purchase_order").select("*").eq("order_number", orderNumber).maybeSingle(),
-      supabase.from("service_order").select("*").eq("order_number", orderNumber).maybeSingle(),
-    ]);
+    let purchaseOrder = null;
+    let serviceOrder = null;
 
-    if (purchaseResult.error) {
-      throw new Error(`purchase_order: ${purchaseResult.error.message}`);
-    }
+    if (overview?.id) {
+      const [purchaseResult, serviceResult] = await Promise.all([
+        supabase
+          .from("purchase_order")
+          .select("*")
+          .eq("order_overview_id", overview.id)
+          .maybeSingle(),
+        supabase
+          .from("service_order")
+          .select("*")
+          .eq("order_overview_id", overview.id)
+          .maybeSingle(),
+      ]);
 
-    if (serviceResult.error) {
-      throw new Error(`service_order: ${serviceResult.error.message}`);
+      if (purchaseResult.error) {
+        throw new Error(`purchase_order: ${purchaseResult.error.message}`);
+      }
+
+      if (serviceResult.error) {
+        throw new Error(`service_order: ${serviceResult.error.message}`);
+      }
+
+      purchaseOrder = purchaseResult.data;
+      serviceOrder = serviceResult.data;
     }
 
     console.log(
       JSON.stringify(
         {
           overview,
-          purchaseOrder: purchaseResult.data,
-          serviceOrder: serviceResult.data,
+          purchaseOrder,
+          serviceOrder,
         },
         null,
         2,
