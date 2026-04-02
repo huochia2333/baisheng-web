@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 
 import { AdminSectionPlaceholder } from "@/components/dashboard/admin-section-placeholder";
+import { ReferralsClient } from "@/components/dashboard/referrals-client";
 import { getWorkspaceSectionCopy } from "@/lib/workspace-sections";
 
 type SectionPageProps = {
@@ -20,6 +21,11 @@ export async function generateMetadata({
 
 export default async function SalesmanSectionPage({ params }: SectionPageProps) {
   const { section } = await params;
+
+  if (section === "referrals") {
+    return <ReferralsClient />;
+  }
+
   const copy = getWorkspaceSectionCopy(section) ?? {
     title: "业务工作台",
     description:

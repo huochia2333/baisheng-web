@@ -10,7 +10,7 @@ export const workspaceSectionCopy: Record<
   referrals: {
     title: "推荐树",
     description:
-      "这里将展示推荐关系网络、层级节点和关键业务指标，后续可以根据角色精简可见节点与操作权限。",
+      "这里会按当前角色展示可见的推荐关系，包括自己被谁推荐，以及自己推荐了谁。不同角色会在数据库权限范围内看到对应关系。",
   },
   team: {
     title: "团队管理",
@@ -20,7 +20,7 @@ export const workspaceSectionCopy: Record<
   commission: {
     title: "佣金中心",
     description:
-      "这里将整合佣金规则、结算明细、发放进度和异常记录，后续会继续细化成财务与业务员专属界面。",
+      "这里将整合佣金规则、结算明细、发放进度和异常记录，后续会继续细化成财务与业务岗位的专属界面。",
   },
   "exchange-rates": {
     title: "汇率管理",
@@ -35,7 +35,7 @@ export const workspaceSectionCopy: Record<
   reviews: {
     title: "审核中心",
     description:
-      "这里将处理资料审核、实名认证、风险复核和审批流。后续运营、经理与客户角色可以从这里裁出不同的审核视图。",
+      "这里将处理资料审核、实名认证、风险复核和审批流。后续运营、经理与客户角色也可以从这里派生不同的审核视图。",
   },
 };
 

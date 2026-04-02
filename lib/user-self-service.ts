@@ -6,6 +6,7 @@ export type AppRole =
   | "administrator"
   | "operator"
   | "manager"
+  | "recruiter"
   | "salesman"
   | "finance"
   | "client";
@@ -79,11 +80,12 @@ export type CurrentUserBundle = {
   vipData: UserVipDataRow | null;
 };
 
-const USER_MEDIA_BUCKET = "user-media";
 const SIGNED_URL_TTL_SECONDS = 60 * 60;
 const AUTH_SESSION_TIMEOUT_MS = 8_000;
 const AUTH_SESSION_RETRY_DELAY_MS = 350;
 const AUTH_SESSION_TIMEOUT_MESSAGE = "登录状态同步较慢，请稍后重试。";
+const USER_MEDIA_MUTATION_TIMEOUT_MS = 60_000;
+const USER_MEDIA_MUTATION_TIMEOUT_MESSAGE = "媒体操作超时，请稍后重试。";
 
 let currentSessionRequest: Promise<Session | null> | null = null;
 let currentSessionSnapshot: Session | null | undefined;
@@ -102,6 +104,7 @@ export function getRoleFromUser(user: User | null | undefined): AppRole | null {
     role === "administrator" ||
     role === "operator" ||
     role === "manager" ||
+    role === "recruiter" ||
     role === "salesman" ||
     role === "finance" ||
     role === "client"
@@ -143,6 +146,7 @@ export async function getCurrentSessionContext(
   session: Session | null;
   user: User | null;
   role: AppRole | null;
+  status: UserStatus | null;
 }> {
   const session = await getCurrentSession(supabase);
 
@@ -150,6 +154,7 @@ export async function getCurrentSessionContext(
     session,
     user: session?.user ?? null,
     role: getRoleFromAccessToken(session?.access_token),
+    status: getStatusFromAccessToken(session?.access_token),
   };
 }
 
@@ -173,6 +178,7 @@ export function getRoleFromAccessToken(accessToken: string | null | undefined): 
     role === "administrator" ||
     role === "operator" ||
     role === "manager" ||
+    role === "recruiter" ||
     role === "salesman" ||
     role === "finance" ||
     role === "client"
@@ -183,17 +189,58 @@ export function getRoleFromAccessToken(accessToken: string | null | undefined): 
   return null;
 }
 
+export function getStatusFromAccessToken(
+  accessToken: string | null | undefined,
+): UserStatus | null {
+  if (!accessToken) {
+    return null;
+  }
+
+  const payload = decodeJwtPayload(accessToken);
+  const appMetadata =
+    typeof payload === "object" && payload !== null && "app_metadata" in payload
+      ? payload.app_metadata
+      : null;
+
+  const status =
+    typeof appMetadata === "object" && appMetadata !== null && "status" in appMetadata
+      ? normalizeOptionalString(appMetadata.status)
+      : null;
+
+  if (status === "inactive" || status === "active" || status === "suspended") {
+    return status;
+  }
+
+  return null;
+}
+
 export function getDefaultSignedInPath() {
   return getDefaultSignedInPathForRole(null);
 }
 
 export function getDefaultWorkspaceBasePath(role: AppRole | null) {
+  if (role === "manager") {
+    return "/manager";
+  }
+
+  if (role === "recruiter") {
+    return "/recruiter";
+  }
+
   if (role === "salesman") {
     return "/salesman";
   }
 
-  if (isPlaceholderWorkspaceRole(role)) {
-    return "/workspace";
+  if (role === "operator") {
+    return "/operator";
+  }
+
+  if (role === "finance") {
+    return "/finance";
+  }
+
+  if (role === "client") {
+    return "/client";
   }
 
   return "/admin";
@@ -201,17 +248,6 @@ export function getDefaultWorkspaceBasePath(role: AppRole | null) {
 
 export function getDefaultSignedInPathForRole(role: AppRole | null) {
   return `${getDefaultWorkspaceBasePath(role)}/my`;
-}
-
-export function isPlaceholderWorkspaceRole(
-  role: AppRole | null,
-): role is "operator" | "manager" | "finance" | "client" {
-  return (
-    role === "operator" ||
-    role === "manager" ||
-    role === "finance" ||
-    role === "client"
-  );
 }
 
 export async function getCurrentUserBundle(
@@ -342,62 +378,33 @@ export async function uploadUserMedia(
     files: File[];
   },
 ) {
-  for (const file of options.files) {
-    const path = buildUserMediaPath(options.userId, options.kind, file.name);
-    const mimeType =
-      normalizeOptionalString(file.type) ??
-      (options.kind === "image" ? "image/*" : "video/*");
-
-    const { error: uploadError } = await supabase.storage
-      .from(USER_MEDIA_BUCKET)
-      .upload(path, file, {
-        contentType: mimeType,
-        upsert: false,
-      });
-
-    if (uploadError) {
-      throw uploadError;
-    }
-
-    const { error: insertError } = await supabase.from("user_media_assets").insert({
-      user_id: options.userId,
-      kind: options.kind,
-      bucket_name: USER_MEDIA_BUCKET,
-      storage_path: path,
-      original_name: file.name,
-      mime_type: mimeType,
-      file_size_bytes: file.size,
-    });
-
-    if (insertError) {
-      await supabase.storage.from(USER_MEDIA_BUCKET).remove([path]);
-      throw insertError;
-    }
+  if (options.files.length === 0) {
+    return;
   }
+
+  const formData = new FormData();
+  formData.set("action", "upload");
+  formData.set("kind", options.kind);
+
+  for (const file of options.files) {
+    formData.append("files", file, file.name);
+  }
+
+  await invokeUserMediaMutation(supabase, formData);
 }
 
 export async function deleteUserMediaAssets(
   supabase: SupabaseClient,
   assets: Array<Pick<UserMediaAssetRow, "bucket_name" | "storage_path" | "id">>,
 ) {
-  for (const asset of assets) {
-    const { error: storageError } = await supabase.storage
-      .from(asset.bucket_name)
-      .remove([asset.storage_path]);
-
-    if (storageError) {
-      throw storageError;
-    }
-
-    const { error: deleteError } = await supabase
-      .from("user_media_assets")
-      .delete()
-      .eq("id", asset.id);
-
-    if (deleteError) {
-      throw deleteError;
-    }
+  if (assets.length === 0) {
+    return;
   }
+
+  await invokeUserMediaMutation(supabase, {
+    action: "delete",
+    assetIds: assets.map((asset) => asset.id),
+  });
 }
 
 export async function updateUserProfileCity(
@@ -466,25 +473,6 @@ async function syncProfileFromAuthMetadataIfPossible(
   }
 
   return data ?? profile;
-}
-
-function buildUserMediaPath(userId: string, kind: MediaKind, originalName: string) {
-  const safeFileName = sanitizeFileName(originalName);
-  const suffix =
-    typeof crypto !== "undefined" && "randomUUID" in crypto
-      ? crypto.randomUUID()
-      : `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-
-  return `${userId}/${kind}/${suffix}-${safeFileName}`;
-}
-
-function sanitizeFileName(fileName: string) {
-  return fileName
-    .trim()
-    .replace(/\s+/g, "-")
-    .replace(/[^a-zA-Z0-9._-]/g, "")
-    .replace(/^-+/, "")
-    .slice(0, 120);
 }
 
 function decodeJwtPayload(accessToken: string) {
@@ -594,4 +582,60 @@ function delay(timeoutMs: number) {
   return new Promise<void>((resolve) => {
     globalThis.setTimeout(resolve, timeoutMs);
   });
+}
+
+async function invokeUserMediaMutation(
+  supabase: SupabaseClient,
+  body: FormData | { action: "delete"; assetIds: string[] },
+) {
+  const { error } = await withRequestTimeout(
+    supabase.functions.invoke("user-media-mutate", {
+      body,
+    }),
+    {
+      timeoutMs: USER_MEDIA_MUTATION_TIMEOUT_MS,
+      message: USER_MEDIA_MUTATION_TIMEOUT_MESSAGE,
+    },
+  );
+
+  if (!error) {
+    return;
+  }
+
+  throw await toUserMediaMutationError(error);
+}
+
+async function toUserMediaMutationError(error: unknown) {
+  const response = getFunctionErrorResponse(error);
+
+  if (response) {
+    try {
+      const payload = (await response.clone().json()) as {
+        error?: string;
+        message?: string;
+      };
+      const message =
+        normalizeOptionalString(payload.message) ??
+        normalizeOptionalString(payload.error);
+
+      if (message) {
+        return new Error(message);
+      }
+    } catch {
+      // Fall through to the original function client error.
+    }
+  }
+
+  return error instanceof Error
+    ? error
+    : new Error("当前服务暂时不可用，请稍后再试。");
+}
+
+function getFunctionErrorResponse(error: unknown) {
+  if (typeof error !== "object" || error === null || !("context" in error)) {
+    return null;
+  }
+
+  const { context } = error as { context?: unknown };
+  return context instanceof Response ? context : null;
 }

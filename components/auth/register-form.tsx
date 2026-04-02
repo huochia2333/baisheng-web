@@ -1,6 +1,6 @@
 "use client";
 
-import { startTransition, useEffect, useState } from "react";
+import { startTransition, useState } from "react";
 
 import { useRouter } from "next/navigation";
 import {
@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 
 import { getBrowserSupabaseClient } from "@/lib/supabase";
+import { useSupabaseAuthSync } from "@/lib/use-supabase-auth-sync";
 import {
   getCurrentSession,
   getDefaultSignedInPathForRole,
@@ -37,18 +38,16 @@ export function RegisterForm() {
   const [password, setPassword] = useState("");
   const [acceptedTerms, setAcceptedTerms] = useState(false);
 
-  useEffect(() => {
-    if (!supabase) {
-      return;
-    }
+  useSupabaseAuthSync(supabase, {
+    onReady: async ({ isMounted }) => {
+      if (!supabase) {
+        return;
+      }
 
-    let isMounted = true;
-
-    const checkSession = async () => {
       try {
         const session = await getCurrentSession(supabase);
 
-        if (!isMounted) {
+        if (!isMounted()) {
           return;
         }
 
@@ -63,24 +62,18 @@ export function RegisterForm() {
           return;
         }
       } catch (sessionError) {
-        if (!isMounted) {
+        if (!isMounted()) {
           return;
         }
 
         setError(formatAuthError(getErrorMessage(sessionError)));
       } finally {
-        if (isMounted) {
+        if (isMounted()) {
           setCheckingSession(false);
         }
       }
-    };
-
-    void checkSession();
-
-    return () => {
-      isMounted = false;
-    };
-  }, [router, supabase]);
+    },
+  });
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();

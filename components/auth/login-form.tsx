@@ -1,12 +1,13 @@
 "use client";
 
-import { startTransition, useEffect, useState } from "react";
+import { startTransition, useState } from "react";
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowRight, Check, LockKeyhole, Mail } from "lucide-react";
 
 import { getBrowserSupabaseClient } from "@/lib/supabase";
+import { useSupabaseAuthSync } from "@/lib/use-supabase-auth-sync";
 import {
   getCurrentSession,
   getDefaultSignedInPathForRole,
@@ -33,18 +34,16 @@ export function LoginForm({
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (!supabase) {
-      return;
-    }
+  useSupabaseAuthSync(supabase, {
+    onReady: async ({ isMounted }) => {
+      if (!supabase) {
+        return;
+      }
 
-    let isMounted = true;
-
-    const checkSession = async () => {
       try {
         const session = await getCurrentSession(supabase);
 
-        if (!isMounted) {
+        if (!isMounted()) {
           return;
         }
 
@@ -59,41 +58,31 @@ export function LoginForm({
           return;
         }
       } catch (sessionError) {
-        if (!isMounted) {
+        if (!isMounted()) {
           return;
         }
 
         setError(formatAuthError(getErrorMessage(sessionError)));
       } finally {
-        if (isMounted) {
+        if (isMounted()) {
           setCheckingSession(false);
         }
       }
-    };
+    },
+    onAuthStateChange: ({ isMounted, session }) => {
+      if (!isMounted() || !session?.user) {
+        return;
+      }
 
-    void checkSession();
+      const nextPath = getDefaultSignedInPathForRole(
+        getRoleFromAccessToken(session.access_token),
+      );
 
-    const { data: authListener } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
-        if (!isMounted || !session?.user) {
-          return;
-        }
-
-        const nextPath = getDefaultSignedInPathForRole(
-          getRoleFromAccessToken(session.access_token),
-        );
-
-        startTransition(() => {
-          router.replace(nextPath);
-        });
-      },
-    );
-
-    return () => {
-      isMounted = false;
-      authListener.subscription.unsubscribe();
-    };
-  }, [router, supabase]);
+      startTransition(() => {
+        router.replace(nextPath);
+      });
+    },
+  });
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();

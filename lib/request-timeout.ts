@@ -1,3 +1,5 @@
+import { setPageVisibleTimeout } from "./page-visibility";
+
 export const DEFAULT_REQUEST_TIMEOUT_MS = 12_000;
 export const REQUEST_TIMEOUT_ERROR_NAME = "RequestTimeoutError";
 const DEFAULT_REQUEST_TIMEOUT_MESSAGE =
@@ -18,14 +20,14 @@ export function withRequestTimeout<T>(
   } = options;
 
   return new Promise<T>((resolve, reject) => {
-    const timeoutId = globalThis.setTimeout(() => {
+    const timeout = setPageVisibleTimeout(() => {
       const timeoutError = new Error(message);
       timeoutError.name = REQUEST_TIMEOUT_ERROR_NAME;
       reject(timeoutError);
     }, timeoutMs);
 
     Promise.resolve(promise).then(resolve, reject).finally(() => {
-      globalThis.clearTimeout(timeoutId);
+      timeout.clear();
     });
   });
 }

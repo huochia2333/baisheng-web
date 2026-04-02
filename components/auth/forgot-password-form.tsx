@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { ArrowRight, LockKeyhole, Mail, ShieldCheck } from "lucide-react";
 
 import { getBrowserSupabaseClient } from "@/lib/supabase";
+import { useSupabaseAuthSync } from "@/lib/use-supabase-auth-sync";
 import { getCurrentSession } from "@/lib/user-self-service";
 
 import { AuthFeedback } from "./auth-feedback";
@@ -31,14 +32,12 @@ export function ForgotPasswordForm() {
 
   const recoveryHint = useMemo(() => getRecoveryHint(), []);
 
-  useEffect(() => {
-    if (!supabase) {
-      return;
-    }
+  useSupabaseAuthSync(supabase, {
+    onReady: async ({ isMounted }) => {
+      if (!supabase) {
+        return;
+      }
 
-    let isMounted = true;
-
-    const syncRecoveryState = async () => {
       try {
         if (recoveryHint) {
           setMode("reset");
@@ -46,7 +45,7 @@ export function ForgotPasswordForm() {
 
         const session = await getCurrentSession(supabase);
 
-        if (!isMounted) {
+        if (!isMounted()) {
           return;
         }
 
@@ -55,46 +54,40 @@ export function ForgotPasswordForm() {
           setNotice("重置链接验证成功，请设置新的登录密码。");
         }
       } catch (sessionError) {
-        if (!isMounted) {
+        if (!isMounted()) {
           return;
         }
 
         setError(formatForgotPasswordError(getErrorMessage(sessionError)));
       } finally {
-        if (isMounted) {
+        if (isMounted()) {
           setCheckingRecovery(false);
         }
       }
-    };
+    },
+    onAuthStateChange: ({ event, isMounted, session }) => {
+      if (!isMounted()) {
+        return;
+      }
 
-    void syncRecoveryState();
+      if (event === "PASSWORD_RECOVERY") {
+        setMode("reset");
+        setRecoveryReady(true);
+        setError(null);
+        setNotice("重置链接验证成功，请设置新的登录密码。");
+        return;
+      }
 
-    const { data: authListener } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        if (!isMounted) {
-          return;
-        }
-
-        if (event === "PASSWORD_RECOVERY") {
-          setMode("reset");
-          setRecoveryReady(true);
-          setError(null);
-          setNotice("重置链接验证成功，请设置新的登录密码。");
-          return;
-        }
-
-        if ((event === "SIGNED_IN" || event === "INITIAL_SESSION") && recoveryHint && session?.user) {
-          setMode("reset");
-          setRecoveryReady(true);
-        }
-      },
-    );
-
-    return () => {
-      isMounted = false;
-      authListener.subscription.unsubscribe();
-    };
-  }, [recoveryHint, supabase]);
+      if (
+        (event === "SIGNED_IN" || event === "INITIAL_SESSION") &&
+        recoveryHint &&
+        session?.user
+      ) {
+        setMode("reset");
+        setRecoveryReady(true);
+      }
+    },
+  });
 
   useEffect(() => {
     if (cooldownRemaining <= 0) {

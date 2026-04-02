@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 
 import { getBrowserSupabaseClient } from "@/lib/supabase";
+import { useSupabaseAuthSync } from "@/lib/use-supabase-auth-sync";
 import {
   getDefaultWorkspaceBasePath,
   getRoleFromAccessToken,
@@ -45,7 +46,17 @@ type WorkspaceConfig = {
   workspaceLabel: string;
 };
 
-const placeholderNavItems: NavItem[] = [{ segment: "my", label: "我的", icon: UserRound }];
+const compactRoleNavItems: NavItem[] = [
+  { segment: "my", label: "我的", icon: UserRound },
+  { segment: "referrals", label: "推荐树", icon: GitBranchPlus },
+];
+
+const recruiterNavItems: NavItem[] = [
+  { segment: "my", label: "我的", icon: UserRound },
+  { segment: "referrals", label: "推荐树", icon: GitBranchPlus },
+  { segment: "commission", label: "佣金", icon: WalletCards },
+  { segment: "tasks", label: "任务", icon: ClipboardList },
+];
 
 const sharedNavItems: NavItem[] = [
   { segment: "my", label: "我的", icon: UserRound },
@@ -63,12 +74,28 @@ const adminNavItems: NavItem[] = [
 ];
 
 function getHintedBasePath(pathname: string) {
-  if (pathname.startsWith("/salesman")) {
-    return "/salesman";
+  if (pathname.startsWith("/manager")) {
+    return "/manager";
   }
 
-  if (pathname.startsWith("/workspace")) {
-    return "/workspace";
+  if (pathname.startsWith("/recruiter")) {
+    return "/recruiter";
+  }
+
+  if (pathname.startsWith("/operator")) {
+    return "/operator";
+  }
+
+  if (pathname.startsWith("/finance")) {
+    return "/finance";
+  }
+
+  if (pathname.startsWith("/client")) {
+    return "/client";
+  }
+
+  if (pathname.startsWith("/salesman")) {
+    return "/salesman";
   }
 
   return "/admin";
@@ -82,18 +109,40 @@ function getWorkspaceConfig(
   const hintedBasePath = getHintedBasePath(pathname);
   const basePath = resolved && role ? getDefaultWorkspaceBasePath(role) : hintedBasePath;
   const navSource =
-    basePath === "/workspace"
-      ? placeholderNavItems
-      : basePath === "/salesman"
-        ? sharedNavItems
-        : adminNavItems;
+    basePath === "/salesman"
+      ? sharedNavItems
+      : basePath === "/recruiter"
+        ? recruiterNavItems
+        : basePath === "/manager" ||
+            basePath === "/operator" ||
+            basePath === "/finance" ||
+            basePath === "/client"
+          ? compactRoleNavItems
+          : adminNavItems;
   const navItems = navSource.map((item) => ({
     ...item,
     href: `${basePath}/${item.segment}`,
   }));
 
-  if (basePath === "/workspace") {
-    return getPlaceholderWorkspaceConfig(role, basePath, navItems);
+  if (
+    basePath === "/manager" ||
+    basePath === "/operator" ||
+    basePath === "/finance" ||
+    basePath === "/client"
+  ) {
+    return getCompactRoleWorkspaceConfig(role, basePath, navItems);
+  }
+
+  if (basePath === "/recruiter") {
+    return {
+      accountLabel: "招聘员账号",
+      basePath,
+      initials: "RC",
+      navItems,
+      subtitle: "招聘业务员岗位",
+      title: "招聘工作台",
+      workspaceLabel: "招聘中心",
+    };
   }
 
   if (!resolved && basePath === "/admin") {
@@ -131,7 +180,7 @@ function getWorkspaceConfig(
   };
 }
 
-function getPlaceholderWorkspaceConfig(
+function getCompactRoleWorkspaceConfig(
   role: AppRole | null,
   basePath: string,
   navItems: Array<NavItem & { href: string }>,
@@ -142,7 +191,7 @@ function getPlaceholderWorkspaceConfig(
       basePath,
       initials: "OP",
       navItems,
-      subtitle: "当前仅开放我的页面",
+      subtitle: "运营岗位",
       title: "运营工作台",
       workspaceLabel: "运营中心",
     };
@@ -154,7 +203,7 @@ function getPlaceholderWorkspaceConfig(
       basePath,
       initials: "MG",
       navItems,
-      subtitle: "当前仅开放我的页面",
+      subtitle: "团队管理岗位",
       title: "经理工作台",
       workspaceLabel: "经理中心",
     };
@@ -166,7 +215,7 @@ function getPlaceholderWorkspaceConfig(
       basePath,
       initials: "FN",
       navItems,
-      subtitle: "当前仅开放我的页面",
+      subtitle: "财务岗位",
       title: "财务工作台",
       workspaceLabel: "财务中心",
     };
@@ -178,7 +227,7 @@ function getPlaceholderWorkspaceConfig(
       basePath,
       initials: "CL",
       navItems,
-      subtitle: "当前仅开放我的页面",
+      subtitle: "客户岗位",
       title: "客户工作台",
       workspaceLabel: "客户中心",
     };
@@ -189,7 +238,7 @@ function getPlaceholderWorkspaceConfig(
     basePath,
     initials: "MY",
     navItems,
-    subtitle: "当前仅开放我的页面",
+    subtitle: "角色入口",
     title: "我的工作台",
     workspaceLabel: "角色中心",
   };
@@ -208,33 +257,32 @@ export function AdminShell({ children }: AdminShellProps) {
   const [role, setRole] = useState<AppRole | null>(null);
   const [roleResolved, setRoleResolved] = useState(false);
 
-  useEffect(() => {
-    if (!supabase) {
-      return;
-    }
+  useSupabaseAuthSync(supabase, {
+    onReady: async ({ isMounted }) => {
+      if (!supabase) {
+        return;
+      }
 
-    let isMounted = true;
-
-    const syncRole = async () => {
       try {
         const nextRole = await getRoleFromCurrentSession(supabase);
 
-        if (!isMounted) {
+        if (!isMounted()) {
           return;
         }
 
         setRole(nextRole);
+      } catch {
+        if (!isMounted()) {
+          return;
+        }
       } finally {
-        if (isMounted) {
+        if (isMounted()) {
           setRoleResolved(true);
         }
       }
-    };
-
-    void syncRole();
-
-    const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (!isMounted) {
+    },
+    onAuthStateChange: ({ isMounted, session }) => {
+      if (!isMounted()) {
         return;
       }
 
@@ -246,13 +294,8 @@ export function AdminShell({ children }: AdminShellProps) {
 
       setRole(getRoleFromAccessToken(session.access_token));
       setRoleResolved(true);
-    });
-
-    return () => {
-      isMounted = false;
-      authListener.subscription.unsubscribe();
-    };
-  }, [supabase]);
+    },
+  });
 
   useEffect(() => {
     if (!roleResolved) {
@@ -261,11 +304,19 @@ export function AdminShell({ children }: AdminShellProps) {
 
     const currentBasePath = pathname.startsWith("/salesman")
       ? "/salesman"
-      : pathname.startsWith("/workspace")
-        ? "/workspace"
-        : pathname.startsWith("/admin")
-          ? "/admin"
-          : null;
+      : pathname.startsWith("/manager")
+        ? "/manager"
+        : pathname.startsWith("/recruiter")
+          ? "/recruiter"
+          : pathname.startsWith("/operator")
+            ? "/operator"
+            : pathname.startsWith("/finance")
+              ? "/finance"
+              : pathname.startsWith("/client")
+                ? "/client"
+                : pathname.startsWith("/admin")
+                  ? "/admin"
+                  : null;
 
     if (!currentBasePath) {
       return;

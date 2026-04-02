@@ -15,11 +15,11 @@ export async function generateMetadata({
   const copy = getWorkspaceSectionCopy(section);
 
   return {
-    title: copy ? copy.title : "业务工作台",
+    title: copy ? copy.title : "经理工作台",
   };
 }
 
-export default async function AdminSectionPage({ params }: SectionPageProps) {
+export default async function ManagerSectionPage({ params }: SectionPageProps) {
   const { section } = await params;
 
   if (section === "referrals") {
@@ -27,15 +27,15 @@ export default async function AdminSectionPage({ params }: SectionPageProps) {
   }
 
   const copy = getWorkspaceSectionCopy(section) ?? {
-    title: "业务工作台",
+    title: "经理工作台",
     description:
-      "当前模块正在建设中。我们已经把工作台的导航结构搭好，后续可以在这个壳子上继续扩展具体内容。",
+      "当前模块正在建设中。我们已经把经理工作台的导航结构搭好，后续可以在这个壳子上继续扩展具体内容。",
   };
 
   return (
     <AdminSectionPlaceholder
       description={copy.description}
-      homeHref="/admin/my"
+      homeHref="/manager/my"
       title={copy.title}
     />
   );
