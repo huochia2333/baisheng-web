@@ -46,7 +46,19 @@ type WorkspaceConfig = {
   workspaceLabel: string;
 };
 
-const compactRoleNavItems: NavItem[] = [
+const managerNavItems: NavItem[] = [
+  { segment: "my", label: "我的", icon: UserRound },
+  { segment: "referrals", label: "推荐树", icon: GitBranchPlus },
+  { segment: "team", label: "团队", icon: UsersRound },
+];
+
+const staffReadNavItems: NavItem[] = [
+  { segment: "my", label: "我的", icon: UserRound },
+  { segment: "referrals", label: "推荐树", icon: GitBranchPlus },
+  { segment: "team", label: "团队", icon: UsersRound },
+];
+
+const clientNavItems: NavItem[] = [
   { segment: "my", label: "我的", icon: UserRound },
   { segment: "referrals", label: "推荐树", icon: GitBranchPlus },
 ];
@@ -113,11 +125,12 @@ function getWorkspaceConfig(
       ? sharedNavItems
       : basePath === "/recruiter"
         ? recruiterNavItems
-        : basePath === "/manager" ||
-            basePath === "/operator" ||
-            basePath === "/finance" ||
-            basePath === "/client"
-          ? compactRoleNavItems
+        : basePath === "/manager"
+          ? managerNavItems
+          : basePath === "/operator" || basePath === "/finance"
+            ? staffReadNavItems
+            : basePath === "/client"
+              ? clientNavItems
           : adminNavItems;
   const navItems = navSource.map((item) => ({
     ...item,

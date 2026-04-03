@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 
 import { AdminSectionPlaceholder } from "@/components/dashboard/admin-section-placeholder";
 import { ReferralsClient } from "@/components/dashboard/referrals-client";
+import { TeamManagementClient } from "@/components/dashboard/team-management-client";
 import { getWorkspaceSectionCopy } from "@/lib/workspace-sections";
 
 type SectionPageProps = {
@@ -24,6 +25,10 @@ export default async function SalesmanSectionPage({ params }: SectionPageProps) 
 
   if (section === "referrals") {
     return <ReferralsClient />;
+  }
+
+  if (section === "team") {
+    return <TeamManagementClient />;
   }
 
   const copy = getWorkspaceSectionCopy(section) ?? {
