@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import "../workspace.css";
 
 import { AdminShell } from "@/components/dashboard/admin-shell";
 

@@ -1,5 +1,11 @@
-import { redirect } from "next/navigation";
+import LoginPage, { metadata } from "./login/page";
 
-export default function Home() {
-  redirect("/login");
+export { metadata };
+
+export default async function Home({
+  searchParams,
+}: {
+  searchParams: Promise<{ passwordReset?: string; registered?: string }>;
+}) {
+  return <LoginPage searchParams={searchParams} />;
 }

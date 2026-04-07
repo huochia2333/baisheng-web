@@ -1,6 +1,10 @@
-@import "tailwindcss";
-@import "tw-animate-css";
-@import "shadcn/tailwind.css";
+@import "tailwindcss" source(none);
+
+@source "./layout.tsx";
+@source "./login";
+@source "./register";
+@source "./forgot-password";
+@source "../components/auth";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -121,10 +125,12 @@
   * {
     @apply border-border outline-ring/50;
   }
+
   html {
     @apply font-sans scroll-smooth;
     scrollbar-gutter: stable;
   }
+
   body {
     @apply bg-background text-foreground;
     background-image:

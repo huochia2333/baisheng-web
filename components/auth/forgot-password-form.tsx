@@ -6,13 +6,13 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowRight, LockKeyhole, Mail, ShieldCheck } from "lucide-react";
 
+import { getAuthSession } from "@/lib/auth-session-client";
 import { getBrowserSupabaseClient } from "@/lib/supabase";
-import { useSupabaseAuthSync } from "@/lib/use-supabase-auth-sync";
-import { getCurrentSession } from "@/lib/user-self-service";
+import { useAuthSessionMonitor } from "@/lib/use-auth-session-monitor";
 
 import { AuthFeedback } from "./auth-feedback";
 import { AuthField } from "./auth-field";
-import { Button } from "../ui/button";
+import { AuthLoadingShell } from "./auth-loading-shell";
 
 type ForgotPasswordMode = "request" | "sent" | "reset";
 
@@ -32,7 +32,7 @@ export function ForgotPasswordForm() {
 
   const recoveryHint = useMemo(() => getRecoveryHint(), []);
 
-  useSupabaseAuthSync(supabase, {
+  useAuthSessionMonitor(supabase, {
     onReady: async ({ isMounted }) => {
       if (!supabase) {
         return;
@@ -43,7 +43,7 @@ export function ForgotPasswordForm() {
           setMode("reset");
         }
 
-        const session = await getCurrentSession(supabase);
+        const session = await getAuthSession(supabase);
 
         if (!isMounted()) {
           return;
@@ -191,11 +191,7 @@ export function ForgotPasswordForm() {
   };
 
   if (checkingRecovery || !supabase) {
-    return (
-      <div className="rounded-[26px] border border-[#dfe5ea] bg-white/75 px-5 py-6 text-sm leading-7 text-[#647380] shadow-[0_12px_28px_rgba(115,127,139,0.06)]">
-        正在检查密码重置状态...
-      </div>
-    );
+    return <AuthLoadingShell variant="recovery" />;
   }
 
   return (
@@ -228,19 +224,17 @@ export function ForgotPasswordForm() {
               type="password"
               value={confirmPassword}
             />
-            <Button
-              className="h-[56px] w-full rounded-full bg-[#486782] text-base font-semibold text-white shadow-[0_10px_30px_rgba(72,103,130,0.28)] transition-all hover:bg-[#3f5f78]"
+            <button
+              className="h-[56px] w-full rounded-full bg-[#486782] text-base font-semibold text-white shadow-[0_10px_30px_rgba(72,103,130,0.28)] transition-all hover:bg-[#3f5f78] disabled:cursor-not-allowed disabled:opacity-70"
               disabled={submitting}
               type="submit"
             >
               {submitting ? "保存中..." : "保存新密码"}
               <ArrowRight className="size-4" />
-            </Button>
+            </button>
           </form>
         ) : (
-          <div className="rounded-[26px] border border-[#dfe5ea] bg-white/75 px-5 py-6 text-sm leading-7 text-[#647380] shadow-[0_12px_28px_rgba(115,127,139,0.06)]">
-            正在验证重置链接，请稍候...
-          </div>
+          <AuthLoadingShell variant="recovery" />
         )
       ) : (
         <form className="space-y-6" onSubmit={handleSendResetEmail}>
@@ -255,8 +249,8 @@ export function ForgotPasswordForm() {
             type="email"
             value={email}
           />
-          <Button
-            className="h-[56px] w-full rounded-full bg-[#486782] text-base font-semibold text-white shadow-[0_10px_30px_rgba(72,103,130,0.28)] transition-all hover:bg-[#3f5f78]"
+          <button
+            className="h-[56px] w-full rounded-full bg-[#486782] text-base font-semibold text-white shadow-[0_10px_30px_rgba(72,103,130,0.28)] transition-all hover:bg-[#3f5f78] disabled:cursor-not-allowed disabled:opacity-70"
             disabled={submitting || cooldownRemaining > 0}
             type="submit"
           >
@@ -268,7 +262,7 @@ export function ForgotPasswordForm() {
                   ? "重新发送重置邮件"
                   : "发送重置邮件"}
             <ArrowRight className="size-4" />
-          </Button>
+          </button>
         </form>
       )}
 

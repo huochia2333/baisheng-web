@@ -6,17 +6,17 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowRight, Check, LockKeyhole, Mail } from "lucide-react";
 
-import { getBrowserSupabaseClient } from "@/lib/supabase";
-import { useSupabaseAuthSync } from "@/lib/use-supabase-auth-sync";
 import {
-  getCurrentSession,
+  getAuthSession,
   getDefaultSignedInPathForRole,
   getRoleFromAccessToken,
-} from "@/lib/user-self-service";
+} from "@/lib/auth-session-client";
+import { getBrowserSupabaseClient } from "@/lib/supabase";
+import { useAuthSessionMonitor } from "@/lib/use-auth-session-monitor";
 
 import { AuthFeedback } from "./auth-feedback";
 import { AuthField } from "./auth-field";
-import { Button } from "../ui/button";
+import { AuthLoadingShell } from "./auth-loading-shell";
 
 export function LoginForm({
   registered = false,
@@ -34,14 +34,14 @@ export function LoginForm({
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  useSupabaseAuthSync(supabase, {
+  useAuthSessionMonitor(supabase, {
     onReady: async ({ isMounted }) => {
       if (!supabase) {
         return;
       }
 
       try {
-        const session = await getCurrentSession(supabase);
+        const session = await getAuthSession(supabase);
 
         if (!isMounted()) {
           return;
@@ -120,11 +120,7 @@ export function LoginForm({
   };
 
   if (checkingSession || !supabase) {
-    return (
-      <div className="rounded-[26px] border border-[#dfe5ea] bg-white/75 px-5 py-6 text-sm leading-7 text-[#647380] shadow-[0_12px_28px_rgba(115,127,139,0.06)]">
-        正在检查当前登录状态...
-      </div>
-    );
+    return <AuthLoadingShell variant="login" />;
   }
 
   return (
@@ -201,14 +197,14 @@ export function LoginForm({
         </label>
       </div>
 
-      <Button
-        className="mt-2 h-[56px] w-full rounded-full bg-[#486782] text-base font-semibold text-white shadow-[0_10px_30px_rgba(72,103,130,0.28)] transition-all hover:bg-[#3f5f78]"
+      <button
+        className="mt-2 h-[56px] w-full rounded-full bg-[#486782] text-base font-semibold text-white shadow-[0_10px_30px_rgba(72,103,130,0.28)] transition-all hover:bg-[#3f5f78] disabled:cursor-not-allowed disabled:opacity-70"
         disabled={submitting}
         type="submit"
       >
         {submitting ? "登录中..." : "登录"}
         <ArrowRight className="size-4" />
-      </Button>
+      </button>
     </form>
   );
 }
