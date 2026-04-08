@@ -198,12 +198,12 @@ export function LoginForm({
       </div>
 
       <button
-        className="mt-2 h-[56px] w-full rounded-full bg-[#486782] text-base font-semibold text-white shadow-[0_10px_30px_rgba(72,103,130,0.28)] transition-all hover:bg-[#3f5f78] disabled:cursor-not-allowed disabled:opacity-70"
+        className="mt-2 flex h-[56px] w-full items-center justify-center gap-2 rounded-full bg-[#486782] text-base font-semibold text-white shadow-[0_10px_30px_rgba(72,103,130,0.28)] transition-all hover:bg-[#3f5f78] disabled:cursor-not-allowed disabled:opacity-70"
         disabled={submitting}
         type="submit"
       >
         {submitting ? "登录中..." : "登录"}
-        <ArrowRight className="size-4" />
+        <ArrowRight className="size-4 shrink-0" />
       </button>
     </form>
   );
