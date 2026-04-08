@@ -9,8 +9,10 @@ import {
   createAdminOrder,
   deleteAdminOrder,
   getAdminOrders,
+  getAdminOrderCosts,
   getAdminOrderSupplementaryDetail,
   getCurrentOrderViewerContext,
+  mergeAdminOrdersWithCosts,
   getOrderDiscountTypeOptions,
   getOrderTypeOptions,
   getOrderUserOptions,
@@ -57,12 +59,14 @@ import {
   canCreateOrderByRole,
   canDeleteOrderByRole,
   canReadOrderByRole,
+  canReadOrderCostByRole,
   canUpdateOrderByRole,
   createOrderFormState,
   createOrderFormStateFromOrder,
   formatMoneyValue,
   getOrderTypeMetaFromCategory,
   getOrderUserOptionLabel,
+  getServiceSubtypeCostPreset,
   normalizeSearchText,
   parseCreateOrderForm,
   resolveOrderTypeMeta,
@@ -159,6 +163,10 @@ export function AdminOrdersClient() {
         }
 
         const nextCanViewOrders = canReadOrderByRole(viewer.role, viewer.status);
+        const nextCanViewOrderCosts = canReadOrderCostByRole(
+          viewer.role,
+          viewer.status,
+        );
         setCanViewOrders(nextCanViewOrders);
         setCurrentViewerId(viewer.user.id);
         setCurrentViewerRole(viewer.role);
@@ -182,6 +190,7 @@ export function AdminOrdersClient() {
           nextPurchaseTypeOptions,
           nextServiceTypeOptions,
           nextDiscountOptions,
+          nextOrderCosts,
         ] = await Promise.all([
           getAdminOrders(supabase),
           getOrderUserOptions(supabase),
@@ -189,13 +198,18 @@ export function AdminOrdersClient() {
           getPurchaseOrderTypeOptions(supabase),
           getServiceOrderTypeOptions(supabase),
           getOrderDiscountTypeOptions(supabase),
+          nextCanViewOrderCosts ? getAdminOrderCosts(supabase) : Promise.resolve([]),
         ]);
 
         if (!isMounted()) {
           return;
         }
 
-        setOrders(nextOrders);
+        setOrders(
+          nextCanViewOrderCosts
+            ? mergeAdminOrdersWithCosts(nextOrders, nextOrderCosts)
+            : nextOrders,
+        );
         setUserOptions(nextUserOptions);
         setTypeOptions(nextTypeOptions);
         setPurchaseTypeOptions(nextPurchaseTypeOptions);
@@ -257,6 +271,7 @@ export function AdminOrdersClient() {
   const canCreateOrders = canCreateOrderByRole(currentViewerRole, currentViewerStatus);
   const canEditOrders = canUpdateOrderByRole(currentViewerRole, currentViewerStatus);
   const canDeleteOrders = canDeleteOrderByRole(currentViewerRole, currentViewerStatus);
+  const canViewOrderCosts = canReadOrderCostByRole(currentViewerRole, currentViewerStatus);
 
   const summary = useMemo(() => {
     return {
@@ -368,10 +383,22 @@ export function AdminOrdersClient() {
     value: OrderFormState[Key],
   ) => {
     setCreateDialogFeedback(null);
-    setCreateFormState((current) => ({
-      ...current,
-      [key]: value,
-    }));
+    setCreateFormState((current) => {
+      const nextState = {
+        ...current,
+        [key]: value,
+      };
+
+      if (key === "serviceSubtype") {
+        const presetCost = getServiceSubtypeCostPreset(String(value));
+
+        if (presetCost !== null) {
+          nextState.costAmount = presetCost;
+        }
+      }
+
+      return nextState;
+    });
   };
 
   const updateEditFormField = <Key extends keyof OrderFormState>(
@@ -379,10 +406,22 @@ export function AdminOrdersClient() {
     value: OrderFormState[Key],
   ) => {
     setEditDialogFeedback(null);
-    setEditFormState((current) => ({
-      ...current,
-      [key]: value,
-    }));
+    setEditFormState((current) => {
+      const nextState = {
+        ...current,
+        [key]: value,
+      };
+
+      if (key === "serviceSubtype") {
+        const presetCost = getServiceSubtypeCostPreset(String(value));
+
+        if (presetCost !== null) {
+          nextState.costAmount = presetCost;
+        }
+      }
+
+      return nextState;
+    });
   };
 
   const handleCreateOrder = async () => {
@@ -565,7 +604,7 @@ export function AdminOrdersClient() {
       {canViewOrders === false ? (
         <section className="rounded-[28px] border border-white/85 bg-white/72 p-6 shadow-[0_18px_45px_rgba(96,113,128,0.06)] xl:p-8">
           <EmptyState
-            description="当前登录账号不是管理员，暂时无法查看订单中心。"
+            description="当前登录账号暂时没有订单中心查看权限。"
             icon={<ShieldAlert className="size-6" />}
             title="暂无查看权限"
           />
@@ -663,6 +702,7 @@ export function AdminOrdersClient() {
                     <tr className="border-b border-[#efebe5]">
                       <OrderHeaderCell>订单编号</OrderHeaderCell>
                       <OrderHeaderCell>人民币总计</OrderHeaderCell>
+                      {canViewOrderCosts ? <OrderHeaderCell>订单成本</OrderHeaderCell> : null}
                       <OrderHeaderCell>订单录入员</OrderHeaderCell>
                       <OrderHeaderCell>订单客户</OrderHeaderCell>
                       <OrderHeaderCell>订单状态</OrderHeaderCell>
@@ -685,6 +725,9 @@ export function AdminOrdersClient() {
                       >
                         <OrderValueCell strong value={order.order_number} />
                         <OrderValueCell value={formatMoneyValue(order.rmb_amount)} />
+                        {canViewOrderCosts ? (
+                          <OrderValueCell value={formatMoneyValue(order.cost_amount)} />
+                        ) : null}
                         <OrderValueCell
                           value={resolveOrderUserLabel(order.order_entry_user, userLabelById)}
                         />
@@ -721,6 +764,7 @@ export function AdminOrdersClient() {
         pending={createPending}
         purchaseOrderTypeOptions={purchaseTypeOptions}
         serviceOrderTypeOptions={serviceTypeOptions}
+        showCostField={canViewOrderCosts}
         submitLabel="创建订单"
         title="创建订单"
         onFieldChange={updateCreateFormField}
@@ -750,6 +794,7 @@ export function AdminOrdersClient() {
         pending={editPending}
         purchaseOrderTypeOptions={purchaseTypeOptions}
         serviceOrderTypeOptions={serviceTypeOptions}
+        showCostField={canViewOrderCosts}
         supplementaryLoading={editSupplementaryLoading}
         submitLabel="保存修改"
         title="编辑订单"
@@ -774,6 +819,7 @@ export function AdminOrdersClient() {
       <OrderDetailsDialog
         canDelete={canDeleteOrders}
         canEdit={canEditOrders}
+        canViewCost={canViewOrderCosts}
         deletePending={deletePending}
         onDelete={handleDeleteOrder}
         onEdit={openEditDialog}

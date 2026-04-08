@@ -18,12 +18,19 @@ const ORDER_STATUS_OPTIONS = [
   { value: "refunding", label: "退款中" },
 ] as const;
 
+const SERVICE_SUBTYPE_COST_PRESETS: Record<string, string> = {
+  tour_escort: "400",
+  medical_escort: "600",
+  digital_survival: "300",
+};
+
 type OrderFormState = {
   originalCurrency: string;
   amount: string;
   dailyExchangeRate: string;
   transactionRate: string;
   rmbAmount: string;
+  costAmount: string;
   orderEntryUser: string;
   orderingUser: string;
   orderStatus: string;
@@ -45,6 +52,7 @@ function createOrderFormState(defaults?: {
     dailyExchangeRate: "",
     transactionRate: "",
     rmbAmount: "",
+    costAmount: "",
     orderEntryUser: defaults?.orderEntryUser ?? "",
     orderingUser: "",
     orderStatus: "pending",
@@ -67,6 +75,7 @@ function createOrderFormStateFromOrder(
     dailyExchangeRate: formatEditableNumericValue(order.daily_exchange_rate),
     transactionRate: formatEditableNumericValue(order.transaction_rate),
     rmbAmount: formatEditableNumericValue(order.rmb_amount),
+    costAmount: formatEditableNumericValue(order.cost_amount),
     orderEntryUser: normalizeOptionalString(order.order_entry_user) ?? "",
     orderingUser: normalizeOptionalString(order.ordering_user) ?? "",
     orderStatus: normalizeOptionalString(order.order_status) ?? "pending",
@@ -123,6 +132,7 @@ function parseBaseOrderForm(
   const dailyExchangeRate = parseRequiredNumber(formState.dailyExchangeRate, "当日汇率");
   const transactionRate = parseRequiredNumber(formState.transactionRate, "公司成交汇率");
   const rmbAmount = parseRequiredNumber(formState.rmbAmount, "人民币总计");
+  const costAmount = parseOptionalNumber(formState.costAmount, "订单成本");
 
   if (typeof amount === "string") return { ok: false, message: amount };
   if (typeof dailyExchangeRate === "string") {
@@ -132,6 +142,7 @@ function parseBaseOrderForm(
     return { ok: false, message: transactionRate };
   }
   if (typeof rmbAmount === "string") return { ok: false, message: rmbAmount };
+  if (typeof costAmount === "string") return { ok: false, message: costAmount };
 
   return {
     ok: true,
@@ -141,6 +152,7 @@ function parseBaseOrderForm(
       dailyExchangeRate,
       transactionRate,
       rmbAmount,
+      costAmount,
       orderEntryUser,
       orderingUser,
       orderStatus,
@@ -305,6 +317,26 @@ function parseRequiredNumber(value: string, label: string) {
   return parsed;
 }
 
+function parseOptionalNumber(value: string, label: string) {
+  const normalized = value.trim();
+
+  if (!normalized) {
+    return null;
+  }
+
+  const parsed = Number(normalized);
+
+  if (!Number.isFinite(parsed)) {
+    return `${label}格式不正确。`;
+  }
+
+  if (parsed < 0) {
+    return `${label}不能小于 0。`;
+  }
+
+  return parsed;
+}
+
 function formatEditableNumericValue(value: number | string | null | undefined) {
   if (typeof value === "number") {
     return String(value);
@@ -402,6 +434,16 @@ function formatServiceOrderSubtype(value: string | null | undefined) {
       vip_recharge: "VIP 充值",
     } satisfies Record<string, string>
   )[normalizedValue] ?? normalizedValue;
+}
+
+function getServiceSubtypeCostPreset(value: string | null | undefined) {
+  const normalizedValue = normalizeOptionalString(value);
+
+  if (!normalizedValue) {
+    return null;
+  }
+
+  return SERVICE_SUBTYPE_COST_PRESETS[normalizedValue] ?? null;
 }
 
 function formatDiscountRatioValue(value: number | string | null | undefined) {
@@ -631,6 +673,19 @@ function canReadOrderByRole(role: AppRole | null, status: UserStatus | null) {
   );
 }
 
+function canReadOrderCostByRole(role: AppRole | null, status: UserStatus | null) {
+  if (status !== "active") {
+    return false;
+  }
+
+  return (
+    role === "administrator" ||
+    role === "finance" ||
+    role === "manager" ||
+    role === "salesman"
+  );
+}
+
 function canCreateOrderByRole(role: AppRole | null, status: UserStatus | null) {
   if (status !== "active") {
     return false;
@@ -654,6 +709,7 @@ export {
   canCreateOrderByRole,
   canDeleteOrderByRole,
   canReadOrderByRole,
+  canReadOrderCostByRole,
   canUpdateOrderByRole,
   createOrderFormState,
   createOrderFormStateFromOrder,
@@ -665,6 +721,7 @@ export {
   formatPurchaseOrderSubtype,
   formatRateValue,
   formatServiceOrderSubtype,
+  getServiceSubtypeCostPreset,
   getOrderTypeMetaFromCategory,
   getOrderUserOptionLabel,
   getStatusLabel,

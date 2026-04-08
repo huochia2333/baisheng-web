@@ -126,6 +126,7 @@ function OrderFormDialog({
   title,
   description,
   submitLabel,
+  showCostField,
   feedback,
   open,
   pending,
@@ -144,6 +145,7 @@ function OrderFormDialog({
   title: string;
   description: string;
   submitLabel: string;
+  showCostField: boolean;
   feedback?: PageFeedback;
   open: boolean;
   pending: boolean;
@@ -261,6 +263,21 @@ function OrderFormDialog({
             value={formState.rmbAmount}
           />
         </OrderField>
+
+        {showCostField ? (
+          <OrderField label="订单成本">
+            <input
+              className={fieldInputClassName}
+              disabled={isFormBusy}
+              min="0"
+              onChange={(event) => onFieldChange("costAmount", event.target.value)}
+              placeholder="请输入内部成本，留空则不记录"
+              step="0.01"
+              type="number"
+              value={formState.costAmount}
+            />
+          </OrderField>
+        ) : null}
 
         <OrderField label="订单录入员" required>
           <select
@@ -449,6 +466,7 @@ function OrderFormDialog({
 function OrderDetailsDialog({
   canDelete,
   canEdit,
+  canViewCost,
   order,
   userLabelById,
   orderTypeMetaById,
@@ -460,6 +478,7 @@ function OrderDetailsDialog({
 }: {
   canDelete: boolean;
   canEdit: boolean;
+  canViewCost: boolean;
   order: AdminOrderRow | null;
   userLabelById: Map<string, string>;
   orderTypeMetaById: Map<string, ReturnType<typeof getOrderTypeMetaFromCategory>>;
@@ -566,6 +585,9 @@ function OrderDetailsDialog({
             <OrderDetailCard label="原始货币" value={formatCurrencyCode(order.original_currency)} />
             <OrderDetailCard label="金额总计" value={formatMoneyValue(order.amount)} />
             <OrderDetailCard label="人民币总计" value={formatMoneyValue(order.rmb_amount)} />
+            {canViewCost ? (
+              <OrderDetailCard label="订单成本" value={formatMoneyValue(order.cost_amount)} />
+            ) : null}
             <OrderDetailCard label="当日汇率" value={formatRateValue(order.daily_exchange_rate)} />
             <OrderDetailCard
               label="公司成交汇率"

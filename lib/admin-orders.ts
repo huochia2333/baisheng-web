@@ -25,6 +25,7 @@ export type AdminOrderRow = {
   created_at: string | null;
   reviewed_at: string | null;
   deleted_at: string | null;
+  cost_amount: number | string | null;
 };
 
 export type OrderUserOption = {
@@ -62,6 +63,7 @@ export type CreateAdminOrderInput = {
   dailyExchangeRate: number;
   transactionRate: number;
   rmbAmount: number;
+  costAmount?: number | null;
   orderEntryUser: string;
   orderingUser: string;
   orderStatus: string;
@@ -142,6 +144,11 @@ type OrderOverviewReference = {
   order_number: string;
 };
 
+type AdminOrderCostRow = {
+  order_overview_id: string;
+  cost_amount: number | string | null;
+};
+
 type SaveAdminOrderInput = CreateAdminOrderInput & {
   originalOrderNumber?: string | null;
 };
@@ -184,7 +191,57 @@ export async function getAdminOrders(
     throw error;
   }
 
+  return (data ?? []).map((item) => ({
+    ...item,
+    cost_amount: null,
+  }));
+}
+
+export async function getAdminOrderCosts(
+  supabase: SupabaseClient,
+): Promise<AdminOrderCostRow[]> {
+  const { data, error } = await withRequestTimeout(
+    supabase
+      .from("order_internal_cost")
+      .select("order_overview_id,cost_amount")
+      .returns<AdminOrderCostRow[]>(),
+  );
+
+  if (error) {
+    throw error;
+  }
+
   return data ?? [];
+}
+
+export function canViewOrderCosts(
+  role: AppRole | null,
+  status: UserStatus | null,
+): boolean {
+  if (status !== "active") {
+    return false;
+  }
+
+  return (
+    role === "administrator" ||
+    role === "finance" ||
+    role === "manager" ||
+    role === "salesman"
+  );
+}
+
+export function mergeAdminOrdersWithCosts(
+  orders: AdminOrderRow[],
+  costRows: AdminOrderCostRow[],
+): AdminOrderRow[] {
+  const costByOrderId = new Map(
+    costRows.map((item) => [item.order_overview_id, item.cost_amount]),
+  );
+
+  return orders.map((order) => ({
+    ...order,
+    cost_amount: costByOrderId.get(order.id) ?? null,
+  }));
 }
 
 export async function getOrderUserOptions(
@@ -451,7 +508,35 @@ async function getAdminOrderById(
     throw error;
   }
 
-  return data ?? null;
+  if (!data) {
+    return null;
+  }
+
+  const viewer = await getCurrentOrderViewerContext(supabase);
+
+  if (!viewer || !canViewOrderCosts(viewer.role, viewer.status)) {
+    return {
+      ...data,
+      cost_amount: null,
+    };
+  }
+
+  const { data: costData, error: costError } = await withRequestTimeout(
+    supabase
+      .from("order_internal_cost")
+      .select("order_overview_id,cost_amount")
+      .eq("order_overview_id", orderId)
+      .maybeSingle<AdminOrderCostRow>(),
+  );
+
+  if (costError) {
+    throw costError;
+  }
+
+  return {
+    ...data,
+    cost_amount: costData?.cost_amount ?? null,
+  };
 }
 
 async function getRequiredAdminOrderById(
@@ -472,6 +557,8 @@ async function saveAdminOrder(
   supabase: SupabaseClient,
   input: SaveAdminOrderInput,
 ): Promise<string> {
+  const hasCostAmount = Object.prototype.hasOwnProperty.call(input, "costAmount");
+
   const { data, error } = await withRequestTimeout(
     supabase.rpc("save_order", {
       p_original_currency: input.originalCurrency,
@@ -485,6 +572,8 @@ async function saveAdminOrder(
       p_order_type: input.orderType,
       p_supplementary: input.supplementary ?? null,
       p_original_order_number: input.originalOrderNumber ?? null,
+      p_cost_amount: hasCostAmount ? (input.costAmount ?? null) : null,
+      p_has_cost: hasCostAmount ? input.costAmount !== null : null,
     }),
   );
 
