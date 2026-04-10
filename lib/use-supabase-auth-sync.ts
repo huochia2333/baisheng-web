@@ -21,6 +21,7 @@ type AuthStateChangeContext = AuthSyncContext & {
 };
 
 type UseSupabaseAuthSyncOptions = {
+  includeInitialSessionEvent?: boolean;
   onAuthStateChange?: (context: AuthStateChangeContext) => Promise<void> | void;
   onError?: (error: unknown, context: AuthSyncContext) => void;
   onReady?: (context: AuthSyncContext) => Promise<void> | void;
@@ -31,6 +32,7 @@ type UseSupabaseAuthSyncOptions = {
 export function useSupabaseAuthSync(
   supabase: SupabaseClient | null,
   {
+    includeInitialSessionEvent = false,
     onAuthStateChange,
     onError,
     onReady,
@@ -57,6 +59,7 @@ export function useSupabaseAuthSync(
 
     let mounted = true;
     const abortController = new AbortController();
+    const pendingTimers = new Set<ReturnType<typeof globalThis.setTimeout>>();
     const context: AuthSyncContext = {
       isMounted: () => mounted,
       signal: abortController.signal,
@@ -97,24 +100,45 @@ export function useSupabaseAuthSync(
             return;
           }
 
-          void runSync(
-            () =>
-              runAuthStateChange({
-                ...context,
-                event,
-                session,
-              }),
-            waitForVisibleOnAuthStateChange,
-          );
+          if (event === "INITIAL_SESSION" && !includeInitialSessionEvent) {
+            return;
+          }
+
+          // Supabase recommends deferring follow-up work outside the auth callback
+          // so nested auth reads do not compete for the same token lock.
+          const timerId = globalThis.setTimeout(() => {
+            pendingTimers.delete(timerId);
+
+            if (!mounted) {
+              return;
+            }
+
+            void runSync(
+              () =>
+                runAuthStateChange({
+                  ...context,
+                  event,
+                  session,
+                }),
+              waitForVisibleOnAuthStateChange,
+            );
+          }, 0);
+
+          pendingTimers.add(timerId);
         })
       : null;
 
     return () => {
       mounted = false;
       abortController.abort();
+      pendingTimers.forEach((timerId) => {
+        globalThis.clearTimeout(timerId);
+      });
+      pendingTimers.clear();
       authListener?.data.subscription.unsubscribe();
     };
   }, [
+    includeInitialSessionEvent,
     onAuthStateChange,
     refreshKey,
     supabase,

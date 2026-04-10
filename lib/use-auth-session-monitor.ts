@@ -15,13 +15,18 @@ type AuthStateChangeContext = AuthSessionContext & {
 };
 
 type UseAuthSessionMonitorOptions = {
+  includeInitialSessionEvent?: boolean;
   onAuthStateChange?: (context: AuthStateChangeContext) => Promise<void> | void;
   onReady?: (context: AuthSessionContext) => Promise<void> | void;
 };
 
 export function useAuthSessionMonitor(
   supabase: SupabaseClient | null,
-  { onAuthStateChange, onReady }: UseAuthSessionMonitorOptions,
+  {
+    includeInitialSessionEvent = false,
+    onAuthStateChange,
+    onReady,
+  }: UseAuthSessionMonitorOptions,
 ) {
   const hasAuthStateChangeHandler = Boolean(onAuthStateChange);
 
@@ -39,6 +44,7 @@ export function useAuthSessionMonitor(
     }
 
     let mounted = true;
+    const pendingTimers = new Set<ReturnType<typeof globalThis.setTimeout>>();
     const context: AuthSessionContext = {
       isMounted: () => mounted,
     };
@@ -51,17 +57,36 @@ export function useAuthSessionMonitor(
             return;
           }
 
-          void runAuthStateChange({
-            ...context,
-            event,
-            session,
-          });
+          if (event === "INITIAL_SESSION" && !includeInitialSessionEvent) {
+            return;
+          }
+
+          // Defer follow-up work until the current auth callback has finished.
+          const timerId = globalThis.setTimeout(() => {
+            pendingTimers.delete(timerId);
+
+            if (!mounted) {
+              return;
+            }
+
+            void runAuthStateChange({
+              ...context,
+              event,
+              session,
+            });
+          }, 0);
+
+          pendingTimers.add(timerId);
         })
       : null;
 
     return () => {
       mounted = false;
+      pendingTimers.forEach((timerId) => {
+        globalThis.clearTimeout(timerId);
+      });
+      pendingTimers.clear();
       authListener?.data.subscription.unsubscribe();
     };
-  }, [hasAuthStateChangeHandler, supabase]);
+  }, [hasAuthStateChangeHandler, includeInitialSessionEvent, supabase]);
 }
