@@ -133,10 +133,13 @@ function OrderFormDialog({
   formState,
   orderDiscountOptions,
   orderTypeOptions,
+  orderEntryUserOptions,
+  orderingUserOptions,
   orderUserOptions,
   purchaseOrderTypeOptions,
   serviceOrderTypeOptions,
   supplementaryLoading = false,
+  lockOrderEntryUser = false,
   onOpenChange,
   onFieldChange,
   onSubmit,
@@ -151,11 +154,14 @@ function OrderFormDialog({
   pending: boolean;
   formState: OrderFormState;
   orderDiscountOptions: OrderDiscountTypeOption[];
+  orderEntryUserOptions?: OrderUserOption[];
   orderTypeOptions: BusinessCategoryOption[];
   orderUserOptions: OrderUserOption[];
+  orderingUserOptions?: OrderUserOption[];
   purchaseOrderTypeOptions: PurchaseOrderTypeOption[];
   serviceOrderTypeOptions: ServiceOrderTypeOption[];
   supplementaryLoading?: boolean;
+  lockOrderEntryUser?: boolean;
   onOpenChange: (open: boolean) => void;
   onFieldChange: <Key extends keyof OrderFormState>(
     key: Key,
@@ -163,6 +169,8 @@ function OrderFormDialog({
   ) => void;
   onSubmit: () => void;
 }) {
+  const effectiveOrderEntryUserOptions = orderEntryUserOptions ?? orderUserOptions;
+  const effectiveOrderingUserOptions = orderingUserOptions ?? orderUserOptions;
   const selectedOrderCategory = useMemo(() => {
     return (
       orderTypeOptions.find((option) => option.id === formState.orderType)?.category ?? null
@@ -283,17 +291,22 @@ function OrderFormDialog({
         <OrderField label="订单录入员" required>
           <select
             className={fieldInputClassName}
-            disabled={isFormBusy || mode === "edit"}
+            disabled={isFormBusy || mode === "edit" || lockOrderEntryUser}
             onChange={(event) => onFieldChange("orderEntryUser", event.target.value)}
             value={formState.orderEntryUser}
           >
             <option value="">请选择订单录入员</option>
-            {orderUserOptions.map((option) => (
+            {effectiveOrderEntryUserOptions.map((option) => (
               <option key={option.user_id} value={option.user_id}>
                 {getOrderUserOptionLabel(option)}
               </option>
             ))}
           </select>
+          {lockOrderEntryUser ? (
+            <p className="mt-2 text-xs text-[#7b8790]">
+              当前页面创建的订单会自动归属到当前业务员名下。
+            </p>
+          ) : null}
         </OrderField>
 
         <OrderField label="订单客户" required>
@@ -304,7 +317,7 @@ function OrderFormDialog({
             value={formState.orderingUser}
           >
             <option value="">请选择订单客户</option>
-            {orderUserOptions.map((option) => (
+            {effectiveOrderingUserOptions.map((option) => (
               <option key={option.user_id} value={option.user_id}>
                 {getOrderUserOptionLabel(option)}
               </option>
@@ -468,6 +481,8 @@ function OrderDetailsDialog({
   canDelete,
   canEdit,
   canViewCost,
+  showOrderEntryUser = true,
+  showOrderingUser = true,
   order,
   userLabelById,
   orderTypeMetaById,
@@ -480,6 +495,8 @@ function OrderDetailsDialog({
   canDelete: boolean;
   canEdit: boolean;
   canViewCost: boolean;
+  showOrderEntryUser?: boolean;
+  showOrderingUser?: boolean;
   order: AdminOrderRow | null;
   userLabelById: Map<string, string>;
   orderTypeMetaById: Map<string, ReturnType<typeof getOrderTypeMetaFromCategory>>;
@@ -594,14 +611,18 @@ function OrderDetailsDialog({
               label="公司成交汇率"
               value={formatRateValue(order.transaction_rate)}
             />
-            <OrderDetailCard
-              label="订单录入员"
-              value={resolveOrderUserLabel(order.order_entry_user, userLabelById)}
-            />
-            <OrderDetailCard
-              label="订单客户"
-              value={resolveOrderUserLabel(order.ordering_user, userLabelById)}
-            />
+            {showOrderEntryUser ? (
+              <OrderDetailCard
+                label="订单录入员"
+                value={resolveOrderUserLabel(order.order_entry_user, userLabelById)}
+              />
+            ) : null}
+            {showOrderingUser ? (
+              <OrderDetailCard
+                label="订单客户"
+                value={resolveOrderUserLabel(order.ordering_user, userLabelById)}
+              />
+            ) : null}
             <OrderDetailCard label="创建日期" value={formatDateTime(order.created_at)} />
             <OrderDetailCard
               label="最后一次改动日期"

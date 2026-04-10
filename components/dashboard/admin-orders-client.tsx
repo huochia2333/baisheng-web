@@ -38,6 +38,7 @@ import { useResumeRecovery } from "@/lib/use-resume-recovery";
 
 import {
   EmptyState,
+  formatDateTime,
   PageBanner,
   normalizeOptionalString,
   type NoticeTone,
@@ -79,9 +80,112 @@ import { Button } from "../ui/button";
 
 type PageFeedback = { tone: NoticeTone; message: string } | null;
 
-export function AdminOrdersClient() {
+type OrdersClientMode = "admin" | "salesman" | "client";
+
+type OrdersViewConfig = {
+  badge: string;
+  title: string;
+  description: string;
+  createTitle: string;
+  createDescription: string;
+  emptyDescription: string;
+  noPermissionDescription: string;
+  noCreateTargetHint: string | null;
+  allowCreate: boolean;
+  allowEdit: boolean;
+  allowDelete: boolean;
+  allowCost: boolean;
+  showOrderEntryFilter: boolean;
+  showOrderingFilter: boolean;
+  showOrderEntryColumn: boolean;
+  showOrderingColumn: boolean;
+  showCreatedAtColumn: boolean;
+  showOrderEntryDetail: boolean;
+  showOrderingDetail: boolean;
+  lockOrderEntryToCurrentViewer: boolean;
+  limitOrderingUsersToClients: boolean;
+};
+
+const ORDERS_VIEW_CONFIG: Record<OrdersClientMode, OrdersViewConfig> = {
+  admin: {
+    badge: "订单工作台",
+    title: "订单中心",
+    description: "列表会优先展示关键订单信息，点击任意订单即可查看完整细节。",
+    createTitle: "创建订单",
+    createDescription: "填写订单基础信息后，系统会立即将新订单写入订单列表。",
+    emptyDescription: "当前还没有订单记录，新的订单录入后会出现在这里。",
+    noPermissionDescription: "当前登录账号暂时没有订单中心查看权限。",
+    noCreateTargetHint: null,
+    allowCreate: true,
+    allowEdit: true,
+    allowDelete: true,
+    allowCost: true,
+    showOrderEntryFilter: true,
+    showOrderingFilter: true,
+    showOrderEntryColumn: true,
+    showOrderingColumn: true,
+    showCreatedAtColumn: false,
+    showOrderEntryDetail: true,
+    showOrderingDetail: true,
+    lockOrderEntryToCurrentViewer: false,
+    limitOrderingUsersToClients: false,
+  },
+  salesman: {
+    badge: "业务员订单",
+    title: "客户订单",
+    description: "这里只展示你和关联客户的订单，你可以直接为自己名下的客户创建新订单。",
+    createTitle: "创建客户订单",
+    createDescription: "当前页面只允许为你已关联的客户创建订单，创建后会立即出现在列表中。",
+    emptyDescription: "你和关联客户的订单会展示在这里，当前还没有可查看的订单。",
+    noPermissionDescription: "当前登录账号暂时没有业务员订单查看权限。",
+    noCreateTargetHint: "你当前还没有可创建订单的关联客户。",
+    allowCreate: true,
+    allowEdit: false,
+    allowDelete: false,
+    allowCost: false,
+    showOrderEntryFilter: false,
+    showOrderingFilter: true,
+    showOrderEntryColumn: false,
+    showOrderingColumn: true,
+    showCreatedAtColumn: true,
+    showOrderEntryDetail: false,
+    showOrderingDetail: true,
+    lockOrderEntryToCurrentViewer: true,
+    limitOrderingUsersToClients: true,
+  },
+  client: {
+    badge: "客户订单",
+    title: "我的订单",
+    description: "这里会展示与你本人相关的订单记录，你可以随时打开查看完整订单详情。",
+    createTitle: "创建订单",
+    createDescription: "",
+    emptyDescription: "你当前还没有订单记录，后续生成的新订单会自动展示在这里。",
+    noPermissionDescription: "当前登录账号暂时没有客户订单查看权限。",
+    noCreateTargetHint: null,
+    allowCreate: false,
+    allowEdit: false,
+    allowDelete: false,
+    allowCost: false,
+    showOrderEntryFilter: false,
+    showOrderingFilter: false,
+    showOrderEntryColumn: false,
+    showOrderingColumn: false,
+    showCreatedAtColumn: true,
+    showOrderEntryDetail: false,
+    showOrderingDetail: false,
+    lockOrderEntryToCurrentViewer: false,
+    limitOrderingUsersToClients: false,
+  },
+};
+
+export function AdminOrdersClient({
+  mode = "admin",
+}: {
+  mode?: OrdersClientMode;
+}) {
   const router = useRouter();
   const supabase = getBrowserSupabaseClient();
+  const viewConfig = ORDERS_VIEW_CONFIG[mode];
 
   const [loading, setLoading] = useState(true);
   const [syncGeneration, setSyncGeneration] = useState(0);
@@ -164,10 +268,8 @@ export function AdminOrdersClient() {
         }
 
         const nextCanViewOrders = canReadOrderByRole(viewer.role, viewer.status);
-        const nextCanViewOrderCosts = canReadOrderCostByRole(
-          viewer.role,
-          viewer.status,
-        );
+        const nextCanViewOrderCosts =
+          viewConfig.allowCost && canReadOrderCostByRole(viewer.role, viewer.status);
         setCanViewOrders(nextCanViewOrders);
         setCurrentViewerId(viewer.user.id);
         setCurrentViewerRole(viewer.role);
@@ -238,7 +340,7 @@ export function AdminOrdersClient() {
         }
       }
     },
-    [recoverCloudSync, router, supabase],
+    [recoverCloudSync, router, supabase, viewConfig.allowCost],
   );
 
   useSupabaseAuthSync(supabase, {
@@ -269,10 +371,36 @@ export function AdminOrdersClient() {
     enabled: Boolean(supabase),
   });
 
-  const canCreateOrders = canCreateOrderByRole(currentViewerRole, currentViewerStatus);
-  const canEditOrders = canUpdateOrderByRole(currentViewerRole, currentViewerStatus);
-  const canDeleteOrders = canDeleteOrderByRole(currentViewerRole, currentViewerStatus);
-  const canViewOrderCosts = canReadOrderCostByRole(currentViewerRole, currentViewerStatus);
+  const canViewOrderCosts =
+    viewConfig.allowCost && canReadOrderCostByRole(currentViewerRole, currentViewerStatus);
+  const canCreateOrders =
+    viewConfig.allowCreate && canCreateOrderByRole(currentViewerRole, currentViewerStatus);
+  const canEditOrders =
+    viewConfig.allowEdit && canUpdateOrderByRole(currentViewerRole, currentViewerStatus);
+  const canDeleteOrders =
+    viewConfig.allowDelete && canDeleteOrderByRole(currentViewerRole, currentViewerStatus);
+
+  const orderEntryUserOptions = useMemo(() => {
+    if (viewConfig.lockOrderEntryToCurrentViewer) {
+      return userOptions.filter((option) => option.user_id === currentViewerId);
+    }
+
+    return userOptions;
+  }, [currentViewerId, userOptions, viewConfig.lockOrderEntryToCurrentViewer]);
+
+  const orderingUserOptions = useMemo(() => {
+    if (!viewConfig.limitOrderingUsersToClients) {
+      return userOptions;
+    }
+
+    return userOptions.filter(
+      (option) => option.user_id !== currentViewerId && option.role === "client",
+    );
+  }, [currentViewerId, userOptions, viewConfig.limitOrderingUsersToClients]);
+
+  const canOpenCreateDialog =
+    canCreateOrders &&
+    (!viewConfig.limitOrderingUsersToClients || orderingUserOptions.length > 0);
 
   const summary = useMemo(() => {
     return {
@@ -321,7 +449,7 @@ export function AdminOrdersClient() {
   }
 
   const openCreateDialog = () => {
-    if (!canCreateOrders) {
+    if (!canOpenCreateDialog) {
       return;
     }
 
@@ -564,13 +692,13 @@ export function AdminOrdersClient() {
         <div className="flex flex-col gap-6 xl:flex-row xl:items-end xl:justify-between">
           <div className="max-w-2xl">
             <span className="inline-flex rounded-full bg-[#e4edf3] px-3 py-1 text-xs font-semibold text-[#486782]">
-              订单工作台
+              {viewConfig.badge}
             </span>
             <h2 className="mt-4 text-4xl font-bold tracking-tight text-[#1f2a32]">
-              订单中心
+              {viewConfig.title}
             </h2>
             <p className="mt-3 text-[15px] leading-8 text-[#65717b]">
-              列表会优先展示关键订单信息，点击任意订单即可查看完整细节。
+              {viewConfig.description}
             </p>
           </div>
 
@@ -597,14 +725,20 @@ export function AdminOrdersClient() {
             </div>
 
             {canCreateOrders ? (
-              <Button
-                className="h-11 rounded-full bg-[#486782] px-5 text-white hover:bg-[#3e5f79]"
-                onClick={openCreateDialog}
-                type="button"
-              >
-                <Plus className="size-4" />
-                创建订单
-              </Button>
+              <>
+                <Button
+                  className="h-11 rounded-full bg-[#486782] px-5 text-white hover:bg-[#3e5f79]"
+                  disabled={!canOpenCreateDialog}
+                  onClick={openCreateDialog}
+                  type="button"
+                >
+                  <Plus className="size-4" />
+                  {viewConfig.createTitle}
+                </Button>
+                {viewConfig.noCreateTargetHint && !canOpenCreateDialog ? (
+                  <p className="text-sm text-[#69747d]">{viewConfig.noCreateTargetHint}</p>
+                ) : null}
+              </>
             ) : null}
           </div>
         </div>
@@ -613,7 +747,7 @@ export function AdminOrdersClient() {
       {canViewOrders === false ? (
         <section className="rounded-[28px] border border-white/85 bg-white/72 p-6 shadow-[0_18px_45px_rgba(96,113,128,0.06)] xl:p-8">
           <EmptyState
-            description="当前登录账号暂时没有订单中心查看权限。"
+            description={viewConfig.noPermissionDescription}
             icon={<ShieldAlert className="size-6" />}
             title="暂无查看权限"
           />
@@ -621,14 +755,22 @@ export function AdminOrdersClient() {
       ) : orders.length === 0 ? (
         <section className="rounded-[28px] border border-white/85 bg-white/72 p-6 shadow-[0_18px_45px_rgba(96,113,128,0.06)] xl:p-8">
           <EmptyState
-            description="当前还没有订单记录，新的订单录入后会出现在这里。"
+            description={viewConfig.emptyDescription}
             icon={<ReceiptText className="size-6" />}
             title="订单列表暂时为空"
           />
         </section>
       ) : (
         <section className="rounded-[28px] border border-white/85 bg-white/72 p-4 shadow-[0_18px_45px_rgba(96,113,128,0.06)] sm:p-6 xl:p-8">
-          <div className="mb-5 grid gap-4 rounded-[24px] border border-[#ebe7e1] bg-[#fbfaf8] p-4 shadow-[0_10px_24px_rgba(96,113,128,0.04)] lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_auto]">
+          <div
+            className={`mb-5 grid gap-4 rounded-[24px] border border-[#ebe7e1] bg-[#fbfaf8] p-4 shadow-[0_10px_24px_rgba(96,113,128,0.04)] ${
+              viewConfig.showOrderEntryFilter && viewConfig.showOrderingFilter
+                ? "lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_auto]"
+                : viewConfig.showOrderingFilter
+                  ? "lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto]"
+                  : "lg:grid-cols-[minmax(0,1fr)_auto]"
+            }`}
+          >
             <FilterField label="订单编号">
               <input
                 className={filterInputClassName}
@@ -644,35 +786,39 @@ export function AdminOrdersClient() {
               />
             </FilterField>
 
-            <FilterField label="订单录入员">
-              <input
-                className={filterInputClassName}
-                onChange={(event) =>
-                  setFilters((current) => ({
-                    ...current,
-                    orderEntryUser: event.target.value,
-                  }))
-                }
-                placeholder="输入录入员姓名或邮箱"
-                type="text"
-                value={filters.orderEntryUser}
-              />
-            </FilterField>
+            {viewConfig.showOrderEntryFilter ? (
+              <FilterField label="订单录入员">
+                <input
+                  className={filterInputClassName}
+                  onChange={(event) =>
+                    setFilters((current) => ({
+                      ...current,
+                      orderEntryUser: event.target.value,
+                    }))
+                  }
+                  placeholder="输入录入员姓名或邮箱"
+                  type="text"
+                  value={filters.orderEntryUser}
+                />
+              </FilterField>
+            ) : null}
 
-            <FilterField label="订单客户">
-              <input
-                className={filterInputClassName}
-                onChange={(event) =>
-                  setFilters((current) => ({
-                    ...current,
-                    orderingUser: event.target.value,
-                  }))
-                }
-                placeholder="输入客户姓名或邮箱"
-                type="text"
-                value={filters.orderingUser}
-              />
-            </FilterField>
+            {viewConfig.showOrderingFilter ? (
+              <FilterField label="订单客户">
+                <input
+                  className={filterInputClassName}
+                  onChange={(event) =>
+                    setFilters((current) => ({
+                      ...current,
+                      orderingUser: event.target.value,
+                    }))
+                  }
+                  placeholder="输入客户姓名或邮箱"
+                  type="text"
+                  value={filters.orderingUser}
+                />
+              </FilterField>
+            ) : null}
 
             <div className="flex flex-col justify-end gap-3 lg:items-end">
               <p className="text-sm text-[#69747d]">
@@ -712,10 +858,17 @@ export function AdminOrdersClient() {
                       <OrderHeaderCell>订单编号</OrderHeaderCell>
                       <OrderHeaderCell>人民币总计</OrderHeaderCell>
                       {canViewOrderCosts ? <OrderHeaderCell>订单成本</OrderHeaderCell> : null}
-                      <OrderHeaderCell>订单录入员</OrderHeaderCell>
-                      <OrderHeaderCell>订单客户</OrderHeaderCell>
+                      {viewConfig.showOrderEntryColumn ? (
+                        <OrderHeaderCell>订单录入员</OrderHeaderCell>
+                      ) : null}
+                      {viewConfig.showOrderingColumn ? (
+                        <OrderHeaderCell>订单客户</OrderHeaderCell>
+                      ) : null}
                       <OrderHeaderCell>订单状态</OrderHeaderCell>
                       <OrderHeaderCell>订单类型</OrderHeaderCell>
+                      {viewConfig.showCreatedAtColumn ? (
+                        <OrderHeaderCell>创建日期</OrderHeaderCell>
+                      ) : null}
                     </tr>
                   </thead>
                   <tbody>
@@ -737,12 +890,16 @@ export function AdminOrdersClient() {
                         {canViewOrderCosts ? (
                           <OrderValueCell value={formatMoneyValue(order.cost_amount)} />
                         ) : null}
-                        <OrderValueCell
-                          value={resolveOrderUserLabel(order.order_entry_user, userLabelById)}
-                        />
-                        <OrderValueCell
-                          value={resolveOrderUserLabel(order.ordering_user, userLabelById)}
-                        />
+                        {viewConfig.showOrderEntryColumn ? (
+                          <OrderValueCell
+                            value={resolveOrderUserLabel(order.order_entry_user, userLabelById)}
+                          />
+                        ) : null}
+                        {viewConfig.showOrderingColumn ? (
+                          <OrderValueCell
+                            value={resolveOrderUserLabel(order.ordering_user, userLabelById)}
+                          />
+                        ) : null}
                         <OrderValueCell value={<OrderStatusChip status={order.order_status} />} />
                         <OrderValueCell
                           value={
@@ -751,6 +908,9 @@ export function AdminOrdersClient() {
                             />
                           }
                         />
+                        {viewConfig.showCreatedAtColumn ? (
+                          <OrderValueCell value={formatDateTime(order.created_at)} />
+                        ) : null}
                       </tr>
                     ))}
                   </tbody>
@@ -762,20 +922,23 @@ export function AdminOrdersClient() {
       )}
 
       <OrderFormDialog
-        description="填写订单基础信息后，系统会立即将新订单写入订单列表。"
+        description={viewConfig.createDescription}
         feedback={createDialogFeedback}
         formState={createFormState}
+        lockOrderEntryUser={viewConfig.lockOrderEntryToCurrentViewer}
         mode="create"
         open={createDialogOpen}
         orderDiscountOptions={discountOptions}
+        orderEntryUserOptions={orderEntryUserOptions}
         orderTypeOptions={typeOptions}
         orderUserOptions={userOptions}
+        orderingUserOptions={orderingUserOptions}
         pending={createPending}
         purchaseOrderTypeOptions={purchaseTypeOptions}
         serviceOrderTypeOptions={serviceTypeOptions}
         showCostField={canViewOrderCosts}
-        submitLabel="创建订单"
-        title="创建订单"
+        submitLabel={viewConfig.createTitle}
+        title={viewConfig.createTitle}
         onFieldChange={updateCreateFormField}
         onOpenChange={(open) => {
           if (!open && createPending) {
@@ -834,6 +997,8 @@ export function AdminOrdersClient() {
         onEdit={openEditDialog}
         order={selectedOrder}
         orderTypeMetaById={orderTypeMetaById}
+        showOrderEntryUser={viewConfig.showOrderEntryDetail}
+        showOrderingUser={viewConfig.showOrderingDetail}
         supabase={supabase}
         userLabelById={userLabelById}
         onOpenChange={(open) => {

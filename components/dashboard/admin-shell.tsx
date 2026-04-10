@@ -65,6 +65,7 @@ const financeNavItems: NavItem[] = [
 
 const clientNavItems: NavItem[] = [
   { segment: "my", label: "我的", icon: UserRound },
+  { segment: "orders", label: "订单", icon: ShoppingCart },
   { segment: "referrals", label: "推荐树", icon: GitBranchPlus },
 ];
 
