@@ -58,6 +58,11 @@ const staffReadNavItems: NavItem[] = [
   { segment: "team", label: "团队", icon: UsersRound },
 ];
 
+const financeNavItems: NavItem[] = [
+  ...staffReadNavItems,
+  { segment: "commission", label: "佣金", icon: WalletCards },
+];
+
 const clientNavItems: NavItem[] = [
   { segment: "my", label: "我的", icon: UserRound },
   { segment: "referrals", label: "推荐树", icon: GitBranchPlus },
@@ -127,8 +132,10 @@ function getWorkspaceConfig(
         ? recruiterNavItems
         : basePath === "/manager"
           ? managerNavItems
-          : basePath === "/operator" || basePath === "/finance"
-            ? staffReadNavItems
+          : basePath === "/finance"
+            ? financeNavItems
+            : basePath === "/operator"
+              ? staffReadNavItems
             : basePath === "/client"
               ? clientNavItems
           : adminNavItems;

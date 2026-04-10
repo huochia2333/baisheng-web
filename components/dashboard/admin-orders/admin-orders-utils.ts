@@ -73,7 +73,9 @@ function createOrderFormStateFromOrder(
     originalCurrency: formatCurrencyCode(order.original_currency),
     amount: formatEditableNumericValue(order.amount),
     dailyExchangeRate: formatEditableNumericValue(order.daily_exchange_rate),
-    transactionRate: formatEditableNumericValue(order.transaction_rate),
+    transactionRate:
+      formatEditableNumericValue(order.transaction_rate) ||
+      deriveTransactionRateValue(order.daily_exchange_rate),
     rmbAmount: formatEditableNumericValue(order.rmb_amount),
     costAmount: formatEditableNumericValue(order.cost_amount),
     orderEntryUser: normalizeOptionalString(order.order_entry_user) ?? "",
@@ -130,7 +132,10 @@ function parseBaseOrderForm(
 
   const amount = parseRequiredNumber(formState.amount, "金额总计");
   const dailyExchangeRate = parseRequiredNumber(formState.dailyExchangeRate, "当日汇率");
-  const transactionRate = parseRequiredNumber(formState.transactionRate, "公司成交汇率");
+  const transactionRate = parseRequiredNumber(
+    deriveTransactionRateValue(formState.dailyExchangeRate) || formState.transactionRate,
+    "公司成交汇率",
+  );
   const rmbAmount = parseRequiredNumber(formState.rmbAmount, "人民币总计");
   const costAmount = parseOptionalNumber(formState.costAmount, "订单成本");
 
@@ -159,6 +164,17 @@ function parseBaseOrderForm(
       orderType,
     },
   };
+}
+
+function deriveTransactionRateValue(value: number | string | null | undefined) {
+  const parsed = parseNumericValue(value);
+
+  if (parsed === null) {
+    return "";
+  }
+
+  const derived = (parsed * 0.99).toFixed(6);
+  return derived.replace(/\.?0+$/, "");
 }
 
 function parseCreateOrderForm(
@@ -721,6 +737,7 @@ export {
   formatPurchaseOrderSubtype,
   formatRateValue,
   formatServiceOrderSubtype,
+  deriveTransactionRateValue,
   getServiceSubtypeCostPreset,
   getOrderTypeMetaFromCategory,
   getOrderUserOptionLabel,

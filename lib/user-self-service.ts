@@ -44,10 +44,13 @@ export type UserPrivacyRequestRow = {
   type: boolean;
 };
 
-export type UserVipDataRow = {
+export type UserVipMembershipRow = {
   user_id: string;
-  status: boolean;
-  category: string | null;
+  status: "active" | "expired" | "cancelled";
+  started_at: string | null;
+  expires_at: string | null;
+  first_paid_order_overview_id: string | null;
+  latest_paid_order_overview_id: string | null;
 };
 
 export type UserMediaAssetRow = {
@@ -77,7 +80,7 @@ export type CurrentUserBundle = {
   privacyData: UserPrivacyDataRow | null;
   privacyRequests: UserPrivacyRequestRow[];
   mediaAssets: UserMediaAssetWithPreview[];
-  vipData: UserVipDataRow | null;
+  vipMembership: UserVipMembershipRow | null;
 };
 
 const SIGNED_URL_TTL_SECONDS = 60 * 60;
@@ -281,10 +284,12 @@ export async function getCurrentUserBundle(
           .order("created_at", { ascending: false })
           .returns<UserPrivacyRequestRow[]>(),
         supabase
-          .from("user_vip_data")
-          .select("user_id,status,category")
+          .from("user_vip_membership")
+          .select(
+            "user_id,status,started_at,expires_at,first_paid_order_overview_id,latest_paid_order_overview_id",
+          )
           .eq("user_id", user.id)
-          .maybeSingle<UserVipDataRow>(),
+          .maybeSingle<UserVipMembershipRow>(),
         supabase
           .from("user_media_assets")
           .select(
@@ -346,7 +351,7 @@ export async function getCurrentUserBundle(
     privacyData: privacyDataResult.data,
     privacyRequests: privacyRequestsResult.data ?? [],
     mediaAssets,
-    vipData: vipResult.data,
+    vipMembership: vipResult.data,
   };
 }
 

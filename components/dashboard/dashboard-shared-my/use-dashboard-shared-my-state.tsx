@@ -216,7 +216,7 @@ export function useDashboardSharedMyState() {
   const privacyData = bundle?.privacyData ?? null;
   const privacyRequests: CurrentUserBundle["privacyRequests"] = bundle?.privacyRequests ?? [];
   const profile = bundle?.profile ?? null;
-  const vipData = bundle?.vipData ?? null;
+  const vipMembership = bundle?.vipMembership ?? null;
 
   const approvedIdentityValue = normalizeOptionalString(privacyData?.id_card) ?? "";
   const approvedPassportValue = normalizeOptionalString(privacyData?.passport) ?? "";
@@ -276,7 +276,10 @@ export function useDashboardSharedMyState() {
   const displayReferralCode = normalizeOptionalString(profile?.referral_code) ?? "待生成";
   const displayLastLogin = formatDateTime(authUser?.last_sign_in_at);
   const displayStatus = mapUserStatus(profile?.status);
-  const membershipLabel = vipData?.status ? "VIP 尊享会员" : "标准会员";
+  const hasActiveVip =
+    vipMembership?.status === "active" &&
+    (!vipMembership.expires_at || new Date(vipMembership.expires_at).getTime() > Date.now());
+  const membershipLabel = hasActiveVip ? "VIP 尊享会员" : "标准会员";
   const photoThumbnails: PhotoThumbnail[] = photoAssets
     .filter((asset) => asset.previewUrl)
     .map((asset) => ({

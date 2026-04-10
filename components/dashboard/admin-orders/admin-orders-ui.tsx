@@ -238,17 +238,18 @@ function OrderFormDialog({
           />
         </OrderField>
 
-        <OrderField label="公司成交汇率" required>
+        <OrderField label="公司成交汇率（自动）" required>
             <input
               className={fieldInputClassName}
               disabled={isFormBusy}
             min="0"
-            onChange={(event) => onFieldChange("transactionRate", event.target.value)}
-            placeholder="请输入公司成交汇率"
-            step="0.0001"
+            placeholder="自动按当日汇率计算"
+            readOnly
+            step="0.000001"
             type="number"
             value={formState.transactionRate}
           />
+          <p className="mt-2 text-xs text-[#7b8790]">自动 = 当日汇率 * 0.99</p>
         </OrderField>
 
         <OrderField label="人民币总计" required>

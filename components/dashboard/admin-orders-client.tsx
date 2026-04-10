@@ -63,6 +63,7 @@ import {
   canUpdateOrderByRole,
   createOrderFormState,
   createOrderFormStateFromOrder,
+  deriveTransactionRateValue,
   formatMoneyValue,
   getOrderTypeMetaFromCategory,
   getOrderUserOptionLabel,
@@ -389,6 +390,10 @@ export function AdminOrdersClient() {
         [key]: value,
       };
 
+      if (key === "dailyExchangeRate") {
+        nextState.transactionRate = deriveTransactionRateValue(String(value));
+      }
+
       if (key === "serviceSubtype") {
         const presetCost = getServiceSubtypeCostPreset(String(value));
 
@@ -411,6 +416,10 @@ export function AdminOrdersClient() {
         ...current,
         [key]: value,
       };
+
+      if (key === "dailyExchangeRate") {
+        nextState.transactionRate = deriveTransactionRateValue(String(value));
+      }
 
       if (key === "serviceSubtype") {
         const presetCost = getServiceSubtypeCostPreset(String(value));
