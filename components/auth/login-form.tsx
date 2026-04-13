@@ -4,7 +4,7 @@ import { startTransition, useState } from "react";
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowRight, Check, LockKeyhole, Mail } from "lucide-react";
+import { ArrowRight, LockKeyhole, Mail } from "lucide-react";
 
 import {
   getAuthSession,
@@ -12,7 +12,7 @@ import {
   getRoleFromAccessToken,
 } from "@/lib/auth-session-client";
 import { getBrowserSupabaseClient } from "@/lib/supabase";
-import { useAuthSessionMonitor } from "@/lib/use-auth-session-monitor";
+import { useSupabaseAuthSync } from "@/lib/use-supabase-auth-sync";
 
 import { AuthFeedback } from "./auth-feedback";
 import { AuthField } from "./auth-field";
@@ -29,12 +29,11 @@ export function LoginForm({
   const supabase = getBrowserSupabaseClient();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [remember, setRemember] = useState(true);
   const [checkingSession, setCheckingSession] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  useAuthSessionMonitor(supabase, {
+  useSupabaseAuthSync(supabase, {
     onReady: async ({ isMounted }) => {
       if (!supabase) {
         return;
@@ -178,23 +177,6 @@ export function LoginForm({
             value={password}
           />
         </div>
-      </div>
-
-      <div className="flex items-center justify-between gap-4">
-        <label className="group inline-flex cursor-pointer items-center gap-3 text-sm text-[#6d767c]">
-          <span className="relative flex size-5 items-center justify-center">
-            <input
-              checked={remember}
-              className="peer sr-only"
-              name="remember"
-              onChange={(event) => setRemember(event.target.checked)}
-              type="checkbox"
-            />
-            <span className="absolute inset-0 rounded-md border border-[#c7cbd0] bg-white shadow-[inset_0_1px_0_rgba(255,255,255,0.75)] transition-colors peer-checked:border-[#486782] peer-checked:bg-[#486782]" />
-            <Check className="relative size-3.5 text-white opacity-0 transition-opacity peer-checked:opacity-100" />
-          </span>
-          记住我的访问权限
-        </label>
       </div>
 
       <button

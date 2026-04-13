@@ -2,12 +2,15 @@ import type { Metadata } from "next";
 
 import { RegisterForm } from "@/components/auth/register-form";
 import { AuthShell } from "@/components/auth/auth-shell";
+import { redirectAuthenticatedUserToWorkspace } from "@/lib/server-auth";
 
 export const metadata: Metadata = {
   title: "注册",
 };
 
-export default function RegisterPage() {
+export default async function RegisterPage() {
+  await redirectAuthenticatedUserToWorkspace();
+
   return (
     <AuthShell
       mode="register"

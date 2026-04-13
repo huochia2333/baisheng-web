@@ -56,6 +56,7 @@ export function AuthShell({
                 )}
                 fill
                 priority
+                sizes="(min-width: 1024px) 46vw, 0vw"
                 src="/images/zhang-kaiyv-Xqf2ph7vrgc-unsplash.jpg"
               />
             </div>

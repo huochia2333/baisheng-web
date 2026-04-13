@@ -23,9 +23,9 @@ import {
 import { getBrowserSupabaseClient } from "@/lib/supabase";
 import { useSupabaseAuthSync } from "@/lib/use-supabase-auth-sync";
 import {
+  getCurrentSessionContext,
   getDefaultWorkspaceBasePath,
   getRoleFromAccessToken,
-  getRoleFromCurrentSession,
   type AppRole,
 } from "@/lib/user-self-service";
 import { cn } from "@/lib/utils";
@@ -273,6 +273,8 @@ export function AdminShell({ children }: AdminShellProps) {
   const pathname = usePathname();
   const router = useRouter();
   const supabase = getBrowserSupabaseClient();
+  const [authError, setAuthError] = useState<string | null>(null);
+  const [authenticated, setAuthenticated] = useState<boolean | null>(null);
   const [logoutPending, setLogoutPending] = useState(false);
   const [logoutError, setLogoutError] = useState<string | null>(null);
   const [role, setRole] = useState<AppRole | null>(null);
@@ -285,17 +287,23 @@ export function AdminShell({ children }: AdminShellProps) {
       }
 
       try {
-        const nextRole = await getRoleFromCurrentSession(supabase);
+        const sessionContext = await getCurrentSessionContext(supabase);
 
         if (!isMounted()) {
           return;
         }
 
-        setRole(nextRole);
-      } catch {
+        setAuthError(null);
+        setAuthenticated(Boolean(sessionContext.user));
+        setRole(sessionContext.user ? sessionContext.role : null);
+      } catch (error) {
         if (!isMounted()) {
           return;
         }
+
+        setAuthError(getErrorMessage(error));
+        setAuthenticated(null);
+        setRole(null);
       } finally {
         if (isMounted()) {
           setRoleResolved(true);
@@ -308,11 +316,15 @@ export function AdminShell({ children }: AdminShellProps) {
       }
 
       if (!session?.user) {
+        setAuthError(null);
+        setAuthenticated(false);
         setRole(null);
         setRoleResolved(true);
         return;
       }
 
+      setAuthError(null);
+      setAuthenticated(true);
       setRole(getRoleFromAccessToken(session.access_token));
       setRoleResolved(true);
     },
@@ -320,6 +332,11 @@ export function AdminShell({ children }: AdminShellProps) {
 
   useEffect(() => {
     if (!roleResolved) {
+      return;
+    }
+
+    if (authenticated === false) {
+      router.replace("/login");
       return;
     }
 
@@ -351,7 +368,45 @@ export function AdminShell({ children }: AdminShellProps) {
 
     const nextPath = `${desiredBasePath}${pathname.slice(currentBasePath.length)}`;
     router.replace(nextPath || `${desiredBasePath}/my`);
-  }, [pathname, role, roleResolved, router]);
+  }, [authenticated, pathname, role, roleResolved, router]);
+
+  if (authError) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-[#faf9f7] px-6 text-[#486782]">
+        <div className="flex max-w-md flex-col items-center gap-4 rounded-[28px] border border-white/80 bg-white/78 px-10 py-8 text-center shadow-[0_18px_45px_rgba(96,113,128,0.08)] backdrop-blur">
+          <p className="text-base font-semibold">工作台登录状态同步失败</p>
+          <p className="text-sm leading-7 text-[#6d767c]">{authError}</p>
+          <button
+            className="rounded-full bg-[#486782] px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-[#3f5f78]"
+            onClick={() => window.location.reload()}
+            type="button"
+          >
+            重新加载
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (!roleResolved || authenticated !== true) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-[#faf9f7] px-6 text-[#486782]">
+        <div className="flex flex-col items-center gap-4 rounded-[28px] border border-white/80 bg-white/78 px-10 py-8 text-center shadow-[0_18px_45px_rgba(96,113,128,0.08)] backdrop-blur">
+          <LoaderCircle className="size-7 animate-spin" />
+          <div className="space-y-1">
+            <p className="text-base font-semibold">
+              {authenticated === false ? "正在跳转到登录页" : "正在校验工作台权限"}
+            </p>
+            <p className="text-sm text-[#6d767c]">
+              {authenticated === false
+                ? "当前页面需要登录后访问。"
+                : "请稍候，正在同步当前账号角色。"}
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const workspace = getWorkspaceConfig(role, roleResolved, pathname);
 

@@ -19,7 +19,7 @@ import {
   getRoleFromAccessToken,
 } from "@/lib/auth-session-client";
 import { getBrowserSupabaseClient } from "@/lib/supabase";
-import { useAuthSessionMonitor } from "@/lib/use-auth-session-monitor";
+import { useSupabaseAuthSync } from "@/lib/use-supabase-auth-sync";
 
 import { AuthFeedback } from "./auth-feedback";
 import { AuthField } from "./auth-field";
@@ -38,7 +38,7 @@ export function RegisterForm() {
   const [password, setPassword] = useState("");
   const [acceptedTerms, setAcceptedTerms] = useState(false);
 
-  useAuthSessionMonitor(supabase, {
+  useSupabaseAuthSync(supabase, {
     onReady: async ({ isMounted }) => {
       if (!supabase) {
         return;

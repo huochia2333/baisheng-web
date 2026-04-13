@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 
 import { LoginForm } from "@/components/auth/login-form";
 import { AuthShell } from "@/components/auth/auth-shell";
+import { redirectAuthenticatedUserToWorkspace } from "@/lib/server-auth";
 
 export const metadata: Metadata = {
   title: "登录",
@@ -12,6 +13,8 @@ export default async function LoginPage({
 }: {
   searchParams: Promise<{ passwordReset?: string; registered?: string }>;
 }) {
+  await redirectAuthenticatedUserToWorkspace();
+
   const params = await searchParams;
 
   return (
