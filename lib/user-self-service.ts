@@ -87,7 +87,7 @@ export type CurrentUserBundle = {
 };
 
 const SIGNED_URL_TTL_SECONDS = 60 * 60;
-const SIGNED_URL_CONCURRENCY = 4;
+const SIGNED_URL_CONCURRENCY = 10;
 const AUTH_SESSION_TIMEOUT_MS = 8_000;
 const AUTH_SESSION_RETRY_DELAY_MS = 350;
 const AUTH_SESSION_TIMEOUT_MESSAGE = "登录状态同步较慢，请稍后重试。";

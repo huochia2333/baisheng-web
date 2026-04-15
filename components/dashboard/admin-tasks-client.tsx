@@ -3,6 +3,7 @@
 import { useCallback, useDeferredValue, useMemo, useRef, useState } from "react";
 import type { ReactNode } from "react";
 
+import dynamic from "next/dynamic";
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import {
@@ -50,7 +51,6 @@ import type { AppRole, UserStatus } from "@/lib/user-self-service";
 
 import { Button } from "../ui/button";
 import { DashboardCenteredLoadingState } from "./dashboard-centered-loading-state";
-import { DashboardDialog } from "./dashboard-dialog";
 import { DashboardMetricCard } from "./dashboard-metric-card";
 import { DashboardPaginationControls } from "./dashboard-pagination-controls";
 import {
@@ -98,6 +98,11 @@ const selectClassName =
   "h-12 w-full rounded-[18px] border border-[#dfe5ea] bg-white px-4 text-sm text-[#23313a] outline-none transition focus:border-[#bfd2e1] focus:ring-4 focus:ring-[#bfd2e1]/30";
 const textareaClassName =
   "min-h-[150px] w-full rounded-[22px] border border-[#dfe5ea] bg-white px-4 py-3 text-sm leading-7 text-[#23313a] outline-none transition focus:border-[#bfd2e1] focus:ring-4 focus:ring-[#bfd2e1]/30";
+
+const DashboardDialog = dynamic(
+  () => import("./dashboard-dialog").then((mod) => mod.DashboardDialog),
+  { ssr: false },
+);
 
 export function AdminTasksClient() {
   const router = useRouter();
@@ -649,37 +654,38 @@ export function AdminTasksClient() {
         </>
       )}
 
-      <DashboardDialog
-        actions={
-          <>
-            <Button
-              className="h-11 rounded-full border border-[#d8e2e8] bg-white px-5 text-[#486782] hover:bg-[#eef3f6]"
-              onClick={() => setCreateDialogOpen(false)}
-              type="button"
-            >
-              {t("createDialog.cancel")}
-            </Button>
-            <Button
-              className="h-11 rounded-full bg-[#486782] px-5 text-white hover:bg-[#3e5f79]"
-              disabled={createPending}
-              onClick={() => void handleCreateTask()}
-              type="button"
-            >
-              {createPending ? (
-                <LoaderCircle className="size-4 animate-spin" />
-              ) : (
-                <Plus className="size-4" />
-              )}
-              {t("createDialog.submit")}
-            </Button>
-          </>
-        }
-        description={t("createDialog.description")}
-        onOpenChange={setCreateDialogOpen}
-        open={createDialogOpen}
-        title={t("createDialog.title")}
-      >
-        <div className="space-y-6">
+      {createDialogOpen ? (
+        <DashboardDialog
+          actions={
+            <>
+              <Button
+                className="h-11 rounded-full border border-[#d8e2e8] bg-white px-5 text-[#486782] hover:bg-[#eef3f6]"
+                onClick={() => setCreateDialogOpen(false)}
+                type="button"
+              >
+                {t("createDialog.cancel")}
+              </Button>
+              <Button
+                className="h-11 rounded-full bg-[#486782] px-5 text-white hover:bg-[#3e5f79]"
+                disabled={createPending}
+                onClick={() => void handleCreateTask()}
+                type="button"
+              >
+                {createPending ? (
+                  <LoaderCircle className="size-4 animate-spin" />
+                ) : (
+                  <Plus className="size-4" />
+                )}
+                {t("createDialog.submit")}
+              </Button>
+            </>
+          }
+          description={t("createDialog.description")}
+          onOpenChange={setCreateDialogOpen}
+          open
+          title={t("createDialog.title")}
+        >
+          <div className="space-y-6">
           {createDialogFeedback ? (
             <PageBanner tone={createDialogFeedback.tone}>{createDialogFeedback.message}</PageBanner>
           ) : null}
@@ -810,46 +816,48 @@ export function AdminTasksClient() {
               )}
             </div>
           </FormField>
-        </div>
-      </DashboardDialog>
+          </div>
+        </DashboardDialog>
+      ) : null}
 
-      <DashboardDialog
-        actions={
-          <>
-            <Button
-              className="h-11 rounded-full border border-[#d8e2e8] bg-white px-5 text-[#486782] hover:bg-[#eef3f6]"
-              onClick={() => setAssignmentDialogOpen(false)}
-              type="button"
-            >
-              {t("assignmentDialog.cancel")}
-            </Button>
-            <Button
-              className="h-11 rounded-full bg-[#486782] px-5 text-white hover:bg-[#3e5f79]"
-              disabled={assignmentPending || !selectedTask || !canManageTask(selectedTask)}
-              onClick={() => void handleSaveAssignment()}
-              type="button"
-            >
-              {assignmentPending ? (
-                <LoaderCircle className="size-4 animate-spin" />
-              ) : (
-                <Shuffle className="size-4" />
-              )}
-              {t("assignmentDialog.submit")}
-            </Button>
-          </>
-        }
-        description={t("assignmentDialog.description")}
-        onOpenChange={setAssignmentDialogOpen}
-        open={assignmentDialogOpen}
-        title={
-          selectedTask
-            ? t("assignmentDialog.titleWithName", {
-                taskName: selectedTask.task_name,
-              })
-            : t("assignmentDialog.title")
-        }
-      >
-        <div className="space-y-6">
+      {assignmentDialogOpen ? (
+        <DashboardDialog
+          actions={
+            <>
+              <Button
+                className="h-11 rounded-full border border-[#d8e2e8] bg-white px-5 text-[#486782] hover:bg-[#eef3f6]"
+                onClick={() => setAssignmentDialogOpen(false)}
+                type="button"
+              >
+                {t("assignmentDialog.cancel")}
+              </Button>
+              <Button
+                className="h-11 rounded-full bg-[#486782] px-5 text-white hover:bg-[#3e5f79]"
+                disabled={assignmentPending || !selectedTask || !canManageTask(selectedTask)}
+                onClick={() => void handleSaveAssignment()}
+                type="button"
+              >
+                {assignmentPending ? (
+                  <LoaderCircle className="size-4 animate-spin" />
+                ) : (
+                  <Shuffle className="size-4" />
+                )}
+                {t("assignmentDialog.submit")}
+              </Button>
+            </>
+          }
+          description={t("assignmentDialog.description")}
+          onOpenChange={setAssignmentDialogOpen}
+          open
+          title={
+            selectedTask
+              ? t("assignmentDialog.titleWithName", {
+                  taskName: selectedTask.task_name,
+                })
+              : t("assignmentDialog.title")
+          }
+        >
+          <div className="space-y-6">
           {assignmentDialogFeedback ? (
             <PageBanner tone={assignmentDialogFeedback.tone}>
               {assignmentDialogFeedback.message}
@@ -923,8 +931,9 @@ export function AdminTasksClient() {
               )}
             </>
           ) : null}
-        </div>
-      </DashboardDialog>
+          </div>
+        </DashboardDialog>
+      ) : null}
     </section>
   );
 }

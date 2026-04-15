@@ -45,7 +45,7 @@ import {
 } from "../dashboard-shared-photo-stack-preview";
 import { Button } from "../../ui/button";
 
-export function useDashboardSharedMyState() {
+export function useDashboardSharedMyState(initialData: CurrentUserBundle | null = null) {
   const router = useRouter();
   const { locale } = useLocale();
   const t = useTranslations("DashboardMyState");
@@ -54,6 +54,7 @@ export function useDashboardSharedMyState() {
   const supabase = getBrowserSupabaseClient();
   const photoInputRef = useRef<HTMLInputElement>(null);
   const videoInputRef = useRef<HTMLInputElement>(null);
+  const skipInitialBundleLoadRef = useRef(Boolean(initialData));
   const copy = {
     unnamedUser: t("unnamedUser"),
     pendingCity: t("pendingCity"),
@@ -96,8 +97,8 @@ export function useDashboardSharedMyState() {
     uploadVideos: t("uploadVideos"),
   };
 
-  const [bundle, setBundle] = useState<CurrentUserBundle | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [bundle, setBundle] = useState<CurrentUserBundle | null>(initialData);
+  const [loading, setLoading] = useState(initialData === null);
   const [syncGeneration, setSyncGeneration] = useState(0);
   const [pageError, setPageError] = useState<string | null>(null);
   const [pageNotice, setPageNotice] = useState<{ tone: NoticeTone; message: string } | null>(
@@ -183,11 +184,23 @@ export function useDashboardSharedMyState() {
 
   useSupabaseAuthSync(supabase, {
     refreshKey: syncGeneration,
-    onReady: ({ isMounted }) =>
-      loadBundle({
+    onReady: ({ isMounted }) => {
+      if (skipInitialBundleLoadRef.current) {
+        skipInitialBundleLoadRef.current = false;
+        markBrowserCloudSyncActivity();
+
+        if (isMounted()) {
+          setLoading(false);
+        }
+
+        return;
+      }
+
+      return loadBundle({
         isMounted,
         showLoading: loadingStateRef.current || !bundleStateRef.current,
-      }),
+      });
+    },
     onAuthStateChange: async ({ isMounted, session }) => {
       if (!isMounted()) {
         return;

@@ -17,7 +17,7 @@ export function AuthLoadingShell({ variant }: AuthLoadingShellProps) {
       )}
       role="status"
     >
-      <span className="sr-only">Loading authentication form</span>
+      <span className="sr-only">loading</span>
 
       {variant === "register" ? (
         <>

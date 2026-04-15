@@ -1,6 +1,6 @@
 import { resetCurrentSessionCache } from "./user-self-service";
 
-const DEFAULT_STALE_BROWSER_CLOUD_SYNC_MS = 45_000;
+const DEFAULT_STALE_BROWSER_CLOUD_SYNC_MS = 180_000;
 
 let lastBrowserCloudSyncActivityAt = 0;
 

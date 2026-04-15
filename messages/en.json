@@ -179,17 +179,17 @@
     }
   },
   "WorkspaceLoadingShell": {
-    "title": "Switching Workspace",
-    "description": "When you open a section for the first time in development, compilation and data preparation usually happen first."
+    "title": "loading",
+    "description": "loading"
   },
   "WorkspaceLoadingTitles": {
-    "admin": "Opening Admin Center",
-    "client": "Opening Client Center",
-    "finance": "Opening Finance Center",
-    "manager": "Opening Manager Center",
-    "operator": "Opening Operations Center",
-    "recruiter": "Opening Recruitment Center",
-    "salesman": "Opening Sales Center"
+    "admin": "loading",
+    "client": "loading",
+    "finance": "loading",
+    "manager": "loading",
+    "operator": "loading",
+    "recruiter": "loading",
+    "salesman": "loading"
   },
   "AdminSectionPlaceholder": {
     "viewMyPage": "Open My Page",
@@ -256,7 +256,7 @@
     }
   },
   "DashboardShared": {
-    "loading": "Syncing your cloud profile...",
+    "loading": "loading",
     "inputHint": "After submission, this will enter the review queue.",
     "statusHeadings": {
       "approved": "Approved",
@@ -464,7 +464,7 @@
     }
   },
   "OrdersUI": {
-    "loading": "Loading orders...",
+    "loading": "loading",
     "cancel": "Cancel",
     "status": {
       "pending": "Pending",
@@ -562,13 +562,13 @@
       "title": "Purchase Order Details",
       "createDescription": "This order type is a purchase order. Continue by filling in the purchase details. The details field accepts JSON or one “field: value” pair per line.",
       "editDescription": "This order type is a purchase order. You can update the purchase details directly. The details field accepts JSON or one “field: value” pair per line.",
-      "loading": "Loading purchase order details..."
+      "loading": "loading"
     },
     "serviceSection": {
       "title": "Service Order Details",
       "createDescription": "This order type is a service order. Continue by filling in the service details. The details field accepts JSON or one “field: value” pair per line.",
       "editDescription": "This order type is a service order. You can update the service details directly. The details field accepts JSON or one “field: value” pair per line.",
-      "loading": "Loading service order details..."
+      "loading": "loading"
     },
     "details": {
       "editOrder": "Edit Order",
@@ -592,7 +592,7 @@
         "updatedAt": "Last Updated"
       },
       "supplementary": {
-        "loading": "Loading linked form details...",
+        "loading": "loading",
         "empty": "This order does not have a related purchase or service form yet.",
         "purchaseForm": "Purchase Order Form",
         "serviceForm": "Service Order Form",
@@ -640,7 +640,7 @@
     }
   },
   "ReviewsUI": {
-    "loading": "Loading review queues...",
+    "loading": "loading",
     "fallback": {
       "unnamedUser": "Unnamed User",
       "notProvided": "Pending"
@@ -681,7 +681,7 @@
     "metadata": {
       "title": "FX Rate Center"
     },
-    "loading": "Loading FX rate data...",
+    "loading": "loading",
     "header": {
       "badge": "FX Rate Workspace",
       "title": "FX Rate Center",
@@ -788,7 +788,7 @@
     }
   },
   "Referrals": {
-    "loading": "Loading referral relationships...",
+    "loading": "loading",
     "header": {
       "badge": "Referral Network",
       "title": "Referral Tree"
@@ -841,7 +841,7 @@
       "adminTitle": "Commission Board",
       "salesmanTitle": "My Commissions"
     },
-    "loading": "Loading commission data...",
+    "loading": "loading",
     "options": {
       "settlement": {
         "all": "All Statuses",
@@ -996,7 +996,7 @@
       }
     },
     "salesman": {
-      "loading": "Loading my commissions...",
+      "loading": "loading",
       "header": {
         "badge": "My Commissions",
         "title": "Salesman Commission History",
@@ -1074,7 +1074,7 @@
       }
     },
     "admin": {
-      "loading": "Loading task board...",
+      "loading": "loading",
       "feedback": {
         "createdWithAttachments": "The task and attachments have been created.",
         "created": "The task has been created.",
@@ -1166,7 +1166,7 @@
       }
     },
     "salesman": {
-      "loading": "Loading tasks...",
+      "loading": "loading",
       "feedback": {
         "accepted": "Task accepted. You can start working on it now.",
         "completed": "Task completed."
@@ -1218,7 +1218,7 @@
     }
   },
   "TeamManagement": {
-    "loading": "Loading team data...",
+    "loading": "loading",
     "header": {
       "badge": "Team Collaboration",
       "title": "Team Management",

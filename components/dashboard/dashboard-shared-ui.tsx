@@ -147,7 +147,7 @@ function createLegacyDashboardSharedCopy(
     inputHint: isZh
       ? "提交后将进入审核流程。"
       : "After submission, this will enter the review queue.",
-    loading: isZh ? "正在同步云端资料..." : "Syncing your cloud profile...",
+    loading: isZh ? "加载中" : "loading",
     mediaStatus: {
       approvedGeneric: isZh ? "审核通过" : "Approved",
       approvedIdentity: isZh ? "通过认证" : "Verified",

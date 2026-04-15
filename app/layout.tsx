@@ -1,18 +1,19 @@
 import type { Metadata } from "next";
 import { Noto_Sans_SC, Plus_Jakarta_Sans } from "next/font/google";
-import { NextIntlClientProvider } from "next-intl";
-import { getLocale, getMessages, getTranslations } from "next-intl/server";
+import { getLocale, getTranslations } from "next-intl/server";
 import "./auth.css";
 
 import { getDocumentLanguage } from "@/lib/locale";
 
 const notoSansSC = Noto_Sans_SC({
+  display: "swap",
   variable: "--font-body-sans",
   subsets: ["latin"],
   weight: ["400", "700"],
 });
 
 const plusJakartaSans = Plus_Jakarta_Sans({
+  display: "swap",
   variable: "--font-ui-label",
   preload: false,
   subsets: ["latin"],
@@ -38,7 +39,6 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   const locale = await getLocale();
-  const messages = await getMessages();
 
   return (
     <html
@@ -47,9 +47,7 @@ export default async function RootLayout({
       className={`${notoSansSC.variable} ${plusJakartaSans.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
-        <NextIntlClientProvider locale={locale} messages={messages}>
-          {children}
-        </NextIntlClientProvider>
+        {children}
       </body>
     </html>
   );

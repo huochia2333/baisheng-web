@@ -1,27 +1,95 @@
 import type { Metadata } from "next";
+import type { ReactNode } from "react";
 
+import dynamic from "next/dynamic";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 
-import { AdminCommissionClient } from "@/components/dashboard/admin-commission-client";
-import { AdminOrdersClient } from "@/components/dashboard/admin-orders-client";
-import { AdminReviewsClient } from "@/components/dashboard/admin-reviews-client";
 import { AdminSectionPlaceholder } from "@/components/dashboard/admin-section-placeholder";
-import { AdminTasksClient } from "@/components/dashboard/admin-tasks-client";
-import { ExchangeRatesClient } from "@/components/dashboard/exchange-rates-client";
-import { ReferralsClient } from "@/components/dashboard/referrals-client";
-import { SalesmanCommissionClient } from "@/components/dashboard/salesman-commission-client";
-import { SalesmanTasksClient } from "@/components/dashboard/salesman-tasks-client";
-import { TeamManagementClient } from "@/components/dashboard/team-management-client";
+import { WorkspaceLoadingShell } from "@/components/dashboard/workspace-loading-shell";
+import { ScopedIntlProvider } from "@/components/i18n/scoped-intl-provider";
 import {
   getWorkspaceConfigByRouteSegment,
   getWorkspaceHomeHref,
+  type WorkspaceRouteConfig,
 } from "@/lib/workspace-config";
 import { getWorkspaceSectionKey } from "@/lib/workspace-sections";
 
 type SectionPageProps = {
   params: Promise<{ section: string; workspace: string }>;
 };
+
+const AdminCommissionClient = dynamic(
+  () =>
+    import("@/components/dashboard/admin-commission-client").then(
+      (mod) => mod.AdminCommissionClient,
+    ),
+  { loading: renderWorkspaceLoadingShell },
+);
+
+const AdminOrdersClient = dynamic(
+  () =>
+    import("@/components/dashboard/admin-orders-client").then(
+      (mod) => mod.AdminOrdersClient,
+    ),
+  { loading: renderWorkspaceLoadingShell },
+);
+
+const AdminReviewsClient = dynamic(
+  () =>
+    import("@/components/dashboard/admin-reviews-client").then(
+      (mod) => mod.AdminReviewsClient,
+    ),
+  { loading: renderWorkspaceLoadingShell },
+);
+
+const AdminTasksClient = dynamic(
+  () =>
+    import("@/components/dashboard/admin-tasks-client").then(
+      (mod) => mod.AdminTasksClient,
+    ),
+  { loading: renderWorkspaceLoadingShell },
+);
+
+const ExchangeRatesClient = dynamic(
+  () =>
+    import("@/components/dashboard/exchange-rates-client").then(
+      (mod) => mod.ExchangeRatesClient,
+    ),
+  { loading: renderWorkspaceLoadingShell },
+);
+
+const ReferralsClient = dynamic(
+  () =>
+    import("@/components/dashboard/referrals-client").then(
+      (mod) => mod.ReferralsClient,
+    ),
+  { loading: renderWorkspaceLoadingShell },
+);
+
+const SalesmanCommissionClient = dynamic(
+  () =>
+    import("@/components/dashboard/salesman-commission-client").then(
+      (mod) => mod.SalesmanCommissionClient,
+    ),
+  { loading: renderWorkspaceLoadingShell },
+);
+
+const SalesmanTasksClient = dynamic(
+  () =>
+    import("@/components/dashboard/salesman-tasks-client").then(
+      (mod) => mod.SalesmanTasksClient,
+    ),
+  { loading: renderWorkspaceLoadingShell },
+);
+
+const TeamManagementClient = dynamic(
+  () =>
+    import("@/components/dashboard/team-management-client").then(
+      (mod) => mod.TeamManagementClient,
+    ),
+  { loading: renderWorkspaceLoadingShell },
+);
 
 export async function generateMetadata({
   params,
@@ -96,66 +164,108 @@ export default async function WorkspaceSectionPage({ params }: SectionPageProps)
     notFound();
   }
 
+  const namespaces = getSectionNamespaces(section, config);
+  let content: ReactNode | null = null;
+
   if (section === "orders" && config.pageVariants.orders) {
-    return <AdminOrdersClient mode={config.pageVariants.orders} />;
-  }
-
-  if (section === "commission") {
+    content = <AdminOrdersClient mode={config.pageVariants.orders} />;
+  } else if (section === "commission") {
     if (config.pageVariants.commission === "admin") {
-      return <AdminCommissionClient />;
+      content = <AdminCommissionClient />;
+    } else if (config.pageVariants.commission === "salesman") {
+      content = <SalesmanCommissionClient />;
     }
-
-    if (config.pageVariants.commission === "salesman") {
-      return <SalesmanCommissionClient />;
-    }
-  }
-
-  if (section === "exchange-rates" && config.pageVariants.exchangeRates) {
-    return (
+  } else if (section === "exchange-rates" && config.pageVariants.exchangeRates) {
+    content = (
       <ExchangeRatesClient
         homeHref={getWorkspaceHomeHref(config)}
         mode={config.pageVariants.exchangeRates}
       />
     );
+  } else if (section === "tasks") {
+    if (config.pageVariants.tasks === "admin") {
+      content = <AdminTasksClient />;
+    } else if (config.pageVariants.tasks === "salesman") {
+      content = <SalesmanTasksClient />;
+    }
+  } else if (section === "reviews" && config.pageVariants.reviews) {
+    content = <AdminReviewsClient />;
+  } else if (section === "referrals" && config.pageVariants.referrals) {
+    content = <ReferralsClient />;
+  } else if (section === "team" && config.pageVariants.team) {
+    content = <TeamManagementClient />;
+  }
+
+  if (!content) {
+    const sectionT = await getTranslations("WorkspaceSections");
+    const fallbackT = await getTranslations(
+      `WorkspaceSections.fallbacks.${config.routeSegment}`,
+    );
+    const sectionKey = getWorkspaceSectionKey(section);
+    const title = sectionKey ? sectionT(`${sectionKey}.title`) : fallbackT("title");
+    const description = sectionKey
+      ? sectionT(`${sectionKey}.description`)
+      : fallbackT("description");
+
+    content = (
+      <AdminSectionPlaceholder
+        description={description}
+        homeHref={getWorkspaceHomeHref(config)}
+        title={title}
+      />
+    );
+  }
+
+  return <ScopedIntlProvider namespaces={namespaces}>{content}</ScopedIntlProvider>;
+}
+
+function renderWorkspaceLoadingShell() {
+  return <WorkspaceLoadingShell />;
+}
+
+function getSectionNamespaces(
+  section: string,
+  config: WorkspaceRouteConfig,
+) {
+  const namespaces = [
+    "AdminSectionPlaceholder",
+    "WorkspaceLoadingShell",
+    "WorkspaceLoadingTitles",
+  ];
+
+  if (section === "orders" && config.pageVariants.orders) {
+    namespaces.push("Orders", "OrdersUI", "DashboardPagination", "DashboardShared");
+  }
+
+  if (section === "commission" && config.pageVariants.commission) {
+    namespaces.push("Commission");
+  }
+
+  if (section === "exchange-rates" && config.pageVariants.exchangeRates) {
+    namespaces.push("DashboardPagination", "ExchangeRates");
   }
 
   if (section === "tasks") {
     if (config.pageVariants.tasks === "admin") {
-      return <AdminTasksClient />;
+      namespaces.push("Tasks.admin", "Tasks.shared");
     }
 
     if (config.pageVariants.tasks === "salesman") {
-      return <SalesmanTasksClient />;
+      namespaces.push("Tasks.salesman", "Tasks.shared");
     }
   }
 
   if (section === "reviews" && config.pageVariants.reviews) {
-    return <AdminReviewsClient />;
+    namespaces.push("Reviews", "ReviewsUI", "DashboardShared");
   }
 
   if (section === "referrals" && config.pageVariants.referrals) {
-    return <ReferralsClient />;
+    namespaces.push("DashboardShared", "Referrals");
   }
 
   if (section === "team" && config.pageVariants.team) {
-    return <TeamManagementClient />;
+    namespaces.push("TeamManagement");
   }
 
-  const sectionT = await getTranslations("WorkspaceSections");
-  const fallbackT = await getTranslations(
-    `WorkspaceSections.fallbacks.${config.routeSegment}`,
-  );
-  const sectionKey = getWorkspaceSectionKey(section);
-  const title = sectionKey ? sectionT(`${sectionKey}.title`) : fallbackT("title");
-  const description = sectionKey
-    ? sectionT(`${sectionKey}.description`)
-    : fallbackT("description");
-
-  return (
-    <AdminSectionPlaceholder
-      description={description}
-      homeHref={getWorkspaceHomeHref(config)}
-      title={title}
-    />
-  );
+  return namespaces;
 }

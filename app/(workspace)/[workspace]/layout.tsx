@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import { notFound } from "next/navigation";
 
 import { AdminShell } from "@/components/dashboard/admin-shell";
+import { requireWorkspaceAccess } from "@/lib/server-auth";
 import { getWorkspaceConfigByRouteSegment } from "@/lib/workspace-config";
 
 import "../../workspace.css";
@@ -17,10 +18,13 @@ export default async function WorkspaceLayout({
   params,
 }: WorkspaceLayoutProps) {
   const { workspace } = await params;
+  const config = getWorkspaceConfigByRouteSegment(workspace);
 
-  if (!getWorkspaceConfigByRouteSegment(workspace)) {
+  if (!config) {
     notFound();
   }
 
-  return <AdminShell>{children}</AdminShell>;
+  await requireWorkspaceAccess(config.basePath);
+
+  return <AdminShell config={config}>{children}</AdminShell>;
 }

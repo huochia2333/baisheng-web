@@ -5,7 +5,7 @@ import { useEffect, useId, useRef } from "react";
 import { createPortal } from "react-dom";
 
 import { X } from "lucide-react";
-import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import { AnimatePresence, motion } from "motion/react";
 
 type DashboardDialogProps = {
   open: boolean;
@@ -40,7 +40,6 @@ export function DashboardDialog({
 }: DashboardDialogProps) {
   const titleId = useId();
   const descriptionId = useId();
-  const reduceMotion = useReducedMotion();
   const portalHost = typeof document === "undefined" ? null : document.body;
   const dialogRef = useRef<HTMLDivElement | null>(null);
   const closeButtonRef = useRef<HTMLButtonElement | null>(null);
@@ -144,16 +143,11 @@ export function DashboardDialog({
     return null;
   }
 
-  const overlayTransition = reduceMotion
-    ? { duration: 0 }
-    : { duration: 0.18, ease: "easeOut" as const };
-
-  const dialogTransition = reduceMotion
-    ? { duration: 0 }
-    : { duration: 0.24, ease: [0.22, 1, 0.36, 1] as const };
+  const overlayTransition = { duration: 0.18, ease: "easeOut" as const };
+  const dialogTransition = { duration: 0.24, ease: [0.22, 1, 0.36, 1] as const };
 
   return createPortal(
-    <AnimatePresence initial={false}>
+    <AnimatePresence>
       {open ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6">
           <motion.button
@@ -175,8 +169,8 @@ export function DashboardDialog({
             aria-labelledby={titleId}
             aria-modal="true"
             className="relative z-10 flex max-h-[calc(100dvh-2rem)] w-full max-w-4xl flex-col overflow-hidden rounded-[30px] border border-white/85 bg-[#fbfaf8] shadow-[0_20px_60px_rgba(35,49,58,0.18)]"
-            exit={reduceMotion ? { opacity: 0 } : { opacity: 0, scale: 0.985, y: 16 }}
-            initial={reduceMotion ? { opacity: 0 } : { opacity: 0, scale: 0.985, y: 20 }}
+            exit={{ opacity: 0, scale: 0.985, y: 16 }}
+            initial={{ opacity: 0, scale: 0.985, y: 20 }}
             ref={dialogRef}
             role="dialog"
             style={{

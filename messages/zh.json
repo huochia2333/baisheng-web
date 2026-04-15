@@ -179,17 +179,17 @@
     }
   },
   "WorkspaceLoadingShell": {
-    "title": "正在切换工作台",
-    "description": "首次进入某个板块时，开发环境通常会先完成编译和数据准备。"
+    "title": "加载中",
+    "description": "加载中"
   },
   "WorkspaceLoadingTitles": {
-    "admin": "正在打开管理中心",
-    "client": "正在打开客户中心",
-    "finance": "正在打开财务中心",
-    "manager": "正在打开经理中心",
-    "operator": "正在打开运营中心",
-    "recruiter": "正在打开招聘中心",
-    "salesman": "正在打开业务中心"
+    "admin": "加载中",
+    "client": "加载中",
+    "finance": "加载中",
+    "manager": "加载中",
+    "operator": "加载中",
+    "recruiter": "加载中",
+    "salesman": "加载中"
   },
   "AdminSectionPlaceholder": {
     "viewMyPage": "查看我的页面",
@@ -256,7 +256,7 @@
     }
   },
   "DashboardShared": {
-    "loading": "正在同步云端资料...",
+    "loading": "加载中",
     "inputHint": "提交后将进入审核流程。",
     "statusHeadings": {
       "approved": "审核通过",
@@ -464,7 +464,7 @@
     }
   },
   "OrdersUI": {
-    "loading": "正在加载订单列表...",
+    "loading": "加载中",
     "cancel": "取消",
     "status": {
       "pending": "待处理",
@@ -562,13 +562,13 @@
       "title": "采购订单信息",
       "createDescription": "当前订单类型为采购订单，请继续填写采购子表信息。订单明细支持 JSON，也支持每行一个“字段: 内容”。",
       "editDescription": "当前订单类型为采购订单，可直接修改采购子表信息。订单明细支持 JSON，也支持每行一个“字段: 内容”。",
-      "loading": "正在加载采购订单信息..."
+      "loading": "加载中"
     },
     "serviceSection": {
       "title": "服务订单信息",
       "createDescription": "当前订单类型为服务订单，请继续填写服务子表信息。订单明细支持 JSON，也支持每行一个“字段: 内容”。",
       "editDescription": "当前订单类型为服务订单，可直接修改服务子表信息。订单明细支持 JSON，也支持每行一个“字段: 内容”。",
-      "loading": "正在加载服务订单信息..."
+      "loading": "加载中"
     },
     "details": {
       "editOrder": "编辑订单",
@@ -592,7 +592,7 @@
         "updatedAt": "最后一次改动日期"
       },
       "supplementary": {
-        "loading": "正在加载关联表单内容...",
+        "loading": "加载中",
         "empty": "当前订单还没有对应的采购单或服务单表单内容。",
         "purchaseForm": "采购订单表单",
         "serviceForm": "服务订单表单",
@@ -640,7 +640,7 @@
     }
   },
   "ReviewsUI": {
-    "loading": "正在加载审核列表...",
+    "loading": "加载中",
     "fallback": {
       "unnamedUser": "未命名用户",
       "notProvided": "待补充"
@@ -681,7 +681,7 @@
     "metadata": {
       "title": "汇率中心"
     },
-    "loading": "正在加载汇率数据...",
+    "loading": "加载中",
     "header": {
       "badge": "汇率工作台",
       "title": "汇率中心",
@@ -788,7 +788,7 @@
     }
   },
   "Referrals": {
-    "loading": "正在加载推荐关系...",
+    "loading": "加载中",
     "header": {
       "badge": "推荐关系网络",
       "title": "推荐树"
@@ -841,7 +841,7 @@
       "adminTitle": "佣金看板",
       "salesmanTitle": "我的佣金"
     },
-    "loading": "正在加载佣金数据...",
+    "loading": "加载中",
     "options": {
       "settlement": {
         "all": "全部状态",
@@ -996,7 +996,7 @@
       }
     },
     "salesman": {
-      "loading": "正在加载我的佣金...",
+      "loading": "加载中",
       "header": {
         "badge": "我的佣金",
         "title": "业务员佣金记录",
@@ -1074,7 +1074,7 @@
       }
     },
     "admin": {
-      "loading": "正在加载任务面板...",
+      "loading": "加载中",
       "feedback": {
         "createdWithAttachments": "任务和附件已创建。",
         "created": "任务已创建。",
@@ -1166,7 +1166,7 @@
       }
     },
     "salesman": {
-      "loading": "正在加载任务...",
+      "loading": "加载中",
       "feedback": {
         "accepted": "任务已接取，开始处理吧。",
         "completed": "任务已完成。"
@@ -1218,7 +1218,7 @@
     }
   },
   "TeamManagement": {
-    "loading": "正在加载团队数据...",
+    "loading": "加载中",
     "header": {
       "badge": "团队组织协作",
       "title": "团队管理",

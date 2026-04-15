@@ -1,6 +1,9 @@
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 
 import { DashboardSharedMyClient } from "@/components/dashboard/dashboard-shared-my-client";
+import { ScopedIntlProvider } from "@/components/i18n/scoped-intl-provider";
+import { getServerSupabaseClient } from "@/lib/supabase-server";
+import { getCurrentUserBundle } from "@/lib/user-self-service";
 import { getWorkspaceConfigByRouteSegment } from "@/lib/workspace-config";
 
 type WorkspaceMyPageProps = {
@@ -16,5 +19,18 @@ export default async function WorkspaceMyPage({
     notFound();
   }
 
-  return <DashboardSharedMyClient />;
+  const supabase = await getServerSupabaseClient();
+  const bundle = await getCurrentUserBundle(supabase);
+
+  if (!bundle) {
+    redirect("/login");
+  }
+
+  return (
+    <ScopedIntlProvider
+      namespaces={["DashboardMy", "DashboardMyState", "DashboardShared"]}
+    >
+      <DashboardSharedMyClient initialData={bundle} />
+    </ScopedIntlProvider>
+  );
 }

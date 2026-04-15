@@ -14,8 +14,10 @@ import {
   Upload,
   Video,
 } from "lucide-react";
+import dynamic from "next/dynamic";
 import { useTranslations } from "next-intl";
 
+import type { CurrentUserBundle } from "@/lib/user-self-service";
 import { cn } from "@/lib/utils";
 
 import {
@@ -29,11 +31,21 @@ import {
   StatusNotice,
   ValueCard,
 } from "./dashboard-shared-ui";
-import { DashboardDialog } from "./dashboard-dialog";
 import { Button } from "../ui/button";
 import { useDashboardSharedMyState } from "./dashboard-shared-my/use-dashboard-shared-my-state";
 
-export function DashboardSharedMyClient() {
+const DashboardDialog = dynamic(
+  () => import("./dashboard-dialog").then((mod) => mod.DashboardDialog),
+  { ssr: false },
+);
+
+type DashboardSharedMyClientProps = {
+  initialData?: CurrentUserBundle | null;
+};
+
+export function DashboardSharedMyClient({
+  initialData = null,
+}: DashboardSharedMyClientProps) {
   const t = useTranslations("DashboardMy");
   const copy = {
     bundleUnavailable: t("bundleUnavailable"),
@@ -96,7 +108,7 @@ export function DashboardSharedMyClient() {
     supabase,
     ui,
     videoInputRef,
-  } = useDashboardSharedMyState();
+  } = useDashboardSharedMyState(initialData);
 
   if (!supabase) {
     return <LoadingState />;
@@ -392,13 +404,14 @@ export function DashboardSharedMyClient() {
         type="file"
       />
 
-      <DashboardDialog
-        actions={assetDialog.actions}
-        description={assetDialog.description}
-        onOpenChange={assetDialog.close}
-        open={assetDialog.activeDialog !== null}
-        title={assetDialog.title}
-      >
+      {assetDialog.activeDialog !== null ? (
+        <DashboardDialog
+          actions={assetDialog.actions}
+          description={assetDialog.description}
+          onOpenChange={assetDialog.close}
+          open
+          title={assetDialog.title}
+        >
         {assetDialog.notice ? (
           <div className="mb-5">
             <PageBanner tone={assetDialog.notice.tone}>{assetDialog.notice.message}</PageBanner>
@@ -621,14 +634,16 @@ export function DashboardSharedMyClient() {
             />
           )
         ) : null}
-      </DashboardDialog>
+        </DashboardDialog>
+      ) : null}
 
-      <DashboardDialog
-        description={copy.editProfileDescription}
-        onOpenChange={profileDialog.close}
-        open={profileDialog.open}
-        title={copy.editProfile}
-      >
+      {profileDialog.open ? (
+        <DashboardDialog
+          description={copy.editProfileDescription}
+          onOpenChange={profileDialog.close}
+          open
+          title={copy.editProfile}
+        >
         {profileDialog.notice ? (
           <div className="mb-5">
             <PageBanner tone={profileDialog.notice.tone}>
@@ -672,7 +687,8 @@ export function DashboardSharedMyClient() {
             </div>
           </div>
         </div>
-      </DashboardDialog>
+        </DashboardDialog>
+      ) : null}
     </>
   );
 }

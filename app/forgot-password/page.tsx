@@ -4,6 +4,7 @@ import { getTranslations } from "next-intl/server";
 
 import { ForgotPasswordForm } from "@/components/auth/forgot-password-form";
 import { AuthShell } from "@/components/auth/auth-shell";
+import { ScopedIntlProvider } from "@/components/i18n/scoped-intl-provider";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("ForgotPasswordPage");
@@ -17,18 +18,22 @@ export default async function ForgotPasswordPage() {
   const t = await getTranslations("ForgotPasswordPage");
 
   return (
-    <AuthShell
-      mode="login"
-      asideDescription={t("asideDescription")}
-      asideTitle={t("asideTitle")}
-      footerLinkHref="/login"
-      footerLinkLabel={t("footerLinkLabel")}
-      footerPrompt={t("footerPrompt")}
-      headerTitle={t("headerTitle")}
-      noteDescription={t("noteDescription")}
-      noteTitle={t("noteTitle")}
+    <ScopedIntlProvider
+      namespaces={["AuthShell", "LanguageToggle", "ForgotPasswordForm"]}
     >
-      <ForgotPasswordForm />
-    </AuthShell>
+      <AuthShell
+        mode="login"
+        asideDescription={t("asideDescription")}
+        asideTitle={t("asideTitle")}
+        footerLinkHref="/login"
+        footerLinkLabel={t("footerLinkLabel")}
+        footerPrompt={t("footerPrompt")}
+        headerTitle={t("headerTitle")}
+        noteDescription={t("noteDescription")}
+        noteTitle={t("noteTitle")}
+      >
+        <ForgotPasswordForm />
+      </AuthShell>
+    </ScopedIntlProvider>
   );
 }

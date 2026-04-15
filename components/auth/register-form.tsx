@@ -54,7 +54,8 @@ export function RegisterForm() {
         }
 
         if (session?.user) {
-          const nextPath = getDefaultSignedInPathForRole(getRoleFromUser(session.user));
+          const role = getRoleFromUser(session.user);
+          const nextPath = role ? getDefaultSignedInPathForRole(role) : "/";
 
           startTransition(() => {
             router.replace(nextPath);
@@ -115,7 +116,8 @@ export function RegisterForm() {
       }
 
       if (data.session?.user) {
-        const nextPath = getDefaultSignedInPathForRole(getRoleFromUser(data.session.user));
+        const role = getRoleFromUser(data.session.user);
+        const nextPath = role ? getDefaultSignedInPathForRole(role) : "/";
 
         startTransition(() => {
           router.replace(nextPath);

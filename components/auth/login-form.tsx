@@ -38,7 +38,8 @@ export function LoginForm({
   }, []);
 
   const redirectToWorkspace = (user: Parameters<typeof getRoleFromUser>[0]) => {
-    const nextPath = getDefaultSignedInPathForRole(getRoleFromUser(user));
+    const role = getRoleFromUser(user);
+    const nextPath = role ? getDefaultSignedInPathForRole(role) : "/";
 
     startTransition(() => {
       router.replace(nextPath);

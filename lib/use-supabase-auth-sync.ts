@@ -51,6 +51,8 @@ export function useSupabaseAuthSync(
   const handleError = useEffectEvent((error: unknown, context: AuthSyncContext) => {
     onError?.(error, context);
   });
+  const hasReadyListener = Boolean(onReady);
+  const hasAuthStateChangeListener = Boolean(onAuthStateChange);
 
   useEffect(() => {
     if (!supabase) {
@@ -92,9 +94,11 @@ export function useSupabaseAuthSync(
       }
     };
 
-    void runSync(() => runReady(context), true);
+    if (hasReadyListener) {
+      void runSync(() => runReady(context), true);
+    }
 
-    const authListener = onAuthStateChange
+    const authListener = hasAuthStateChangeListener
       ? supabase.auth.onAuthStateChange((event, session) => {
           if (!mounted) {
             return;
@@ -138,10 +142,11 @@ export function useSupabaseAuthSync(
       authListener?.data.subscription.unsubscribe();
     };
   }, [
+    hasAuthStateChangeListener,
+    hasReadyListener,
     includeInitialSessionEvent,
-    onAuthStateChange,
-    refreshKey,
     supabase,
     waitForVisibleOnAuthStateChange,
+    refreshKey,
   ]);
 }

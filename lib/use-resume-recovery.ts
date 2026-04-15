@@ -16,7 +16,7 @@ export function useResumeRecovery(
   const {
     enabled = true,
     minIntervalMs = 10_000,
-    staleAfterMs = 45_000,
+    staleAfterMs = 180_000,
   } = options;
   const lastHiddenAtRef = useRef<number | null>(null);
   const lastRecoveryAtRef = useRef(0);
