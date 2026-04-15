@@ -1,0 +1,1393 @@
+{
+  "Metadata": {
+    "appTitle": "Baisheng Management System",
+    "appDescription": "Sign-in, registration and workspace flows for the Baisheng Management System."
+  },
+  "ErrorBoundary": {
+    "badge": "Page Guard",
+    "title": "This page hit an unexpected error",
+    "description": "The failure was isolated to this view. Try again first, and reload the page if it keeps happening.",
+    "tryAgain": "Try Again",
+    "reload": "Reload Page"
+  },
+  "LanguageToggle": {
+    "zh": "中文",
+    "en": "EN"
+  },
+  "AuthShell": {
+    "brandTitle": "Baisheng Management System",
+    "brandSubtitle": "Curated Admin Console",
+    "copyright": "© 2026 Baisheng Management System",
+    "privacy": "Privacy Policy",
+    "terms": "Terms of Service",
+    "help": "Help Center",
+    "secureAccess": "Secure Access"
+  },
+  "LoginPage": {
+    "title": "Login",
+    "asideTitle": "Make Every Collaboration Traceable",
+    "asideDescription": "Built for teams that value clarity and speed. Here, data becomes communication.",
+    "noteTitle": "Daily Thought",
+    "noteDescription": "Design is not only visual form, but also a way of thinking and breathing.",
+    "headerTitle": "Welcome Back",
+    "headerDescription": "Enter your credentials to access the Baisheng Management System.",
+    "footerPrompt": "No account yet?",
+    "footerLinkLabel": "Create One",
+    "mobileNoteTitle": "Daily Thought",
+    "mobileNoteDescription": "Design is not only visual form, but also a way of thinking and breathing."
+  },
+  "RegisterPage": {
+    "title": "Register",
+    "asideTitle": "Start Your<br></br>Curated Admin Journey",
+    "asideDescription": "In this digital workspace, we do more than manage data. We shape every detail with professional depth.",
+    "noteTitle": "Invitation Access",
+    "noteDescription": "Baisheng currently uses invitation-based access to maintain service quality. Contact an administrator or your referrer if you need an invite code.",
+    "headerTitle": "Create Your Account",
+    "headerDescription": "Fill in the details below to create your management account.",
+    "footerPrompt": "Already have an account?",
+    "footerLinkLabel": "Back to Sign In",
+    "mobileNoteTitle": "Invitation Access",
+    "mobileNoteDescription": "Baisheng currently uses invitation-based access to maintain service quality. Contact an administrator or your referrer if you need an invite code."
+  },
+  "ForgotPasswordPage": {
+    "title": "Forgot Password",
+    "asideTitle": "Recover Access",
+    "asideDescription": "Reset your password through email and get back into your workspace within minutes.",
+    "noteTitle": "Password Reset",
+    "noteDescription": "A reset link will be sent to your registered email. After opening it, you will return to this page to set a new password.",
+    "headerTitle": "Forgot Password",
+    "footerPrompt": "Remembered it?",
+    "footerLinkLabel": "Back to Sign In"
+  },
+  "LoginForm": {
+    "email": "Email",
+    "password": "Password",
+    "forgotPassword": "Forgot password?",
+    "passwordPlaceholder": "Enter your password",
+    "submit": "Sign In",
+    "submitting": "Signing in...",
+    "registeredNotice": "Your registration request has been submitted. If email verification is required, complete it before signing in.",
+    "passwordResetNotice": "Your password has been updated. Please sign in again with the new password.",
+    "serviceUnavailable": "The service is temporarily unavailable. Please try again later.",
+    "invalidCredentials": "The email or password is incorrect. Please try again.",
+    "emailNotConfirmed": "Your email has not been verified yet. Please verify it first."
+  },
+  "RegisterForm": {
+    "username": "Name",
+    "usernamePlaceholder": "Your name or alias",
+    "phone": "Phone",
+    "phonePlaceholder": "11-digit phone number",
+    "email": "Email",
+    "inviteCode": "Invite Code",
+    "inviteCodePlaceholder": "Required",
+    "password": "Create Password",
+    "passwordPlaceholder": "Use at least 8 characters with letters and numbers",
+    "termsPrefix": "I have read and agree to the",
+    "terms": "Terms of Service",
+    "and": "and",
+    "privacy": "Privacy Policy",
+    "submit": "Create Account",
+    "submitting": "Creating account...",
+    "acceptTerms": "Please read and accept the Terms of Service and Privacy Policy first.",
+    "serviceUnavailable": "The service is temporarily unavailable. Please try again later.",
+    "referralRequired": "The invite code cannot be empty.",
+    "referralNotFound": "The invite code does not exist. Please check and try again.",
+    "referralMaxUses": "The invite code has reached its usage limit.",
+    "referralExpired": "The invite code has expired. Please contact an administrator for a new one.",
+    "userExists": "This email is already registered. Please sign in instead."
+  },
+  "ForgotPasswordForm": {
+    "recoverySuccess": "The reset link has been verified. Please set a new password.",
+    "serviceUnavailable": "The service is temporarily unavailable. Please try again later.",
+    "resetEmailSent": "The password reset email has been sent. Check your inbox and continue from the link in the email.",
+    "passwordTooShort": "Your new password must be at least 8 characters long.",
+    "passwordMismatch": "The two passwords do not match. Please confirm again.",
+    "newPassword": "New Password",
+    "newPasswordPlaceholder": "Enter your new password",
+    "confirmPassword": "Confirm Password",
+    "confirmPasswordPlaceholder": "Enter your new password again",
+    "savePassword": "Save New Password",
+    "savingPassword": "Saving...",
+    "email": "Email",
+    "emailPlaceholder": "Enter the email used for registration",
+    "sendResetEmail": "Send Reset Email",
+    "resendResetEmail": "Resend Reset Email",
+    "sending": "Sending...",
+    "resendCountdown": "Resend available in {seconds}s",
+    "backToLogin": "Back to Sign In",
+    "userNotFound": "No account was found for this email address.",
+    "tooFrequent": "Too many requests. Please try again later.",
+    "authSessionMissing": "The reset link has expired. Please request a new reset email."
+  },
+  "DashboardShell": {
+    "brandTitle": "Baisheng Management System",
+    "logout": "Sign Out",
+    "serviceUnavailable": "The service is temporarily unavailable. Please try again later.",
+    "nav": {
+      "my": "My Profile",
+      "orders": "Orders",
+      "referrals": "Referral Tree",
+      "team": "Team",
+      "commission": "Commission",
+      "exchangeRates": "FX Rates",
+      "tasks": "Tasks",
+      "reviews": "Reviews"
+    },
+    "roles": {
+      "admin": {
+        "accountLabel": "Administrator",
+        "subtitle": "System management role",
+        "title": "Admin Workspace",
+        "workspaceLabel": "Admin Center"
+      },
+      "salesman": {
+        "accountLabel": "Sales Account",
+        "subtitle": "Business development role",
+        "title": "Sales Workspace",
+        "workspaceLabel": "Sales Center"
+      },
+      "recruiter": {
+        "accountLabel": "Recruiter Account",
+        "subtitle": "Recruitment role",
+        "title": "Recruiter Workspace",
+        "workspaceLabel": "Recruitment Center"
+      },
+      "manager": {
+        "accountLabel": "Manager Account",
+        "subtitle": "Team management role",
+        "title": "Manager Workspace",
+        "workspaceLabel": "Manager Center"
+      },
+      "operator": {
+        "accountLabel": "Operator Account",
+        "subtitle": "Operations role",
+        "title": "Operations Workspace",
+        "workspaceLabel": "Operations Center"
+      },
+      "finance": {
+        "accountLabel": "Finance Account",
+        "subtitle": "Finance role",
+        "title": "Finance Workspace",
+        "workspaceLabel": "Finance Center"
+      },
+      "client": {
+        "accountLabel": "Client Account",
+        "subtitle": "Client role",
+        "title": "Client Workspace",
+        "workspaceLabel": "Client Center"
+      }
+    }
+  },
+  "WorkspaceLoadingShell": {
+    "title": "Switching Workspace",
+    "description": "When you open a section for the first time in development, compilation and data preparation usually happen first."
+  },
+  "WorkspaceLoadingTitles": {
+    "admin": "Opening Admin Center",
+    "client": "Opening Client Center",
+    "finance": "Opening Finance Center",
+    "manager": "Opening Manager Center",
+    "operator": "Opening Operations Center",
+    "recruiter": "Opening Recruitment Center",
+    "salesman": "Opening Sales Center"
+  },
+  "AdminSectionPlaceholder": {
+    "viewMyPage": "Open My Page",
+    "badge": "This module will continue to grow with role-specific capabilities."
+  },
+  "WorkspaceSections": {
+    "fallbacks": {
+      "admin": {
+        "title": "Admin Workspace",
+        "description": "This module is still under construction. The admin workspace navigation is already in place, and detailed capability can continue to grow on top of this shell."
+      },
+      "client": {
+        "title": "Client Workspace",
+        "description": "This module is still under construction. The client workspace navigation is already prepared, and detailed capability can continue to grow on top of this shell."
+      },
+      "finance": {
+        "title": "Finance Workspace",
+        "description": "This module is still under construction. The finance workspace navigation is already prepared, and detailed capability can continue to grow on top of this shell."
+      },
+      "manager": {
+        "title": "Manager Workspace",
+        "description": "This module is still under construction. The manager workspace navigation is already prepared, and detailed capability can continue to grow on top of this shell."
+      },
+      "operator": {
+        "title": "Operations Workspace",
+        "description": "This module is still under construction. The operations workspace navigation is already prepared, and detailed capability can continue to grow on top of this shell."
+      },
+      "recruiter": {
+        "title": "Recruiter Workspace",
+        "description": "This module is still under construction. The recruiter workspace navigation is already prepared, and detailed capability can continue to grow on top of this shell."
+      },
+      "salesman": {
+        "title": "Sales Workspace",
+        "description": "This module is still under construction. The sales workspace navigation is already in place, and detailed capability can continue to grow on top of this shell."
+      }
+    },
+    "orders": {
+      "title": "Order Management",
+      "description": "This area will handle order browsing, filtering, status flow, and exception handling. It will later be split into role-specific views for administrators, sales, finance, and clients."
+    },
+    "referrals": {
+      "title": "Referral Tree",
+      "description": "This section shows the referral relationships visible to the current role, including who referred you and whom you referred. Different roles only see the relationships allowed by database permissions."
+    },
+    "team": {
+      "title": "Team Management",
+      "description": "This section will cover team members, status metrics, and organizational collaboration details, with role-specific actions added over time."
+    },
+    "commission": {
+      "title": "Commission Center",
+      "description": "This section will combine commission rules, settlement details, payout progress, and exception records, and will later evolve into role-specific views for finance and sales."
+    },
+    "exchange-rates": {
+      "title": "FX Rate Management",
+      "description": "This section will maintain FX sources, update times, historical trends, and manual adjustment records to support orders and finance with a unified data base."
+    },
+    "tasks": {
+      "title": "Task Board",
+      "description": "This section will bring together todos, reminders, owners, and progress milestones to help each role follow business tasks continuously."
+    },
+    "reviews": {
+      "title": "Review Center",
+      "description": "This section will handle document review, identity verification, risk checks, and approval flows. It can later branch into role-specific review views for operators, managers, and clients."
+    }
+  },
+  "DashboardShared": {
+    "loading": "Syncing your cloud profile...",
+    "inputHint": "After submission, this will enter the review queue.",
+    "statusHeadings": {
+      "approved": "Approved",
+      "pending": "Pending Review"
+    },
+    "mediaStatus": {
+      "pending": "Pending Review",
+      "approvedGeneric": "Approved",
+      "approvedIdentity": "Verified",
+      "identityEmpty": "Add ID number",
+      "passportEmpty": "Add passport number",
+      "photosEmpty": "Upload profile photos",
+      "videosEmpty": "Upload profile videos"
+    },
+    "userStatus": {
+      "active": "Active",
+      "suspended": "Suspended",
+      "pending": "Pending Review"
+    },
+    "assetStatus": {
+      "pass": "Approved",
+      "pending": "Pending Review",
+      "denied": "Rejected"
+    },
+    "video": {
+      "badge": "Video",
+      "count": "{count} videos",
+      "defaultTitle": "Profile introduction video"
+    },
+    "fallback": {
+      "noRecordYet": "No record yet"
+    },
+    "errors": {
+      "unknown": "Something went wrong. Please try again later.",
+      "duplicatePending": "An identical request is already under review. Please wait for the result.",
+      "duplicateStored": "The submitted value matches the stored record. No resubmission is needed.",
+      "permission": "The current account does not have permission to perform this action."
+    }
+  },
+  "DashboardMy": {
+    "bundleUnavailable": "Cloud profile data is temporarily unavailable. Refresh the page and try again.",
+    "bundleSyncDescription": "This page depends on active cloud authentication and profile queries. If a resume-from-idle sync does not return in time, the page now fails fast so you can retry instead of waiting forever.",
+    "bundleSyncTitle": "Profile Sync Did Not Finish",
+    "retrySync": "Retry Sync",
+    "editProfile": "Edit Profile",
+    "changePassword": "Change Password",
+    "copyInviteCode": "Copy Invite Code",
+    "refreshProfile": "Refresh Profile",
+    "verificationTitle": "Identity Verification",
+    "verificationApproved": "Verified",
+    "verificationPending": "Under Review",
+    "verificationEmpty": "Not Verified",
+    "verificationApprovedDescription": "Your ID information has been approved and the account is now verified.",
+    "verificationPendingDescription": "Your ID information has been submitted and is currently under review.",
+    "verificationEmptyDescription": "This area will show your verified status after the ID review is approved.",
+    "identityMediaTitle": "Identity Documents & Media",
+    "copyright": "© 2026 Baisheng Management System",
+    "privacy": "Privacy Policy",
+    "terms": "Terms of Service",
+    "help": "Help Center",
+    "identitySubmit": "Submit ID Number",
+    "identityLabel": "ID Number",
+    "identityPlaceholder": "Enter your ID number",
+    "identityPendingDescription": "Your ID number has been submitted and is pending review.",
+    "identityApprovedDescription": "Your ID number has been approved.",
+    "retryEdit": "Edit Again",
+    "passportSubmit": "Submit Passport Number",
+    "passportLabel": "Passport Number",
+    "passportPlaceholder": "Enter your passport number",
+    "passportPendingDescription": "Your passport number has been submitted and is pending review.",
+    "passportApprovedDescription": "Your passport number has been approved.",
+    "previewUnavailable": "Preview unavailable",
+    "photoItem": "Profile Photo {index}",
+    "delete": "Delete",
+    "photoEmptyTitle": "Upload Profile Photos",
+    "photoEmptyDescription": "Uploaded photos will appear here after they pass review.",
+    "photoPendingDescription": "At least one photo is currently waiting for review.",
+    "photoApprovedDescription": "Your profile photos have been approved.",
+    "videoEmptyTitle": "Upload Profile Videos",
+    "videoEmptyDescription": "Uploaded videos will appear here after they pass review.",
+    "videoPendingDescription": "At least one video is currently waiting for review.",
+    "videoApprovedDescription": "Your profile videos have been approved.",
+    "editProfileDescription": "You can add your city here after registration. Saving updates the value shown on the My page.",
+    "cityLabel": "City",
+    "cityPlaceholder": "Enter your city",
+    "saveCity": "Save City"
+  },
+  "DashboardMyState": {
+    "unnamedUser": "Unnamed User",
+    "pendingCity": "City not added yet",
+    "pendingValue": "Not provided",
+    "pendingReferralCode": "Pending",
+    "standardMembership": "Standard Member",
+    "vipMembership": "VIP Member",
+    "identityTitle": "Identity Info",
+    "passportTitle": "Travel Info",
+    "photosTitle": "Profile Photos",
+    "videosTitle": "Profile Videos",
+    "photoCountLabel": "{count} photos",
+    "uploadPhotosPrompt": "Upload profile photos",
+    "phoneLabel": "Phone",
+    "emailLabel": "Email",
+    "passwordLabel": "Password",
+    "passwordValue": "Password reset available",
+    "inviteCodeLabel": "Invite Code",
+    "accountStatusLabel": "Account Status",
+    "lastLoginLabel": "Last Login",
+    "missingEmailForReset": "This account does not have an email address for password reset.",
+    "resetSent": "Password reset email sent. Check your inbox.",
+    "missingInviteCode": "There is no invite code available for this account yet.",
+    "inviteCopied": "Invite code copied to clipboard.",
+    "inviteCopyFailed": "Copy failed. Please try again later.",
+    "profileSaved": "Profile saved.",
+    "cityUpdated": "City updated.",
+    "identitySubmitted": "ID number submitted and now pending review.",
+    "passportSubmitted": "Passport number submitted and now pending review.",
+    "photosUploaded": "Profile photos uploaded and now pending review.",
+    "videosUploaded": "Profile videos uploaded and now pending review.",
+    "photosDeleted": "Selected photos deleted.",
+    "videosDeleted": "Selected videos deleted.",
+    "identityDescription": "After submission, the record will enter review and update your identity profile once approved.",
+    "passportDescription": "After submission, the record will enter review and update your travel profile once approved.",
+    "mediaDescription": "Uploads enter review first and appear in your profile after approval.",
+    "deletePhotos": "Delete Photos",
+    "uploadPhotos": "Upload Photos",
+    "deleteVideos": "Delete Videos",
+    "uploadVideos": "Upload Videos"
+  },
+  "Orders": {
+    "metadata": {
+      "admin": "Order Center",
+      "salesman": "Client Orders",
+      "client": "My Orders"
+    },
+    "modes": {
+      "admin": {
+        "badge": "Order Workspace",
+        "title": "Order Center",
+        "description": "The list highlights key order fields first. Open any order to inspect the full details.",
+        "createTitle": "Create Order",
+        "createDescription": "After you fill in the basic order information, the new order is written to the list immediately.",
+        "emptyDescription": "There are no order records yet. Newly created orders will appear here.",
+        "noPermissionDescription": "The current account does not have access to the order center."
+      },
+      "salesman": {
+        "badge": "Sales Orders",
+        "title": "Client Orders",
+        "description": "This page shows only orders related to you and your assigned clients. You can create new orders for your own clients here.",
+        "createTitle": "Create Client Order",
+        "createDescription": "This page allows new orders only for clients associated with you. New records appear in the list immediately.",
+        "emptyDescription": "Orders for you and your assigned clients will appear here. There are no visible orders right now.",
+        "noPermissionDescription": "The current account does not have access to sales orders.",
+        "noCreateTargetHint": "You do not have any linked clients available for new orders yet."
+      },
+      "client": {
+        "badge": "Client Orders",
+        "title": "My Orders",
+        "description": "This page shows order records related to you. You can open any row at any time to review the full details.",
+        "createTitle": "Create Order",
+        "emptyDescription": "You do not have any order records yet. Future orders will appear here automatically.",
+        "noPermissionDescription": "The current account does not have access to client orders."
+      }
+    },
+    "feedback": {
+      "createSuccess": "Order {orderNumber} was created successfully.",
+      "updateSuccess": "Order {orderNumber} was updated successfully.",
+      "deleteConfirm": "Are you sure you want to soft-delete order {orderNumber}? It will be hidden from the list afterward.",
+      "deleteSuccess": "Order {orderNumber} was soft-deleted."
+    },
+    "summary": {
+      "total": "Total Orders",
+      "pending": "Pending Orders",
+      "completed": "Completed Orders"
+    },
+    "states": {
+      "noViewPermissionTitle": "No Access",
+      "emptyTitle": "No Orders Yet",
+      "noMatchTitle": "No Matching Results",
+      "noMatchDescription": "No orders match the current filters. Adjust the keywords and try again."
+    },
+    "filters": {
+      "orderNumberLabel": "Order Number",
+      "orderNumberPlaceholder": "Search by order number",
+      "orderEntryUserLabel": "Order Entry User",
+      "orderEntryUserPlaceholder": "Search by user name or email",
+      "orderingUserLabel": "Ordering User",
+      "orderingUserPlaceholder": "Search by client name or email",
+      "resultSummary": "{total} total, {matched} matched",
+      "clear": "Clear Filters"
+    },
+    "table": {
+      "orderNumber": "Order Number",
+      "rmbAmount": "RMB Total",
+      "costAmount": "Order Cost",
+      "orderEntryUser": "Order Entry User",
+      "orderingUser": "Ordering User",
+      "orderStatus": "Order Status",
+      "orderType": "Order Type",
+      "createdAt": "Created At"
+    },
+    "dialogs": {
+      "editDescription": "Saving changes overwrites the current order information and synchronizes the order details.",
+      "saveChanges": "Save Changes",
+      "editTitle": "Edit Order"
+    }
+  },
+  "OrdersUI": {
+    "loading": "Loading orders...",
+    "cancel": "Cancel",
+    "status": {
+      "pending": "Pending",
+      "inProgress": "In Progress",
+      "settled": "Settled",
+      "completed": "Completed",
+      "cancelled": "Cancelled",
+      "refunding": "Refunding",
+      "notProvided": "Pending"
+    },
+    "fallback": {
+      "formContent": "Form Content",
+      "item": "Item {index}",
+      "yes": "Yes",
+      "no": "No"
+    },
+    "categories": {
+      "purchase": "Purchase Order",
+      "service": "Service Order"
+    },
+    "subtypes": {
+      "purchase": {
+        "sourcing": "Sourcing",
+        "dropshipping": "Dropshipping",
+        "touristShopping": "Tourist Shopping",
+        "groupBuying": "Group Buying"
+      },
+      "service": {
+        "tourEscort": "Tour Escort",
+        "medicalEscort": "Medical Escort",
+        "digitalSurvival": "Digital Survival",
+        "airportTransfer": "Airport Transfer",
+        "carService": "Car Service",
+        "vipRecharge": "VIP Recharge"
+      }
+    },
+    "fields": {
+      "originalCurrency": "Original Currency",
+      "amount": "Total Amount",
+      "dailyExchangeRate": "Daily Exchange Rate",
+      "transactionRate": "Transaction Rate (Auto)",
+      "rmbAmount": "RMB Total",
+      "costAmount": "Order Cost",
+      "orderEntryUser": "Order Entry User",
+      "orderingUser": "Ordering User",
+      "orderStatus": "Order Status",
+      "orderType": "Order Type",
+      "purchaseSubtype": "Purchase Subtype",
+      "purchaseDetails": "Purchase Details",
+      "serviceSubtype": "Service Subtype",
+      "serviceDiscount": "Order Discount",
+      "serviceDetails": "Service Details"
+    },
+    "placeholders": {
+      "originalCurrency": "For example USD, CNY, or EUR",
+      "amount": "Enter the total amount",
+      "dailyExchangeRate": "Enter the daily exchange rate",
+      "transactionRate": "Calculated automatically from the daily exchange rate",
+      "rmbAmount": "Enter the RMB total",
+      "costAmount": "Enter the internal cost, or leave blank",
+      "purchaseDetails": "Enter JSON or one field per line, for example:\nProduct: iPhone 16 Pro\nQuantity: 2\nDelivery city: Shanghai",
+      "serviceDetails": "Enter JSON or one field per line, for example:\nService date: 2026-04-02\nService location: Shanghai Pudong Airport\nGuests: 3"
+    },
+    "hints": {
+      "transactionRate": "Auto = Daily exchange rate * 0.99",
+      "lockedOrderEntryUser": "Orders created from this page are automatically assigned to the current salesperson.",
+      "autoTimestamps": "After creation, the system writes the created time automatically. After editing, the system updates the latest modified time automatically."
+    },
+    "select": {
+      "orderEntryUser": "Select an order entry user",
+      "orderingUser": "Select an ordering user",
+      "orderType": "Select an order type",
+      "purchaseSubtype": "Select a purchase subtype",
+      "serviceSubtype": "Select a service subtype",
+      "serviceDiscount": "Select an order discount"
+    },
+    "validation": {
+      "selectPrompt": "Please select {label}.",
+      "inputPrompt": "Please enter {label}.",
+      "invalidFormat": "{label} format is invalid.",
+      "invalidDetails": "{label} is invalid. Enter JSON or one \"field: value\" pair per line.",
+      "minZero": "{label} cannot be less than 0."
+    },
+    "errors": {
+      "duplicateOrderNumber": "Order number generation conflicted. Please try again later.",
+      "invalidForeignKeys": "Select valid order users, order type, and related purchase or service options.",
+      "cannotCreate": "You do not have permission to create this order.",
+      "cannotUpdate": "You do not have permission to update this order.",
+      "updatedScopeNotAllowed": "The updated order scope is outside your allowed range.",
+      "cannotDelete": "You do not have permission to delete this order.",
+      "inactiveOrderNumber": "Only active users can create new order numbers.",
+      "orderNotFound": "The order could not be found."
+    },
+    "purchaseSection": {
+      "title": "Purchase Order Details",
+      "createDescription": "This order type is a purchase order. Continue by filling in the purchase details. The details field accepts JSON or one “field: value” pair per line.",
+      "editDescription": "This order type is a purchase order. You can update the purchase details directly. The details field accepts JSON or one “field: value” pair per line.",
+      "loading": "Loading purchase order details..."
+    },
+    "serviceSection": {
+      "title": "Service Order Details",
+      "createDescription": "This order type is a service order. Continue by filling in the service details. The details field accepts JSON or one “field: value” pair per line.",
+      "editDescription": "This order type is a service order. You can update the service details directly. The details field accepts JSON or one “field: value” pair per line.",
+      "loading": "Loading service order details..."
+    },
+    "details": {
+      "editOrder": "Edit Order",
+      "deleteOrder": "Delete Order",
+      "description": "Review the full order amounts, exchange rates, related users, and linked form details.",
+      "title": "Order Details",
+      "titleWithOrderNumber": "Order {orderNumber}",
+      "fields": {
+        "orderNumber": "Order Number",
+        "orderStatus": "Order Status",
+        "orderType": "Order Type",
+        "originalCurrency": "Original Currency",
+        "amount": "Total Amount",
+        "rmbAmount": "RMB Total",
+        "costAmount": "Order Cost",
+        "dailyExchangeRate": "Daily Exchange Rate",
+        "transactionRate": "Transaction Rate",
+        "orderEntryUser": "Order Entry User",
+        "orderingUser": "Ordering User",
+        "createdAt": "Created At",
+        "updatedAt": "Last Updated"
+      },
+      "supplementary": {
+        "loading": "Loading linked form details...",
+        "empty": "This order does not have a related purchase or service form yet.",
+        "purchaseForm": "Purchase Order Form",
+        "serviceForm": "Service Order Form",
+        "purchaseSubtype": "Purchase Subtype",
+        "serviceSubtype": "Service Subtype",
+        "sourceForm": "Source Form",
+        "discount": "Order Discount",
+        "noMoreDetails": "There are no additional details in the linked form yet."
+      }
+    }
+  },
+  "Reviews": {
+    "metadata": {
+      "title": "Review Center"
+    },
+    "header": {
+      "badge": "Review Workspace",
+      "title": "Review Center"
+    },
+    "summary": {
+      "privacy": "Pending Privacy Reviews",
+      "media": "Pending Media Reviews"
+    },
+    "states": {
+      "noPermissionTitle": "No Review Access",
+      "noPermissionDescription": "The current account is not an administrator and cannot access privacy or media review queues."
+    },
+    "tabs": {
+      "privacy": "Privacy Review",
+      "media": "Media Review"
+    },
+    "actions": {
+      "approve": "Approve",
+      "reject": "Reject"
+    },
+    "confirm": {
+      "privacy": "Are you sure you want to {action} this privacy review?",
+      "media": "Are you sure you want to {action} this media review?"
+    },
+    "feedback": {
+      "privacyApproved": "Privacy information approved.",
+      "privacyRejected": "Privacy information rejected.",
+      "mediaApproved": "Media approved.",
+      "mediaRejected": "Media rejected."
+    }
+  },
+  "ReviewsUI": {
+    "loading": "Loading review queues...",
+    "fallback": {
+      "unnamedUser": "Unnamed User",
+      "notProvided": "Pending"
+    },
+    "actions": {
+      "approve": "Approve",
+      "reject": "Reject"
+    },
+    "privacy": {
+      "emptyTitle": "Privacy Queue Is Empty",
+      "emptyDescription": "There are no pending ID card or passport submissions right now. New submissions will appear here.",
+      "columns": {
+        "name": "User Name",
+        "email": "Email",
+        "idCard": "ID Number",
+        "passport": "Passport Number",
+        "actions": "Actions"
+      }
+    },
+    "media": {
+      "emptyTitle": "Media Queue Is Empty",
+      "emptyDescription": "There are no pending photos or videos right now. New media submissions will appear here.",
+      "previewTitle": "Media Preview",
+      "previewUnavailable": "Preview unavailable",
+      "video": "Video",
+      "image": "Image",
+      "videoPreview": "Video Preview",
+      "imagePreview": "Image Preview",
+      "columns": {
+        "preview": "Preview",
+        "name": "User Name",
+        "email": "Email",
+        "actions": "Actions"
+      }
+    }
+  },
+  "ExchangeRates": {
+    "metadata": {
+      "title": "FX Rate Center"
+    },
+    "loading": "Loading FX rate data...",
+    "header": {
+      "badge": "FX Rate Workspace",
+      "title": "FX Rate Center",
+      "description": "Review the latest effective currency pairs and their full history in one place so orders and finance use the same baseline."
+    },
+    "summary": {
+      "pairs": "Currency Pairs",
+      "history": "History Records",
+      "latestUpdated": "Latest Update",
+      "noRecord": "No record yet"
+    },
+    "actions": {
+      "create": "Create FX Rate",
+      "edit": "Edit",
+      "delete": "Delete"
+    },
+    "states": {
+      "noManageTitle": "No Management Access",
+      "noManageDescription": "The current signed-in account is not allowed to manage FX rate records.",
+      "noViewTitle": "No View Access",
+      "noViewDescription": "The current signed-in account is not allowed to view FX rate records."
+    },
+    "latest": {
+      "eyebrow": "Current Snapshot",
+      "title": "Latest FX Rates",
+      "description": "Each currency pair keeps only its latest effective value, ordered by the most recent update time.",
+      "countSummary": "{count} pairs",
+      "emptyTitle": "No FX Rates Yet",
+      "emptyDescription": "There are no FX rate records yet. New rates will appear here first.",
+      "noMatchTitle": "No Matching Results",
+      "noMatchDescription": "No latest FX rates match the current filters.",
+      "card": {
+        "eyebrow": "Currency Pair",
+        "latestBadge": "Latest",
+        "currentRate": "Current Rate",
+        "historyCount": "{count} history records"
+      }
+    },
+    "filters": {
+      "originalCurrencyLabel": "Original Currency",
+      "originalCurrencyPlaceholder": "Search USD, EUR, CNY, etc.",
+      "targetCurrencyLabel": "Target Currency",
+      "targetCurrencyPlaceholder": "Search CNY, USDT, etc.",
+      "resultSummary": "{total} total, {matched} matched",
+      "clear": "Clear Filters"
+    },
+    "history": {
+      "eyebrow": "History",
+      "title": "History Records",
+      "backHome": "Back to My Page",
+      "emptyTitle": "History Is Empty",
+      "emptyDescription": "There are no FX rate history records yet. New rates will appear here in reverse chronological order.",
+      "noMatchTitle": "No Matching Results",
+      "noMatchDescription": "No history records match the current filters.",
+      "columns": {
+        "originalCurrency": "Original Currency",
+        "targetCurrency": "Target Currency",
+        "rate": "Rate",
+        "updatedAt": "Updated At",
+        "actions": "Actions"
+      }
+    },
+    "dialogs": {
+      "cancel": "Cancel",
+      "currencyHint": "Currency codes are normalized to uppercase on save. For example, usd becomes USD.",
+      "fields": {
+        "originalCurrency": "Original Currency",
+        "targetCurrency": "Target Currency",
+        "dailyExchangeRate": "Rate Value"
+      },
+      "placeholders": {
+        "originalCurrency": "For example USD",
+        "targetCurrency": "For example CNY",
+        "dailyExchangeRate": "Enter the FX rate value"
+      },
+      "create": {
+        "title": "Create FX Rate",
+        "description": "After saving, the new entry is written to the history list immediately and the latest value for the pair is refreshed.",
+        "submit": "Create FX Rate"
+      },
+      "edit": {
+        "title": "Edit FX Rate",
+        "description": "Saving updates this history record directly and refreshes the latest value for the same currency pair.",
+        "submit": "Save Changes"
+      }
+    },
+    "feedback": {
+      "created": "FX rate {pairLabel} was created.",
+      "updated": "FX rate {pairLabel} was updated.",
+      "deleteConfirm": "Are you sure you want to delete the FX rate record for {pairLabel}? This action cannot be undone.",
+      "deleted": "FX rate {pairLabel} was deleted."
+    },
+    "validation": {
+      "originalCurrencyRequired": "Please enter the original currency code.",
+      "targetCurrencyRequired": "Please enter the target currency code.",
+      "inputPrompt": "Please enter the {label}.",
+      "invalidFormat": "The {label} format is invalid.",
+      "greaterThanZero": "The {label} must be greater than 0."
+    },
+    "errors": {
+      "duplicateKey": "Saving the FX rate failed. Check for an existing duplicate key and try again.",
+      "positiveRate": "The FX rate value must be greater than 0.",
+      "permission": "The current account does not have permission to view or manage FX rate data."
+    }
+  },
+  "Referrals": {
+    "loading": "Loading referral relationships...",
+    "header": {
+      "badge": "Referral Network",
+      "title": "Referral Tree"
+    },
+    "summary": {
+      "visibleEdges": "Visible Links",
+      "matchedEdges": "Matched Links",
+      "visibleUsers": "Visible Users",
+      "matchedNodes": "Matched Nodes",
+      "rootNodes": "Root Nodes"
+    },
+    "states": {
+      "noPermissionTitle": "No Access",
+      "noPermissionDescription": "The current account is not active, so the referral tree cannot be viewed right now.",
+      "emptyTitle": "Referral Tree Is Empty",
+      "emptyDescription": "There are no referral relationships in your visible scope yet. New invitation signups will appear here automatically.",
+      "noMatchTitle": "No Matching Results",
+      "noMatchDescription": "No referral relationships match the current search. Try a different name, email, or role."
+    },
+    "tree": {
+      "title": "Referral Hierarchy",
+      "searchPlaceholder": "Search by name, email, or role",
+      "referredOn": "Referred on {date}",
+      "currentAccount": "Current Account",
+      "teamSales": "Team Sales",
+      "downstreamCount": "{count} downstream",
+      "noEmail": "No email"
+    },
+    "roles": {
+      "administrator": "Administrator",
+      "operator": "Operator",
+      "manager": "Manager",
+      "recruiter": "Recruiter",
+      "salesman": "Sales",
+      "finance": "Finance",
+      "client": "Client",
+      "unknown": "Unassigned Role"
+    },
+    "sections": {
+      "manager": "Managers can view their own upstream and downstream relationships, plus the referral chains of each sales account in their team. Team sales members are marked separately in the tree.",
+      "recruiter": "Recruiters can see who referred them and which sales accounts they referred. The tree does not expand into unrelated team relationships.",
+      "default": "This view shows your direct upstream and downstream relationships in a tree hierarchy instead of separate lists."
+    },
+    "errors": {
+      "noPermission": "The current account does not have permission to view the referral tree."
+    }
+  },
+  "Commission": {
+    "metadata": {
+      "adminTitle": "Commission Board",
+      "salesmanTitle": "My Commissions"
+    },
+    "loading": "Loading commission data...",
+    "options": {
+      "settlement": {
+        "all": "All Statuses",
+        "pending": "Pending",
+        "paid": "Paid",
+        "cancelled": "Cancelled",
+        "reversed": "Reversed"
+      },
+      "category": {
+        "all": "All Categories",
+        "salesmanPurchase": "Sales Purchase Commission",
+        "salesmanService": "Sales Service Commission",
+        "referralPurchase": "Referral Purchase Commission",
+        "referralService": "Referral Service Commission",
+        "referralVipFirstYearBonus": "Referral VIP First-Year Bonus",
+        "manualAdjustment": "Manual Adjustment"
+      }
+    },
+    "header": {
+      "badge": "Commission Workspace",
+      "title": "Commission Board",
+      "description": "Review all commission records, settlement progress, and beneficiary breakdowns in one place."
+    },
+    "summary": {
+      "recordCount": "Commission Records",
+      "totalAmount": "Total Commission",
+      "pendingAmount": "Pending Settlement",
+      "paidAmount": "Paid Out"
+    },
+    "states": {
+      "noPermissionTitle": "No Commission Access",
+      "noPermissionDescription": "The current account cannot view the full commission board."
+    },
+    "filters": {
+      "title": "Filter Commissions",
+      "description": "{records} records across {beneficiaries} beneficiaries match the current filters.",
+      "reset": "Reset Filters",
+      "keywordLabel": "Keyword",
+      "keywordPlaceholder": "Search order, user, email, or category",
+      "beneficiaryLabel": "Beneficiary",
+      "allBeneficiaries": "All Beneficiaries",
+      "orderNumberLabel": "Order Number",
+      "orderNumberPlaceholder": "Search a specific order number",
+      "settlementStatusLabel": "Settlement Status",
+      "categoryLabel": "Commission Category"
+    },
+    "chips": {
+      "beneficiaryPrefix": "Beneficiary: ",
+      "selected": "Selected",
+      "orderNumberPrefix": "Order: ",
+      "settlementPrefix": "Settlement: ",
+      "categoryPrefix": "Category: "
+    },
+    "beneficiaries": {
+      "title": "Beneficiary Summary",
+      "description": "Click a beneficiary to focus the board on all commission records linked to that person.",
+      "emptyTitle": "No Beneficiaries Found",
+      "emptyDescription": "No beneficiaries match the current filters.",
+      "columns": {
+        "beneficiary": "Beneficiary",
+        "roleStatus": "Role & Status",
+        "recordCount": "Records",
+        "totalAmount": "Total",
+        "pendingAmount": "Pending",
+        "paidAmount": "Paid",
+        "latestRecord": "Latest Record",
+        "actions": "Actions"
+      },
+      "actions": {
+        "viewAll": "View All Records"
+      }
+    },
+    "table": {
+      "title": "Commission Details",
+      "description": "Inspect each commission line by order, beneficiary, source relationship, and settlement history.",
+      "emptyTitle": "No Commission Records",
+      "emptyDescription": "No commission records match the current filters.",
+      "columns": {
+        "orderStatus": "Order & Status",
+        "beneficiary": "Beneficiary",
+        "category": "Category",
+        "source": "Source",
+        "amountSnapshot": "Amount Snapshot",
+        "commissionSettlement": "Commission & Settlement",
+        "timestamps": "Timestamps"
+      }
+    },
+    "shared": {
+      "deletedOrder": "Deleted Order",
+      "note": "Note: {note}",
+      "fields": {
+        "customer": "Customer",
+        "salesman": "Salesman",
+        "orderAmount": "Order Amount",
+        "costAmount": "Cost Amount",
+        "serviceFee": "Service Fee",
+        "createdAt": "Created At",
+        "settledAt": "Settled At",
+        "orderNumber": "Order Number"
+      },
+      "fallback": {
+        "none": "Not available"
+      },
+      "roles": {
+        "administrator": "Administrator",
+        "operator": "Operator",
+        "manager": "Manager",
+        "recruiter": "Recruiter",
+        "salesman": "Salesman",
+        "finance": "Finance",
+        "client": "Client",
+        "unknown": "Unknown Role"
+      },
+      "orderStatuses": {
+        "pending": "Pending",
+        "inProgress": "In Progress",
+        "settled": "Settled",
+        "completed": "Completed",
+        "cancelled": "Cancelled",
+        "refunding": "Refunding",
+        "unknown": "Unknown"
+      },
+      "settlementStatuses": {
+        "pending": "Pending",
+        "paid": "Paid",
+        "cancelled": "Cancelled",
+        "reversed": "Reversed",
+        "unknown": "Unknown"
+      },
+      "categories": {
+        "salesmanPurchase": "Sales Purchase Commission",
+        "salesmanService": "Sales Service Commission",
+        "referralPurchase": "Referral Purchase Commission",
+        "referralService": "Referral Service Commission",
+        "referralVipFirstYearBonus": "Referral VIP First-Year Bonus",
+        "manualAdjustment": "Manual Adjustment",
+        "default": "Commission"
+      },
+      "origin": {
+        "customerFallback": "customer",
+        "salesmanPurchase": "Generated from purchase order {orderNumber} for {customerLabel}.",
+        "salesmanService": "Generated from service order {orderNumber} for {customerLabel}.",
+        "referralPurchase": "Generated from referred purchase order {orderNumber} for {customerLabel}.",
+        "referralService": "Generated from referred service order {orderNumber} for {customerLabel}.",
+        "referralVipFirstYearBonus": "Generated from referred VIP first-year order {orderNumber} for {customerLabel}.",
+        "manualAdjustment": "Manual adjustment linked to order {orderNumber}.",
+        "default": "Commission record linked to order {orderNumber}."
+      },
+      "errors": {
+        "noAdminAccess": "The current account cannot view the full commission board.",
+        "noSalesmanAccess": "The current account cannot view personal commission records."
+      }
+    },
+    "salesman": {
+      "loading": "Loading my commissions...",
+      "header": {
+        "badge": "My Commissions",
+        "title": "Salesman Commission History",
+        "description": "Review your own commission totals, settlement progress, and the order sources behind each payout."
+      },
+      "summary": {
+        "totalAmount": "Total Commission",
+        "pendingAmount": "Pending Settlement",
+        "paidAmount": "Paid Out"
+      },
+      "states": {
+        "noPermissionTitle": "No Personal Commission Access",
+        "noPermissionDescription": "The current account cannot view personal commission records.",
+        "emptyTitle": "No Commission Records Yet",
+        "emptyDescription": "This account does not have commission records yet."
+      },
+      "table": {
+        "title": "Commission History",
+        "description": "Each record shows where the commission came from, which order generated it, and whether it has already been settled.",
+        "columns": {
+          "origin": "Origin",
+          "orderCustomer": "Order & Customer",
+          "category": "Category",
+          "amount": "Amount",
+          "settlement": "Settlement",
+          "time": "Time"
+        },
+        "amountHint": "Order amount: {amount}"
+      }
+    }
+  },
+  "Tasks": {
+    "metadata": {
+      "adminTitle": "Admin Task Board",
+      "salesmanTitle": "My Tasks"
+    },
+    "shared": {
+      "status": {
+        "toBeAccepted": "To Be Accepted",
+        "accepted": "In Progress",
+        "completed": "Completed"
+      },
+      "scope": {
+        "public": "Visible to Everyone",
+        "team": "Team Task"
+      },
+      "fallback": {
+        "unnamedTeam": "Unnamed Team",
+        "noTaskIntro": "No task description yet.",
+        "noRecord": "No record yet"
+      },
+      "attachmentCount": "{count} attachment(s)",
+      "moreAttachments": "{count} more attachment(s)",
+      "errors": {
+        "admin": {
+          "taskNameBlank": "The task name cannot be empty.",
+          "teamRequired": "A team task must be linked to a specific team.",
+          "authExpired": "Your session has expired. Sign in again and retry.",
+          "taskNotFound": "The task no longer exists. Refresh the task list and try again.",
+          "duplicateAttachmentPath": "An attachment path conflict was detected. Upload the file again.",
+          "attachmentCountExceeded": "Too many attachments were selected. Upload at most 10 files.",
+          "attachmentEmpty": "An empty file was detected. Attachments must be larger than 0 bytes.",
+          "attachmentTooLarge": "At least one attachment is too large. Each file must stay within 20 MB.",
+          "attachmentTotalTooLarge": "The attachments are too large altogether. Keep the total within 100 MB.",
+          "attachmentTypeNotAllowed": "An unsupported attachment type was detected. Upload common document, image, media, or archive formats.",
+          "storage": "Task attachment processing failed. Please try again later."
+        },
+        "salesman": {
+          "cannotAccept": "You cannot accept this task right now.",
+          "alreadyAccepted": "This task was just accepted by someone else. Refresh to see the latest status.",
+          "cannotComplete": "You cannot complete this task right now.",
+          "notAccepted": "This task cannot be marked as completed yet.",
+          "inactive": "This account is not active yet and cannot process tasks."
+        }
+      }
+    },
+    "admin": {
+      "loading": "Loading task board...",
+      "feedback": {
+        "createdWithAttachments": "The task and attachments have been created.",
+        "created": "The task has been created.",
+        "assignmentUpdated": "The task assignment has been updated.",
+        "assignmentPublic": "The task is now visible to everyone.",
+        "deletedWithAttachmentCleanupWarning": "The task was deleted, but attachment cleanup did not fully complete. Check storage again later.",
+        "deleted": "The task has been deleted."
+      },
+      "confirmDelete": "Delete task \"{taskName}\"? Attached files will be removed as well.",
+      "header": {
+        "badge": "Task Dispatch",
+        "title": "Administrator Task Board",
+        "description": "Review progress in one place, publish new tasks, and adjust collaboration scope before work begins.",
+        "refresh": "Refresh Data",
+        "create": "Create Task"
+      },
+      "summary": {
+        "total": "Total Tasks",
+        "pending": "To Be Accepted",
+        "accepted": "In Progress",
+        "completed": "Completed",
+        "teamScoped": "Team Tasks"
+      },
+      "states": {
+        "noPermissionTitle": "No Access to Task Dispatch",
+        "noPermissionDescription": "The current account is not an administrator and cannot open the task dispatch board.",
+        "emptyTitle": "No Matching Tasks",
+        "emptyDescription": "No tasks match the current filters. Adjust the filters or create a new task first."
+      },
+      "filters": {
+        "searchLabel": "Search Tasks",
+        "searchPlaceholder": "Search by task name, creator, team, or assignee",
+        "statusLabel": "Status",
+        "statusAll": "All Statuses",
+        "scopeLabel": "Scope",
+        "scopeAll": "All Scopes",
+        "teamLabel": "Team",
+        "teamAll": "All Teams"
+      },
+      "list": {
+        "title": "Task List",
+        "description": "Matched {count} tasks. Use search and filters to find the right item quickly."
+      },
+      "createDialog": {
+        "title": "Create Task",
+        "description": "Choose whether the task is visible to everyone or only to a specific team. Attachments will be saved together with the task.",
+        "taskNameLabel": "Task Name",
+        "taskNamePlaceholder": "For example: Follow up this week's client callback materials",
+        "scopeLabel": "Assignment Scope",
+        "teamLabel": "Target Team",
+        "teamPlaceholder": "Select a team",
+        "taskIntroLabel": "Task Details",
+        "taskIntroPlaceholder": "Add the background, goals, execution requirements, and any notes for this task.",
+        "attachmentsLabel": "Attachments",
+        "attachmentsCta": "Click to choose attachments. You can upload multiple files at once.",
+        "attachmentsHint": "Files will be stored in the task-attachments bucket and recorded in the task_sub table. Limit: {maxFiles} files, {maxPerFile} per file, {maxTotal} total.",
+        "noAttachments": "No attachments selected yet. You can create the task with attachments in one step.",
+        "cancel": "Cancel",
+        "submit": "Create Task"
+      },
+      "assignmentDialog": {
+        "title": "Adjust Task Assignment",
+        "titleWithName": "Adjust Task Assignment: {taskName}",
+        "description": "Once work has started, this dialog becomes view-only. Finish scope changes before the task is accepted.",
+        "currentAssignment": "Current assignment: {assignmentLabel}",
+        "viewOnlyNotice": "This task is already in progress or completed. It is view-only right now.",
+        "scopeLabel": "New Assignment Scope",
+        "teamLabel": "Target Team",
+        "teamPlaceholder": "Select a team",
+        "cancel": "Cancel",
+        "submit": "Save Settings"
+      },
+      "card": {
+        "reassign": "Adjust Assignment",
+        "delete": "Delete",
+        "assignmentLabel": "Current Assignment",
+        "creatorLabel": "Creator",
+        "assigneeLabel": "Assignee",
+        "createdAtLabel": "Created At",
+        "acceptedAtLabel": "Accepted At",
+        "completedAtLabel": "Completed At",
+        "attachmentsOverview": "Attachment Overview",
+        "viewOnlyNotice": "This task is currently view-only."
+      },
+      "validation": {
+        "taskNameRequired": "Please enter a task name first.",
+        "teamRequiredForCreate": "Please choose a target team.",
+        "teamRequiredForAssignment": "Please choose a team first."
+      }
+    },
+    "salesman": {
+      "loading": "Loading tasks...",
+      "feedback": {
+        "accepted": "Task accepted. You can start working on it now.",
+        "completed": "Task completed."
+      },
+      "header": {
+        "badge": "My Tasks",
+        "title": "Task Center",
+        "description": "Review the tasks you can participate in, track what you are currently handling, and update progress as soon as work is complete."
+      },
+      "summary": {
+        "all": "Visible Tasks",
+        "available": "To Be Accepted",
+        "inProgress": "In Progress",
+        "completed": "Completed"
+      },
+      "states": {
+        "noPermissionTitle": "Task Center Unavailable",
+        "noPermissionDescription": "This account cannot open the task center right now. Confirm the account role and status.",
+        "emptyTitle": "No Tasks Yet",
+        "emptyDescription": "No tasks match the current filters right now. Check back again later."
+      },
+      "filters": {
+        "searchLabel": "Search Tasks",
+        "searchPlaceholder": "Search task name, details, or task scope",
+        "focusLabel": "View Range",
+        "focusAll": "All Tasks",
+        "focusAvailable": "To Be Accepted",
+        "focusInProgress": "In Progress",
+        "focusCompleted": "Completed",
+        "scopeLabel": "Task Type",
+        "scopeAll": "All Types"
+      },
+      "list": {
+        "title": "Task List",
+        "description": "Matched {count} tasks."
+      },
+      "card": {
+        "taskScopeLabel": "Task Scope",
+        "createdAtLabel": "Published At",
+        "acceptedAtLabel": "Started At",
+        "completedAtLabel": "Completed At",
+        "attachmentsTitle": "Task Attachments",
+        "accept": "Accept Task",
+        "complete": "Mark as Completed",
+        "takenByOthers": "This task is already being handled by another teammate.",
+        "completedByMe": "You have completed this task.",
+        "completedGeneric": "This task has been completed."
+      }
+    }
+  },
+  "TeamManagement": {
+    "loading": "Loading team data...",
+    "header": {
+      "badge": "Team Collaboration",
+      "title": "Team Management",
+      "refresh": "Refresh Team Data",
+      "manageableHint": "The current team supports direct updates to its name and members."
+    },
+    "summary": {
+      "visibleTeams": "Visible Teams",
+      "teamMembers": "Team Members",
+      "teamClients": "Team Clients",
+      "manageableTeams": "Manageable Teams"
+    },
+    "descriptions": {
+      "manager": "Managers can maintain their own team profile, members, and client structure. The panel aggregates team records, member records, and referral links automatically.",
+      "administrator": "Administrators can inspect every team, create and delete teams directly, adjust members, and reassign the team manager.",
+      "salesman": "Salesmen can review the currently visible team structure, including members, accumulated clients, and the responsible manager.",
+      "readOnly": "This page shows the visible team structure allowed by database permissions so operations and finance can inspect members and client accumulation together.",
+      "fallback": "This panel aggregates the team profile table, membership table, and client referral relationships into a single management view."
+    },
+    "feedback": {
+      "updated": "Team details have been updated.",
+      "createdAndContinue": "The team has been created. You can continue by adding salesman members next.",
+      "created": "A new team has been created.",
+      "memberAdded": "The team member has been added.",
+      "memberRemoved": "The team member has been removed.",
+      "deleted": "The team has been deleted."
+    },
+    "confirmDelete": "Delete team \"{teamName}\"? This will remove the team record and member assignment relationships.",
+    "adminCreate": {
+      "title": "Create Team",
+      "description": "Administrators can create teams directly and assign a manager during creation. Managers not occupied by other teams are prioritized as assignable.",
+      "teamNameLabel": "Team Name",
+      "teamNamePlaceholder": "Enter a team name",
+      "managerLabel": "Assign Manager",
+      "button": "Create Team"
+    },
+    "states": {
+      "noPermissionTitle": "No Access to Team Panel",
+      "noPermissionDescription": "The current account cannot access the team panel right now. The module exposes different data ranges depending on role and activation state.",
+      "noTeamDataTitle": "No Team Data Yet",
+      "noTeamDataDescription": "There is no visible team data yet. Once team relationships are established, an overview will appear here automatically."
+    },
+    "managerSetup": {
+      "title": "Create Your Team Workspace",
+      "description": "Teams are stored with `team_profiles` as the main table and `team_profiles_data` for memberships. You do not have a team record yet, so create the team first and then continue adding salesmen.",
+      "teamNameLabel": "Team Name",
+      "teamNamePlaceholder": "Enter a team name",
+      "button": "Create Team",
+      "emptyTitle": "Team Data Has Not Been Set Up Yet",
+      "emptyDescription": "Once the team is created, this area will start showing members, team clients, and assignable salesman candidates."
+    },
+    "overview": {
+      "title": "Team Overview",
+      "description": "Select a team first to inspect member details and the client structure. Managers default to the team they can manage.",
+      "managerPrefix": "Manager: {managerLabel}",
+      "memberPreview": "Team Member Preview",
+      "moreMembers": "+{count} more",
+      "metrics": {
+        "members": "Members",
+        "activeMembers": "Active Members",
+        "clients": "Clients",
+        "vipClients": "VIP Clients"
+      }
+    },
+    "detail": {
+      "managerSummary": "Team manager: {managerLabel}. Last member joined: {joinedAt}.",
+      "editTitle": "Edit Team Details",
+      "teamNamePlaceholder": "Enter a team name",
+      "saveButton": "Save Team Details",
+      "deleteButton": "Delete Team",
+      "metrics": {
+        "members": "Team Members",
+        "activeMembers": "Active Members",
+        "clients": "Team Clients",
+        "vipClients": "VIP Clients"
+      }
+    },
+    "insights": {
+      "title": "Team Snapshot",
+      "description": "This summarizes team clients using referral relationships from the database so you can judge the current team structure quickly.",
+      "activeTitle": "{count} Active Salesmen",
+      "activeEmptyDescription": "There are no active salesmen in the current team yet. Add members first.",
+      "activeReadyDescription": "The current team already has a baseline member structure and can continue toward client conversion.",
+      "vipTitle": "{count} VIP Clients",
+      "vipEmptyDescription": "There are no VIP clients yet. Once team clients receive a VIP flag, this number will grow automatically.",
+      "vipReadyDescription": "Some clients are already marked as VIP, so you can continue following up alongside orders and commissions.",
+      "relationsTitle": "{count} Client Relationships",
+      "relationsDescription": "The selected team currently accumulates {count} visible client referral relationships."
+    },
+    "members": {
+      "title": "Team Members",
+      "description": "Salesman members come from `team_profiles_data`. Each member card also shows the number of direct clients.",
+      "searchPlaceholder": "Search by member name, email, or client status",
+      "emptyTitle": "No Member Results",
+      "emptyDescription": "No team members match the current search."
+    },
+    "candidates": {
+      "title": "Available Salesmen",
+      "description": "The candidate list comes from users with the `salesman` role. Salesmen already assigned to another team remain marked and cannot be added twice.",
+      "searchPlaceholder": "Search salesman name, email, or current team",
+      "availableCount": "There are currently {count} salesman candidates who can be added directly.",
+      "emptyTitle": "No Candidate Results",
+      "emptyDescription": "No salesman candidates match the current search.",
+      "readOnlyTitle": "Current View Is Read-Only",
+      "readOnlyDescription": "This role can inspect team structure here, but member changes are not available."
+    },
+    "clients": {
+      "title": "Team Clients",
+      "description": "Team clients are assembled from salesman referral relationships and include VIP markers.",
+      "searchPlaceholder": "Search client name, email, or referring salesman",
+      "emptyTitle": "No Client Results",
+      "emptyDescription": "No team clients match the current search."
+    },
+    "memberCard": {
+      "emailAndClients": "{email} / Direct clients {count}",
+      "remove": "Remove from Team",
+      "joinedAt": "Joined Team",
+      "accountCreatedAt": "Account Created"
+    },
+    "candidateCard": {
+      "add": "Add to Team",
+      "disabled": "Unavailable",
+      "currentTeam": "Current Team",
+      "directClientCount": "Direct Clients",
+      "directClientCountValue": "{count}"
+    },
+    "clientCard": {
+      "referrer": "Referring Salesman",
+      "relatedAt": "Linked At"
+    },
+    "shared": {
+      "managerOptionNone": "Leave manager unassigned",
+      "pills": {
+        "manageable": "Manageable",
+        "currentView": "Current View",
+        "adminView": "Administrator View",
+        "vip": "VIP"
+      },
+      "fallback": {
+        "noEmail": "No email yet",
+        "noRecord": "No record yet",
+        "notSet": "Not set",
+        "unassigned": "Unassigned",
+        "unnamedTeam": "Unnamed Team"
+      },
+      "managerCandidate": {
+        "currentTeamAssignable": "{label} (Currently responsible for: {teamName})",
+        "currentTeamLocked": "{label} (Currently responsible for: {teamName}, cannot reassign)",
+        "unassignable": "{label} (Not assignable)"
+      }
+    },
+    "errors": {
+      "missingTeamId": "The team was saved, but no team ID was returned.",
+      "teamProfileMissing": "Create the team first, then continue adding members.",
+      "teamNameRequired": "Enter a team name first.",
+      "teamNotVisible": "The selected team is no longer visible. A resync has been attempted.",
+      "salesmanNotAssignable": "This salesman cannot join the team right now and may already belong to another team.",
+      "managerNotAssignable": "This manager cannot be assigned to the team right now and may already be responsible for another team.",
+      "cannotManageTeam": "The current account cannot manage team details right now.",
+      "cannotManageMembers": "The current account cannot adjust team members right now.",
+      "cannotDeleteTeam": "The current account cannot delete the team right now.",
+      "teamNotFound": "The target team no longer exists and may have been modified by someone else."
+    }
+  },
+  "DashboardPagination": {
+    "previous": "Previous",
+    "next": "Next",
+    "page": "Page {page} of {pageCount}",
+    "range": "{start}-{end} of {total}"
+  }
+}
+

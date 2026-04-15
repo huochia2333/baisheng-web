@@ -1,34 +1,38 @@
 import type { Metadata } from "next";
 
+import { getTranslations } from "next-intl/server";
+
 import { LoginForm } from "@/components/auth/login-form";
 import { AuthShell } from "@/components/auth/auth-shell";
-import { redirectAuthenticatedUserToWorkspace } from "@/lib/server-auth";
 
-export const metadata: Metadata = {
-  title: "登录",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("LoginPage");
+
+  return {
+    title: t("title"),
+  };
+}
 
 export default async function LoginPage({
   searchParams,
 }: {
   searchParams: Promise<{ passwordReset?: string; registered?: string }>;
 }) {
-  await redirectAuthenticatedUserToWorkspace();
-
   const params = await searchParams;
+  const t = await getTranslations("LoginPage");
 
   return (
     <AuthShell
       mode="login"
-      asideTitle="让每一次协作都有迹可循"
-      asideDescription="专为追求效率的合作伙伴打造。在这里，数据即沟通。"
-      noteTitle="今日灵感"
-      noteDescription="设计不只是视觉，更是一种思考和呼吸的方式。"
-      headerTitle="欢迎回来"
-      headerDescription="请输入您的凭据访问柏盛管理系统。"
-      footerPrompt="还没有账号？"
+      asideDescription={t("asideDescription")}
+      asideTitle={t("asideTitle")}
       footerLinkHref="/register"
-      footerLinkLabel="立即注册"
+      footerLinkLabel={t("footerLinkLabel")}
+      footerPrompt={t("footerPrompt")}
+      headerDescription={t("headerDescription")}
+      headerTitle={t("headerTitle")}
+      noteDescription={t("noteDescription")}
+      noteTitle={t("noteTitle")}
     >
       <LoginForm
         passwordReset={params.passwordReset === "1"}
@@ -36,8 +40,8 @@ export default async function LoginPage({
       />
 
       <div className="mt-8 rounded-[26px] border border-[#e7e5e0] bg-white/72 p-5 text-sm text-[#707981] shadow-[0_12px_32px_rgba(115,127,139,0.07)] sm:hidden">
-        <p className="mb-2 font-semibold text-[#33424d]">今日灵感</p>
-        <p className="leading-7">设计不只是视觉，更是一种思考和呼吸的方式。</p>
+        <p className="mb-2 font-semibold text-[#33424d]">{t("mobileNoteTitle")}</p>
+        <p className="leading-7">{t("mobileNoteDescription")}</p>
       </div>
     </AuthShell>
   );

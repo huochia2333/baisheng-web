@@ -193,7 +193,7 @@ export async function saveTeamProfile(
   const teamId = normalizeOptionalString(data);
 
   if (!teamId) {
-    throw new Error("团队资料保存后没有返回团队 ID。");
+    throw new Error("team profile save did not return team id");
   }
 
   return teamId;

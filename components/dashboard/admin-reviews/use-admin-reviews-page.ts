@@ -3,6 +3,7 @@
 import { useCallback, useMemo, useRef, useState } from "react";
 
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 
 import {
   approveMediaReview,
@@ -23,8 +24,11 @@ import {
 import { getBrowserSupabaseClient } from "@/lib/supabase";
 import { useSupabaseAuthSync } from "@/lib/use-supabase-auth-sync";
 import { useResumeRecovery } from "@/lib/use-resume-recovery";
-
-import { toErrorMessage, type NoticeTone } from "../dashboard-shared-ui";
+import {
+  createDashboardSharedCopy,
+  toErrorMessage,
+  type NoticeTone,
+} from "../dashboard-shared-ui";
 
 import type { BusyAction, ReviewTab } from "./types";
 
@@ -32,6 +36,9 @@ type PageFeedback = { tone: NoticeTone; message: string } | null;
 
 export function useAdminReviewsPage() {
   const router = useRouter();
+  const t = useTranslations("Reviews");
+  const sharedT = useTranslations("DashboardShared");
+  const sharedCopy = createDashboardSharedCopy(sharedT);
   const supabase = getBrowserSupabaseClient();
 
   const [activeTab, setActiveTab] = useState<ReviewTab>("privacy");
@@ -115,7 +122,7 @@ export function useAdminReviewsPage() {
 
         setPageFeedback({
           tone: "error",
-          message: toErrorMessage(error),
+          message: toErrorMessage(error, sharedCopy),
         });
       } finally {
         if (showLoading && isMounted()) {
@@ -123,7 +130,7 @@ export function useAdminReviewsPage() {
         }
       }
     },
-    [recoverCloudSync, router, supabase],
+    [recoverCloudSync, router, sharedCopy, supabase],
   );
 
   useSupabaseAuthSync(supabase, {
@@ -176,7 +183,8 @@ export function useAdminReviewsPage() {
       }
 
       const rowKey = `privacy:${row.request_id}`;
-      const actionLabel = action === "approve" ? "通过" : "拒绝";
+      const actionLabel =
+        action === "approve" ? t("actions.approve") : t("actions.reject");
 
       if (busyRows[rowKey]) {
         return;
@@ -184,7 +192,7 @@ export function useAdminReviewsPage() {
 
       if (
         typeof window !== "undefined" &&
-        !window.confirm(`确定要${actionLabel}这条个人隐私资料审核吗？`)
+        !window.confirm(t("confirm.privacy", { action: actionLabel }))
       ) {
         return;
       }
@@ -202,18 +210,21 @@ export function useAdminReviewsPage() {
         setPrivacyRows((current) => current.filter((item) => item.request_id !== row.request_id));
         setPageFeedback({
           tone: "success",
-          message: action === "approve" ? "个人隐私资料已审核通过。" : "个人隐私资料已拒绝。",
+          message:
+            action === "approve"
+              ? t("feedback.privacyApproved")
+              : t("feedback.privacyRejected"),
         });
       } catch (error) {
         setPageFeedback({
           tone: "error",
-          message: toErrorMessage(error),
+          message: toErrorMessage(error, sharedCopy),
         });
       } finally {
         setRowBusyState(rowKey, null);
       }
     },
-    [busyRows, setRowBusyState, supabase],
+    [busyRows, setRowBusyState, sharedCopy, supabase, t],
   );
 
   const handleMediaReview = useCallback(
@@ -223,7 +234,8 @@ export function useAdminReviewsPage() {
       }
 
       const rowKey = `media:${row.asset_id}`;
-      const actionLabel = action === "approve" ? "通过" : "拒绝";
+      const actionLabel =
+        action === "approve" ? t("actions.approve") : t("actions.reject");
 
       if (busyRows[rowKey]) {
         return;
@@ -231,7 +243,7 @@ export function useAdminReviewsPage() {
 
       if (
         typeof window !== "undefined" &&
-        !window.confirm(`确定要${actionLabel}这条个人媒体审核吗？`)
+        !window.confirm(t("confirm.media", { action: actionLabel }))
       ) {
         return;
       }
@@ -249,18 +261,21 @@ export function useAdminReviewsPage() {
         setMediaRows((current) => current.filter((item) => item.asset_id !== row.asset_id));
         setPageFeedback({
           tone: "success",
-          message: action === "approve" ? "个人媒体已审核通过。" : "个人媒体已拒绝。",
+          message:
+            action === "approve"
+              ? t("feedback.mediaApproved")
+              : t("feedback.mediaRejected"),
         });
       } catch (error) {
         setPageFeedback({
           tone: "error",
-          message: toErrorMessage(error),
+          message: toErrorMessage(error, sharedCopy),
         });
       } finally {
         setRowBusyState(rowKey, null);
       }
     },
-    [busyRows, setRowBusyState, supabase],
+    [busyRows, setRowBusyState, sharedCopy, supabase, t],
   );
 
   const closePreviewDialog = useCallback((open: boolean) => {
@@ -275,16 +290,16 @@ export function useAdminReviewsPage() {
     () => [
       {
         key: "privacy" as const,
-        label: "隐私审核",
+        label: t("tabs.privacy"),
         count: privacyRows.length,
       },
       {
         key: "media" as const,
-        label: "媒体审核",
+        label: t("tabs.media"),
         count: mediaRows.length,
       },
     ],
-    [mediaRows.length, privacyRows.length],
+    [mediaRows.length, privacyRows.length, t],
   );
 
   return {

@@ -1,6 +1,7 @@
 "use client";
 
 import { FileBadge2, ImageIcon, ShieldAlert } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 import { cn } from "@/lib/utils";
 
@@ -14,6 +15,7 @@ const reviewTabIconMap = {
 } as const;
 
 export function AdminReviewsClient() {
+  const t = useTranslations("Reviews");
   const {
     activeTab,
     busyRows,
@@ -46,9 +48,11 @@ export function AdminReviewsClient() {
         <div className="flex flex-col gap-6 xl:flex-row xl:items-end xl:justify-between">
           <div className="max-w-2xl">
             <span className="inline-flex rounded-full bg-[#e4edf3] px-3 py-1 text-xs font-semibold text-[#486782]">
-              审核工作台
+              {t("header.badge")}
             </span>
-            <h2 className="mt-4 text-4xl font-bold tracking-tight text-[#1f2a32]">审核中心</h2>
+            <h2 className="mt-4 text-4xl font-bold tracking-tight text-[#1f2a32]">
+              {t("header.title")}
+            </h2>
           </div>
 
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
@@ -56,13 +60,13 @@ export function AdminReviewsClient() {
               accent="blue"
               count={privacyRows.length}
               icon={<FileBadge2 className="size-5" />}
-              label="隐私待审核"
+              label={t("summary.privacy")}
             />
             <ReviewSummaryCard
               accent="green"
               count={mediaRows.length}
               icon={<ImageIcon className="size-5" />}
-              label="媒体待审核"
+              label={t("summary.media")}
             />
           </div>
         </div>
@@ -71,9 +75,9 @@ export function AdminReviewsClient() {
       {hasPermission === false ? (
         <section className="rounded-[28px] border border-white/85 bg-white/72 p-6 shadow-[0_18px_45px_rgba(96,113,128,0.06)] xl:p-8">
           <EmptyState
-            description="当前登录账号不是管理员，无法访问隐私审核和媒体审核列表。"
+            description={t("states.noPermissionDescription")}
             icon={<ShieldAlert className="size-6" />}
-            title="暂无审核权限"
+            title={t("states.noPermissionTitle")}
           />
         </section>
       ) : (

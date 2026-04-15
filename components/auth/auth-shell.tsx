@@ -1,9 +1,13 @@
+"use client";
+
 import type { ReactNode } from "react";
 
 import Image from "next/image";
 import Link from "next/link";
 import { GalleryVerticalEnd, ShieldCheck, Sparkles } from "lucide-react";
+import { useTranslations } from "next-intl";
 
+import { LanguageToggle } from "@/components/i18n/language-toggle";
 import { cn } from "@/lib/utils";
 
 type AuthShellProps = {
@@ -12,6 +16,7 @@ type AuthShellProps = {
   asideDescription: string;
   noteTitle: string;
   noteDescription: string;
+  headerEyebrow?: string;
   headerTitle: string;
   headerDescription?: string;
   footerPrompt: string;
@@ -26,6 +31,7 @@ export function AuthShell({
   asideDescription,
   noteTitle,
   noteDescription,
+  headerEyebrow,
   headerTitle,
   headerDescription,
   footerPrompt,
@@ -33,6 +39,7 @@ export function AuthShell({
   footerLinkLabel,
   children,
 }: AuthShellProps) {
+  const t = useTranslations("AuthShell");
   const isRegister = mode === "register";
 
   return (
@@ -44,9 +51,7 @@ export function AuthShell({
 
       <main className="relative flex min-h-screen items-center justify-center px-4 py-4 sm:px-6 sm:py-6 lg:px-10 lg:py-10">
         <div className="auth-card-surface grid w-full max-w-[1360px] overflow-hidden rounded-[34px] border border-white/75 shadow-[0_24px_80px_rgba(86,103,119,0.12)] lg:grid-cols-[minmax(0,0.92fr)_minmax(0,1.08fr)]">
-          <aside
-            className="relative hidden min-h-[820px] overflow-hidden bg-[#f4f3f1] px-12 py-10 text-[#1f2a32] lg:flex lg:flex-col lg:justify-between"
-          >
+          <aside className="relative hidden min-h-[820px] overflow-hidden bg-[#f4f3f1] px-12 py-10 text-[#1f2a32] lg:flex lg:flex-col lg:justify-between">
             <div className="absolute inset-0">
               <Image
                 alt=""
@@ -66,24 +71,26 @@ export function AuthShell({
 
             <div className="relative z-10">
               <div className="mb-16 flex items-center gap-3">
-                <div
-                  className="flex size-11 items-center justify-center rounded-2xl border border-white/70 bg-white/90 text-[#486782] shadow-sm"
-                >
+                <div className="flex size-11 items-center justify-center rounded-2xl border border-white/70 bg-white/90 text-[#486782] shadow-sm">
                   <GalleryVerticalEnd className="size-5" />
                 </div>
                 <div className="space-y-0.5">
-                  <p className="text-xl font-bold tracking-tight text-[#486782]">柏盛管理系统</p>
+                  <p className="text-xl font-bold tracking-tight text-[#486782]">
+                    {t("brandTitle")}
+                  </p>
                   <p className="font-label text-[11px] tracking-[0.2em] text-[#8e99a3] uppercase">
-                    Curated Admin Console
+                    {t("brandSubtitle")}
                   </p>
                 </div>
               </div>
 
               <div className="max-w-[360px] space-y-8">
-                <h1 className="max-w-[8ch] text-balance text-[56px] leading-[1.08] font-bold tracking-[-0.04em]">
+                <h1 className="max-w-[9ch] text-balance text-[56px] leading-[1.08] font-bold tracking-[-0.04em]">
                   {asideTitle}
                 </h1>
-                <p className="max-w-[330px] text-[16px] leading-8 text-[#66727d]">{asideDescription}</p>
+                <p className="max-w-[330px] text-[16px] leading-8 text-[#66727d]">
+                  {asideDescription}
+                </p>
               </div>
             </div>
 
@@ -97,7 +104,9 @@ export function AuthShell({
                       <Sparkles className="size-5" />
                     )}
                   </div>
-                  <p className="text-sm font-semibold tracking-[0.08em] text-[#33424d]">{noteTitle}</p>
+                  <p className="text-sm font-semibold tracking-[0.08em] text-[#33424d]">
+                    {noteTitle}
+                  </p>
                 </div>
                 <p className="text-sm leading-7 text-[#6f7980]">{noteDescription}</p>
               </div>
@@ -114,23 +123,29 @@ export function AuthShell({
 
           <section className="relative flex min-h-[760px] flex-col bg-[linear-gradient(180deg,rgba(255,255,255,0.62),rgba(250,249,247,0.94))]">
             <div className="mx-auto flex w-full max-w-[580px] flex-1 flex-col px-6 py-8 sm:px-10 lg:px-14 lg:py-16">
-              <div className="mb-12 flex items-center gap-3 lg:hidden">
-                <div className="flex size-11 items-center justify-center rounded-2xl bg-[#486782] text-white shadow-sm">
-                  <GalleryVerticalEnd className="size-5" />
+              <div className="mb-10 flex items-start justify-between gap-4">
+                <div className="flex items-center gap-3 lg:hidden">
+                  <div className="flex size-11 items-center justify-center rounded-2xl bg-[#486782] text-white shadow-sm">
+                    <GalleryVerticalEnd className="size-5" />
+                  </div>
+                  <div className="space-y-0.5">
+                    <p className="text-xl font-bold tracking-tight text-[#486782]">
+                      {t("brandTitle")}
+                    </p>
+                    <p className="font-label text-[11px] tracking-[0.2em] text-[#8e99a3] uppercase">
+                      {t("brandSubtitle")}
+                    </p>
+                  </div>
                 </div>
-                <div className="space-y-0.5">
-                  <p className="text-xl font-bold tracking-tight text-[#486782]">
-                    柏盛管理系统
-                  </p>
-                  <p className="font-label text-[11px] tracking-[0.2em] text-[#8e99a3] uppercase">
-                    Curated Admin Console
-                  </p>
+
+                <div className="ml-auto">
+                  <LanguageToggle />
                 </div>
               </div>
 
               <header className="mb-10 space-y-3">
                 <p className="font-label text-[11px] font-semibold tracking-[0.22em] text-[#5d7388] uppercase">
-                    安全登录入口
+                  {headerEyebrow ?? t("secureAccess")}
                 </p>
                 <h2 className="text-[40px] leading-[1.08] font-bold tracking-[-0.04em] text-[#21303a] sm:text-[46px]">
                   {headerTitle}
@@ -157,16 +172,16 @@ export function AuthShell({
               </div>
 
               <div className="mt-auto flex flex-col gap-4 pt-12 text-xs text-[#97a0a8] sm:flex-row sm:items-center sm:justify-between">
-                <p>© 2026 柏盛管理系统</p>
+                <p>{t("copyright")}</p>
                 <div className="flex items-center justify-center gap-5 sm:justify-end">
                   <a className="transition-colors hover:text-[#486782]" href="#">
-                    隐私政策
+                    {t("privacy")}
                   </a>
                   <a className="transition-colors hover:text-[#486782]" href="#">
-                    服务条款
+                    {t("terms")}
                   </a>
                   <a className="transition-colors hover:text-[#486782]" href="#">
-                    帮助中心
+                    {t("help")}
                   </a>
                 </div>
               </div>

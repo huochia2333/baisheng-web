@@ -6,10 +6,66 @@ import {
   type AppRole,
   type UserStatus,
 } from "./user-self-service";
+import {
+  getDashboardQueryRange,
+  MAX_DASHBOARD_QUERY_ROWS,
+} from "./dashboard-pagination";
 
 const ADMIN_TASK_SELECT =
   "id,task_name,task_intro,created_by_user_id,accepted_by_user_id,scope,team_id,status,created_at,accepted_at,completed_at";
 const TASK_ATTACHMENT_BUCKET = "task-attachments";
+export const ADMIN_TASK_ATTACHMENT_MAX_FILES = 10;
+export const ADMIN_TASK_ATTACHMENT_MAX_FILE_SIZE_BYTES = 20 * 1024 * 1024;
+export const ADMIN_TASK_ATTACHMENT_MAX_TOTAL_SIZE_BYTES = 100 * 1024 * 1024;
+const ADMIN_TASK_ATTACHMENT_ALLOWED_MIME_PREFIXES = [
+  "image/",
+  "video/",
+  "audio/",
+  "text/",
+];
+const ADMIN_TASK_ATTACHMENT_ALLOWED_MIME_TYPES = new Set([
+  "application/json",
+  "application/msword",
+  "application/pdf",
+  "application/vnd.ms-excel",
+  "application/vnd.ms-powerpoint",
+  "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  "application/vnd.rar",
+  "application/x-7z-compressed",
+  "application/x-rar-compressed",
+  "application/x-zip-compressed",
+  "application/zip",
+]);
+const ADMIN_TASK_ATTACHMENT_ALLOWED_EXTENSIONS = new Set([
+  "7z",
+  "avi",
+  "csv",
+  "doc",
+  "docx",
+  "gif",
+  "jpeg",
+  "jpg",
+  "json",
+  "m4a",
+  "mkv",
+  "mov",
+  "mp3",
+  "mp4",
+  "pdf",
+  "png",
+  "ppt",
+  "pptx",
+  "rar",
+  "txt",
+  "wav",
+  "webm",
+  "webp",
+  "xls",
+  "xlsx",
+  "zip",
+]);
 
 export type TaskScope = "public" | "team";
 export type TaskStatus = "to_be_accepted" | "accepted" | "completed";
@@ -135,12 +191,15 @@ export async function getCurrentTaskViewerContext(
 
 export async function getAdminTasks(
   supabase: SupabaseClient,
+  limit = MAX_DASHBOARD_QUERY_ROWS,
 ): Promise<AdminTaskRow[]> {
+  const { from, to } = getDashboardQueryRange(limit);
   const { data, error } = await withRequestTimeout(
     supabase
       .from("task_main")
       .select(ADMIN_TASK_SELECT)
       .order("created_at", { ascending: false })
+      .range(from, to)
       .returns<TaskMainRecord[]>(),
   );
 
@@ -281,6 +340,8 @@ export async function uploadAdminTaskAttachments(
     return [];
   }
 
+  validateAdminTaskAttachments(options.files);
+
   const uploadedObjects: Array<{
     bucket_name: string;
     task_attachment_storage_path: string;
@@ -367,14 +428,23 @@ export async function deleteAdminTask(
   supabase: SupabaseClient,
   task: Pick<AdminTaskRow, "id" | "attachments">,
 ) {
-  await removeStoredTaskAttachments(supabase, task.attachments);
-
   const { error } = await withRequestTimeout(
     supabase.from("task_main").delete().eq("id", task.id),
   );
 
   if (error) {
     throw error;
+  }
+
+  try {
+    await removeStoredTaskAttachments(supabase, task.attachments);
+    return {
+      attachmentCleanupFailed: false,
+    };
+  } catch {
+    return {
+      attachmentCleanupFailed: true,
+    };
   }
 }
 
@@ -503,6 +573,34 @@ async function removeStoredTaskAttachments(
   }
 }
 
+export function validateAdminTaskAttachments(files: File[]) {
+  if (files.length > ADMIN_TASK_ATTACHMENT_MAX_FILES) {
+    throw new Error("admin_task_attachments_count_exceeded");
+  }
+
+  let totalSizeBytes = 0;
+
+  for (const file of files) {
+    totalSizeBytes += file.size;
+
+    if (file.size <= 0) {
+      throw new Error("admin_task_attachment_empty");
+    }
+
+    if (file.size > ADMIN_TASK_ATTACHMENT_MAX_FILE_SIZE_BYTES) {
+      throw new Error("admin_task_attachment_too_large");
+    }
+
+    if (!isAllowedAdminTaskAttachment(file)) {
+      throw new Error("admin_task_attachment_type_not_allowed");
+    }
+  }
+
+  if (totalSizeBytes > ADMIN_TASK_ATTACHMENT_MAX_TOTAL_SIZE_BYTES) {
+    throw new Error("admin_task_attachments_total_too_large");
+  }
+}
+
 function buildTaskAttachmentStoragePath(
   uploadedByUserId: string,
   taskId: string,
@@ -523,6 +621,38 @@ function sanitizeFileName(fileName: string) {
     .trim()
     .replace(/[\\/:*?"<>|]+/g, "-")
     .replace(/\s+/g, "-");
+}
+
+function isAllowedAdminTaskAttachment(file: File) {
+  const normalizedType = file.type.trim().toLowerCase();
+
+  if (normalizedType) {
+    if (
+      ADMIN_TASK_ATTACHMENT_ALLOWED_MIME_PREFIXES.some((prefix) =>
+        normalizedType.startsWith(prefix),
+      )
+    ) {
+      return true;
+    }
+
+    if (ADMIN_TASK_ATTACHMENT_ALLOWED_MIME_TYPES.has(normalizedType)) {
+      return true;
+    }
+  }
+
+  const extension = getFileExtension(file.name);
+  return extension ? ADMIN_TASK_ATTACHMENT_ALLOWED_EXTENSIONS.has(extension) : false;
+}
+
+function getFileExtension(fileName: string) {
+  const normalizedName = fileName.trim().toLowerCase();
+  const extensionIndex = normalizedName.lastIndexOf(".");
+
+  if (extensionIndex < 0 || extensionIndex === normalizedName.length - 1) {
+    return null;
+  }
+
+  return normalizedName.slice(extensionIndex + 1);
 }
 
 function normalizeTaskMainRecord(value: unknown): AdminTaskMainRow | null {

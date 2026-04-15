@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 import { useEffect, useRef, useState } from "react";
 
 import { BadgeCheck, FileBadge2, ImageIcon, LoaderCircle, Play, Video, XCircle } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 import {
   type PendingMediaReviewWithPreview,
@@ -17,10 +18,12 @@ import { Button } from "../../ui/button";
 import type { BusyAction } from "./types";
 
 function ReviewLoadingState() {
+  const t = useTranslations("ReviewsUI");
+
   return (
     <div className="mx-auto flex min-h-[60vh] w-full max-w-[1320px] items-center justify-center">
       <div className="rounded-[28px] border border-white/85 bg-white/72 px-6 py-5 text-sm text-[#60707d] shadow-[0_18px_45px_rgba(96,113,128,0.06)]">
-        正在加载审核列表...
+        {t("loading")}
       </div>
     </div>
   );
@@ -75,12 +78,14 @@ function PrivacyReviewList({
   busyRows: Record<string, BusyAction>;
   onAction: (row: PendingPrivacyReviewRow, action: BusyAction) => Promise<void>;
 }) {
+  const t = useTranslations("ReviewsUI");
+
   if (rows.length === 0) {
     return (
       <EmptyState
-        description="当前没有待审核的身份证或护照资料，新的提交内容到达后会出现在这里。"
+        description={t("privacy.emptyDescription")}
         icon={<FileBadge2 className="size-6" />}
-        title="隐私审核队列为空"
+        title={t("privacy.emptyTitle")}
       />
     );
   }
@@ -88,34 +93,34 @@ function PrivacyReviewList({
   return (
     <div className="overflow-hidden rounded-[24px] border border-[#ebe7e1] bg-white shadow-[0_10px_24px_rgba(96,113,128,0.06)]">
       <div className="hidden grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_220px] gap-5 border-b border-[#efebe5] bg-[#f7f5f2] px-6 py-4 lg:grid">
-        <ReviewHeaderCell>用户名</ReviewHeaderCell>
-        <ReviewHeaderCell>邮箱</ReviewHeaderCell>
-        <ReviewHeaderCell>身份证号</ReviewHeaderCell>
-        <ReviewHeaderCell>护照号</ReviewHeaderCell>
-        <ReviewHeaderCell className="text-right">操作</ReviewHeaderCell>
+        <ReviewHeaderCell>{t("privacy.columns.name")}</ReviewHeaderCell>
+        <ReviewHeaderCell>{t("privacy.columns.email")}</ReviewHeaderCell>
+        <ReviewHeaderCell>{t("privacy.columns.idCard")}</ReviewHeaderCell>
+        <ReviewHeaderCell>{t("privacy.columns.passport")}</ReviewHeaderCell>
+        <ReviewHeaderCell className="text-right">{t("privacy.columns.actions")}</ReviewHeaderCell>
       </div>
 
       <div className="divide-y divide-[#efebe5]">
         {rows.map((row) => {
           const rowKey = `privacy:${row.request_id}`;
           const busyAction = busyRows[rowKey];
-          const displayName = getDisplayName(row.name, row.email);
-          const displayEmail = getDisplayEmail(row.email);
+          const displayName = getDisplayName(row.name, row.email, t("fallback.unnamedUser"));
+          const displayEmail = getDisplayEmail(row.email, t("fallback.notProvided"));
 
           return (
             <article
               key={row.request_id}
               className="grid gap-4 px-4 py-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_220px] lg:items-center lg:px-6"
             >
-              <ReviewValueCell label="用户名" value={displayName} />
-              <ReviewValueCell label="邮箱" value={displayEmail} />
+              <ReviewValueCell label={t("privacy.columns.name")} value={displayName} />
+              <ReviewValueCell label={t("privacy.columns.email")} value={displayEmail} />
               <ReviewValueCell
-                label="身份证号"
+                label={t("privacy.columns.idCard")}
                 mono
                 value={normalizeOptionalString(row.id_card_requests) ?? "-"}
               />
               <ReviewValueCell
-                label="护照号"
+                label={t("privacy.columns.passport")}
                 mono
                 value={normalizeOptionalString(row.passport_requests) ?? "-"}
               />
@@ -149,12 +154,14 @@ function MediaReviewList({
     action: BusyAction,
   ) => Promise<void>;
 }) {
+  const t = useTranslations("ReviewsUI");
+
   if (rows.length === 0) {
     return (
       <EmptyState
-        description="当前没有待审核的个人照片或视频，新的媒体提交后会出现在这里。"
+        description={t("media.emptyDescription")}
         icon={<ImageIcon className="size-6" />}
-        title="媒体审核队列为空"
+        title={t("media.emptyTitle")}
       />
     );
   }
@@ -162,18 +169,18 @@ function MediaReviewList({
   return (
     <div className="overflow-hidden rounded-[24px] border border-[#ebe7e1] bg-white shadow-[0_10px_24px_rgba(96,113,128,0.06)]">
       <div className="hidden grid-cols-[132px_minmax(0,1fr)_minmax(0,1fr)_220px] gap-5 border-b border-[#efebe5] bg-[#f7f5f2] px-6 py-4 lg:grid">
-        <ReviewHeaderCell>媒体缩略图</ReviewHeaderCell>
-        <ReviewHeaderCell>用户名</ReviewHeaderCell>
-        <ReviewHeaderCell>邮箱</ReviewHeaderCell>
-        <ReviewHeaderCell className="text-right">操作</ReviewHeaderCell>
+        <ReviewHeaderCell>{t("media.columns.preview")}</ReviewHeaderCell>
+        <ReviewHeaderCell>{t("media.columns.name")}</ReviewHeaderCell>
+        <ReviewHeaderCell>{t("media.columns.email")}</ReviewHeaderCell>
+        <ReviewHeaderCell className="text-right">{t("media.columns.actions")}</ReviewHeaderCell>
       </div>
 
       <div className="divide-y divide-[#efebe5]">
         {rows.map((row) => {
           const rowKey = `media:${row.asset_id}`;
           const busyAction = busyRows[rowKey];
-          const displayName = getDisplayName(row.name, row.email);
-          const displayEmail = getDisplayEmail(row.email);
+          const displayName = getDisplayName(row.name, row.email, t("fallback.unnamedUser"));
+          const displayEmail = getDisplayEmail(row.email, t("fallback.notProvided"));
 
           return (
             <article
@@ -182,7 +189,7 @@ function MediaReviewList({
             >
               <div>
                 <p className="mb-2 font-label text-[11px] font-semibold tracking-[0.18em] text-[#7d8890] uppercase lg:hidden">
-                  媒体缩略图
+                  {t("media.columns.preview")}
                 </p>
                 <button
                   className={cn(
@@ -210,8 +217,8 @@ function MediaReviewList({
                 </button>
               </div>
 
-              <ReviewValueCell label="用户名" value={displayName} />
-              <ReviewValueCell label="邮箱" value={displayEmail} />
+              <ReviewValueCell label={t("media.columns.name")} value={displayName} />
+              <ReviewValueCell label={t("media.columns.email")} value={displayEmail} />
 
               <div className="lg:justify-self-end">
                 <ReviewActionGroup
@@ -235,6 +242,7 @@ function MediaPreviewDialog({
   asset: PendingMediaReviewWithPreview | null;
   onOpenChange: (open: boolean) => void;
 }) {
+  const t = useTranslations("ReviewsUI");
   const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
@@ -257,10 +265,14 @@ function MediaPreviewDialog({
 
   return (
     <DashboardDialog
-      description={asset ? `${getDisplayName(asset.name, asset.email)} · ${getDisplayEmail(asset.email)}` : undefined}
+      description={
+        asset
+          ? `${getDisplayName(asset.name, asset.email, t("fallback.unnamedUser"))} · ${getDisplayEmail(asset.email, t("fallback.notProvided"))}`
+          : undefined
+      }
       onOpenChange={onOpenChange}
       open={asset !== null}
-      title={asset?.original_name ?? "媒体预览"}
+      title={asset?.original_name ?? t("media.previewTitle")}
     >
       {asset ? (
         <div className="space-y-4">
@@ -288,7 +300,7 @@ function MediaPreviewDialog({
               <div className="flex min-h-[360px] items-center justify-center bg-[linear-gradient(135deg,#edf2f5_0%,#dfe8ee_100%)]">
                 <MediaPreviewFallback
                   kind={asset.kind}
-                  label={asset.kind === "video" ? "视频" : "图片"}
+                  label={asset.kind === "video" ? t("media.video") : t("media.image")}
                 />
               </div>
             )}
@@ -296,7 +308,7 @@ function MediaPreviewDialog({
 
           <div className="flex flex-wrap items-center gap-3 text-sm text-[#66727d]">
             <span className="inline-flex items-center rounded-full bg-[#eef3f6] px-3 py-1 font-medium text-[#486782]">
-              {asset.kind === "video" ? "视频预览" : "图片预览"}
+              {asset.kind === "video" ? t("media.videoPreview") : t("media.imagePreview")}
             </span>
             <span className="truncate">{asset.original_name}</span>
           </div>
@@ -361,6 +373,8 @@ function ReviewActionGroup({
   onApprove: () => void;
   onReject: () => void;
 }) {
+  const t = useTranslations("ReviewsUI");
+
   return (
     <div className="flex flex-col gap-3 sm:flex-row lg:justify-end">
       <Button
@@ -373,7 +387,7 @@ function ReviewActionGroup({
         ) : (
           <BadgeCheck className="size-4" />
         )}
-        通过
+        {t("actions.approve")}
       </Button>
       <Button
         className="h-10 rounded-full border-[#efd6d6] bg-white px-4 text-[#b13d3d] hover:bg-[#fff4f4]"
@@ -386,15 +400,16 @@ function ReviewActionGroup({
         ) : (
           <XCircle className="size-4" />
         )}
-        拒绝
+        {t("actions.reject")}
       </Button>
     </div>
   );
 }
 
 function MediaPreview({ asset }: { asset: PendingMediaReviewWithPreview }) {
+  const t = useTranslations("ReviewsUI");
   const [previewFailed, setPreviewFailed] = useState(false);
-  const kindLabel = asset.kind === "video" ? "视频" : "图片";
+  const kindLabel = asset.kind === "video" ? t("media.video") : t("media.image");
 
   if (!asset.previewUrl || previewFailed) {
     return <MediaPreviewFallback kind={asset.kind} label={kindLabel} />;
@@ -438,6 +453,7 @@ function MediaPreviewFallback({
   kind: PendingMediaReviewWithPreview["kind"];
   label: string;
 }) {
+  const t = useTranslations("ReviewsUI");
   const Icon = kind === "video" ? Video : ImageIcon;
 
   return (
@@ -446,7 +462,7 @@ function MediaPreviewFallback({
         <div className="flex h-11 w-11 items-center justify-center rounded-full bg-white/88 shadow-[0_8px_18px_rgba(96,113,128,0.12)]">
           <Icon className="size-5" />
         </div>
-        <span className="text-xs font-medium text-[#5f717f]">无法预览</span>
+        <span className="text-xs font-medium text-[#5f717f]">{t("media.previewUnavailable")}</span>
       </div>
       <MediaPreviewBadge>{label}</MediaPreviewBadge>
     </div>
@@ -461,7 +477,7 @@ function MediaPreviewBadge({ children }: { children: ReactNode }) {
   );
 }
 
-function getDisplayName(name: string | null, email: string | null) {
+function getDisplayName(name: string | null, email: string | null, fallbackLabel: string) {
   const normalizedName = normalizeOptionalString(name);
 
   if (normalizedName) {
@@ -479,11 +495,11 @@ function getDisplayName(name: string | null, email: string | null) {
     }
   }
 
-  return "未命名用户";
+  return fallbackLabel;
 }
 
-function getDisplayEmail(email: string | null) {
-  return normalizeOptionalString(email) ?? "待补充";
+function getDisplayEmail(email: string | null, fallbackLabel: string) {
+  return normalizeOptionalString(email) ?? fallbackLabel;
 }
 
 export {

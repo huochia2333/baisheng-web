@@ -3,21 +3,14 @@ import { NextResponse, type NextRequest } from "next/server";
 
 import { getAuthClaimsUserId, getAppRoleFromClaims } from "./auth-claims";
 import {
+  canAccessWorkspaceBasePath,
   getDefaultSignedInPathForRole,
   getDefaultWorkspaceBasePath,
+  getWorkspaceBasePath,
 } from "./auth-routing";
 import { getSupabaseEnv } from "./supabase";
 
-const AUTH_ENTRY_PATHS = new Set(["/login", "/register"]);
-const WORKSPACE_BASE_PATHS = [
-  "/admin",
-  "/manager",
-  "/recruiter",
-  "/operator",
-  "/finance",
-  "/client",
-  "/salesman",
-];
+const AUTH_ENTRY_PATHS = new Set(["/", "/login", "/register"]);
 
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({
@@ -65,7 +58,7 @@ export async function updateSession(request: NextRequest) {
 
     const desiredBasePath = getDefaultWorkspaceBasePath(role);
 
-    if (desiredBasePath !== currentBasePath) {
+    if (!canAccessWorkspaceBasePath(role, currentBasePath)) {
       const suffix = pathname.slice(currentBasePath.length) || "/my";
 
       return createRedirectResponse(
@@ -88,16 +81,6 @@ export async function updateSession(request: NextRequest) {
   }
 
   return supabaseResponse;
-}
-
-function getWorkspaceBasePath(pathname: string) {
-  for (const basePath of WORKSPACE_BASE_PATHS) {
-    if (pathname === basePath || pathname.startsWith(`${basePath}/`)) {
-      return basePath;
-    }
-  }
-
-  return null;
 }
 
 function createRedirectResponse(

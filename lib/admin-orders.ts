@@ -6,6 +6,10 @@ import {
   type AppRole,
   type UserStatus,
 } from "./user-self-service";
+import {
+  getDashboardQueryRange,
+  MAX_DASHBOARD_QUERY_ROWS,
+} from "./dashboard-pagination";
 
 const ADMIN_ORDER_SELECT =
   "id,order_number,original_currency,amount,daily_exchange_rate,transaction_rate,rmb_amount,order_entry_user,ordering_user,order_status,order_type,created_at,reviewed_at,deleted_at";
@@ -177,13 +181,16 @@ export async function getCurrentOrderViewerContext(
 
 export async function getAdminOrders(
   supabase: SupabaseClient,
+  limit = MAX_DASHBOARD_QUERY_ROWS,
 ): Promise<AdminOrderRow[]> {
+  const { from, to } = getDashboardQueryRange(limit);
   const { data, error } = await withRequestTimeout(
     supabase
       .from("order_overview")
       .select(ADMIN_ORDER_SELECT)
       .is("deleted_at", null)
       .order("created_at", { ascending: false })
+      .range(from, to)
       .returns<AdminOrderRow[]>(),
   );
 
@@ -199,11 +206,17 @@ export async function getAdminOrders(
 
 export async function getAdminOrderCosts(
   supabase: SupabaseClient,
+  orderOverviewIds: string[],
 ): Promise<AdminOrderCostRow[]> {
+  if (orderOverviewIds.length === 0) {
+    return [];
+  }
+
   const { data, error } = await withRequestTimeout(
     supabase
       .from("order_internal_cost")
       .select("order_overview_id,cost_amount")
+      .in("order_overview_id", orderOverviewIds)
       .returns<AdminOrderCostRow[]>(),
   );
 

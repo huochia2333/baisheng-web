@@ -3,7 +3,8 @@
 import { useCallback, useMemo, useRef, useState } from "react";
 
 import { useRouter } from "next/navigation";
-import { BadgeDollarSign, ClipboardList, Plus, ReceiptText, ShieldAlert } from "lucide-react";
+import { useTranslations } from "next-intl";
+import { ReceiptText, ShieldAlert } from "lucide-react";
 
 import {
   createAdminOrder,
@@ -27,34 +28,32 @@ import {
   type ServiceOrderTypeOption,
 } from "@/lib/admin-orders";
 import {
-  markBrowserCloudSyncActivity,
-  resetBrowserCloudSyncState,
   shouldRecoverBrowserCloudSyncState,
 } from "@/lib/browser-sync-recovery";
 import { getBrowserSupabaseClient } from "@/lib/supabase";
+import { useBrowserCloudSyncRecovery } from "@/lib/use-browser-cloud-sync-recovery";
 import type { AppRole, UserStatus } from "@/lib/user-self-service";
 import { useSupabaseAuthSync } from "@/lib/use-supabase-auth-sync";
 import { useResumeRecovery } from "@/lib/use-resume-recovery";
+import { useDashboardPagination } from "@/lib/use-dashboard-pagination";
 
 import {
+  createDashboardSharedCopy,
   EmptyState,
-  formatDateTime,
+  normalizeSearchText,
   PageBanner,
   normalizeOptionalString,
   type NoticeTone,
 } from "./dashboard-shared-ui";
 import {
-  FilterField,
   OrderDetailsDialog,
   OrderFormDialog,
-  OrderHeaderCell,
   OrdersLoadingState,
-  OrderStatusChip,
-  OrderSummaryCard,
-  OrderTypeChip,
-  OrderValueCell,
-  filterInputClassName,
 } from "./admin-orders/admin-orders-ui";
+import {
+  OrdersHeaderSection,
+  OrdersTableSection,
+} from "./admin-orders/admin-orders-sections";
 import {
   applyOrderFormDefaults,
   canCreateOrderByRole,
@@ -62,25 +61,28 @@ import {
   canReadOrderByRole,
   canReadOrderCostByRole,
   canUpdateOrderByRole,
+  createOrdersUiCopy,
   createOrderFormState,
   createOrderFormStateFromOrder,
   deriveTransactionRateValue,
-  formatMoneyValue,
   getOrderTypeMetaFromCategory,
   getOrderUserOptionLabel,
   getServiceSubtypeCostPreset,
-  normalizeSearchText,
   parseCreateOrderForm,
-  resolveOrderTypeMeta,
   resolveOrderUserLabel,
   toOrderErrorMessage,
   type OrderFormState,
 } from "./admin-orders/admin-orders-utils";
-import { Button } from "../ui/button";
 
 type PageFeedback = { tone: NoticeTone; message: string } | null;
 
 type OrdersClientMode = "admin" | "salesman" | "client";
+
+const EMPTY_ORDER_FILTERS = {
+  orderEntryUser: "",
+  orderNumber: "",
+  orderingUser: "",
+};
 
 type OrdersViewConfig = {
   badge: string;
@@ -106,15 +108,70 @@ type OrdersViewConfig = {
   limitOrderingUsersToClients: boolean;
 };
 
-const ORDERS_VIEW_CONFIG: Record<OrdersClientMode, OrdersViewConfig> = {
-  admin: {
-    badge: "订单工作台",
-    title: "订单中心",
-    description: "列表会优先展示关键订单信息，点击任意订单即可查看完整细节。",
-    createTitle: "创建订单",
-    createDescription: "填写订单基础信息后，系统会立即将新订单写入订单列表。",
-    emptyDescription: "当前还没有订单记录，新的订单录入后会出现在这里。",
-    noPermissionDescription: "当前登录账号暂时没有订单中心查看权限。",
+function getOrdersViewConfig(
+  mode: OrdersClientMode,
+  t: ReturnType<typeof useTranslations>,
+): OrdersViewConfig {
+  if (mode === "salesman") {
+    return {
+      badge: t("modes.salesman.badge"),
+      title: t("modes.salesman.title"),
+      description: t("modes.salesman.description"),
+      createTitle: t("modes.salesman.createTitle"),
+      createDescription: t("modes.salesman.createDescription"),
+      emptyDescription: t("modes.salesman.emptyDescription"),
+      noPermissionDescription: t("modes.salesman.noPermissionDescription"),
+      noCreateTargetHint: t("modes.salesman.noCreateTargetHint"),
+      allowCreate: true,
+      allowEdit: false,
+      allowDelete: false,
+      allowCost: false,
+      showOrderEntryFilter: false,
+      showOrderingFilter: true,
+      showOrderEntryColumn: false,
+      showOrderingColumn: true,
+      showCreatedAtColumn: true,
+      showOrderEntryDetail: false,
+      showOrderingDetail: true,
+      lockOrderEntryToCurrentViewer: true,
+      limitOrderingUsersToClients: true,
+    };
+  }
+
+  if (mode === "client") {
+    return {
+      badge: t("modes.client.badge"),
+      title: t("modes.client.title"),
+      description: t("modes.client.description"),
+      createTitle: t("modes.client.createTitle"),
+      createDescription: "",
+      emptyDescription: t("modes.client.emptyDescription"),
+      noPermissionDescription: t("modes.client.noPermissionDescription"),
+      noCreateTargetHint: null,
+      allowCreate: false,
+      allowEdit: false,
+      allowDelete: false,
+      allowCost: false,
+      showOrderEntryFilter: false,
+      showOrderingFilter: false,
+      showOrderEntryColumn: false,
+      showOrderingColumn: false,
+      showCreatedAtColumn: true,
+      showOrderEntryDetail: false,
+      showOrderingDetail: false,
+      lockOrderEntryToCurrentViewer: false,
+      limitOrderingUsersToClients: false,
+    };
+  }
+
+  return {
+    badge: t("modes.admin.badge"),
+    title: t("modes.admin.title"),
+    description: t("modes.admin.description"),
+    createTitle: t("modes.admin.createTitle"),
+    createDescription: t("modes.admin.createDescription"),
+    emptyDescription: t("modes.admin.emptyDescription"),
+    noPermissionDescription: t("modes.admin.noPermissionDescription"),
     noCreateTargetHint: null,
     allowCreate: true,
     allowEdit: true,
@@ -129,54 +186,33 @@ const ORDERS_VIEW_CONFIG: Record<OrdersClientMode, OrdersViewConfig> = {
     showOrderingDetail: true,
     lockOrderEntryToCurrentViewer: false,
     limitOrderingUsersToClients: false,
-  },
-  salesman: {
-    badge: "业务员订单",
-    title: "客户订单",
-    description: "这里只展示你和关联客户的订单，你可以直接为自己名下的客户创建新订单。",
-    createTitle: "创建客户订单",
-    createDescription: "当前页面只允许为你已关联的客户创建订单，创建后会立即出现在列表中。",
-    emptyDescription: "你和关联客户的订单会展示在这里，当前还没有可查看的订单。",
-    noPermissionDescription: "当前登录账号暂时没有业务员订单查看权限。",
-    noCreateTargetHint: "你当前还没有可创建订单的关联客户。",
-    allowCreate: true,
-    allowEdit: false,
-    allowDelete: false,
-    allowCost: false,
-    showOrderEntryFilter: false,
-    showOrderingFilter: true,
-    showOrderEntryColumn: false,
-    showOrderingColumn: true,
-    showCreatedAtColumn: true,
-    showOrderEntryDetail: false,
-    showOrderingDetail: true,
-    lockOrderEntryToCurrentViewer: true,
-    limitOrderingUsersToClients: true,
-  },
-  client: {
-    badge: "客户订单",
-    title: "我的订单",
-    description: "这里会展示与你本人相关的订单记录，你可以随时打开查看完整订单详情。",
-    createTitle: "创建订单",
-    createDescription: "",
-    emptyDescription: "你当前还没有订单记录，后续生成的新订单会自动展示在这里。",
-    noPermissionDescription: "当前登录账号暂时没有客户订单查看权限。",
-    noCreateTargetHint: null,
-    allowCreate: false,
-    allowEdit: false,
-    allowDelete: false,
-    allowCost: false,
-    showOrderEntryFilter: false,
-    showOrderingFilter: false,
-    showOrderEntryColumn: false,
-    showOrderingColumn: false,
-    showCreatedAtColumn: true,
-    showOrderEntryDetail: false,
-    showOrderingDetail: false,
-    lockOrderEntryToCurrentViewer: false,
-    limitOrderingUsersToClients: false,
-  },
-};
+  };
+}
+
+function getNextOrderFormState<Key extends keyof OrderFormState>(
+  current: OrderFormState,
+  key: Key,
+  value: OrderFormState[Key],
+) {
+  const nextState = {
+    ...current,
+    [key]: value,
+  };
+
+  if (key === "dailyExchangeRate") {
+    nextState.transactionRate = deriveTransactionRateValue(String(value));
+  }
+
+  if (key === "serviceSubtype") {
+    const presetCost = getServiceSubtypeCostPreset(String(value));
+
+    if (presetCost !== null) {
+      nextState.costAmount = presetCost;
+    }
+  }
+
+  return nextState;
+}
 
 export function AdminOrdersClient({
   mode = "admin",
@@ -184,11 +220,16 @@ export function AdminOrdersClient({
   mode?: OrdersClientMode;
 }) {
   const router = useRouter();
+  const t = useTranslations("Orders");
+  const ordersUiT = useTranslations("OrdersUI");
+  const sharedT = useTranslations("DashboardShared");
   const supabase = getBrowserSupabaseClient();
-  const viewConfig = ORDERS_VIEW_CONFIG[mode];
+  const viewConfig = getOrdersViewConfig(mode, t);
+  const ordersUiCopy = useMemo(() => createOrdersUiCopy(ordersUiT), [ordersUiT]);
+  const sharedCopy = useMemo(() => createDashboardSharedCopy(sharedT), [sharedT]);
 
   const [loading, setLoading] = useState(true);
-  const [syncGeneration, setSyncGeneration] = useState(0);
+  const { recoverCloudSync, syncGeneration } = useBrowserCloudSyncRecovery();
   const [canViewOrders, setCanViewOrders] = useState<boolean | null>(null);
   const [pageFeedback, setPageFeedback] = useState<PageFeedback>(null);
   const [orders, setOrders] = useState<AdminOrderRow[]>([]);
@@ -200,11 +241,7 @@ export function AdminOrdersClient({
   const [currentViewerId, setCurrentViewerId] = useState<string | null>(null);
   const [currentViewerRole, setCurrentViewerRole] = useState<AppRole | null>(null);
   const [currentViewerStatus, setCurrentViewerStatus] = useState<UserStatus | null>(null);
-  const [filters, setFilters] = useState({
-    orderEntryUser: "",
-    orderNumber: "",
-    orderingUser: "",
-  });
+  const [filters, setFilters] = useState(EMPTY_ORDER_FILTERS);
 
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [createPending, setCreatePending] = useState(false);
@@ -227,12 +264,6 @@ export function AdminOrdersClient({
   const editSupplementaryLoadTokenRef = useRef(0);
 
   loadingStateRef.current = loading;
-
-  const recoverCloudSync = useCallback(() => {
-    resetBrowserCloudSyncState();
-    markBrowserCloudSyncActivity();
-    setSyncGeneration((current) => current + 1);
-  }, []);
 
   const loadOrders = useCallback(
     async ({
@@ -293,7 +324,6 @@ export function AdminOrdersClient({
           nextPurchaseTypeOptions,
           nextServiceTypeOptions,
           nextDiscountOptions,
-          nextOrderCosts,
         ] = await Promise.all([
           getAdminOrders(supabase),
           getOrderUserOptions(supabase),
@@ -301,8 +331,14 @@ export function AdminOrdersClient({
           getPurchaseOrderTypeOptions(supabase),
           getServiceOrderTypeOptions(supabase),
           getOrderDiscountTypeOptions(supabase),
-          nextCanViewOrderCosts ? getAdminOrderCosts(supabase) : Promise.resolve([]),
         ]);
+        const nextOrderCosts =
+          nextCanViewOrderCosts && nextOrders.length > 0
+            ? await getAdminOrderCosts(
+                supabase,
+                nextOrders.map((order) => order.id),
+              )
+            : [];
 
         if (!isMounted()) {
           return;
@@ -332,7 +368,7 @@ export function AdminOrdersClient({
 
         setPageFeedback({
           tone: "error",
-          message: toOrderErrorMessage(error),
+          message: toOrderErrorMessage(error, ordersUiCopy, sharedCopy),
         });
       } finally {
         if (showLoading && isMounted()) {
@@ -340,7 +376,7 @@ export function AdminOrdersClient({
         }
       }
     },
-    [recoverCloudSync, router, supabase, viewConfig.allowCost],
+    [ordersUiCopy, recoverCloudSync, router, sharedCopy, supabase, viewConfig.allowCost],
   );
 
   useSupabaseAuthSync(supabase, {
@@ -416,9 +452,12 @@ export function AdminOrdersClient({
 
   const orderTypeMetaById = useMemo(() => {
     return new Map(
-      typeOptions.map((option) => [option.id, getOrderTypeMetaFromCategory(option.category)]),
+      typeOptions.map((option) => [
+        option.id,
+        getOrderTypeMetaFromCategory(option.category, ordersUiCopy),
+      ]),
     );
-  }, [typeOptions]);
+  }, [ordersUiCopy, typeOptions]);
 
   const orderCategoryByTypeId = useMemo(() => {
     return new Map(
@@ -443,12 +482,33 @@ export function AdminOrdersClient({
       );
     });
   }, [filters.orderEntryUser, filters.orderNumber, filters.orderingUser, orders, userLabelById]);
+  const ordersPagination = useDashboardPagination(filteredOrders);
+  const ordersPaginationState = useMemo(
+    () => ({
+      endIndex: ordersPagination.endIndex,
+      hasNextPage: ordersPagination.hasNextPage,
+      hasPreviousPage: ordersPagination.hasPreviousPage,
+      onNextPage: ordersPagination.goToNextPage,
+      onPreviousPage: ordersPagination.goToPreviousPage,
+      page: ordersPagination.page,
+      pageCount: ordersPagination.pageCount,
+      startIndex: ordersPagination.startIndex,
+      totalItems: ordersPagination.totalItems,
+    }),
+    [
+      ordersPagination.endIndex,
+      ordersPagination.goToNextPage,
+      ordersPagination.goToPreviousPage,
+      ordersPagination.hasNextPage,
+      ordersPagination.hasPreviousPage,
+      ordersPagination.page,
+      ordersPagination.pageCount,
+      ordersPagination.startIndex,
+      ordersPagination.totalItems,
+    ],
+  );
 
-  if (!supabase || loading) {
-    return <OrdersLoadingState />;
-  }
-
-  const openCreateDialog = () => {
+  const openCreateDialog = useCallback(() => {
     if (!canOpenCreateDialog) {
       return;
     }
@@ -462,111 +522,76 @@ export function AdminOrdersClient({
       }),
     );
     setCreateDialogOpen(true);
-  };
+  }, [canOpenCreateDialog, currentViewerId, typeOptions]);
 
-  const openEditDialog = (order: AdminOrderRow) => {
-    setPageFeedback(null);
-    setSelectedOrder(null);
-    setEditDialogFeedback(null);
-    setEditOriginalOrderNumber(order.order_number);
-    setEditFormState(createOrderFormStateFromOrder(order));
-    setEditDialogOpen(true);
+  const openEditDialog = useCallback(
+    (order: AdminOrderRow) => {
+      setPageFeedback(null);
+      setSelectedOrder(null);
+      setEditDialogFeedback(null);
+      setEditOriginalOrderNumber(order.order_number);
+      setEditFormState(createOrderFormStateFromOrder(order));
+      setEditDialogOpen(true);
 
-    if (!supabase) {
-      return;
-    }
+      if (!supabase) {
+        return;
+      }
 
-    const loadToken = editSupplementaryLoadTokenRef.current + 1;
-    editSupplementaryLoadTokenRef.current = loadToken;
-    setEditSupplementaryLoading(true);
+      const loadToken = editSupplementaryLoadTokenRef.current + 1;
+      editSupplementaryLoadTokenRef.current = loadToken;
+      setEditSupplementaryLoading(true);
 
-    void getAdminOrderSupplementaryDetail(supabase, order.order_number)
-      .then((detail) => {
-        if (editSupplementaryLoadTokenRef.current !== loadToken) {
-          return;
-        }
+      void getAdminOrderSupplementaryDetail(supabase, order.order_number)
+        .then((detail) => {
+          if (editSupplementaryLoadTokenRef.current !== loadToken) {
+            return;
+          }
 
-        setEditFormState(createOrderFormStateFromOrder(order, detail));
-      })
-      .catch((error) => {
-        if (editSupplementaryLoadTokenRef.current !== loadToken) {
-          return;
-        }
+          setEditFormState(createOrderFormStateFromOrder(order, detail));
+        })
+        .catch((error) => {
+          if (editSupplementaryLoadTokenRef.current !== loadToken) {
+            return;
+          }
 
-        setEditDialogFeedback({
-          tone: "error",
-          message: toOrderErrorMessage(error),
+          setEditDialogFeedback({
+            tone: "error",
+            message: toOrderErrorMessage(error, ordersUiCopy, sharedCopy),
+          });
+        })
+        .finally(() => {
+          if (editSupplementaryLoadTokenRef.current !== loadToken) {
+            return;
+          }
+
+          setEditSupplementaryLoading(false);
         });
-      })
-      .finally(() => {
-        if (editSupplementaryLoadTokenRef.current !== loadToken) {
-          return;
-        }
+    },
+    [ordersUiCopy, sharedCopy, supabase],
+  );
 
-        setEditSupplementaryLoading(false);
-      });
-  };
+  const updateCreateFormField = useCallback(
+    <Key extends keyof OrderFormState>(key: Key, value: OrderFormState[Key]) => {
+      setCreateDialogFeedback(null);
+      setCreateFormState((current) => getNextOrderFormState(current, key, value));
+    },
+    [],
+  );
 
-  const updateCreateFormField = <Key extends keyof OrderFormState>(
-    key: Key,
-    value: OrderFormState[Key],
-  ) => {
-    setCreateDialogFeedback(null);
-    setCreateFormState((current) => {
-      const nextState = {
-        ...current,
-        [key]: value,
-      };
+  const updateEditFormField = useCallback(
+    <Key extends keyof OrderFormState>(key: Key, value: OrderFormState[Key]) => {
+      setEditDialogFeedback(null);
+      setEditFormState((current) => getNextOrderFormState(current, key, value));
+    },
+    [],
+  );
 
-      if (key === "dailyExchangeRate") {
-        nextState.transactionRate = deriveTransactionRateValue(String(value));
-      }
-
-      if (key === "serviceSubtype") {
-        const presetCost = getServiceSubtypeCostPreset(String(value));
-
-        if (presetCost !== null) {
-          nextState.costAmount = presetCost;
-        }
-      }
-
-      return nextState;
-    });
-  };
-
-  const updateEditFormField = <Key extends keyof OrderFormState>(
-    key: Key,
-    value: OrderFormState[Key],
-  ) => {
-    setEditDialogFeedback(null);
-    setEditFormState((current) => {
-      const nextState = {
-        ...current,
-        [key]: value,
-      };
-
-      if (key === "dailyExchangeRate") {
-        nextState.transactionRate = deriveTransactionRateValue(String(value));
-      }
-
-      if (key === "serviceSubtype") {
-        const presetCost = getServiceSubtypeCostPreset(String(value));
-
-        if (presetCost !== null) {
-          nextState.costAmount = presetCost;
-        }
-      }
-
-      return nextState;
-    });
-  };
-
-  const handleCreateOrder = async () => {
+  const handleCreateOrder = useCallback(async () => {
     if (!supabase || createPending || !canCreateOrders) {
       return;
     }
 
-    const parsed = parseCreateOrderForm(createFormState, orderCategoryByTypeId);
+    const parsed = parseCreateOrderForm(createFormState, orderCategoryByTypeId, ordersUiCopy);
 
     if (!parsed.ok) {
       setCreateDialogFeedback({ tone: "error", message: parsed.message });
@@ -590,24 +615,35 @@ export function AdminOrdersClient({
       );
       setPageFeedback({
         tone: "success",
-        message: `订单 ${createdOrder.order_number} 已创建成功。`,
+        message: t("feedback.createSuccess", { orderNumber: createdOrder.order_number }),
       });
     } catch (error) {
       setCreateDialogFeedback({
         tone: "error",
-        message: toOrderErrorMessage(error),
+        message: toOrderErrorMessage(error, ordersUiCopy, sharedCopy),
       });
     } finally {
       setCreatePending(false);
     }
-  };
+  }, [
+    canCreateOrders,
+    createFormState,
+    createPending,
+    currentViewerId,
+    orderCategoryByTypeId,
+    ordersUiCopy,
+    sharedCopy,
+    supabase,
+    t,
+    typeOptions,
+  ]);
 
-  const handleEditOrder = async () => {
+  const handleEditOrder = useCallback(async () => {
     if (!supabase || editPending || !editOriginalOrderNumber || !canEditOrders) {
       return;
     }
 
-    const parsed = parseCreateOrderForm(editFormState, orderCategoryByTypeId);
+    const parsed = parseCreateOrderForm(editFormState, orderCategoryByTypeId, ordersUiCopy);
 
     if (!parsed.ok) {
       setEditDialogFeedback({ tone: "error", message: parsed.message });
@@ -635,26 +671,38 @@ export function AdminOrdersClient({
       setSelectedOrder(updatedOrder);
       setPageFeedback({
         tone: "success",
-        message: `订单 ${updatedOrder.order_number} 已更新成功。`,
+        message: t("feedback.updateSuccess", { orderNumber: updatedOrder.order_number }),
       });
     } catch (error) {
       setEditDialogFeedback({
         tone: "error",
-        message: toOrderErrorMessage(error),
+        message: toOrderErrorMessage(error, ordersUiCopy, sharedCopy),
       });
     } finally {
       setEditPending(false);
     }
-  };
+  }, [
+    canEditOrders,
+    editFormState,
+    editOriginalOrderNumber,
+    editPending,
+    orderCategoryByTypeId,
+    ordersUiCopy,
+    sharedCopy,
+    supabase,
+    t,
+  ]);
 
-  const handleDeleteOrder = async () => {
+  const handleDeleteOrder = useCallback(async () => {
     if (!supabase || !selectedOrder || deletePending || !canDeleteOrders) {
       return;
     }
 
     if (
       typeof window !== "undefined" &&
-      !window.confirm(`确定要软删除订单 ${selectedOrder.order_number} 吗？删除后将从列表中隐藏。`)
+      !window.confirm(
+        t("feedback.deleteConfirm", { orderNumber: selectedOrder.order_number }),
+      )
     ) {
       return;
     }
@@ -670,17 +718,50 @@ export function AdminOrdersClient({
       setSelectedOrder(null);
       setPageFeedback({
         tone: "success",
-        message: `订单 ${selectedOrder.order_number} 已软删除。`,
+        message: t("feedback.deleteSuccess", { orderNumber: selectedOrder.order_number }),
       });
     } catch (error) {
       setPageFeedback({
         tone: "error",
-        message: toOrderErrorMessage(error),
+        message: toOrderErrorMessage(error, ordersUiCopy, sharedCopy),
       });
     } finally {
       setDeletePending(false);
     }
-  };
+  }, [canDeleteOrders, deletePending, ordersUiCopy, selectedOrder, sharedCopy, supabase, t]);
+
+  const handleSelectOrder = useCallback((order: AdminOrderRow) => {
+    setSelectedOrder(order);
+  }, []);
+
+  const handleOrderNumberChange = useCallback((value: string) => {
+    setFilters((current) => ({
+      ...current,
+      orderNumber: value,
+    }));
+  }, []);
+
+  const handleOrderEntryUserChange = useCallback((value: string) => {
+    setFilters((current) => ({
+      ...current,
+      orderEntryUser: value,
+    }));
+  }, []);
+
+  const handleOrderingUserChange = useCallback((value: string) => {
+    setFilters((current) => ({
+      ...current,
+      orderingUser: value,
+    }));
+  }, []);
+
+  const clearFilters = useCallback(() => {
+    setFilters(EMPTY_ORDER_FILTERS);
+  }, []);
+
+  if (!supabase || loading) {
+    return <OrdersLoadingState />;
+  }
 
   return (
     <section className="mx-auto flex w-full max-w-[1320px] flex-col gap-8">
@@ -688,68 +769,24 @@ export function AdminOrdersClient({
         <PageBanner tone={pageFeedback.tone}>{pageFeedback.message}</PageBanner>
       ) : null}
 
-      <section className="rounded-[28px] border border-white/90 bg-[#f4f3f1]/92 p-6 shadow-[0_18px_45px_rgba(96,113,128,0.08)] xl:p-8">
-        <div className="flex flex-col gap-6 xl:flex-row xl:items-end xl:justify-between">
-          <div className="max-w-2xl">
-            <span className="inline-flex rounded-full bg-[#e4edf3] px-3 py-1 text-xs font-semibold text-[#486782]">
-              {viewConfig.badge}
-            </span>
-            <h2 className="mt-4 text-4xl font-bold tracking-tight text-[#1f2a32]">
-              {viewConfig.title}
-            </h2>
-            <p className="mt-3 text-[15px] leading-8 text-[#65717b]">
-              {viewConfig.description}
-            </p>
-          </div>
-
-          <div className="flex flex-col gap-4 xl:items-end">
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-              <OrderSummaryCard
-                accent="blue"
-                count={summary.total}
-                icon={<ReceiptText className="size-5" />}
-                label="订单总数"
-              />
-              <OrderSummaryCard
-                accent="gold"
-                count={summary.pending}
-                icon={<ClipboardList className="size-5" />}
-                label="待处理订单"
-              />
-              <OrderSummaryCard
-                accent="green"
-                count={summary.completed}
-                icon={<BadgeDollarSign className="size-5" />}
-                label="已完成订单"
-              />
-            </div>
-
-            {canCreateOrders ? (
-              <>
-                <Button
-                  className="h-11 rounded-full bg-[#486782] px-5 text-white hover:bg-[#3e5f79]"
-                  disabled={!canOpenCreateDialog}
-                  onClick={openCreateDialog}
-                  type="button"
-                >
-                  <Plus className="size-4" />
-                  {viewConfig.createTitle}
-                </Button>
-                {viewConfig.noCreateTargetHint && !canOpenCreateDialog ? (
-                  <p className="text-sm text-[#69747d]">{viewConfig.noCreateTargetHint}</p>
-                ) : null}
-              </>
-            ) : null}
-          </div>
-        </div>
-      </section>
+      <OrdersHeaderSection
+        badge={viewConfig.badge}
+        canCreateOrders={canCreateOrders}
+        canOpenCreateDialog={canOpenCreateDialog}
+        createTitle={viewConfig.createTitle}
+        description={viewConfig.description}
+        noCreateTargetHint={viewConfig.noCreateTargetHint}
+        onCreate={openCreateDialog}
+        summary={summary}
+        title={viewConfig.title}
+      />
 
       {canViewOrders === false ? (
         <section className="rounded-[28px] border border-white/85 bg-white/72 p-6 shadow-[0_18px_45px_rgba(96,113,128,0.06)] xl:p-8">
           <EmptyState
             description={viewConfig.noPermissionDescription}
             icon={<ShieldAlert className="size-6" />}
-            title="暂无查看权限"
+            title={t("states.noViewPermissionTitle")}
           />
         </section>
       ) : orders.length === 0 ? (
@@ -757,168 +794,30 @@ export function AdminOrdersClient({
           <EmptyState
             description={viewConfig.emptyDescription}
             icon={<ReceiptText className="size-6" />}
-            title="订单列表暂时为空"
+            title={t("states.emptyTitle")}
           />
         </section>
       ) : (
-        <section className="rounded-[28px] border border-white/85 bg-white/72 p-4 shadow-[0_18px_45px_rgba(96,113,128,0.06)] sm:p-6 xl:p-8">
-          <div
-            className={`mb-5 grid gap-4 rounded-[24px] border border-[#ebe7e1] bg-[#fbfaf8] p-4 shadow-[0_10px_24px_rgba(96,113,128,0.04)] ${
-              viewConfig.showOrderEntryFilter && viewConfig.showOrderingFilter
-                ? "lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_auto]"
-                : viewConfig.showOrderingFilter
-                  ? "lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto]"
-                  : "lg:grid-cols-[minmax(0,1fr)_auto]"
-            }`}
-          >
-            <FilterField label="订单编号">
-              <input
-                className={filterInputClassName}
-                onChange={(event) =>
-                  setFilters((current) => ({
-                    ...current,
-                    orderNumber: event.target.value,
-                  }))
-                }
-                placeholder="输入订单编号查找"
-                type="text"
-                value={filters.orderNumber}
-              />
-            </FilterField>
-
-            {viewConfig.showOrderEntryFilter ? (
-              <FilterField label="订单录入员">
-                <input
-                  className={filterInputClassName}
-                  onChange={(event) =>
-                    setFilters((current) => ({
-                      ...current,
-                      orderEntryUser: event.target.value,
-                    }))
-                  }
-                  placeholder="输入录入员姓名或邮箱"
-                  type="text"
-                  value={filters.orderEntryUser}
-                />
-              </FilterField>
-            ) : null}
-
-            {viewConfig.showOrderingFilter ? (
-              <FilterField label="订单客户">
-                <input
-                  className={filterInputClassName}
-                  onChange={(event) =>
-                    setFilters((current) => ({
-                      ...current,
-                      orderingUser: event.target.value,
-                    }))
-                  }
-                  placeholder="输入客户姓名或邮箱"
-                  type="text"
-                  value={filters.orderingUser}
-                />
-              </FilterField>
-            ) : null}
-
-            <div className="flex flex-col justify-end gap-3 lg:items-end">
-              <p className="text-sm text-[#69747d]">
-                共 {orders.length} 条，匹配 {filteredOrders.length} 条
-              </p>
-              <Button
-                disabled={
-                  !filters.orderNumber && !filters.orderEntryUser && !filters.orderingUser
-                }
-                onClick={() =>
-                  setFilters({
-                    orderEntryUser: "",
-                    orderNumber: "",
-                    orderingUser: "",
-                  })
-                }
-                type="button"
-                variant="outline"
-              >
-                清空筛选
-              </Button>
-            </div>
-          </div>
-
-          {filteredOrders.length === 0 ? (
-            <EmptyState
-              description="没有找到符合当前筛选条件的订单，可以调整关键词后再试。"
-              icon={<ClipboardList className="size-6" />}
-              title="没有匹配结果"
-            />
-          ) : (
-            <div className="overflow-hidden rounded-[24px] border border-[#ebe7e1] bg-white shadow-[0_10px_24px_rgba(96,113,128,0.06)]">
-              <div className="overflow-x-auto">
-                <table className="min-w-[960px] w-full table-fixed border-collapse">
-                  <thead className="bg-[#f7f5f2]">
-                    <tr className="border-b border-[#efebe5]">
-                      <OrderHeaderCell>订单编号</OrderHeaderCell>
-                      <OrderHeaderCell>人民币总计</OrderHeaderCell>
-                      {canViewOrderCosts ? <OrderHeaderCell>订单成本</OrderHeaderCell> : null}
-                      {viewConfig.showOrderEntryColumn ? (
-                        <OrderHeaderCell>订单录入员</OrderHeaderCell>
-                      ) : null}
-                      {viewConfig.showOrderingColumn ? (
-                        <OrderHeaderCell>订单客户</OrderHeaderCell>
-                      ) : null}
-                      <OrderHeaderCell>订单状态</OrderHeaderCell>
-                      <OrderHeaderCell>订单类型</OrderHeaderCell>
-                      {viewConfig.showCreatedAtColumn ? (
-                        <OrderHeaderCell>创建日期</OrderHeaderCell>
-                      ) : null}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {filteredOrders.map((order) => (
-                      <tr
-                        key={order.order_number}
-                        className="cursor-pointer border-b border-[#efebe5] transition-colors hover:bg-[#fcfbf8] last:border-b-0"
-                        onClick={() => setSelectedOrder(order)}
-                        onKeyDown={(event) => {
-                          if (event.key === "Enter" || event.key === " ") {
-                            event.preventDefault();
-                            setSelectedOrder(order);
-                          }
-                        }}
-                        tabIndex={0}
-                      >
-                        <OrderValueCell strong value={order.order_number} />
-                        <OrderValueCell value={formatMoneyValue(order.rmb_amount)} />
-                        {canViewOrderCosts ? (
-                          <OrderValueCell value={formatMoneyValue(order.cost_amount)} />
-                        ) : null}
-                        {viewConfig.showOrderEntryColumn ? (
-                          <OrderValueCell
-                            value={resolveOrderUserLabel(order.order_entry_user, userLabelById)}
-                          />
-                        ) : null}
-                        {viewConfig.showOrderingColumn ? (
-                          <OrderValueCell
-                            value={resolveOrderUserLabel(order.ordering_user, userLabelById)}
-                          />
-                        ) : null}
-                        <OrderValueCell value={<OrderStatusChip status={order.order_status} />} />
-                        <OrderValueCell
-                          value={
-                            <OrderTypeChip
-                              meta={resolveOrderTypeMeta(order.order_type, orderTypeMetaById)}
-                            />
-                          }
-                        />
-                        {viewConfig.showCreatedAtColumn ? (
-                          <OrderValueCell value={formatDateTime(order.created_at)} />
-                        ) : null}
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          )}
-        </section>
+        <OrdersTableSection
+          canViewOrderCosts={canViewOrderCosts}
+          filteredOrders={filteredOrders}
+          filters={filters}
+          onClearFilters={clearFilters}
+          onOrderEntryUserChange={handleOrderEntryUserChange}
+          onOrderNumberChange={handleOrderNumberChange}
+          onOrderingUserChange={handleOrderingUserChange}
+          onSelectOrder={handleSelectOrder}
+          orderTypeMetaById={orderTypeMetaById}
+          ordersCount={orders.length}
+          pagination={ordersPaginationState}
+          rows={ordersPagination.items}
+          showCreatedAtColumn={viewConfig.showCreatedAtColumn}
+          showOrderEntryColumn={viewConfig.showOrderEntryColumn}
+          showOrderEntryFilter={viewConfig.showOrderEntryFilter}
+          showOrderingColumn={viewConfig.showOrderingColumn}
+          showOrderingFilter={viewConfig.showOrderingFilter}
+          userLabelById={userLabelById}
+        />
       )}
 
       <OrderFormDialog
@@ -955,7 +854,7 @@ export function AdminOrdersClient({
       />
 
       <OrderFormDialog
-        description="编辑后会立即覆盖当前订单信息，并同步更新订单详情。"
+        description={t("dialogs.editDescription")}
         feedback={editDialogFeedback}
         formState={editFormState}
         mode="edit"
@@ -968,8 +867,8 @@ export function AdminOrdersClient({
         serviceOrderTypeOptions={serviceTypeOptions}
         showCostField={canViewOrderCosts}
         supplementaryLoading={editSupplementaryLoading}
-        submitLabel="保存修改"
-        title="编辑订单"
+        submitLabel={t("dialogs.saveChanges")}
+        title={t("dialogs.editTitle")}
         onFieldChange={updateEditFormField}
         onOpenChange={(open) => {
           if (!open && editPending) {

@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import type { ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import {
   ArrowLeftRight,
   Bell,
@@ -20,248 +20,82 @@ import {
   type LucideIcon,
 } from "lucide-react";
 
+import { LanguageToggle } from "@/components/i18n/language-toggle";
 import { getBrowserSupabaseClient } from "@/lib/supabase";
 import { useSupabaseAuthSync } from "@/lib/use-supabase-auth-sync";
 import {
-  getCurrentSessionContext,
   getDefaultWorkspaceBasePath,
-  getRoleFromAccessToken,
-  type AppRole,
+  getWorkspaceBasePath,
+} from "@/lib/auth-routing";
+import {
+  getWorkspaceConfigByBasePath,
+  getWorkspaceConfigForPathname,
+  getWorkspaceNavHref,
+  type WorkspaceNavItem,
+  type WorkspaceRouteSegment,
+} from "@/lib/workspace-config";
+import {
+  getRoleFromUser,
 } from "@/lib/user-self-service";
 import { cn } from "@/lib/utils";
 
 type NavItem = {
-  segment: string;
-  label: string;
+  href: string;
   icon: LucideIcon;
+  label: string;
 };
 
 type WorkspaceConfig = {
   accountLabel: string;
-  basePath: string;
   initials: string;
-  navItems: Array<NavItem & { href: string }>;
+  navItems: NavItem[];
   subtitle: string;
   title: string;
   workspaceLabel: string;
 };
 
-const managerNavItems: NavItem[] = [
-  { segment: "my", label: "我的", icon: UserRound },
-  { segment: "referrals", label: "推荐树", icon: GitBranchPlus },
-  { segment: "team", label: "团队", icon: UsersRound },
-];
+type Translator = (key: string) => string;
 
-const staffReadNavItems: NavItem[] = [
-  { segment: "my", label: "我的", icon: UserRound },
-  { segment: "referrals", label: "推荐树", icon: GitBranchPlus },
-  { segment: "team", label: "团队", icon: UsersRound },
-];
+const NAV_ICONS: Record<WorkspaceNavItem["segment"], LucideIcon> = {
+  commission: WalletCards,
+  "exchange-rates": ArrowLeftRight,
+  my: UserRound,
+  orders: ShoppingCart,
+  referrals: GitBranchPlus,
+  reviews: ShieldCheck,
+  tasks: ClipboardList,
+  team: UsersRound,
+};
 
-const financeNavItems: NavItem[] = [
-  ...staffReadNavItems,
-  { segment: "commission", label: "佣金", icon: WalletCards },
-];
+function getWorkspaceConfig(pathname: string, t: Translator): WorkspaceConfig {
+  const basePath = getWorkspaceBasePath(pathname) ?? getDefaultWorkspaceBasePath(null);
+  const routeConfig = getWorkspaceConfigForPathname(pathname) ??
+    getWorkspaceConfigByBasePath(basePath);
 
-const clientNavItems: NavItem[] = [
-  { segment: "my", label: "我的", icon: UserRound },
-  { segment: "orders", label: "订单", icon: ShoppingCart },
-  { segment: "referrals", label: "推荐树", icon: GitBranchPlus },
-];
-
-const recruiterNavItems: NavItem[] = [
-  { segment: "my", label: "我的", icon: UserRound },
-  { segment: "referrals", label: "推荐树", icon: GitBranchPlus },
-  { segment: "commission", label: "佣金", icon: WalletCards },
-  { segment: "tasks", label: "任务", icon: ClipboardList },
-];
-
-const sharedNavItems: NavItem[] = [
-  { segment: "my", label: "我的", icon: UserRound },
-  { segment: "orders", label: "订单", icon: ShoppingCart },
-  { segment: "referrals", label: "推荐树", icon: GitBranchPlus },
-  { segment: "team", label: "团队", icon: UsersRound },
-  { segment: "commission", label: "佣金", icon: WalletCards },
-  { segment: "exchange-rates", label: "汇率", icon: ArrowLeftRight },
-  { segment: "tasks", label: "任务", icon: ClipboardList },
-];
-
-const adminNavItems: NavItem[] = [
-  ...sharedNavItems,
-  { segment: "reviews", label: "审核", icon: ShieldCheck },
-];
-
-function getHintedBasePath(pathname: string) {
-  if (pathname.startsWith("/manager")) {
-    return "/manager";
-  }
-
-  if (pathname.startsWith("/recruiter")) {
-    return "/recruiter";
-  }
-
-  if (pathname.startsWith("/operator")) {
-    return "/operator";
-  }
-
-  if (pathname.startsWith("/finance")) {
-    return "/finance";
-  }
-
-  if (pathname.startsWith("/client")) {
-    return "/client";
-  }
-
-  if (pathname.startsWith("/salesman")) {
-    return "/salesman";
-  }
-
-  return "/admin";
-}
-
-function getWorkspaceConfig(
-  role: AppRole | null,
-  resolved: boolean,
-  pathname: string,
-): WorkspaceConfig {
-  const hintedBasePath = getHintedBasePath(pathname);
-  const basePath = resolved && role ? getDefaultWorkspaceBasePath(role) : hintedBasePath;
-  const navSource =
-    basePath === "/salesman"
-      ? sharedNavItems
-      : basePath === "/recruiter"
-        ? recruiterNavItems
-        : basePath === "/manager"
-          ? managerNavItems
-          : basePath === "/finance"
-            ? financeNavItems
-            : basePath === "/operator"
-              ? staffReadNavItems
-            : basePath === "/client"
-              ? clientNavItems
-          : adminNavItems;
-  const navItems = navSource.map((item) => ({
-    ...item,
-    href: `${basePath}/${item.segment}`,
-  }));
-
-  if (
-    basePath === "/manager" ||
-    basePath === "/operator" ||
-    basePath === "/finance" ||
-    basePath === "/client"
-  ) {
-    return getCompactRoleWorkspaceConfig(role, basePath, navItems);
-  }
-
-  if (basePath === "/recruiter") {
+  if (!routeConfig) {
     return {
-      accountLabel: "招聘员账号",
-      basePath,
-      initials: "RC",
-      navItems,
-      subtitle: "招聘业务员岗位",
-      title: "招聘工作台",
-      workspaceLabel: "招聘中心",
-    };
-  }
-
-  if (!resolved && basePath === "/admin") {
-    return {
-      accountLabel: "工作台账号",
-      basePath,
-      initials: "WS",
-      navItems,
-      subtitle: "正在识别当前角色",
-      title: "工作台",
-      workspaceLabel: "平台中心",
-    };
-  }
-
-  if (basePath === "/salesman") {
-    return {
-      accountLabel: "业务员账号",
-      basePath,
-      initials: "YW",
-      navItems,
-      subtitle: "业务拓展岗位",
-      title: "业务工作台",
-      workspaceLabel: "业务中心",
-    };
-  }
-
-  return {
-    accountLabel: "管理员账号",
-    basePath,
-    initials: "AD",
-    navItems,
-    subtitle: "系统管理岗位",
-    title: "管理工作台",
-    workspaceLabel: "管理中心",
-  };
-}
-
-function getCompactRoleWorkspaceConfig(
-  role: AppRole | null,
-  basePath: string,
-  navItems: Array<NavItem & { href: string }>,
-): WorkspaceConfig {
-  if (role === "operator") {
-    return {
-      accountLabel: "运营账号",
-      basePath,
-      initials: "OP",
-      navItems,
-      subtitle: "运营岗位",
-      title: "运营工作台",
-      workspaceLabel: "运营中心",
-    };
-  }
-
-  if (role === "manager") {
-    return {
-      accountLabel: "经理账号",
-      basePath,
-      initials: "MG",
-      navItems,
-      subtitle: "团队管理岗位",
-      title: "经理工作台",
-      workspaceLabel: "经理中心",
-    };
-  }
-
-  if (role === "finance") {
-    return {
-      accountLabel: "财务账号",
-      basePath,
-      initials: "FN",
-      navItems,
-      subtitle: "财务岗位",
-      title: "财务工作台",
-      workspaceLabel: "财务中心",
-    };
-  }
-
-  if (role === "client") {
-    return {
-      accountLabel: "客户账号",
-      basePath,
+      accountLabel: t("roles.client.accountLabel"),
       initials: "CL",
-      navItems,
-      subtitle: "客户岗位",
-      title: "客户工作台",
-      workspaceLabel: "客户中心",
+      navItems: [],
+      subtitle: t("roles.client.subtitle"),
+      title: t("roles.client.title"),
+      workspaceLabel: t("roles.client.workspaceLabel"),
     };
   }
 
+  const roleKey: WorkspaceRouteSegment = routeConfig.routeSegment;
+
   return {
-    accountLabel: "角色账号",
-    basePath,
-    initials: "MY",
-    navItems,
-    subtitle: "角色入口",
-    title: "我的工作台",
-    workspaceLabel: "角色中心",
+    accountLabel: t(`roles.${roleKey}.accountLabel`),
+    initials: routeConfig.initials,
+    navItems: routeConfig.navItems.map((item) => ({
+      href: getWorkspaceNavHref(routeConfig, item.segment),
+      icon: NAV_ICONS[item.segment],
+      label: t(`nav.${item.labelKey}`),
+    })),
+    subtitle: t(`roles.${roleKey}.subtitle`),
+    title: t(`roles.${roleKey}.title`),
+    workspaceLabel: t(`roles.${roleKey}.workspaceLabel`),
   };
 }
 
@@ -272,143 +106,53 @@ type AdminShellProps = {
 export function AdminShell({ children }: AdminShellProps) {
   const pathname = usePathname();
   const router = useRouter();
+  const t = useTranslations("DashboardShell");
   const supabase = getBrowserSupabaseClient();
-  const [authError, setAuthError] = useState<string | null>(null);
-  const [authenticated, setAuthenticated] = useState<boolean | null>(null);
   const [logoutPending, setLogoutPending] = useState(false);
   const [logoutError, setLogoutError] = useState<string | null>(null);
-  const [role, setRole] = useState<AppRole | null>(null);
-  const [roleResolved, setRoleResolved] = useState(false);
+  const workspace = getWorkspaceConfig(pathname, t);
 
   useSupabaseAuthSync(supabase, {
-    onReady: async ({ isMounted }) => {
-      if (!supabase) {
-        return;
-      }
-
-      try {
-        const sessionContext = await getCurrentSessionContext(supabase);
-
-        if (!isMounted()) {
-          return;
-        }
-
-        setAuthError(null);
-        setAuthenticated(Boolean(sessionContext.user));
-        setRole(sessionContext.user ? sessionContext.role : null);
-      } catch (error) {
-        if (!isMounted()) {
-          return;
-        }
-
-        setAuthError(getErrorMessage(error));
-        setAuthenticated(null);
-        setRole(null);
-      } finally {
-        if (isMounted()) {
-          setRoleResolved(true);
-        }
-      }
-    },
+    includeInitialSessionEvent: true,
     onAuthStateChange: ({ isMounted, session }) => {
       if (!isMounted()) {
         return;
       }
 
       if (!session?.user) {
-        setAuthError(null);
-        setAuthenticated(false);
-        setRole(null);
-        setRoleResolved(true);
+        setLogoutError(null);
+        router.replace("/login");
         return;
       }
 
-      setAuthError(null);
-      setAuthenticated(true);
-      setRole(getRoleFromAccessToken(session.access_token));
-      setRoleResolved(true);
+      const currentBasePath = getWorkspaceBasePath(pathname);
+
+      if (!currentBasePath) {
+        return;
+      }
+
+      const desiredBasePath = getDefaultWorkspaceBasePath(
+        getRoleFromUser(session.user),
+      );
+
+      if (currentBasePath === desiredBasePath) {
+        return;
+      }
+
+      const suffix = pathname.slice(currentBasePath.length) || "/my";
+      router.replace(`${desiredBasePath}${suffix}`);
     },
   });
 
   useEffect(() => {
-    if (!roleResolved) {
-      return;
-    }
+    workspace.navItems.forEach((item) => {
+      if (item.href === pathname) {
+        return;
+      }
 
-    if (authenticated === false) {
-      router.replace("/login");
-      return;
-    }
-
-    const currentBasePath = pathname.startsWith("/salesman")
-      ? "/salesman"
-      : pathname.startsWith("/manager")
-        ? "/manager"
-        : pathname.startsWith("/recruiter")
-          ? "/recruiter"
-          : pathname.startsWith("/operator")
-            ? "/operator"
-            : pathname.startsWith("/finance")
-              ? "/finance"
-              : pathname.startsWith("/client")
-                ? "/client"
-                : pathname.startsWith("/admin")
-                  ? "/admin"
-                  : null;
-
-    if (!currentBasePath) {
-      return;
-    }
-
-    const desiredBasePath = role ? getDefaultWorkspaceBasePath(role) : currentBasePath;
-
-    if (currentBasePath === desiredBasePath) {
-      return;
-    }
-
-    const nextPath = `${desiredBasePath}${pathname.slice(currentBasePath.length)}`;
-    router.replace(nextPath || `${desiredBasePath}/my`);
-  }, [authenticated, pathname, role, roleResolved, router]);
-
-  if (authError) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-[#faf9f7] px-6 text-[#486782]">
-        <div className="flex max-w-md flex-col items-center gap-4 rounded-[28px] border border-white/80 bg-white/78 px-10 py-8 text-center shadow-[0_18px_45px_rgba(96,113,128,0.08)] backdrop-blur">
-          <p className="text-base font-semibold">工作台登录状态同步失败</p>
-          <p className="text-sm leading-7 text-[#6d767c]">{authError}</p>
-          <button
-            className="rounded-full bg-[#486782] px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-[#3f5f78]"
-            onClick={() => window.location.reload()}
-            type="button"
-          >
-            重新加载
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  if (!roleResolved || authenticated !== true) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-[#faf9f7] px-6 text-[#486782]">
-        <div className="flex flex-col items-center gap-4 rounded-[28px] border border-white/80 bg-white/78 px-10 py-8 text-center shadow-[0_18px_45px_rgba(96,113,128,0.08)] backdrop-blur">
-          <LoaderCircle className="size-7 animate-spin" />
-          <div className="space-y-1">
-            <p className="text-base font-semibold">
-              {authenticated === false ? "正在跳转到登录页" : "正在校验工作台权限"}
-            </p>
-            <p className="text-sm text-[#6d767c]">
-              {authenticated === false
-                ? "当前页面需要登录后访问。"
-                : "请稍候，正在同步当前账号角色。"}
-            </p>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  const workspace = getWorkspaceConfig(role, roleResolved, pathname);
+      void router.prefetch(item.href);
+    });
+  }, [pathname, router, workspace.navItems]);
 
   const handleLogout = async () => {
     if (logoutPending) {
@@ -418,7 +162,7 @@ export function AdminShell({ children }: AdminShellProps) {
     setLogoutError(null);
 
     if (!supabase) {
-      setLogoutError("当前服务暂时不可用，请稍后再试。");
+      setLogoutError(t("serviceUnavailable"));
       return;
     }
 
@@ -431,9 +175,6 @@ export function AdminShell({ children }: AdminShellProps) {
         throw error;
       }
 
-      setRole(null);
-      setRoleResolved(true);
-
       if (typeof window !== "undefined") {
         window.location.replace("/login");
         return;
@@ -441,7 +182,7 @@ export function AdminShell({ children }: AdminShellProps) {
 
       router.replace("/login");
     } catch (error) {
-      setLogoutError(getErrorMessage(error));
+      setLogoutError(getErrorMessage(error, t("serviceUnavailable")));
     } finally {
       setLogoutPending(false);
     }
@@ -508,7 +249,7 @@ export function AdminShell({ children }: AdminShellProps) {
               ) : (
                 <LogOut className="size-4" />
               )}
-              退出登录
+              {t("logout")}
             </button>
           </div>
         </aside>
@@ -521,11 +262,12 @@ export function AdminShell({ children }: AdminShellProps) {
                   {workspace.workspaceLabel}
                 </p>
                 <h1 className="truncate text-2xl font-bold tracking-tight text-[#486782] sm:text-3xl">
-                  柏盛管理系统
+                  {t("brandTitle")}
                 </h1>
               </div>
 
               <div className="flex items-center gap-3">
+                <LanguageToggle />
                 <button
                   className="flex h-10 w-10 items-center justify-center rounded-full text-[#486782] transition-colors hover:bg-white"
                   type="button"
@@ -579,6 +321,10 @@ export function AdminShell({ children }: AdminShellProps) {
   );
 }
 
-function getErrorMessage(error: unknown) {
-  return error instanceof Error ? error.message : "当前服务暂时不可用，请稍后再试。";
+function getErrorMessage(error: unknown, fallbackMessage: string) {
+  if (error instanceof Error) {
+    return error.message;
+  }
+
+  return fallbackMessage;
 }

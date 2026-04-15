@@ -41,6 +41,21 @@ export function canViewSalesmanCommissionBoard(
 
 export async function getVisibleSalesmanCommissions(
   supabase: SupabaseClient,
+  viewer?: SalesmanCommissionViewerContext | null,
+  limit?: number,
 ): Promise<AdminCommissionRow[]> {
-  return getAdminCommissions(supabase);
+  const effectiveViewer =
+    viewer ?? (await getCurrentSalesmanCommissionViewerContext(supabase));
+
+  if (
+    !effectiveViewer ||
+    !canViewSalesmanCommissionBoard(effectiveViewer.role, effectiveViewer.status)
+  ) {
+    return [];
+  }
+
+  return getAdminCommissions(supabase, {
+    beneficiaryUserId: effectiveViewer.user.id,
+    limit,
+  });
 }

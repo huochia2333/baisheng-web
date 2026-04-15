@@ -6,6 +6,10 @@ import {
   type AppRole,
   type UserStatus,
 } from "./user-self-service";
+import {
+  getDashboardQueryRange,
+  MAX_DASHBOARD_QUERY_ROWS,
+} from "./dashboard-pagination";
 
 const EXCHANGE_RATE_SELECT =
   "id,original_currency,target_currency,daily_exchange_rate,created_at";
@@ -74,12 +78,15 @@ export function canManageExchangeRatesByRole(role: AppRole | null) {
 
 export async function getExchangeRates(
   supabase: SupabaseClient,
+  limit = MAX_DASHBOARD_QUERY_ROWS,
 ): Promise<ExchangeRateRow[]> {
+  const { from, to } = getDashboardQueryRange(limit);
   const { data, error } = await withRequestTimeout(
     supabase
       .from("exchange_rate")
       .select(EXCHANGE_RATE_SELECT)
       .order("created_at", { ascending: false })
+      .range(from, to)
       .returns<ExchangeRateRow[]>(),
   );
 

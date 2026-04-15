@@ -14,6 +14,7 @@ import {
   Upload,
   Video,
 } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 import { cn } from "@/lib/utils";
 
@@ -33,62 +34,68 @@ import { Button } from "../ui/button";
 import { useDashboardSharedMyState } from "./dashboard-shared-my/use-dashboard-shared-my-state";
 
 export function DashboardSharedMyClient() {
+  const t = useTranslations("DashboardMy");
+  const copy = {
+    bundleUnavailable: t("bundleUnavailable"),
+    bundleSyncDescription: t("bundleSyncDescription"),
+    bundleSyncTitle: t("bundleSyncTitle"),
+    retrySync: t("retrySync"),
+    editProfile: t("editProfile"),
+    changePassword: t("changePassword"),
+    copyInviteCode: t("copyInviteCode"),
+    refreshProfile: t("refreshProfile"),
+    verificationTitle: t("verificationTitle"),
+    verificationApproved: t("verificationApproved"),
+    verificationPending: t("verificationPending"),
+    verificationEmpty: t("verificationEmpty"),
+    verificationApprovedDescription: t("verificationApprovedDescription"),
+    verificationPendingDescription: t("verificationPendingDescription"),
+    verificationEmptyDescription: t("verificationEmptyDescription"),
+    identityMediaTitle: t("identityMediaTitle"),
+    copyright: t("copyright"),
+    privacy: t("privacy"),
+    terms: t("terms"),
+    help: t("help"),
+    identitySubmit: t("identitySubmit"),
+    identityLabel: t("identityLabel"),
+    identityPlaceholder: t("identityPlaceholder"),
+    identityPendingDescription: t("identityPendingDescription"),
+    identityApprovedDescription: t("identityApprovedDescription"),
+    retryEdit: t("retryEdit"),
+    passportSubmit: t("passportSubmit"),
+    passportLabel: t("passportLabel"),
+    passportPlaceholder: t("passportPlaceholder"),
+    passportPendingDescription: t("passportPendingDescription"),
+    passportApprovedDescription: t("passportApprovedDescription"),
+    previewUnavailable: t("previewUnavailable"),
+    photoItem: (index: number) => t("photoItem", { index }),
+    delete: t("delete"),
+    photoEmptyTitle: t("photoEmptyTitle"),
+    photoEmptyDescription: t("photoEmptyDescription"),
+    photoPendingDescription: t("photoPendingDescription"),
+    photoApprovedDescription: t("photoApprovedDescription"),
+    videoEmptyTitle: t("videoEmptyTitle"),
+    videoEmptyDescription: t("videoEmptyDescription"),
+    videoPendingDescription: t("videoPendingDescription"),
+    videoApprovedDescription: t("videoApprovedDescription"),
+    editProfileDescription: t("editProfileDescription"),
+    cityLabel: t("cityLabel"),
+    cityPlaceholder: t("cityPlaceholder"),
+    saveCity: t("saveCity"),
+  };
   const {
-    activeDialog,
-    assets,
+    account,
+    assetDialog,
     bundle,
-    busyKey,
-    certified,
-    closeDialog,
-    closeProfileDialog,
-    copyInviteCode,
-    deletePhotoAssets,
-    deleteVideoAssets,
-    dialogActions,
-    dialogDescription,
-    dialogNotice,
-    dialogTitle,
-    displayCity,
-    displayName,
-    identityDraft,
-    identityEditing,
-    identityStatus,
-    identityValue,
+    identity,
     loading,
-    membershipLabel,
-    openDialog,
-    openProfileDialog,
-    pageError,
-    pageNotice,
-    passportDraft,
-    passportEditing,
-    passportStatus,
-    passportValue,
-    photoAssets,
+    page,
+    passport,
     photoInputRef,
-    photoStatus,
-    profileCityDraft,
-    profileDialogNotice,
-    profileDialogOpen,
-    profileStats,
-    recoverCloudSync,
-    refreshBundle,
-    saveProfileCity,
-    sendPasswordReset,
-    setIdentityDraft,
-    setIdentityEditing,
-    setPassportDraft,
-    setPassportEditing,
-    setProfileCityDraft,
-    submitIdentity,
-    submitPassport,
+    profileDialog,
     supabase,
-    uploadPhotos,
-    uploadVideos,
-    verificationStatus,
-    videoAssets,
+    ui,
     videoInputRef,
-    videoStatus,
   } = useDashboardSharedMyState();
 
   if (!supabase) {
@@ -103,26 +110,26 @@ export function DashboardSharedMyClient() {
     return (
       <section className="mx-auto flex w-full max-w-[1320px] flex-col gap-6">
         <PageBanner tone="error">
-          {pageError ?? "云端资料暂时不可用，请刷新页面后重试。"}
+          {page.error ?? copy.bundleUnavailable}
         </PageBanner>
         <section className="rounded-[28px] border border-white/85 bg-white/72 p-6 shadow-[0_18px_45px_rgba(96,113,128,0.06)] xl:p-8">
           <EmptyState
-            description="当前页面依赖云端登录态和资料查询。刚从闲置状态恢复时，如果同步请求没有返回，现在会直接提示失败，你可以重新同步而不是一直停留在加载中。"
+            description={copy.bundleSyncDescription}
             icon={<Search className="size-6" />}
-            title="资料同步没有完成"
+            title={copy.bundleSyncTitle}
           />
           <div className="mt-6 flex justify-center">
             <Button
               className="h-11 rounded-full bg-[#486782] px-5 text-white hover:bg-[#3e5f79]"
-              disabled={busyKey !== null}
-              onClick={recoverCloudSync}
+              disabled={ui.busyKey !== null}
+              onClick={page.recoverCloudSync}
             >
-              {busyKey === "refresh" ? (
+              {ui.busyKey === "refresh" ? (
                 <LoaderCircle className="size-4 animate-spin" />
               ) : (
                 <RefreshCw className="size-4" />
               )}
-              重新同步资料
+              {copy.retrySync}
             </Button>
           </div>
         </section>
@@ -133,10 +140,10 @@ export function DashboardSharedMyClient() {
   return (
     <>
       <section className="mx-auto flex w-full max-w-[1320px] flex-col gap-8">
-        {pageError ? (
-          <PageBanner tone="error">{pageError}</PageBanner>
-        ) : pageNotice ? (
-          <PageBanner tone={pageNotice.tone}>{pageNotice.message}</PageBanner>
+        {page.error ? (
+          <PageBanner tone="error">{page.error}</PageBanner>
+        ) : page.notice ? (
+          <PageBanner tone={page.notice.tone}>{page.notice.message}</PageBanner>
         ) : null}
 
         <div className="grid grid-cols-1 gap-6 xl:grid-cols-12">
@@ -144,65 +151,65 @@ export function DashboardSharedMyClient() {
             <div className="mb-10 flex flex-col gap-6 xl:flex-row xl:items-end xl:justify-between">
               <div>
                 <span className="inline-flex rounded-full bg-[#dff0e4] px-3 py-1 text-xs font-semibold text-[#487155]">
-                  {membershipLabel}
+                  {account.membershipLabel}
                 </span>
                 <h2 className="mt-4 text-4xl font-bold tracking-tight text-[#1f2a32]">
-                  {displayName}
+                  {account.displayName}
                 </h2>
                 <p className="mt-2 flex items-center gap-2 text-sm text-[#66727d]">
                   <MapPin className="size-4" />
-                  {displayCity}
+                  {account.displayCity}
                 </p>
               </div>
 
               <div className="flex flex-wrap gap-3">
                 <Button
                   className="h-12 rounded-full border-[#d4d8dc] bg-white px-5 text-[#486782] hover:bg-[#f2f4f6]"
-                  disabled={busyKey !== null}
-                  onClick={openProfileDialog}
+                  disabled={ui.busyKey !== null}
+                  onClick={profileDialog.openDialog}
                   variant="outline"
                 >
                   <MapPin className="size-4" />
-                  编辑个人资料
+                  {copy.editProfile}
                 </Button>
                 <Button
                   className="h-12 rounded-full bg-[#486782] px-5 text-white hover:bg-[#3e5f79]"
-                  disabled={busyKey !== null}
-                  onClick={() => void sendPasswordReset()}
+                  disabled={ui.busyKey !== null}
+                  onClick={() => void account.sendPasswordReset()}
                 >
-                  {busyKey === "password" ? (
+                  {ui.busyKey === "password" ? (
                     <LoaderCircle className="size-4 animate-spin" />
                   ) : (
                     <KeyRound className="size-4" />
                   )}
-                  修改密码
+                  {copy.changePassword}
                 </Button>
                 <Button
                   className="h-12 rounded-full border-[#d4d8dc] bg-white px-5 text-[#486782] hover:bg-[#f2f4f6]"
-                  onClick={() => void copyInviteCode()}
+                  onClick={() => void account.copyInviteCode()}
                   variant="outline"
                 >
                   <Copy className="size-4" />
-                  复制邀请码
+                  {copy.copyInviteCode}
                 </Button>
                 <Button
                   className="h-12 rounded-full border-[#d4d8dc] bg-white px-5 text-[#486782] hover:bg-[#f2f4f6]"
-                  disabled={busyKey !== null}
-                  onClick={() => void refreshBundle({ quiet: false })}
+                  disabled={ui.busyKey !== null}
+                  onClick={() => void page.refreshBundle({ quiet: false })}
                   variant="outline"
                 >
-                  {busyKey === "refresh" ? (
+                  {ui.busyKey === "refresh" ? (
                     <LoaderCircle className="size-4 animate-spin" />
                   ) : (
                     <RefreshCw className="size-4" />
                   )}
-                  刷新资料
+                  {copy.refreshProfile}
                 </Button>
               </div>
             </div>
 
             <div className="grid grid-cols-1 gap-x-12 gap-y-8 sm:grid-cols-2">
-              {profileStats.map((item) => (
+              {account.profileStats.map((item) => (
                 <div key={item.label} className="space-y-1">
                   <p className="font-label text-[11px] font-semibold tracking-[0.22em] text-[#7d8890] uppercase">
                     {item.label}
@@ -231,9 +238,9 @@ export function DashboardSharedMyClient() {
             <section
               className={cn(
                 "rounded-[24px] border p-6 shadow-[0_12px_30px_rgba(96,113,128,0.06)]",
-                certified
+                account.certified
                   ? "border-[#d9e8dc] bg-[#edf5ef]"
-                  : verificationStatus === "pending"
+                  : account.verificationStatus === "pending"
                     ? "border-[#ecdcb1] bg-[#fbf5e6]"
                     : "border-[#ebdfd2] bg-[#fbf6ef]",
               )}
@@ -242,16 +249,16 @@ export function DashboardSharedMyClient() {
                 <div
                   className={cn(
                     "flex h-12 w-12 items-center justify-center rounded-full text-white",
-                    certified
+                    account.certified
                       ? "bg-[#4c7259]"
-                      : verificationStatus === "pending"
+                      : account.verificationStatus === "pending"
                         ? "bg-[#b7892f]"
                         : "bg-[#b07a4f]",
                   )}
                 >
-                  {certified ? (
+                  {account.certified ? (
                     <BadgeCheck className="size-5" />
-                  ) : verificationStatus === "pending" ? (
+                  ) : account.verificationStatus === "pending" ? (
                     <ShieldAlert className="size-5" />
                   ) : (
                     <ShieldAlert className="size-5" />
@@ -261,39 +268,39 @@ export function DashboardSharedMyClient() {
                   <p
                     className={cn(
                       "text-xs font-semibold tracking-[0.16em] uppercase",
-                      certified
+                      account.certified
                         ? "text-[#4c7259]"
-                        : verificationStatus === "pending"
+                        : account.verificationStatus === "pending"
                           ? "text-[#87631e]"
                           : "text-[#8b6240]",
                     )}
                   >
-                    实名认证状态
+                    {copy.verificationTitle}
                   </p>
                   <p
                     className={cn(
                       "mt-1 text-lg font-bold",
-                      certified
+                      account.certified
                         ? "text-[#355443]"
-                        : verificationStatus === "pending"
+                        : account.verificationStatus === "pending"
                           ? "text-[#6f5318]"
                           : "text-[#704d31]",
                     )}
                   >
-                    {certified
-                      ? "通过认证"
-                      : verificationStatus === "pending"
-                        ? "审核中"
-                        : "未认证"}
+                    {account.certified
+                      ? copy.verificationApproved
+                      : account.verificationStatus === "pending"
+                        ? copy.verificationPending
+                        : copy.verificationEmpty}
                   </p>
                 </div>
               </div>
               <p className="mt-4 text-sm leading-7 text-[#6e7780]">
-                {certified
-                  ? "身份证资料已经通过审核，当前账号已完成实名认证。"
-                  : verificationStatus === "pending"
-                    ? "身份证资料已提交，当前正在审核中。"
-                    : "身份证资料通过审核后，这里会显示通过认证。"}
+                {account.certified
+                  ? copy.verificationApprovedDescription
+                  : account.verificationStatus === "pending"
+                    ? copy.verificationPendingDescription
+                    : copy.verificationEmptyDescription}
               </p>
             </section>
           </aside>
@@ -306,17 +313,17 @@ export function DashboardSharedMyClient() {
             </div>
             <div>
               <h3 className="text-2xl font-bold tracking-tight text-[#486782]">
-                身份证明与多媒体
+                {copy.identityMediaTitle}
               </h3>
             </div>
           </div>
 
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-4">
-            {assets.map((asset) => (
+            {assetDialog.assets.map((asset) => (
               <button
                 key={asset.key}
                 className="group rounded-[24px] border border-[#efede9] bg-white p-4 text-left shadow-[0_10px_24px_rgba(96,113,128,0.06)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_18px_36px_rgba(96,113,128,0.12)] active:scale-[0.985]"
-                onClick={() => openDialog(asset.key)}
+                onClick={() => assetDialog.openDialog(asset.key)}
                 type="button"
               >
                 <div className="flex items-start justify-between gap-3">
@@ -341,16 +348,16 @@ export function DashboardSharedMyClient() {
         </section>
 
         <footer className="flex flex-col gap-4 border-t border-[#e4e2de] px-1 pt-8 text-xs text-[#8a949b] sm:flex-row sm:items-center sm:justify-between">
-            <p>© 2026 柏盛管理系统</p>
+            <p>{copy.copyright}</p>
           <div className="flex items-center gap-6">
             <a className="transition-colors hover:text-[#486782]" href="#">
-              隐私政策
+              {copy.privacy}
             </a>
             <a className="transition-colors hover:text-[#486782]" href="#">
-              服务条款
+              {copy.terms}
             </a>
             <a className="transition-colors hover:text-[#486782]" href="#">
-              帮助中心
+              {copy.help}
             </a>
           </div>
         </footer>
@@ -365,7 +372,7 @@ export function DashboardSharedMyClient() {
           const files = Array.from(event.target.files ?? []);
           event.target.value = "";
           if (files.length > 0) {
-            void uploadPhotos(files);
+            void assetDialog.uploadPhotos(files);
           }
         }}
         type="file"
@@ -379,124 +386,124 @@ export function DashboardSharedMyClient() {
           const files = Array.from(event.target.files ?? []);
           event.target.value = "";
           if (files.length > 0) {
-            void uploadVideos(files);
+            void assetDialog.uploadVideos(files);
           }
         }}
         type="file"
       />
 
       <DashboardDialog
-        actions={dialogActions}
-        description={dialogDescription}
-        onOpenChange={closeDialog}
-        open={activeDialog !== null}
-        title={dialogTitle}
+        actions={assetDialog.actions}
+        description={assetDialog.description}
+        onOpenChange={assetDialog.close}
+        open={assetDialog.activeDialog !== null}
+        title={assetDialog.title}
       >
-        {dialogNotice ? (
+        {assetDialog.notice ? (
           <div className="mb-5">
-            <PageBanner tone={dialogNotice.tone}>{dialogNotice.message}</PageBanner>
+            <PageBanner tone={assetDialog.notice.tone}>{assetDialog.notice.message}</PageBanner>
           </div>
         ) : null}
 
-        {activeDialog === "identity" ? (
-          identityStatus === "empty" || identityEditing ? (
+        {assetDialog.activeDialog === "identity" ? (
+          identity.status === "empty" || identity.editing ? (
             <InputCard
-              actionLabel="提交身份证号"
-              busy={busyKey === "identity"}
+              actionLabel={copy.identitySubmit}
+              busy={ui.busyKey === "identity"}
               icon={<FileBadge2 className="size-5" />}
-              label="身份证号"
-              onAction={() => void submitIdentity()}
-              onChange={setIdentityDraft}
-              placeholder="请填写身份证号"
-              value={identityDraft}
+              label={copy.identityLabel}
+              onAction={() => void identity.submit()}
+              onChange={identity.setDraft}
+              placeholder={copy.identityPlaceholder}
+              value={identity.draft}
             />
           ) : (
             <div className="space-y-5">
               <StatusNotice
                 description={
-                  identityStatus === "pending"
-                    ? "身份证号已提交，当前状态为待审核。"
-                    : "身份证号已审核通过。"
+                  identity.status === "pending"
+                    ? copy.identityPendingDescription
+                    : copy.identityApprovedDescription
                 }
-                status={identityStatus}
+                status={identity.status}
               />
               <ValueCard
                 icon={<FileBadge2 className="size-5" />}
-                label="身份证号"
-                value={identityValue}
+                label={copy.identityLabel}
+                value={identity.value}
               />
-              {identityStatus === "approved" ? (
+              {identity.status === "approved" ? (
                 <div className="flex justify-end">
                   <Button
                     className="h-11 rounded-full border-[#d4d8dc] bg-white px-5 text-[#486782] hover:bg-[#f2f4f6]"
                     onClick={() => {
-                      setIdentityEditing(true);
-                      setIdentityDraft(identityValue);
+                      identity.setEditing(true);
+                      identity.setDraft(identity.value);
                     }}
                     variant="outline"
                   >
-                    重新填写
+                    {copy.retryEdit}
                   </Button>
                 </div>
               ) : null}
             </div>
           )
-        ) : activeDialog === "passport" ? (
-          passportStatus === "empty" || passportEditing ? (
+        ) : assetDialog.activeDialog === "passport" ? (
+          passport.status === "empty" || passport.editing ? (
             <InputCard
-              actionLabel="提交护照号码"
-              busy={busyKey === "passport"}
+              actionLabel={copy.passportSubmit}
+              busy={ui.busyKey === "passport"}
               icon={<FileBadge2 className="size-5" />}
-              label="护照号码"
-              onAction={() => void submitPassport()}
-              onChange={setPassportDraft}
-              placeholder="请上传护照号码"
-              value={passportDraft}
+              label={copy.passportLabel}
+              onAction={() => void passport.submit()}
+              onChange={passport.setDraft}
+              placeholder={copy.passportPlaceholder}
+              value={passport.draft}
             />
           ) : (
             <div className="space-y-5">
               <StatusNotice
                 description={
-                  passportStatus === "pending"
-                    ? "护照号码已提交，当前状态为待审核。"
-                    : "护照号码已审核通过。"
+                  passport.status === "pending"
+                    ? copy.passportPendingDescription
+                    : copy.passportApprovedDescription
                 }
-                status={passportStatus}
+                status={passport.status}
               />
               <ValueCard
                 icon={<FileBadge2 className="size-5" />}
-                label="护照号码"
-                value={passportValue}
+                label={copy.passportLabel}
+                value={passport.value}
               />
-              {passportStatus === "approved" ? (
+              {passport.status === "approved" ? (
                 <div className="flex justify-end">
                   <Button
                     className="h-11 rounded-full border-[#d4d8dc] bg-white px-5 text-[#486782] hover:bg-[#f2f4f6]"
                     onClick={() => {
-                      setPassportEditing(true);
-                      setPassportDraft(passportValue);
+                      passport.setEditing(true);
+                      passport.setDraft(passport.value);
                     }}
                     variant="outline"
                   >
-                    重新填写
+                    {copy.retryEdit}
                   </Button>
                 </div>
               ) : null}
             </div>
           )
-        ) : activeDialog === "photos" ? (
-          photoAssets.length ? (
+        ) : assetDialog.activeDialog === "photos" ? (
+          assetDialog.photoAssets.length ? (
             <div className="space-y-6">
               <StatusNotice
                 description={
-                  photoStatus === "pending"
-                    ? "至少有一张个人照片正在等待审核。"
-                    : "个人照片已审核通过。"
+                  assetDialog.photoStatus === "pending"
+                    ? copy.photoPendingDescription
+                    : copy.photoApprovedDescription
                 }
-                status={photoStatus}
+                status={assetDialog.photoStatus}
               />
               <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3">
-                {photoAssets.map((photo, index) => (
+                {assetDialog.photoAssets.map((photo, index) => (
                   <article
                     key={photo.id}
                     className="rounded-[24px] border border-[#ebe7e1] bg-white p-3 shadow-[0_10px_24px_rgba(96,113,128,0.05)]"
@@ -512,7 +519,7 @@ export function DashboardSharedMyClient() {
                         />
                       ) : (
                         <div className="flex h-full items-center justify-center text-sm text-[#7d8890]">
-                          无法预览
+                          {copy.previewUnavailable}
                         </div>
                       )}
                     </div>
@@ -520,7 +527,7 @@ export function DashboardSharedMyClient() {
                       <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0">
                           <p className="truncate text-sm font-semibold text-[#2b3942]">
-                            个人照片 {index + 1}
+                            {copy.photoItem(index + 1)}
                           </p>
                           <p className="truncate text-xs text-[#7d8890]">
                             {photo.original_name}
@@ -530,12 +537,12 @@ export function DashboardSharedMyClient() {
                       </div>
                       <button
                         className="inline-flex h-9 items-center gap-1 rounded-full bg-[#fceaea] px-3 text-xs font-medium text-[#c43d3d]"
-                        disabled={busyKey !== null}
-                        onClick={() => void deletePhotoAssets([photo])}
+                        disabled={ui.busyKey !== null}
+                        onClick={() => void assetDialog.deletePhotoAssets([photo])}
                         type="button"
                       >
                         <Trash2 className="size-3.5" />
-                        删除
+                        {copy.delete}
                       </button>
                     </div>
                   </article>
@@ -544,24 +551,24 @@ export function DashboardSharedMyClient() {
             </div>
           ) : (
             <EmptyState
-              description="上传后会进入待审核，审核完成后会在这里展示全部照片。"
+              description={copy.photoEmptyDescription}
               icon={<FileBadge2 className="size-6" />}
-              title="请上传个人照片"
+              title={copy.photoEmptyTitle}
             />
           )
-        ) : activeDialog === "videos" ? (
-          videoAssets.length ? (
+        ) : assetDialog.activeDialog === "videos" ? (
+          assetDialog.videoAssets.length ? (
             <div className="space-y-6">
               <StatusNotice
                 description={
-                  videoStatus === "pending"
-                    ? "至少有一条个人视频正在等待审核。"
-                    : "个人视频已审核通过。"
+                  assetDialog.videoStatus === "pending"
+                    ? copy.videoPendingDescription
+                    : copy.videoApprovedDescription
                 }
-                status={videoStatus}
+                status={assetDialog.videoStatus}
               />
               <div className="grid grid-cols-1 gap-5 xl:grid-cols-2">
-                {videoAssets.map((video) => (
+                {assetDialog.videoAssets.map((video) => (
                   <article
                     key={video.id}
                     className="rounded-[24px] border border-[#ebe7e1] bg-white p-3 shadow-[0_10px_24px_rgba(96,113,128,0.05)]"
@@ -576,7 +583,7 @@ export function DashboardSharedMyClient() {
                         />
                       ) : (
                         <div className="flex aspect-video items-center justify-center text-sm text-white/72">
-                          无法预览
+                          {copy.previewUnavailable}
                         </div>
                       )}
                     </div>
@@ -594,12 +601,12 @@ export function DashboardSharedMyClient() {
                       </div>
                       <button
                         className="inline-flex h-9 items-center gap-1 rounded-full bg-[#fceaea] px-3 text-xs font-medium text-[#c43d3d]"
-                        disabled={busyKey !== null}
-                        onClick={() => void deleteVideoAssets([video])}
+                        disabled={ui.busyKey !== null}
+                        onClick={() => void assetDialog.deleteVideoAssets([video])}
                         type="button"
                       >
                         <Trash2 className="size-3.5" />
-                        删除
+                        {copy.delete}
                       </button>
                     </div>
                   </article>
@@ -608,24 +615,24 @@ export function DashboardSharedMyClient() {
             </div>
           ) : (
             <EmptyState
-              description="上传后会进入待审核，审核完成后会在这里展示全部视频。"
+              description={copy.videoEmptyDescription}
               icon={<Video className="size-6" />}
-              title="请上传个人视频"
+              title={copy.videoEmptyTitle}
             />
           )
         ) : null}
       </DashboardDialog>
 
       <DashboardDialog
-        description="注册完成后可以在这里补充城市信息，保存后会同步更新“我的”页展示。"
-        onOpenChange={closeProfileDialog}
-        open={profileDialogOpen}
-        title="编辑个人资料"
+        description={copy.editProfileDescription}
+        onOpenChange={profileDialog.close}
+        open={profileDialog.open}
+        title={copy.editProfile}
       >
-        {profileDialogNotice ? (
+        {profileDialog.notice ? (
           <div className="mb-5">
-            <PageBanner tone={profileDialogNotice.tone}>
-              {profileDialogNotice.message}
+            <PageBanner tone={profileDialog.notice.tone}>
+              {profileDialog.notice.message}
             </PageBanner>
           </div>
         ) : null}
@@ -637,7 +644,7 @@ export function DashboardSharedMyClient() {
             </div>
             <div>
               <p className="font-label text-[11px] font-semibold tracking-[0.18em] text-[#7d8890] uppercase">
-                所在城市
+                {copy.cityLabel}
               </p>
             </div>
           </div>
@@ -645,22 +652,22 @@ export function DashboardSharedMyClient() {
           <div className="mt-5 space-y-4">
             <input
               className="h-13 w-full rounded-[18px] border border-[#e1ddd7] bg-[#fbfaf8] px-4 text-[15px] text-[#23313a] outline-none transition focus:border-[#bfd2e1] focus:ring-4 focus:ring-[#bfd2e1]/30"
-              onChange={(event) => setProfileCityDraft(event.target.value)}
-              placeholder="请填写所在城市"
-              value={profileCityDraft}
+              onChange={(event) => profileDialog.setCityDraft(event.target.value)}
+              placeholder={copy.cityPlaceholder}
+              value={profileDialog.cityDraft}
             />
             <div className="flex justify-end">
               <Button
                 className="h-11 rounded-full bg-[#486782] px-5 text-white hover:bg-[#3e5f79]"
-                disabled={!profileCityDraft.trim() || busyKey === "profile-save"}
-                onClick={() => void saveProfileCity()}
+                disabled={!profileDialog.cityDraft.trim() || ui.busyKey === "profile-save"}
+                onClick={() => void profileDialog.saveCity()}
               >
-                {busyKey === "profile-save" ? (
+                {ui.busyKey === "profile-save" ? (
                   <LoaderCircle className="size-4 animate-spin" />
                 ) : (
                   <Upload className="size-4" />
                 )}
-                保存城市
+                {copy.saveCity}
               </Button>
             </div>
           </div>

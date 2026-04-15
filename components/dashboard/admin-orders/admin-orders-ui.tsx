@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import type { ReactNode } from "react";
 
 import { LoaderCircle, PencilLine, Trash2 } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 import {
   getAdminOrderSupplementaryDetail,
@@ -15,18 +16,23 @@ import {
   type PurchaseOrderTypeOption,
   type ServiceOrderTypeOption,
 } from "@/lib/admin-orders";
+import { useLocale } from "@/components/i18n/locale-provider";
 import { getBrowserSupabaseClient } from "@/lib/supabase";
 import { cn } from "@/lib/utils";
 
 import {
+  createDashboardSharedCopy,
   PageBanner,
   formatDateTime,
   normalizeOptionalString,
   type NoticeTone,
 } from "../dashboard-shared-ui";
+import { DashboardCenteredLoadingState } from "../dashboard-centered-loading-state";
 import { DashboardDialog } from "../dashboard-dialog";
+import { DashboardMetricCard } from "../dashboard-metric-card";
 import { Button } from "../../ui/button";
 import {
+  createOrdersUiCopy,
   flattenOrderDetailItems,
   formatCurrencyCode,
   formatDiscountRatioValue,
@@ -40,28 +46,27 @@ import {
   resolveOrderTypeMeta,
   resolveOrderUserLabel,
   toOrderErrorMessage,
+  type OrdersUiCopy,
   type OrderFormState,
 } from "./admin-orders-utils";
 
 type PageFeedback = { tone: NoticeTone; message: string } | null;
 
-const ORDER_STATUS_OPTIONS = [
-  { value: "pending", label: "待处理" },
-  { value: "in_progress", label: "处理中" },
-  { value: "settled", label: "已结算" },
-  { value: "completed", label: "已完成" },
-  { value: "cancelled", label: "已取消" },
-  { value: "refunding", label: "退款中" },
-] as const;
+function getOrderStatusOptions(t: ReturnType<typeof useTranslations>) {
+  return [
+    { value: "pending", label: t("status.pending") },
+    { value: "in_progress", label: t("status.inProgress") },
+    { value: "settled", label: t("status.settled") },
+    { value: "completed", label: t("status.completed") },
+    { value: "cancelled", label: t("status.cancelled") },
+    { value: "refunding", label: t("status.refunding") },
+  ] as const;
+}
 
 function OrdersLoadingState() {
-  return (
-    <div className="mx-auto flex min-h-[60vh] w-full max-w-[1320px] items-center justify-center">
-      <div className="rounded-[28px] border border-white/85 bg-white/72 px-6 py-5 text-sm text-[#60707d] shadow-[0_18px_45px_rgba(96,113,128,0.06)]">
-        正在加载订单列表...
-      </div>
-    </div>
-  );
+  const t = useTranslations("OrdersUI");
+
+  return <DashboardCenteredLoadingState message={t("loading")} />;
 }
 
 function OrderSummaryCard({
@@ -76,33 +81,12 @@ function OrderSummaryCard({
   accent: "blue" | "green" | "gold";
 }) {
   return (
-    <div
-      className={cn(
-        "min-w-[180px] rounded-[24px] border px-5 py-4 shadow-[0_10px_24px_rgba(96,113,128,0.06)]",
-        accent === "blue" && "border-[#d9e3eb] bg-[#f4f8fb]",
-        accent === "green" && "border-[#dce8df] bg-[#f2f7f3]",
-        accent === "gold" && "border-[#eadfbf] bg-[#fbf5e8]",
-      )}
-    >
-      <div className="flex items-center gap-3">
-        <div
-          className={cn(
-            "flex h-11 w-11 items-center justify-center rounded-full text-white",
-            accent === "blue" && "bg-[#486782]",
-            accent === "green" && "bg-[#4c7259]",
-            accent === "gold" && "bg-[#b7892f]",
-          )}
-        >
-          {icon}
-        </div>
-        <div>
-          <p className="font-label text-[11px] font-semibold tracking-[0.18em] text-[#7d8890] uppercase">
-            {label}
-          </p>
-          <p className="mt-1 text-2xl font-bold tracking-tight text-[#23313a]">{count}</p>
-        </div>
-      </div>
-    </div>
+    <DashboardMetricCard
+      accent={accent}
+      icon={icon}
+      label={label}
+      value={String(count)}
+    />
   );
 }
 
@@ -171,6 +155,10 @@ function OrderFormDialog({
 }) {
   const effectiveOrderEntryUserOptions = orderEntryUserOptions ?? orderUserOptions;
   const effectiveOrderingUserOptions = orderingUserOptions ?? orderUserOptions;
+  const { locale } = useLocale();
+  const t = useTranslations("OrdersUI");
+  const orderUiCopy = useMemo(() => createOrdersUiCopy(t), [t]);
+  const orderStatusOptions = getOrderStatusOptions(t);
   const selectedOrderCategory = useMemo(() => {
     return (
       orderTypeOptions.find((option) => option.id === formState.orderType)?.category ?? null
@@ -182,19 +170,19 @@ function OrderFormDialog({
     <DashboardDialog
       actions={
         <>
-            <Button onClick={() => onOpenChange(false)} type="button" variant="outline">
-              取消
-            </Button>
-            <Button
-              className="bg-[#486782] text-white hover:bg-[#3e5f79]"
-              disabled={isFormBusy}
-              onClick={onSubmit}
-              type="button"
-            >
-              {isFormBusy ? (
-                <LoaderCircle className="size-4 animate-spin" />
-              ) : (
-                <PencilLine className="size-4" />
+          <Button onClick={() => onOpenChange(false)} type="button" variant="outline">
+            {t("cancel")}
+          </Button>
+          <Button
+            className="bg-[#486782] text-white hover:bg-[#3e5f79]"
+            disabled={isFormBusy}
+            onClick={onSubmit}
+            type="button"
+          >
+            {isFormBusy ? (
+              <LoaderCircle className="size-4 animate-spin" />
+            ) : (
+              <PencilLine className="size-4" />
             )}
             {submitLabel}
           </Button>
@@ -209,64 +197,64 @@ function OrderFormDialog({
         {feedback ? <PageBanner tone={feedback.tone}>{feedback.message}</PageBanner> : null}
 
         <div className="grid gap-5 md:grid-cols-2">
-        <OrderField label="原始货币" required>
+        <OrderField label={t("fields.originalCurrency")} required>
             <input
               className={fieldInputClassName}
               disabled={isFormBusy}
             onChange={(event) => onFieldChange("originalCurrency", event.target.value)}
-            placeholder="例如 USD、CNY、EUR"
+            placeholder={t("placeholders.originalCurrency")}
             type="text"
             value={formState.originalCurrency}
           />
         </OrderField>
 
-        <OrderField label="金额总计" required>
+        <OrderField label={t("fields.amount")} required>
             <input
               className={fieldInputClassName}
               disabled={isFormBusy}
             min="0"
             onChange={(event) => onFieldChange("amount", event.target.value)}
-            placeholder="请输入金额总计"
+            placeholder={t("placeholders.amount")}
             step="0.01"
             type="number"
             value={formState.amount}
           />
         </OrderField>
 
-        <OrderField label="当日汇率" required>
+        <OrderField label={t("fields.dailyExchangeRate")} required>
             <input
               className={fieldInputClassName}
               disabled={isFormBusy}
             min="0"
             onChange={(event) => onFieldChange("dailyExchangeRate", event.target.value)}
-            placeholder="请输入当日汇率"
+            placeholder={t("placeholders.dailyExchangeRate")}
             step="0.0001"
             type="number"
             value={formState.dailyExchangeRate}
           />
         </OrderField>
 
-        <OrderField label="公司成交汇率（自动）" required>
+        <OrderField label={t("fields.transactionRate")} required>
             <input
               className={fieldInputClassName}
               disabled={isFormBusy}
             min="0"
-            placeholder="自动按当日汇率计算"
+            placeholder={t("placeholders.transactionRate")}
             readOnly
             step="0.000001"
             type="number"
             value={formState.transactionRate}
           />
-          <p className="mt-2 text-xs text-[#7b8790]">自动 = 当日汇率 * 0.99</p>
+          <p className="mt-2 text-xs text-[#7b8790]">{t("hints.transactionRate")}</p>
         </OrderField>
 
-        <OrderField label="人民币总计" required>
+        <OrderField label={t("fields.rmbAmount")} required>
             <input
               className={fieldInputClassName}
               disabled={isFormBusy}
             min="0"
             onChange={(event) => onFieldChange("rmbAmount", event.target.value)}
-            placeholder="请输入人民币总计"
+            placeholder={t("placeholders.rmbAmount")}
             step="0.01"
             type="number"
             value={formState.rmbAmount}
@@ -274,13 +262,13 @@ function OrderFormDialog({
         </OrderField>
 
         {showCostField ? (
-          <OrderField label="订单成本">
+          <OrderField label={t("fields.costAmount")}>
             <input
               className={fieldInputClassName}
               disabled={isFormBusy}
               min="0"
               onChange={(event) => onFieldChange("costAmount", event.target.value)}
-              placeholder="请输入内部成本，留空则不记录"
+              placeholder={t("placeholders.costAmount")}
               step="0.01"
               type="number"
               value={formState.costAmount}
@@ -288,14 +276,14 @@ function OrderFormDialog({
           </OrderField>
         ) : null}
 
-        <OrderField label="订单录入员" required>
+        <OrderField label={t("fields.orderEntryUser")} required>
           <select
             className={fieldInputClassName}
             disabled={isFormBusy || mode === "edit" || lockOrderEntryUser}
             onChange={(event) => onFieldChange("orderEntryUser", event.target.value)}
             value={formState.orderEntryUser}
           >
-            <option value="">请选择订单录入员</option>
+            <option value="">{t("select.orderEntryUser")}</option>
             {effectiveOrderEntryUserOptions.map((option) => (
               <option key={option.user_id} value={option.user_id}>
                 {getOrderUserOptionLabel(option)}
@@ -304,19 +292,19 @@ function OrderFormDialog({
           </select>
           {lockOrderEntryUser ? (
             <p className="mt-2 text-xs text-[#7b8790]">
-              当前页面创建的订单会自动归属到当前业务员名下。
+              {t("hints.lockedOrderEntryUser")}
             </p>
           ) : null}
         </OrderField>
 
-        <OrderField label="订单客户" required>
+        <OrderField label={t("fields.orderingUser")} required>
           <select
             className={fieldInputClassName}
             disabled={isFormBusy}
             onChange={(event) => onFieldChange("orderingUser", event.target.value)}
             value={formState.orderingUser}
           >
-            <option value="">请选择订单客户</option>
+            <option value="">{t("select.orderingUser")}</option>
             {effectiveOrderingUserOptions.map((option) => (
               <option key={option.user_id} value={option.user_id}>
                 {getOrderUserOptionLabel(option)}
@@ -325,14 +313,14 @@ function OrderFormDialog({
           </select>
         </OrderField>
 
-        <OrderField label="订单状态" required>
+        <OrderField label={t("fields.orderStatus")} required>
           <select
             className={fieldInputClassName}
             disabled={isFormBusy}
             onChange={(event) => onFieldChange("orderStatus", event.target.value)}
             value={formState.orderStatus}
           >
-            {ORDER_STATUS_OPTIONS.map((option) => (
+            {orderStatusOptions.map((option) => (
               <option key={option.value} value={option.value}>
                 {option.label}
               </option>
@@ -340,24 +328,24 @@ function OrderFormDialog({
           </select>
         </OrderField>
 
-        <OrderField label="订单类型" required>
+        <OrderField label={t("fields.orderType")} required>
           <select
             className={fieldInputClassName}
             disabled={isFormBusy}
             onChange={(event) => onFieldChange("orderType", event.target.value)}
             value={formState.orderType}
           >
-            <option value="">请选择订单类型</option>
+            <option value="">{t("select.orderType")}</option>
             {orderTypeOptions.map((option) => (
               <option key={option.id} value={option.id}>
-                {getOrderTypeMetaFromCategory(option.category).label}
+                {getOrderTypeMetaFromCategory(option.category, orderUiCopy).label}
               </option>
             ))}
           </select>
         </OrderField>
 
         <div className="rounded-[20px] border border-[#e6ebe6] bg-[#f6faf7] px-4 py-3 text-sm leading-7 text-[#4f6757] md:col-span-2">
-          创建订单后，系统会自动写入创建时间；编辑订单保存后，系统会自动更新最后一次改动时间。
+          {t("hints.autoTimestamps")}
         </div>
 
         {selectedOrderCategory === "purchase" ? (
@@ -365,41 +353,41 @@ function OrderFormDialog({
             <OrderSupplementaryFormSection
               description={
                 mode === "create"
-                  ? "当前订单类型为采购订单，请继续填写采购子表信息。订单明细支持 JSON，也支持每行一个“字段: 内容”。"
-                  : "当前订单类型为采购订单，可直接修改采购子表信息。订单明细支持 JSON，也支持每行一个“字段: 内容”。"
+                  ? t("purchaseSection.createDescription")
+                  : t("purchaseSection.editDescription")
               }
-              title="采购订单信息"
+              title={t("purchaseSection.title")}
             >
               {supplementaryLoading ? (
                 <div className="flex items-center gap-3 rounded-[18px] border border-[#ebe7e1] bg-white px-4 py-3 text-sm text-[#60707d]">
                   <LoaderCircle className="size-4 animate-spin" />
-                  正在加载采购订单信息...
+                  {t("purchaseSection.loading")}
                 </div>
               ) : null}
               <div className="grid gap-5 md:grid-cols-2">
-                <OrderField label="采购小类" required>
+                <OrderField label={t("fields.purchaseSubtype")} required>
                   <select
                     className={fieldInputClassName}
                     disabled={isFormBusy}
                     onChange={(event) => onFieldChange("purchaseSubtype", event.target.value)}
                     value={formState.purchaseSubtype}
                   >
-                    <option value="">请选择采购小类</option>
+                    <option value="">{t("select.purchaseSubtype")}</option>
                     {purchaseOrderTypeOptions.map((option) => (
                       <option key={option.id} value={option.id}>
-                        {formatPurchaseOrderSubtype(option.business_subcategory)}
+                        {formatPurchaseOrderSubtype(option.business_subcategory, orderUiCopy)}
                       </option>
                     ))}
                   </select>
                 </OrderField>
               </div>
 
-              <OrderField label="采购订单明细">
+              <OrderField label={t("fields.purchaseDetails")}>
                 <textarea
                   className={fieldTextareaClassName}
                   disabled={isFormBusy}
                   onChange={(event) => onFieldChange("purchaseDetails", event.target.value)}
-                  placeholder={'可填写 JSON，或按行输入，例如：\n商品名称: iPhone 16 Pro\n数量: 2\n收货城市: 上海'}
+                  placeholder={t("placeholders.purchaseDetails")}
                   rows={6}
                   value={formState.purchaseDetails}
                 />
@@ -413,57 +401,57 @@ function OrderFormDialog({
             <OrderSupplementaryFormSection
               description={
                 mode === "create"
-                  ? "当前订单类型为服务订单，请继续填写服务子表信息。订单明细支持 JSON，也支持每行一个“字段: 内容”。"
-                  : "当前订单类型为服务订单，可直接修改服务子表信息。订单明细支持 JSON，也支持每行一个“字段: 内容”。"
+                  ? t("serviceSection.createDescription")
+                  : t("serviceSection.editDescription")
               }
-              title="服务订单信息"
+              title={t("serviceSection.title")}
             >
               {supplementaryLoading ? (
                 <div className="flex items-center gap-3 rounded-[18px] border border-[#ebe7e1] bg-white px-4 py-3 text-sm text-[#60707d]">
                   <LoaderCircle className="size-4 animate-spin" />
-                  正在加载服务订单信息...
+                  {t("serviceSection.loading")}
                 </div>
               ) : null}
               <div className="grid gap-5 md:grid-cols-2">
-                <OrderField label="服务小类" required>
+                <OrderField label={t("fields.serviceSubtype")} required>
                   <select
                     className={fieldInputClassName}
                     disabled={isFormBusy}
                     onChange={(event) => onFieldChange("serviceSubtype", event.target.value)}
                     value={formState.serviceSubtype}
                   >
-                    <option value="">请选择服务小类</option>
+                    <option value="">{t("select.serviceSubtype")}</option>
                     {serviceOrderTypeOptions.map((option) => (
                       <option key={option.id} value={option.id}>
-                        {formatServiceOrderSubtype(option.business_subcategory)}
+                        {formatServiceOrderSubtype(option.business_subcategory, orderUiCopy)}
                       </option>
                     ))}
                   </select>
                 </OrderField>
 
-                <OrderField label="订单折扣" required>
+                <OrderField label={t("fields.serviceDiscount")} required>
                   <select
                     className={fieldInputClassName}
                     disabled={isFormBusy}
                     onChange={(event) => onFieldChange("serviceDiscount", event.target.value)}
                     value={formState.serviceDiscount}
                   >
-                    <option value="">请选择订单折扣</option>
+                    <option value="">{t("select.serviceDiscount")}</option>
                     {orderDiscountOptions.map((option) => (
                       <option key={option.id} value={option.id}>
-                        {formatDiscountRatioValue(option.discount_ratio)}
+                        {formatDiscountRatioValue(option.discount_ratio, locale, orderUiCopy)}
                       </option>
                     ))}
                   </select>
                 </OrderField>
               </div>
 
-              <OrderField label="服务订单明细">
+              <OrderField label={t("fields.serviceDetails")}>
                 <textarea
                   className={fieldTextareaClassName}
                   disabled={isFormBusy}
                   onChange={(event) => onFieldChange("serviceDetails", event.target.value)}
-                  placeholder={'可填写 JSON，或按行输入，例如：\n服务日期: 2026-04-02\n服务地点: 上海浦东机场\n接待人数: 3'}
+                  placeholder={t("placeholders.serviceDetails")}
                   rows={6}
                   value={formState.serviceDetails}
                 />
@@ -506,7 +494,12 @@ function OrderDetailsDialog({
   deletePending: boolean;
   onOpenChange: (open: boolean) => void;
 }) {
-  const typeMeta = resolveOrderTypeMeta(order?.order_type ?? null, orderTypeMetaById);
+  const { locale } = useLocale();
+  const t = useTranslations("OrdersUI");
+  const sharedT = useTranslations("DashboardShared");
+  const orderUiCopy = useMemo(() => createOrdersUiCopy(t), [t]);
+  const sharedCopy = useMemo(() => createDashboardSharedCopy(sharedT), [sharedT]);
+  const typeMeta = resolveOrderTypeMeta(order?.order_type ?? null, orderTypeMetaById, orderUiCopy);
   const orderNumber = order?.order_number ?? null;
   const [supplementaryState, setSupplementaryState] = useState<{
     orderNumber: string | null;
@@ -545,14 +538,14 @@ function OrderDetailsDialog({
         setSupplementaryState({
           orderNumber,
           detail: null,
-          error: toOrderErrorMessage(error),
+          error: toOrderErrorMessage(error, orderUiCopy, sharedCopy),
         });
       });
 
     return () => {
       isActive = false;
     };
-  }, [orderNumber, supabase]);
+  }, [orderNumber, orderUiCopy, sharedCopy, supabase]);
 
   const supplementaryLoading =
     orderNumber !== null && supplementaryState.orderNumber !== orderNumber;
@@ -566,67 +559,74 @@ function OrderDetailsDialog({
       actions={
         order ? (
           <>
-            {canEdit ? <Button onClick={() => onEdit(order)} type="button" variant="outline">
-              <PencilLine className="size-4" />
-              编辑订单
-            </Button> : null}
+            {canEdit ? (
+              <Button onClick={() => onEdit(order)} type="button" variant="outline">
+                <PencilLine className="size-4" />
+                {t("details.editOrder")}
+              </Button>
+            ) : null}
             {canDelete ? (
               <Button
-              className="border-[#efd6d6] bg-white text-[#b13d3d] hover:bg-[#fff4f4]"
-              disabled={deletePending}
-              onClick={onDelete}
-              type="button"
-              variant="outline"
-            >
-              {deletePending ? (
-                <LoaderCircle className="size-4 animate-spin" />
-              ) : (
-                <Trash2 className="size-4" />
-              )}
-              删除订单
+                className="border-[#efd6d6] bg-white text-[#b13d3d] hover:bg-[#fff4f4]"
+                disabled={deletePending}
+                onClick={onDelete}
+                type="button"
+                variant="outline"
+              >
+                {deletePending ? (
+                  <LoaderCircle className="size-4 animate-spin" />
+                ) : (
+                  <Trash2 className="size-4" />
+                )}
+                {t("details.deleteOrder")}
               </Button>
             ) : null}
           </>
         ) : null
       }
-      description={order ? "查看订单的完整金额、汇率、人员信息以及关联表单内容。" : undefined}
+      description={order ? t("details.description") : undefined}
       onOpenChange={onOpenChange}
       open={order !== null}
-      title={order ? `订单 ${order.order_number}` : "订单详情"}
+      title={
+        order ? t("details.titleWithOrderNumber", { orderNumber: order.order_number }) : t("details.title")
+      }
     >
       {order ? (
         <div className="space-y-6">
           <div className="grid gap-5 md:grid-cols-2">
-            <OrderDetailCard label="订单编号" value={order.order_number} />
-            <OrderDetailCard label="订单状态" value={getStatusLabel(order.order_status)} />
-            <OrderDetailCard label="订单类型" value={typeMeta.label} />
-            <OrderDetailCard label="原始货币" value={formatCurrencyCode(order.original_currency)} />
-            <OrderDetailCard label="金额总计" value={formatMoneyValue(order.amount)} />
-            <OrderDetailCard label="人民币总计" value={formatMoneyValue(order.rmb_amount)} />
-            {canViewCost ? (
-              <OrderDetailCard label="订单成本" value={formatMoneyValue(order.cost_amount)} />
-            ) : null}
-            <OrderDetailCard label="当日汇率" value={formatRateValue(order.daily_exchange_rate)} />
+            <OrderDetailCard label={t("details.fields.orderNumber")} value={order.order_number} />
             <OrderDetailCard
-              label="公司成交汇率"
-              value={formatRateValue(order.transaction_rate)}
+              label={t("details.fields.orderStatus")}
+              value={getStatusLabel(order.order_status, orderUiCopy)}
+            />
+            <OrderDetailCard label={t("details.fields.orderType")} value={typeMeta.label} />
+            <OrderDetailCard label={t("details.fields.originalCurrency")} value={formatCurrencyCode(order.original_currency)} />
+            <OrderDetailCard label={t("details.fields.amount")} value={formatMoneyValue(order.amount, locale)} />
+            <OrderDetailCard label={t("details.fields.rmbAmount")} value={formatMoneyValue(order.rmb_amount, locale)} />
+            {canViewCost ? (
+              <OrderDetailCard label={t("details.fields.costAmount")} value={formatMoneyValue(order.cost_amount, locale)} />
+            ) : null}
+            <OrderDetailCard label={t("details.fields.dailyExchangeRate")} value={formatRateValue(order.daily_exchange_rate, locale)} />
+            <OrderDetailCard
+              label={t("details.fields.transactionRate")}
+              value={formatRateValue(order.transaction_rate, locale)}
             />
             {showOrderEntryUser ? (
               <OrderDetailCard
-                label="订单录入员"
+                label={t("details.fields.orderEntryUser")}
                 value={resolveOrderUserLabel(order.order_entry_user, userLabelById)}
               />
             ) : null}
             {showOrderingUser ? (
               <OrderDetailCard
-                label="订单客户"
+                label={t("details.fields.orderingUser")}
                 value={resolveOrderUserLabel(order.ordering_user, userLabelById)}
               />
             ) : null}
-            <OrderDetailCard label="创建日期" value={formatDateTime(order.created_at)} />
+            <OrderDetailCard label={t("details.fields.createdAt")} value={formatDateTime(order.created_at, locale)} />
             <OrderDetailCard
-              label="最后一次改动日期"
-              value={formatDateTime(order.reviewed_at)}
+              label={t("details.fields.updatedAt")}
+              value={formatDateTime(order.reviewed_at, locale)}
             />
           </div>
 
@@ -634,6 +634,7 @@ function OrderDetailsDialog({
             detail={supplementaryDetail}
             error={supplementaryError}
             loading={supplementaryLoading}
+            orderUiCopy={orderUiCopy}
           />
         </div>
       ) : null}
@@ -645,14 +646,18 @@ function OrderSupplementaryDetailsSection({
   detail,
   loading,
   error,
+  orderUiCopy,
 }: {
   detail: AdminOrderSupplementaryDetail | null;
   loading: boolean;
   error: string | null;
+  orderUiCopy: OrdersUiCopy;
 }) {
+  const { locale } = useLocale();
+  const t = useTranslations("OrdersUI");
   const detailItems = useMemo(
-    () => (detail ? flattenOrderDetailItems(detail.details) : []),
-    [detail],
+    () => (detail ? flattenOrderDetailItems(detail.details, locale, orderUiCopy) : []),
+    [detail, locale, orderUiCopy],
   );
 
   if (loading) {
@@ -660,7 +665,7 @@ function OrderSupplementaryDetailsSection({
       <div className="rounded-[24px] border border-[#ebe7e1] bg-[#f9f7f4] px-5 py-4 shadow-[0_10px_24px_rgba(96,113,128,0.05)]">
         <div className="flex items-center gap-3 text-sm text-[#60707d]">
           <LoaderCircle className="size-4 animate-spin" />
-          正在加载关联表单内容...
+          {t("details.supplementary.loading")}
         </div>
       </div>
     );
@@ -671,15 +676,21 @@ function OrderSupplementaryDetailsSection({
   }
 
   if (!detail) {
-    return <PageBanner tone="info">当前订单还没有对应的采购单或服务单表单内容。</PageBanner>;
+    return <PageBanner tone="info">{t("details.supplementary.empty")}</PageBanner>;
   }
 
-  const formTitle = detail.kind === "purchase" ? "采购订单表单" : "服务订单表单";
-  const subtypeLabel = detail.kind === "purchase" ? "采购小类" : "服务小类";
+  const formTitle =
+    detail.kind === "purchase"
+      ? t("details.supplementary.purchaseForm")
+      : t("details.supplementary.serviceForm");
+  const subtypeLabel =
+    detail.kind === "purchase"
+      ? t("details.supplementary.purchaseSubtype")
+      : t("details.supplementary.serviceSubtype");
   const subtypeValue =
     detail.kind === "purchase"
-      ? formatPurchaseOrderSubtype(detail.subtype)
-      : formatServiceOrderSubtype(detail.subtype);
+      ? formatPurchaseOrderSubtype(detail.subtype, orderUiCopy)
+      : formatServiceOrderSubtype(detail.subtype, orderUiCopy);
 
   return (
     <section className="rounded-[28px] border border-[#ebe7e1] bg-[#f9f7f4] p-5 shadow-[0_10px_24px_rgba(96,113,128,0.05)] sm:p-6">
@@ -688,12 +699,12 @@ function OrderSupplementaryDetailsSection({
       </div>
 
       <div className="mt-5 grid gap-5 md:grid-cols-2">
-        <OrderDetailCard label="来源表单" value={formTitle} />
+        <OrderDetailCard label={t("details.supplementary.sourceForm")} value={formTitle} />
         <OrderDetailCard label={subtypeLabel} value={subtypeValue} />
         {detail.kind === "service" ? (
           <OrderDetailCard
-            label="订单折扣"
-            value={formatDiscountRatioValue(detail.discountRatio)}
+            label={t("details.supplementary.discount")}
+            value={formatDiscountRatioValue(detail.discountRatio, locale, orderUiCopy)}
           />
         ) : null}
 
@@ -708,7 +719,7 @@ function OrderSupplementaryDetailsSection({
           ))
         ) : (
           <div className="md:col-span-2">
-            <PageBanner tone="info">当前关联表单还没有填写更多明细内容。</PageBanner>
+            <PageBanner tone="info">{t("details.supplementary.noMoreDetails")}</PageBanner>
           </div>
         )}
       </div>
@@ -814,13 +825,16 @@ function OrderValueCell({
 }
 
 function OrderStatusChip({ status }: { status: string | null }) {
+  const t = useTranslations("OrdersUI");
+  const orderUiCopy = useMemo(() => createOrdersUiCopy(t), [t]);
   const normalizedStatus = normalizeOptionalString(status);
+  const orderStatusOptions = getOrderStatusOptions(t);
 
   if (!normalizedStatus) {
-    return <StatusTag tone="default">待补充</StatusTag>;
+    return <StatusTag tone="default">{t("status.notProvided")}</StatusTag>;
   }
 
-  const matchedStatus = ORDER_STATUS_OPTIONS.find((option) => option.value === normalizedStatus);
+  const matchedStatus = orderStatusOptions.find((option) => option.value === normalizedStatus);
 
   if (!matchedStatus) {
     return <StatusTag tone="default">{normalizedStatus}</StatusTag>;
@@ -838,7 +852,7 @@ function OrderStatusChip({ status }: { status: string | null }) {
               : "blue"
       }
     >
-      {matchedStatus.label}
+      {matchedStatus?.label ?? getStatusLabel(normalizedStatus, orderUiCopy)}
     </StatusTag>
   );
 }

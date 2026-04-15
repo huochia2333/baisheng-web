@@ -1,8 +1,9 @@
-"use client";
+﻿"use client";
 
 import { useCallback, useDeferredValue, useMemo, useRef, useState } from "react";
 import type { ReactNode } from "react";
 
+import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import {
   CheckCheck,
@@ -22,37 +23,57 @@ import {
 } from "lucide-react";
 
 import {
+  ADMIN_TASK_ATTACHMENT_MAX_FILES,
+  ADMIN_TASK_ATTACHMENT_MAX_FILE_SIZE_BYTES,
+  ADMIN_TASK_ATTACHMENT_MAX_TOTAL_SIZE_BYTES,
   createAdminTask,
   deleteAdminTask,
   getAdminTasks,
   getCurrentTaskViewerContext,
   updateAdminTaskAssignment,
   uploadAdminTaskAttachments,
+  validateAdminTaskAttachments,
   type AdminTaskRow,
   type TaskScope,
   type TaskStatus,
 } from "@/lib/admin-tasks";
 import {
-  markBrowserCloudSyncActivity,
-  resetBrowserCloudSyncState,
   shouldRecoverBrowserCloudSyncState,
 } from "@/lib/browser-sync-recovery";
 import { getBrowserSupabaseClient } from "@/lib/supabase";
 import { getVisibleTeamOverviews, type TeamOverview } from "@/lib/team-management";
+import { useBrowserCloudSyncRecovery } from "@/lib/use-browser-cloud-sync-recovery";
+import { useDashboardPagination } from "@/lib/use-dashboard-pagination";
 import { useResumeRecovery } from "@/lib/use-resume-recovery";
 import { useSupabaseAuthSync } from "@/lib/use-supabase-auth-sync";
 import type { AppRole, UserStatus } from "@/lib/user-self-service";
 
+import { Button } from "../ui/button";
+import { DashboardCenteredLoadingState } from "./dashboard-centered-loading-state";
 import { DashboardDialog } from "./dashboard-dialog";
+import { DashboardMetricCard } from "./dashboard-metric-card";
+import { DashboardPaginationControls } from "./dashboard-pagination-controls";
 import {
   EmptyState,
   PageBanner,
   formatDateTime,
   formatFileSize,
-  toErrorMessage,
+  normalizeSearchText,
   type NoticeTone,
 } from "./dashboard-shared-ui";
-import { Button } from "../ui/button";
+import {
+  getTaskAssignmentLabel,
+  getTaskAttachmentCountLabel,
+  getTaskIntroText,
+  getTaskMoreAttachmentsLabel,
+  getTaskScopeLabel,
+  getTaskStatusMeta,
+  getTaskTeamName,
+  resolveTaskActorLabel,
+  toAdminTaskErrorMessage,
+  validateTaskAssignmentDraft,
+  validateTaskDraft,
+} from "./tasks-copy";
 
 type PageFeedback = { tone: NoticeTone; message: string } | null;
 type TaskStatusFilter = "all" | TaskStatus;
@@ -81,9 +102,11 @@ const textareaClassName =
 export function AdminTasksClient() {
   const router = useRouter();
   const supabase = getBrowserSupabaseClient();
+  const t = useTranslations("Tasks.admin");
+  const sharedT = useTranslations("Tasks.shared");
 
   const [loading, setLoading] = useState(true);
-  const [syncGeneration, setSyncGeneration] = useState(0);
+  const { recoverCloudSync, syncGeneration } = useBrowserCloudSyncRecovery();
   const [pageFeedback, setPageFeedback] = useState<PageFeedback>(null);
   const [viewerId, setViewerId] = useState<string | null>(null);
   const [viewerRole, setViewerRole] = useState<AppRole | null>(null);
@@ -122,12 +145,6 @@ export function AdminTasksClient() {
   loadingStateRef.current = loading;
 
   const deferredSearchText = useDeferredValue(filters.searchText);
-
-  const recoverCloudSync = useCallback(() => {
-    resetBrowserCloudSyncState();
-    markBrowserCloudSyncActivity();
-    setSyncGeneration((current) => current + 1);
-  }, []);
 
   const refreshQuietly = useCallback(async () => {
     if (!supabase) {
@@ -206,7 +223,7 @@ export function AdminTasksClient() {
 
         setPageFeedback({
           tone: "error",
-          message: toTaskErrorMessage(error),
+          message: toAdminTaskErrorMessage(error, sharedT),
         });
       } finally {
         if (showLoading && isMounted()) {
@@ -214,7 +231,7 @@ export function AdminTasksClient() {
         }
       }
     },
-    [recoverCloudSync, router, supabase],
+    [recoverCloudSync, router, sharedT, supabase],
   );
 
   useSupabaseAuthSync(supabase, {
@@ -281,9 +298,9 @@ export function AdminTasksClient() {
       const searchableText = [
         task.task_name,
         task.task_intro,
-        resolveTaskActorLabel(task.creator, task.created_by_user_id),
+        resolveTaskActorLabel(task.creator, task.created_by_user_id, sharedT),
         task.creator?.email,
-        resolveTaskActorLabel(task.accepted_by, task.accepted_by_user_id),
+        resolveTaskActorLabel(task.accepted_by, task.accepted_by_user_id, sharedT),
         task.accepted_by?.email,
         task.team?.team_name,
       ]
@@ -293,7 +310,8 @@ export function AdminTasksClient() {
 
       return searchableText.includes(normalizedSearchText);
     });
-  }, [deferredSearchText, filters.scope, filters.status, filters.teamId, tasks]);
+  }, [deferredSearchText, filters.scope, filters.status, filters.teamId, sharedT, tasks]);
+  const tasksPagination = useDashboardPagination(filteredTasks);
 
   const openCreateDialog = useCallback(() => {
     setCreateDialogFeedback(null);
@@ -313,22 +331,32 @@ export function AdminTasksClient() {
     } catch (error) {
       setPageFeedback({
         tone: "error",
-        message: toTaskErrorMessage(error),
+        message: toAdminTaskErrorMessage(error, sharedT),
       });
     }
-  }, [canView, refreshQuietly, supabase]);
+  }, [canView, refreshQuietly, sharedT, supabase]);
 
   const handleCreateTask = useCallback(async () => {
     if (!supabase || !viewerId || !canView || createPending) {
       return;
     }
 
-    const validationMessage = validateTaskDraft(createFormState);
+    const validationMessage = validateTaskDraft(createFormState, t);
 
     if (validationMessage) {
       setCreateDialogFeedback({
         tone: "error",
         message: validationMessage,
+      });
+      return;
+    }
+
+    try {
+      validateAdminTaskAttachments(createFormState.files);
+    } catch (error) {
+      setCreateDialogFeedback({
+        tone: "error",
+        message: toAdminTaskErrorMessage(error, sharedT),
       });
       return;
     }
@@ -372,17 +400,19 @@ export function AdminTasksClient() {
       setPageFeedback({
         tone: "success",
         message:
-          createFormState.files.length > 0 ? "任务和附件已创建。" : "任务已创建。",
+          createFormState.files.length > 0
+            ? t("feedback.createdWithAttachments")
+            : t("feedback.created"),
       });
     } catch (error) {
       setCreateDialogFeedback({
         tone: "error",
-        message: toTaskErrorMessage(error),
+        message: toAdminTaskErrorMessage(error, sharedT),
       });
     } finally {
       setCreatePending(false);
     }
-  }, [canView, createFormState, createPending, refreshQuietly, supabase, viewerId]);
+  }, [canView, createFormState, createPending, refreshQuietly, sharedT, supabase, t, viewerId]);
 
   const openAssignmentDialog = useCallback((task: AdminTaskRow) => {
     setSelectedTask(task);
@@ -399,7 +429,7 @@ export function AdminTasksClient() {
       return;
     }
 
-    const validationMessage = validateAssignmentDraft(assignmentFormState);
+    const validationMessage = validateTaskAssignmentDraft(assignmentFormState, t);
 
     if (validationMessage) {
       setAssignmentDialogFeedback({
@@ -426,18 +456,18 @@ export function AdminTasksClient() {
         tone: "success",
         message:
           assignmentFormState.scope === "team"
-            ? "任务归属已更新。"
-            : "任务已更新为面向全员。",
+            ? t("feedback.assignmentUpdated")
+            : t("feedback.assignmentPublic"),
       });
     } catch (error) {
       setAssignmentDialogFeedback({
         tone: "error",
-        message: toTaskErrorMessage(error),
+        message: toAdminTaskErrorMessage(error, sharedT),
       });
     } finally {
       setAssignmentPending(false);
     }
-  }, [assignmentFormState, assignmentPending, refreshQuietly, selectedTask, supabase]);
+  }, [assignmentFormState, assignmentPending, refreshQuietly, selectedTask, sharedT, supabase, t]);
 
   const handleDeleteTask = useCallback(
     async (task: AdminTaskRow) => {
@@ -446,9 +476,7 @@ export function AdminTasksClient() {
       }
 
       if (typeof window !== "undefined") {
-        const confirmed = window.confirm(
-          `确认删除任务“${task.task_name}”吗？任务附件也会一起清理。`,
-        );
+        const confirmed = window.confirm(t("confirmDelete", { taskName: task.task_name }));
 
         if (!confirmed) {
           return;
@@ -458,26 +486,28 @@ export function AdminTasksClient() {
       setDeletePendingTaskId(task.id);
 
       try {
-        await deleteAdminTask(supabase, task);
+        const result = await deleteAdminTask(supabase, task);
         await refreshQuietly();
         setPageFeedback({
-          tone: "success",
-          message: "任务已删除。",
+          tone: result.attachmentCleanupFailed ? "info" : "success",
+          message: result.attachmentCleanupFailed
+            ? t("feedback.deletedWithAttachmentCleanupWarning")
+            : t("feedback.deleted"),
         });
       } catch (error) {
         setPageFeedback({
           tone: "error",
-          message: toTaskErrorMessage(error),
+          message: toAdminTaskErrorMessage(error, sharedT),
         });
       } finally {
         setDeletePendingTaskId(null);
       }
     },
-    [deletePendingTaskId, refreshQuietly, supabase],
+    [deletePendingTaskId, refreshQuietly, sharedT, supabase, t],
   );
 
   if (loading) {
-    return <AdminTasksLoadingState />;
+    return <DashboardCenteredLoadingState message={t("loading")} />;
   }
 
   return (
@@ -490,14 +520,12 @@ export function AdminTasksClient() {
         <div className="flex flex-col gap-6 xl:flex-row xl:items-end xl:justify-between">
           <div className="max-w-3xl">
             <span className="inline-flex rounded-full bg-[#e6edf2] px-3 py-1 text-xs font-semibold text-[#486782]">
-              平台任务调度
+              {t("header.badge")}
             </span>
             <h2 className="mt-4 text-4xl font-bold tracking-tight text-[#1f2a32]">
-              管理员任务板
+              {t("header.title")}
             </h2>
-            <p className="mt-3 text-[15px] leading-8 text-[#65717b]">
-              在这里可以集中查看任务进展、发布新任务，并按需要设置任务的协作范围与归属。
-            </p>
+            <p className="mt-3 text-[15px] leading-8 text-[#65717b]">{t("header.description")}</p>
           </div>
 
           <div className="flex flex-wrap items-center gap-3">
@@ -507,7 +535,7 @@ export function AdminTasksClient() {
               type="button"
             >
               <RefreshCw className="size-4" />
-              刷新数据
+              {t("header.refresh")}
             </Button>
             <Button
               className="h-11 rounded-full bg-[#486782] px-5 text-white hover:bg-[#3e5f79]"
@@ -516,112 +544,60 @@ export function AdminTasksClient() {
               type="button"
             >
               <Plus className="size-4" />
-              新建任务
+              {t("header.create")}
             </Button>
           </div>
         </div>
 
         <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-5">
-          <SummaryCard
-            accent="blue"
-            count={stats.total}
-            icon={<ClipboardList className="size-5" />}
-            label="任务总数"
-          />
-          <SummaryCard
-            accent="gold"
-            count={stats.pending}
-            icon={<Clock3 className="size-5" />}
-            label="待领取"
-          />
-          <SummaryCard
-            accent="blue"
-            count={stats.accepted}
-            icon={<UserRound className="size-5" />}
-            label="进行中"
-          />
-          <SummaryCard
-            accent="green"
-            count={stats.completed}
-            icon={<CheckCheck className="size-5" />}
-            label="已完成"
-          />
-          <SummaryCard
-            accent="blue"
-            count={stats.teamScoped}
-            icon={<UsersRound className="size-5" />}
-            label="团队任务"
-          />
+          <DashboardMetricCard accent="blue" icon={<ClipboardList className="size-5" />} label={t("summary.total")} value={stats.total} />
+          <DashboardMetricCard accent="gold" icon={<Clock3 className="size-5" />} label={t("summary.pending")} value={stats.pending} />
+          <DashboardMetricCard accent="blue" icon={<UserRound className="size-5" />} label={t("summary.accepted")} value={stats.accepted} />
+          <DashboardMetricCard accent="green" icon={<CheckCheck className="size-5" />} label={t("summary.completed")} value={stats.completed} />
+          <DashboardMetricCard accent="blue" icon={<UsersRound className="size-5" />} label={t("summary.teamScoped")} value={stats.teamScoped} />
         </div>
       </section>
 
       {!canView ? (
         <EmptyState
-          description="当前账号不是管理员，暂时不能进入任务调度面板。"
+          description={t("states.noPermissionDescription")}
           icon={<ShieldAlert className="size-6" />}
-          title="没有访问权限"
+          title={t("states.noPermissionTitle")}
         />
       ) : (
         <>
           <section className="rounded-[26px] border border-white/85 bg-white/80 p-5 shadow-[0_14px_32px_rgba(96,113,128,0.06)] sm:p-6">
             <div className="grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1.3fr)_repeat(3,minmax(0,0.55fr))]">
               <SearchField
-                label="搜索任务"
+                label={t("filters.searchLabel")}
                 onChange={(value) =>
                   setFilters((current) => ({
                     ...current,
                     searchText: value,
                   }))
                 }
-                placeholder="搜索任务名、创建人、团队或领取人"
+                placeholder={t("filters.searchPlaceholder")}
                 value={filters.searchText}
               />
 
-              <FilterField
-                label="状态"
-                onChange={(value) =>
-                  setFilters((current) => ({
-                    ...current,
-                    status: value as TaskStatusFilter,
-                  }))
-                }
-                value={filters.status}
-              >
-                <option value="all">全部状态</option>
-                <option value="to_be_accepted">待领取</option>
-                <option value="accepted">进行中</option>
-                <option value="completed">已完成</option>
+              <FilterField label={t("filters.statusLabel")} onChange={(value) => setFilters((current) => ({ ...current, status: value as TaskStatusFilter }))} value={filters.status}>
+                <option value="all">{t("filters.statusAll")}</option>
+                <option value="to_be_accepted">{sharedT("status.toBeAccepted")}</option>
+                <option value="accepted">{sharedT("status.accepted")}</option>
+                <option value="completed">{sharedT("status.completed")}</option>
               </FilterField>
 
-              <FilterField
-                label="范围"
-                onChange={(value) =>
-                  setFilters((current) => ({
-                    ...current,
-                    scope: value as TaskScopeFilter,
-                  }))
-                }
-                value={filters.scope}
-              >
-                <option value="all">全部范围</option>
-                <option value="public">面向全员</option>
-                <option value="team">指定团队</option>
+              <FilterField label={t("filters.scopeLabel")} onChange={(value) => setFilters((current) => ({ ...current, scope: value as TaskScopeFilter }))} value={filters.scope}>
+                <option value="all">{t("filters.scopeAll")}</option>
+                <option value="public">{sharedT("scope.public")}</option>
+                <option value="team">{sharedT("scope.team")}</option>
               </FilterField>
 
-              <FilterField
-                label="团队"
-                onChange={(value) =>
-                  setFilters((current) => ({
-                    ...current,
-                    teamId: value,
-                  }))
-                }
-                value={filters.teamId}
-              >
-                <option value="all">全部团队</option>
+              <FilterField label={t("filters.teamLabel")} onChange={(value) => setFilters((current) => ({ ...current, teamId: value }))} value={filters.teamId}>
+                <option value="all">{t("filters.teamAll")}</option>
                 {teamOptions.map((team) => (
                   <option key={team.team_id} value={team.team_id}>
-                    {team.team_name ?? "未命名团队"}
+                    {getTaskTeamName(team.team_name, sharedT)}
                   </option>
                 ))}
               </FilterField>
@@ -631,22 +607,22 @@ export function AdminTasksClient() {
           <section className="space-y-4">
             <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
               <div>
-                <h3 className="text-2xl font-bold tracking-tight text-[#23313a]">任务清单</h3>
+                <h3 className="text-2xl font-bold tracking-tight text-[#23313a]">{t("list.title")}</h3>
                 <p className="mt-2 text-sm leading-7 text-[#6f7b85]">
-                  当前共匹配到 {filteredTasks.length} 个任务。你可以通过搜索和筛选快速找到需要查看的内容。
+                  {t("list.description", { count: filteredTasks.length })}
                 </p>
               </div>
             </div>
 
             {filteredTasks.length === 0 ? (
               <EmptyState
-                description="当前筛选条件下还没有任务。你可以调整筛选条件，或先创建一条新任务。"
+                description={t("states.emptyDescription")}
                 icon={<ClipboardList className="size-6" />}
-                title="暂时没有匹配任务"
+                title={t("states.emptyTitle")}
               />
             ) : (
               <div className="grid grid-cols-1 gap-5 xl:grid-cols-2">
-                {filteredTasks.map((task) => (
+                {tasksPagination.items.map((task) => (
                   <TaskCard
                     deleteBusy={deletePendingTaskId === task.id}
                     key={task.id}
@@ -658,6 +634,17 @@ export function AdminTasksClient() {
                 ))}
               </div>
             )}
+            <DashboardPaginationControls
+              endIndex={tasksPagination.endIndex}
+              hasNextPage={tasksPagination.hasNextPage}
+              hasPreviousPage={tasksPagination.hasPreviousPage}
+              onNextPage={tasksPagination.goToNextPage}
+              onPreviousPage={tasksPagination.goToPreviousPage}
+              page={tasksPagination.page}
+              pageCount={tasksPagination.pageCount}
+              startIndex={tasksPagination.startIndex}
+              totalItems={tasksPagination.totalItems}
+            />
           </section>
         </>
       )}
@@ -670,7 +657,7 @@ export function AdminTasksClient() {
               onClick={() => setCreateDialogOpen(false)}
               type="button"
             >
-              取消
+              {t("createDialog.cancel")}
             </Button>
             <Button
               className="h-11 rounded-full bg-[#486782] px-5 text-white hover:bg-[#3e5f79]"
@@ -683,24 +670,22 @@ export function AdminTasksClient() {
               ) : (
                 <Plus className="size-4" />
               )}
-              创建任务
+              {t("createDialog.submit")}
             </Button>
           </>
         }
-        description="可以选择面向全员开放任务，或设置为指定团队可见。附件会和任务一起保存。"
+        description={t("createDialog.description")}
         onOpenChange={setCreateDialogOpen}
         open={createDialogOpen}
-        title="新建任务"
+        title={t("createDialog.title")}
       >
         <div className="space-y-6">
           {createDialogFeedback ? (
-            <PageBanner tone={createDialogFeedback.tone}>
-              {createDialogFeedback.message}
-            </PageBanner>
+            <PageBanner tone={createDialogFeedback.tone}>{createDialogFeedback.message}</PageBanner>
           ) : null}
 
           <div className="grid gap-5 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
-            <FormField label="任务名称">
+            <FormField label={t("createDialog.taskNameLabel")}>
               <input
                 className={inputClassName}
                 onChange={(event) =>
@@ -709,13 +694,13 @@ export function AdminTasksClient() {
                     taskName: event.target.value,
                   }))
                 }
-                placeholder="例如：跟进本周客户回访资料"
+                placeholder={t("createDialog.taskNamePlaceholder")}
                 type="text"
                 value={createFormState.taskName}
               />
             </FormField>
 
-            <FormField label="分配范围">
+            <FormField label={t("createDialog.scopeLabel")}>
               <select
                 className={selectClassName}
                 onChange={(event) =>
@@ -727,14 +712,14 @@ export function AdminTasksClient() {
                 }
                 value={createFormState.scope}
               >
-                <option value="public">面向全员</option>
-                <option value="team">指定团队</option>
+                <option value="public">{sharedT("scope.public")}</option>
+                <option value="team">{sharedT("scope.team")}</option>
               </select>
             </FormField>
           </div>
 
           {createFormState.scope === "team" ? (
-            <FormField label="目标团队">
+            <FormField label={t("createDialog.teamLabel")}>
               <select
                 className={selectClassName}
                 onChange={(event) =>
@@ -745,17 +730,17 @@ export function AdminTasksClient() {
                 }
                 value={createFormState.teamId}
               >
-                <option value="">请选择团队</option>
+                <option value="">{t("createDialog.teamPlaceholder")}</option>
                 {teamOptions.map((team) => (
                   <option key={team.team_id} value={team.team_id}>
-                    {team.team_name ?? "未命名团队"}
+                    {getTaskTeamName(team.team_name, sharedT)}
                   </option>
                 ))}
               </select>
             </FormField>
           ) : null}
 
-          <FormField label="任务说明">
+          <FormField label={t("createDialog.taskIntroLabel")}>
             <textarea
               className={textareaClassName}
               onChange={(event) =>
@@ -764,20 +749,24 @@ export function AdminTasksClient() {
                   taskIntro: event.target.value,
                 }))
               }
-              placeholder="补充任务背景、目标、执行要求和注意事项。"
+              placeholder={t("createDialog.taskIntroPlaceholder")}
               value={createFormState.taskIntro}
             />
           </FormField>
 
-          <FormField label="附件">
+          <FormField label={t("createDialog.attachmentsLabel")}>
             <div className="rounded-[24px] border border-dashed border-[#cfd8df] bg-[#fbfaf8] p-5">
               <label className="flex cursor-pointer flex-col items-center justify-center rounded-[20px] border border-[#dfe5ea] bg-white px-5 py-8 text-center transition hover:bg-[#f8fbfd]">
                 <Paperclip className="size-5 text-[#486782]" />
                 <span className="mt-3 text-sm font-semibold text-[#23313a]">
-                  点击选择附件，可一次上传多个文件
+                  {t("createDialog.attachmentsCta")}
                 </span>
                 <span className="mt-2 text-xs leading-6 text-[#7b858d]">
-                  文件会进入 `task-attachments` 存储桶，并记录到 `task_sub` 表。
+                  {t("createDialog.attachmentsHint", {
+                    maxFiles: ADMIN_TASK_ATTACHMENT_MAX_FILES,
+                    maxPerFile: formatFileSize(ADMIN_TASK_ATTACHMENT_MAX_FILE_SIZE_BYTES),
+                    maxTotal: formatFileSize(ADMIN_TASK_ATTACHMENT_MAX_TOTAL_SIZE_BYTES),
+                  })}
                 </span>
                 <input
                   className="sr-only"
@@ -817,9 +806,7 @@ export function AdminTasksClient() {
                   ))}
                 </div>
               ) : (
-                <p className="mt-4 text-sm leading-7 text-[#7b858d]">
-                  暂未选择附件。当前版本支持先把任务与附件一起创建。
-                </p>
+                <p className="mt-4 text-sm leading-7 text-[#7b858d]">{t("createDialog.noAttachments")}</p>
               )}
             </div>
           </FormField>
@@ -834,7 +821,7 @@ export function AdminTasksClient() {
               onClick={() => setAssignmentDialogOpen(false)}
               type="button"
             >
-              取消
+              {t("assignmentDialog.cancel")}
             </Button>
             <Button
               className="h-11 rounded-full bg-[#486782] px-5 text-white hover:bg-[#3e5f79]"
@@ -847,14 +834,20 @@ export function AdminTasksClient() {
               ) : (
                 <Shuffle className="size-4" />
               )}
-              保存设置
+              {t("assignmentDialog.submit")}
             </Button>
           </>
         }
-        description="任务开始处理后会以查看为主，如需调整范围或归属，请在开始前完成设置。"
+        description={t("assignmentDialog.description")}
         onOpenChange={setAssignmentDialogOpen}
         open={assignmentDialogOpen}
-        title={selectedTask ? `调整任务设置：${selectedTask.task_name}` : "调整任务设置"}
+        title={
+          selectedTask
+            ? t("assignmentDialog.titleWithName", {
+                taskName: selectedTask.task_name,
+              })
+            : t("assignmentDialog.title")
+        }
       >
         <div className="space-y-6">
           {assignmentDialogFeedback ? (
@@ -874,20 +867,21 @@ export function AdminTasksClient() {
                   {selectedTask.task_name}
                 </p>
                 <p className="mt-2 text-sm leading-7 text-[#6f7b85]">
-                  当前分配：
-                  {selectedTask.scope === "team"
-                    ? selectedTask.team?.team_name ?? "未命名团队"
-                    : "面向全员"}
+                  {t("assignmentDialog.currentAssignment", {
+                    assignmentLabel: getTaskAssignmentLabel(
+                      selectedTask.scope,
+                      selectedTask.team?.team_name,
+                      sharedT,
+                    ),
+                  })}
                 </p>
               </div>
 
               {!canManageTask(selectedTask) ? (
-                <PageBanner tone="info">
-                  该任务正在处理中或已完成，当前仅支持查看。
-                </PageBanner>
+                <PageBanner tone="info">{t("assignmentDialog.viewOnlyNotice")}</PageBanner>
               ) : (
                 <>
-                  <FormField label="新的分配范围">
+                  <FormField label={t("assignmentDialog.scopeLabel")}>
                     <select
                       className={selectClassName}
                       onChange={(event) =>
@@ -899,13 +893,13 @@ export function AdminTasksClient() {
                       }
                       value={assignmentFormState.scope}
                     >
-                      <option value="public">面向全员</option>
-                      <option value="team">指定团队</option>
+                      <option value="public">{sharedT("scope.public")}</option>
+                      <option value="team">{sharedT("scope.team")}</option>
                     </select>
                   </FormField>
 
                   {assignmentFormState.scope === "team" ? (
-                    <FormField label="目标团队">
+                    <FormField label={t("assignmentDialog.teamLabel")}>
                       <select
                         className={selectClassName}
                         onChange={(event) =>
@@ -916,10 +910,10 @@ export function AdminTasksClient() {
                         }
                         value={assignmentFormState.teamId}
                       >
-                        <option value="">请选择团队</option>
+                        <option value="">{t("assignmentDialog.teamPlaceholder")}</option>
                         {teamOptions.map((team) => (
                           <option key={team.team_id} value={team.team_id}>
-                            {team.team_name ?? "未命名团队"}
+                            {getTaskTeamName(team.team_name, sharedT)}
                           </option>
                         ))}
                       </select>
@@ -932,16 +926,6 @@ export function AdminTasksClient() {
         </div>
       </DashboardDialog>
     </section>
-  );
-}
-
-function AdminTasksLoadingState() {
-  return (
-    <div className="mx-auto flex min-h-[60vh] w-full max-w-[1320px] items-center justify-center">
-      <div className="rounded-[28px] border border-white/85 bg-white/72 px-6 py-5 text-sm text-[#60707d] shadow-[0_18px_45px_rgba(96,113,128,0.06)]">
-        正在加载任务面板...
-      </div>
-    </div>
   );
 }
 
@@ -958,6 +942,8 @@ function TaskCard({
   onReassign: () => void;
   onDelete: () => void;
 }) {
+  const t = useTranslations("Tasks.admin.card");
+  const sharedT = useTranslations("Tasks.shared");
   const manageable = canManageTask(task);
 
   return (
@@ -971,7 +957,7 @@ function TaskCard({
               {task.attachments.length > 0 ? (
                 <DataPill accent="blue">
                   <Paperclip className="size-3.5" />
-                  {task.attachments.length} 个附件
+                  {getTaskAttachmentCountLabel(task.attachments.length, sharedT)}
                 </DataPill>
               ) : null}
             </div>
@@ -980,7 +966,7 @@ function TaskCard({
               {task.task_name}
             </h3>
             <p className="mt-3 text-sm leading-7 text-[#6f7b85]">
-              {task.task_intro ?? "暂无任务说明。"}
+              {getTaskIntroText(task.task_intro, sharedT)}
             </p>
           </div>
 
@@ -996,7 +982,7 @@ function TaskCard({
               ) : (
                 <Shuffle className="size-4" />
               )}
-              调整归属
+              {t("reassign")}
             </Button>
             <Button
               className="h-10 rounded-full border border-[#f1d1d1] bg-[#fff2f2] px-4 text-[#b13d3d] hover:bg-[#fce5e5] disabled:cursor-not-allowed disabled:opacity-60"
@@ -1009,47 +995,34 @@ function TaskCard({
               ) : (
                 <Trash2 className="size-4" />
               )}
-              删除
+              {t("delete")}
             </Button>
           </div>
         </div>
 
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-          <InfoTile
-            label="当前分配"
-            value={
-              task.scope === "team" ? task.team?.team_name ?? "未命名团队" : "面向全员"
-            }
-          />
-          <InfoTile
-            label="创建人"
-            value={resolveTaskActorLabel(task.creator, task.created_by_user_id)}
-          />
-          <InfoTile
-            label="领取人"
-            value={resolveTaskActorLabel(task.accepted_by, task.accepted_by_user_id)}
-          />
-          <InfoTile label="创建时间" value={formatDateTime(task.created_at)} />
-          <InfoTile label="领取时间" value={formatDateTime(task.accepted_at)} />
-          <InfoTile label="完成时间" value={formatDateTime(task.completed_at)} />
+          <InfoTile label={t("assignmentLabel")} value={getTaskAssignmentLabel(task.scope, task.team?.team_name, sharedT)} />
+          <InfoTile label={t("creatorLabel")} value={resolveTaskActorLabel(task.creator, task.created_by_user_id, sharedT)} />
+          <InfoTile label={t("assigneeLabel")} value={resolveTaskActorLabel(task.accepted_by, task.accepted_by_user_id, sharedT)} />
+          <InfoTile label={t("createdAtLabel")} value={formatDateTime(task.created_at)} />
+          <InfoTile label={t("acceptedAtLabel")} value={formatDateTime(task.accepted_at)} />
+          <InfoTile label={t("completedAtLabel")} value={formatDateTime(task.completed_at)} />
         </div>
 
         {task.attachments.length > 0 ? (
           <div className="rounded-[22px] border border-[#e6ebef] bg-[#f8fbfc] p-4">
-            <p className="text-sm font-semibold text-[#486782]">附件概览</p>
+            <p className="text-sm font-semibold text-[#486782]">{t("attachmentsOverview")}</p>
             <div className="mt-3 flex flex-wrap gap-2">
               {task.attachments.slice(0, 4).map((attachment) => (
                 <DataPill accent="blue" key={attachment.id}>
                   <Paperclip className="size-3.5" />
                   {attachment.original_name}
-                  <span className="text-[#6f7b85]">
-                    {formatFileSize(attachment.file_size_bytes)}
-                  </span>
+                  <span className="text-[#6f7b85]">{formatFileSize(attachment.file_size_bytes)}</span>
                 </DataPill>
               ))}
               {task.attachments.length > 4 ? (
                 <DataPill accent="gold">
-                  还有 {task.attachments.length - 4} 个附件
+                  {getTaskMoreAttachmentsLabel(task.attachments.length - 4, sharedT)}
                 </DataPill>
               ) : null}
             </div>
@@ -1057,56 +1030,13 @@ function TaskCard({
         ) : null}
 
         {!manageable ? (
-          <p className="text-xs leading-6 text-[#8a949c]">
-            该任务当前仅支持查看。
-          </p>
+          <p className="text-xs leading-6 text-[#8a949c]">{t("viewOnlyNotice")}</p>
         ) : null}
       </div>
     </article>
   );
 }
 
-function SummaryCard({
-  label,
-  count,
-  icon,
-  accent,
-}: {
-  label: string;
-  count: number;
-  icon: ReactNode;
-  accent: "blue" | "green" | "gold";
-}) {
-  return (
-    <div
-      className={[
-        "rounded-[24px] border px-5 py-4 shadow-[0_10px_24px_rgba(96,113,128,0.06)]",
-        accent === "blue" ? "border-[#d9e3eb] bg-[#f4f8fb]" : "",
-        accent === "green" ? "border-[#dce8df] bg-[#f2f7f3]" : "",
-        accent === "gold" ? "border-[#eadfbf] bg-[#fbf5e8]" : "",
-      ].join(" ")}
-    >
-      <div className="flex items-center gap-3">
-        <div
-          className={[
-            "flex h-11 w-11 items-center justify-center rounded-full text-white",
-            accent === "blue" ? "bg-[#486782]" : "",
-            accent === "green" ? "bg-[#4c7259]" : "",
-            accent === "gold" ? "bg-[#b7892f]" : "",
-          ].join(" ")}
-        >
-          {icon}
-        </div>
-        <div>
-          <p className="text-[11px] font-semibold tracking-[0.16em] text-[#7e8a92] uppercase">
-            {label}
-          </p>
-          <p className="mt-1 text-2xl font-bold tracking-tight text-[#23313a]">{count}</p>
-        </div>
-      </div>
-    </div>
-  );
-}
 
 function SearchField({
   label,
@@ -1181,7 +1111,8 @@ function FormField({
 }
 
 function TaskStatusPill({ status }: { status: TaskStatus }) {
-  const mapping = mapTaskStatus(status);
+  const sharedT = useTranslations("Tasks.shared");
+  const mapping = getTaskStatusMeta(status, sharedT);
 
   return (
     <span
@@ -1198,6 +1129,8 @@ function TaskStatusPill({ status }: { status: TaskStatus }) {
 }
 
 function TaskScopePill({ scope }: { scope: TaskScope }) {
+  const sharedT = useTranslations("Tasks.shared");
+
   return (
     <span
       className={[
@@ -1206,7 +1139,7 @@ function TaskScopePill({ scope }: { scope: TaskScope }) {
       ].join(" ")}
     >
       {scope === "public" ? <Globe2 className="size-3.5" /> : <UsersRound className="size-3.5" />}
-      {scope === "public" ? "面向全员" : "团队任务"}
+      {getTaskScopeLabel(scope, sharedT)}
     </span>
   );
 }
@@ -1265,83 +1198,4 @@ function canViewAdminTaskBoard(role: AppRole | null, status: UserStatus | null) 
 
 function canManageTask(task: AdminTaskRow) {
   return task.status === "to_be_accepted";
-}
-
-function resolveTaskActorLabel(
-  actor:
-    | {
-        name: string | null;
-        email: string | null;
-      }
-    | null
-    | undefined,
-  fallbackUserId: string | null | undefined,
-) {
-  return actor?.name ?? actor?.email ?? fallbackUserId ?? "暂无记录";
-}
-
-function validateTaskDraft(formState: CreateTaskFormState) {
-  if (!formState.taskName.trim()) {
-    return "请先填写任务名称。";
-  }
-
-  if (formState.scope === "team" && !formState.teamId) {
-    return "请选择目标团队。";
-  }
-
-  return null;
-}
-
-function validateAssignmentDraft(formState: AssignmentFormState) {
-  if (formState.scope === "team" && !formState.teamId) {
-    return "请先选择团队。";
-  }
-
-  return null;
-}
-
-function mapTaskStatus(status: TaskStatus) {
-  if (status === "to_be_accepted") {
-    return { label: "待领取", accent: "gold" as const };
-  }
-
-  if (status === "accepted") {
-    return { label: "进行中", accent: "blue" as const };
-  }
-
-  return { label: "已完成", accent: "green" as const };
-}
-
-function normalizeSearchText(value: string | null | undefined) {
-  return (value ?? "").trim().toLowerCase();
-}
-
-function toTaskErrorMessage(error: unknown) {
-  const baseMessage = toErrorMessage(error);
-
-  if (baseMessage.includes("task_main_task_name_not_blank")) {
-    return "任务名称不能为空。";
-  }
-
-  if (baseMessage.includes("task_main_scope_team_check")) {
-    return "团队任务必须绑定一个具体团队。";
-  }
-
-  if (baseMessage.includes("authenticated user is required")) {
-    return "登录状态已失效，请重新登录后再试。";
-  }
-
-  if (baseMessage.includes("task not found")) {
-    return "任务不存在，建议先刷新任务列表。";
-  }
-
-  if (baseMessage.includes("duplicate key value violates unique constraint")) {
-    return "附件路径出现冲突，请重新上传一次。";
-  }
-
-  if (baseMessage.includes("storage")) {
-    return "任务附件处理失败，请稍后重试。";
-  }
-
-  return baseMessage;
 }

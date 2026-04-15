@@ -2,6 +2,7 @@
 
 import type { ReactNode } from "react";
 
+import { useTranslations } from "next-intl";
 import {
   BadgeCheck,
   LoaderCircle,
@@ -11,6 +12,7 @@ import {
   Video,
 } from "lucide-react";
 
+import { DEFAULT_LOCALE, type Locale } from "@/lib/locale";
 import type {
   PrivacyRequestStatus,
   UserMediaAssetWithPreview,
@@ -23,11 +25,170 @@ export type ReviewStatus = "empty" | "pending" | "approved";
 export type MediaAssetKey = "identity" | "passport" | "photos" | "videos";
 export type NoticeTone = "error" | "success" | "info";
 
+type TranslationValues = Record<string, string | number>;
+
+type DashboardSharedTranslator = (
+  key: string,
+  values?: TranslationValues,
+) => string;
+
+export type DashboardSharedCopy = {
+  assetStatus: Record<PrivacyRequestStatus, string>;
+  errors: {
+    duplicatePending: string;
+    duplicateStored: string;
+    permission: string;
+    unknown: string;
+  };
+  fallback: {
+    noRecordYet: string;
+  };
+  inputHint: string;
+  loading: string;
+  mediaStatus: {
+    approvedGeneric: string;
+    approvedIdentity: string;
+    identityEmpty: string;
+    passportEmpty: string;
+    pending: string;
+    photosEmpty: string;
+    videosEmpty: string;
+  };
+  statusHeadings: {
+    approved: string;
+    pending: string;
+  };
+  userStatus: {
+    active: string;
+    pending: string;
+    suspended: string;
+  };
+  video: {
+    badge: string;
+    count: (count: number) => string;
+    defaultTitle: string;
+  };
+};
+
+export function createDashboardSharedCopy(
+  t: DashboardSharedTranslator,
+): DashboardSharedCopy {
+  return {
+    assetStatus: {
+      denied: t("assetStatus.denied"),
+      pass: t("assetStatus.pass"),
+      pending: t("assetStatus.pending"),
+    },
+    errors: {
+      duplicatePending: t("errors.duplicatePending"),
+      duplicateStored: t("errors.duplicateStored"),
+      permission: t("errors.permission"),
+      unknown: t("errors.unknown"),
+    },
+    fallback: {
+      noRecordYet: t("fallback.noRecordYet"),
+    },
+    inputHint: t("inputHint"),
+    loading: t("loading"),
+    mediaStatus: {
+      approvedGeneric: t("mediaStatus.approvedGeneric"),
+      approvedIdentity: t("mediaStatus.approvedIdentity"),
+      identityEmpty: t("mediaStatus.identityEmpty"),
+      passportEmpty: t("mediaStatus.passportEmpty"),
+      pending: t("mediaStatus.pending"),
+      photosEmpty: t("mediaStatus.photosEmpty"),
+      videosEmpty: t("mediaStatus.videosEmpty"),
+    },
+    statusHeadings: {
+      approved: t("statusHeadings.approved"),
+      pending: t("statusHeadings.pending"),
+    },
+    userStatus: {
+      active: t("userStatus.active"),
+      pending: t("userStatus.pending"),
+      suspended: t("userStatus.suspended"),
+    },
+    video: {
+      badge: t("video.badge"),
+      count: (count) => t("video.count", { count }),
+      defaultTitle: t("video.defaultTitle"),
+    },
+  };
+}
+
+function createLegacyDashboardSharedCopy(
+  locale: Locale = DEFAULT_LOCALE,
+): DashboardSharedCopy {
+  const isZh = locale === "zh";
+
+  return {
+    assetStatus: {
+      denied: isZh ? "已驳回" : "Rejected",
+      pass: isZh ? "审核通过" : "Approved",
+      pending: isZh ? "待审核" : "Pending Review",
+    },
+    errors: {
+      duplicatePending: isZh
+        ? "已有相同内容正在审核中，请等待审核结果。"
+        : "An identical request is already under review. Please wait for the result.",
+      duplicateStored: isZh
+        ? "提交内容与当前已存档资料一致，无需重复提交。"
+        : "The submitted value matches the stored record. No resubmission is needed.",
+      permission: isZh
+        ? "当前账号没有执行该操作的权限。"
+        : "The current account does not have permission to perform this action.",
+      unknown: isZh
+        ? "发生了未知错误，请稍后再试。"
+        : "Something went wrong. Please try again later.",
+    },
+    fallback: {
+      noRecordYet: isZh ? "暂无记录" : "No record yet",
+    },
+    inputHint: isZh
+      ? "提交后将进入审核流程。"
+      : "After submission, this will enter the review queue.",
+    loading: isZh ? "正在同步云端资料..." : "Syncing your cloud profile...",
+    mediaStatus: {
+      approvedGeneric: isZh ? "审核通过" : "Approved",
+      approvedIdentity: isZh ? "通过认证" : "Verified",
+      identityEmpty: isZh ? "请填写身份证号" : "Add ID number",
+      passportEmpty: isZh ? "请填写护照号" : "Add passport number",
+      pending: isZh ? "待审核" : "Pending Review",
+      photosEmpty: isZh ? "请上传个人照片" : "Upload profile photos",
+      videosEmpty: isZh ? "请上传个人视频" : "Upload profile videos",
+    },
+    statusHeadings: {
+      approved: isZh ? "审核通过" : "Approved",
+      pending: isZh ? "待审核" : "Pending Review",
+    },
+    userStatus: {
+      active: isZh ? "已激活" : "Active",
+      pending: isZh ? "待审核" : "Pending Review",
+      suspended: isZh ? "已停用" : "Suspended",
+    },
+    video: {
+      badge: "Video",
+      count: (count) => (isZh ? `${count} 条视频` : `${count} videos`),
+      defaultTitle: isZh ? "个人介绍视频" : "Profile introduction video",
+    },
+  };
+}
+
+function resolveDashboardSharedCopy(
+  localeOrCopy: Locale | DashboardSharedCopy = DEFAULT_LOCALE,
+) {
+  return typeof localeOrCopy === "string"
+    ? createLegacyDashboardSharedCopy(localeOrCopy)
+    : localeOrCopy;
+}
+
 export function LoadingState() {
+  const t = useTranslations("DashboardShared");
+
   return (
     <div className="mx-auto flex min-h-[60vh] w-full max-w-[1320px] items-center justify-center">
       <div className="rounded-[28px] border border-white/85 bg-white/70 px-6 py-5 text-sm text-[#60707d] shadow-[0_18px_45px_rgba(96,113,128,0.06)]">
-        正在同步云端资料...
+        {t("loading")}
       </div>
     </div>
   );
@@ -85,21 +246,26 @@ export function PassportPreview() {
 }
 
 export function VideoPreview({ count, title }: { count: number; title?: string }) {
+  const t = useTranslations("DashboardShared");
+  const copy = createDashboardSharedCopy(t);
+
   return (
     <div className="absolute inset-0 flex flex-col justify-between bg-[linear-gradient(135deg,#162029_0%,#314758_52%,#5e7b8f_100%)] p-4 text-white">
       <div className="flex items-center justify-between text-white/76">
         <div className="inline-flex items-center gap-2 rounded-full bg-white/12 px-3 py-1 text-[11px] tracking-[0.16em] uppercase">
           <Video className="size-3.5" />
-          Video
+          {copy.video.badge}
         </div>
-        {count ? <span className="text-xs">{count} 条视频</span> : null}
+        {count ? <span className="text-xs">{copy.video.count(count)}</span> : null}
       </div>
       <div className="flex flex-1 items-center justify-center">
         <div className="flex h-14 w-14 items-center justify-center rounded-full bg-white/90 text-[#486782]">
           <Play className="ml-0.5 size-5 fill-current" />
         </div>
       </div>
-      <p className="truncate text-sm font-semibold">{title ?? "个人介绍视频"}</p>
+      <p className="truncate text-sm font-semibold">
+        {title ?? copy.video.defaultTitle}
+      </p>
     </div>
   );
 }
@@ -113,6 +279,7 @@ export function InputCard({
   busy,
   onChange,
   onAction,
+  helperText,
 }: {
   icon: ReactNode;
   label: string;
@@ -122,7 +289,10 @@ export function InputCard({
   busy: boolean;
   onChange: (value: string) => void;
   onAction: () => void;
+  helperText?: string;
 }) {
+  const t = useTranslations("DashboardShared");
+
   return (
     <div className="rounded-[24px] border border-[#ece8e1] bg-white p-6 shadow-[0_10px_24px_rgba(96,113,128,0.06)]">
       <div className="flex items-center gap-3 text-[#486782]">
@@ -133,7 +303,9 @@ export function InputCard({
           <p className="font-label text-[11px] font-semibold tracking-[0.18em] text-[#7d8890] uppercase">
             {label}
           </p>
-          <p className="mt-1 text-sm text-[#67727b]">提交后将进入审核流程。</p>
+          <p className="mt-1 text-sm text-[#67727b]">
+            {helperText ?? t("inputHint")}
+          </p>
         </div>
       </div>
       <div className="mt-5 space-y-4">
@@ -169,6 +341,7 @@ export function StatusNotice({
   status: ReviewStatus;
   description: string;
 }) {
+  const t = useTranslations("DashboardShared");
   const approved = status === "approved";
 
   return (
@@ -194,7 +367,9 @@ export function StatusNotice({
           )}
         </div>
         <div>
-          <p className="text-sm font-semibold">{approved ? "审核通过" : "待审核"}</p>
+          <p className="text-sm font-semibold">
+            {approved ? t("statusHeadings.approved") : t("statusHeadings.pending")}
+          </p>
           <p className="mt-1 text-sm leading-6 opacity-80">{description}</p>
         </div>
       </div>
@@ -249,6 +424,9 @@ export function EmptyState({
 }
 
 export function StatusChip({ status }: { status: PrivacyRequestStatus }) {
+  const t = useTranslations("DashboardShared");
+  const copy = createDashboardSharedCopy(t);
+
   return (
     <span
       className={cn(
@@ -258,7 +436,7 @@ export function StatusChip({ status }: { status: PrivacyRequestStatus }) {
         status === "denied" && "bg-[#fbe6e6] text-[#b13d3d]",
       )}
     >
-      {status === "pass" ? "审核通过" : status === "pending" ? "待审核" : "已驳回"}
+      {copy.assetStatus[status]}
     </span>
   );
 }
@@ -269,13 +447,36 @@ export function getMediaStatus(assets: UserMediaAssetWithPreview[]): ReviewStatu
   return "empty";
 }
 
-export function getStatusLabel(key: MediaAssetKey, status: ReviewStatus) {
-  if (status === "pending") return "待审核";
-  if (status === "approved") return key === "identity" || key === "passport" ? "通过认证" : "审核通过";
-  if (key === "identity") return "请填写身份证号";
-  if (key === "passport") return "请上传护照号码";
-  if (key === "photos") return "请上传个人照片";
-  return "请上传个人视频";
+export function getStatusLabel(
+  key: MediaAssetKey,
+  status: ReviewStatus,
+  localeOrCopy: Locale | DashboardSharedCopy = DEFAULT_LOCALE,
+) {
+  const copy = resolveDashboardSharedCopy(localeOrCopy);
+
+  if (status === "pending") {
+    return copy.mediaStatus.pending;
+  }
+
+  if (status === "approved") {
+    return key === "identity" || key === "passport"
+      ? copy.mediaStatus.approvedIdentity
+      : copy.mediaStatus.approvedGeneric;
+  }
+
+  if (key === "identity") {
+    return copy.mediaStatus.identityEmpty;
+  }
+
+  if (key === "passport") {
+    return copy.mediaStatus.passportEmpty;
+  }
+
+  if (key === "photos") {
+    return copy.mediaStatus.photosEmpty;
+  }
+
+  return copy.mediaStatus.videosEmpty;
 }
 
 export function statusBadgeClass(status: ReviewStatus) {
@@ -289,34 +490,53 @@ export function statusBadgeClass(status: ReviewStatus) {
   );
 }
 
-export function mapUserStatus(status: string | null | undefined) {
+export function mapUserStatus(
+  status: string | null | undefined,
+  localeOrCopy: Locale | DashboardSharedCopy = DEFAULT_LOCALE,
+) {
+  const copy = resolveDashboardSharedCopy(localeOrCopy);
+
   if (status === "active") {
-    return { label: "已激活", accent: "success" as const };
+    return {
+      label: copy.userStatus.active,
+      accent: "success" as const,
+    };
   }
 
   if (status === "suspended") {
-    return { label: "已停用", accent: "default" as const };
+    return {
+      label: copy.userStatus.suspended,
+      accent: "default" as const,
+    };
   }
 
-  return { label: "待审核", accent: "default" as const };
+  return {
+    label: copy.userStatus.pending,
+    accent: "default" as const,
+  };
 }
 
-export function formatDateTime(value: string | null | undefined) {
+export function formatDateTime(
+  value: string | null | undefined,
+  locale: Locale = DEFAULT_LOCALE,
+) {
+  const noRecordYet = createLegacyDashboardSharedCopy(locale).fallback.noRecordYet;
+
   if (!value) {
-    return "暂无记录";
+    return noRecordYet;
   }
 
   const date = new Date(value);
 
   if (Number.isNaN(date.getTime())) {
-    return "暂无记录";
+    return noRecordYet;
   }
 
-  return new Intl.DateTimeFormat("zh-CN", {
+  return new Intl.DateTimeFormat(locale === "zh" ? "zh-CN" : "en-US", {
+    day: "2-digit",
     hour: "2-digit",
     minute: "2-digit",
     month: "2-digit",
-    day: "2-digit",
     year: "numeric",
   }).format(date);
 }
@@ -338,22 +558,30 @@ export function normalizeOptionalString(value: unknown) {
   return normalized.length > 0 ? normalized : null;
 }
 
-export function toErrorMessage(error: unknown) {
+export function normalizeSearchText(value: string | null | undefined) {
+  return (normalizeOptionalString(value) ?? "").toLowerCase().replace(/\s+/g, " ");
+}
+
+export function toErrorMessage(
+  error: unknown,
+  localeOrCopy: Locale | DashboardSharedCopy = DEFAULT_LOCALE,
+) {
+  const copy = resolveDashboardSharedCopy(localeOrCopy);
   const message =
     typeof error === "object" && error !== null && "message" in error
       ? String(error.message)
-      : "发生了未知错误，请稍后再试。";
+      : copy.errors.unknown;
 
   if (message.includes("duplicate pending privacy request exists")) {
-    return "已有相同内容正在审核中，请等待审核结果。";
+    return copy.errors.duplicatePending;
   }
 
   if (message.includes("submitted privacy data duplicates existing stored data")) {
-    return "提交内容与当前已存档资料一致，无需重复提交。";
+    return copy.errors.duplicateStored;
   }
 
   if (message.includes("row-level security")) {
-    return "当前账号没有执行该操作的权限。";
+    return copy.errors.permission;
   }
 
   return message;

@@ -3,8 +3,10 @@
 import { useCallback, useRef, useState } from "react";
 
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { LoaderCircle, Trash2, Upload } from "lucide-react";
 
+import { useLocale } from "@/components/i18n/locale-provider";
 import { getBrowserSupabaseClient } from "@/lib/supabase";
 import {
   markBrowserCloudSyncActivity,
@@ -23,6 +25,7 @@ import {
 import { useSupabaseAuthSync } from "@/lib/use-supabase-auth-sync";
 
 import {
+  createDashboardSharedCopy,
   formatDateTime,
   getMediaStatus,
   getStatusLabel,
@@ -44,9 +47,54 @@ import { Button } from "../../ui/button";
 
 export function useDashboardSharedMyState() {
   const router = useRouter();
+  const { locale } = useLocale();
+  const t = useTranslations("DashboardMyState");
+  const sharedT = useTranslations("DashboardShared");
+  const sharedCopy = createDashboardSharedCopy(sharedT);
   const supabase = getBrowserSupabaseClient();
   const photoInputRef = useRef<HTMLInputElement>(null);
   const videoInputRef = useRef<HTMLInputElement>(null);
+  const copy = {
+    unnamedUser: t("unnamedUser"),
+    pendingCity: t("pendingCity"),
+    pendingValue: t("pendingValue"),
+    pendingReferralCode: t("pendingReferralCode"),
+    standardMembership: t("standardMembership"),
+    vipMembership: t("vipMembership"),
+    identityTitle: t("identityTitle"),
+    passportTitle: t("passportTitle"),
+    photosTitle: t("photosTitle"),
+    videosTitle: t("videosTitle"),
+    photoCountLabel: (count: number) => t("photoCountLabel", { count }),
+    uploadPhotosPrompt: t("uploadPhotosPrompt"),
+    phoneLabel: t("phoneLabel"),
+    emailLabel: t("emailLabel"),
+    passwordLabel: t("passwordLabel"),
+    passwordValue: t("passwordValue"),
+    inviteCodeLabel: t("inviteCodeLabel"),
+    accountStatusLabel: t("accountStatusLabel"),
+    lastLoginLabel: t("lastLoginLabel"),
+    missingEmailForReset: t("missingEmailForReset"),
+    resetSent: t("resetSent"),
+    missingInviteCode: t("missingInviteCode"),
+    inviteCopied: t("inviteCopied"),
+    inviteCopyFailed: t("inviteCopyFailed"),
+    profileSaved: t("profileSaved"),
+    cityUpdated: t("cityUpdated"),
+    identitySubmitted: t("identitySubmitted"),
+    passportSubmitted: t("passportSubmitted"),
+    photosUploaded: t("photosUploaded"),
+    videosUploaded: t("videosUploaded"),
+    photosDeleted: t("photosDeleted"),
+    videosDeleted: t("videosDeleted"),
+    identityDescription: t("identityDescription"),
+    passportDescription: t("passportDescription"),
+    mediaDescription: t("mediaDescription"),
+    deletePhotos: t("deletePhotos"),
+    uploadPhotos: t("uploadPhotos"),
+    deleteVideos: t("deleteVideos"),
+    uploadVideos: t("uploadVideos"),
+  };
 
   const [bundle, setBundle] = useState<CurrentUserBundle | null>(null);
   const [loading, setLoading] = useState(true);
@@ -123,14 +171,14 @@ export function useDashboardSharedMyState() {
           return;
         }
 
-        setPageError(toErrorMessage(error));
+        setPageError(toErrorMessage(error, sharedCopy));
       } finally {
         if (isMounted()) {
           setLoading(false);
         }
       }
     },
-    [recoverCloudSync, router, supabase],
+    [recoverCloudSync, router, sharedCopy, supabase],
   );
 
   useSupabaseAuthSync(supabase, {
@@ -197,7 +245,7 @@ export function useDashboardSharedMyState() {
         setPageNotice({ tone: "success", message: pageMessage });
       }
     } catch (error) {
-      const message = toErrorMessage(error);
+        const message = toErrorMessage(error, sharedCopy);
 
       if (activeDialog) {
         setDialogNotice({ tone: "error", message });
@@ -259,27 +307,28 @@ export function useDashboardSharedMyState() {
     normalizeOptionalString(profile?.name) ??
     normalizeOptionalString(authUser?.user_metadata?.name) ??
     normalizeOptionalString(authUser?.email?.split("@")[0]) ??
-    "未命名用户";
+    copy.unnamedUser;
   const displayCity =
     normalizeOptionalString(profile?.city) ??
     normalizeOptionalString(authUser?.user_metadata?.city) ??
-    "待补充城市";
+    copy.pendingCity;
   const displayPhone =
     normalizeOptionalString(profile?.phone) ??
     normalizeOptionalString(authUser?.user_metadata?.phone) ??
     normalizeOptionalString(authUser?.phone) ??
-    "待补充";
+    copy.pendingValue;
   const displayEmail =
     normalizeOptionalString(profile?.email) ??
     normalizeOptionalString(authUser?.email) ??
-    "待补充";
-  const displayReferralCode = normalizeOptionalString(profile?.referral_code) ?? "待生成";
-  const displayLastLogin = formatDateTime(authUser?.last_sign_in_at);
-  const displayStatus = mapUserStatus(profile?.status);
+    copy.pendingValue;
+  const displayReferralCode =
+    normalizeOptionalString(profile?.referral_code) ?? copy.pendingReferralCode;
+  const displayLastLogin = formatDateTime(authUser?.last_sign_in_at, locale);
+  const displayStatus = mapUserStatus(profile?.status, sharedCopy);
   const hasActiveVip =
     vipMembership?.status === "active" &&
     (!vipMembership.expires_at || new Date(vipMembership.expires_at).getTime() > Date.now());
-  const membershipLabel = hasActiveVip ? "VIP 尊享会员" : "标准会员";
+  const membershipLabel = hasActiveVip ? copy.vipMembership : copy.standardMembership;
   const photoThumbnails: PhotoThumbnail[] = photoAssets
     .filter((asset) => asset.previewUrl)
     .map((asset) => ({
@@ -290,27 +339,29 @@ export function useDashboardSharedMyState() {
   const assets = [
     {
       key: "identity" as const,
-      title: "基础信息",
-      status: getStatusLabel("identity", identityStatus),
+      title: copy.identityTitle,
+      status: getStatusLabel("identity", identityStatus, sharedCopy),
       tone: identityStatus,
       body: <IdPreview />,
     },
     {
       key: "passport" as const,
-      title: "通行信息",
-      status: getStatusLabel("passport", passportStatus),
+      title: copy.passportTitle,
+      status: getStatusLabel("passport", passportStatus, sharedCopy),
       tone: passportStatus,
       body: <PassportPreview />,
     },
     {
       key: "photos" as const,
-      title: "个人照片",
-      status: getStatusLabel("photos", photoStatus),
+      title: copy.photosTitle,
+      status: getStatusLabel("photos", photoStatus, sharedCopy),
       tone: photoStatus,
       body: (
         <PhotoStackPreview
           footerLabel={
-            photoAssets.length ? `${photoAssets.length} 张照片` : "请上传个人照片"
+            photoAssets.length
+              ? copy.photoCountLabel(photoAssets.length)
+              : copy.uploadPhotosPrompt
           }
           thumbnails={photoThumbnails}
         />
@@ -318,20 +369,20 @@ export function useDashboardSharedMyState() {
     },
     {
       key: "videos" as const,
-      title: "个人视频",
-      status: getStatusLabel("videos", videoStatus),
+      title: copy.videosTitle,
+      status: getStatusLabel("videos", videoStatus, sharedCopy),
       tone: videoStatus,
       body: <VideoPreview count={videoAssets.length} title={videoAssets[0]?.original_name} />,
     },
   ];
 
   const profileStats = [
-    { label: "手机号码", value: displayPhone },
-    { label: "电子邮箱", value: displayEmail },
-    { label: "账号密码", value: "可发送重置邮件", mono: true },
-    { label: "邀请码", value: displayReferralCode, mono: true },
-    { label: "账号状态", value: displayStatus.label, accent: displayStatus.accent },
-    { label: "最后登录", value: displayLastLogin },
+    { label: copy.phoneLabel, value: displayPhone },
+    { label: copy.emailLabel, value: displayEmail },
+    { label: copy.passwordLabel, value: copy.passwordValue, mono: true },
+    { label: copy.inviteCodeLabel, value: displayReferralCode, mono: true },
+    { label: copy.accountStatusLabel, value: displayStatus.label, accent: displayStatus.accent },
+    { label: copy.lastLoginLabel, value: displayLastLogin },
   ] as const;
 
   const openDialog = (key: MediaAssetKey) => {
@@ -362,7 +413,7 @@ export function useDashboardSharedMyState() {
 
   const sendPasswordReset = async () => {
     if (!supabase || !authUser?.email) {
-      setPageNotice({ tone: "error", message: "当前账号缺少邮箱，无法发送重置邮件。" });
+      setPageNotice({ tone: "error", message: copy.missingEmailForReset });
       return;
     }
 
@@ -383,9 +434,9 @@ export function useDashboardSharedMyState() {
         throw error;
       }
 
-      setPageNotice({ tone: "success", message: "重置密码邮件已发送，请检查你的邮箱。" });
+      setPageNotice({ tone: "success", message: copy.resetSent });
     } catch (error) {
-      setPageNotice({ tone: "error", message: toErrorMessage(error) });
+      setPageNotice({ tone: "error", message: toErrorMessage(error, sharedCopy) });
     } finally {
       setBusyKey(null);
     }
@@ -393,15 +444,15 @@ export function useDashboardSharedMyState() {
 
   const copyInviteCode = async () => {
     if (!profile?.referral_code) {
-      setPageNotice({ tone: "error", message: "当前账号还没有可复制的邀请码。" });
+      setPageNotice({ tone: "error", message: copy.missingInviteCode });
       return;
     }
 
     try {
       await navigator.clipboard.writeText(profile.referral_code);
-      setPageNotice({ tone: "success", message: "邀请码已复制到剪贴板。" });
+      setPageNotice({ tone: "success", message: copy.inviteCopied });
     } catch {
-      setPageNotice({ tone: "error", message: "复制失败，请稍后重试。" });
+      setPageNotice({ tone: "error", message: copy.inviteCopyFailed });
     }
   };
 
@@ -435,10 +486,10 @@ export function useDashboardSharedMyState() {
       });
 
       await refreshBundle({ quiet: true });
-      setProfileDialogNotice({ tone: "success", message: "个人资料已保存。" });
-      setPageNotice({ tone: "success", message: "城市信息已更新。" });
+      setProfileDialogNotice({ tone: "success", message: copy.profileSaved });
+      setPageNotice({ tone: "success", message: copy.cityUpdated });
     } catch (error) {
-      setProfileDialogNotice({ tone: "error", message: toErrorMessage(error) });
+      setProfileDialogNotice({ tone: "error", message: toErrorMessage(error, sharedCopy) });
     } finally {
       setBusyKey(null);
     }
@@ -459,10 +510,10 @@ export function useDashboardSharedMyState() {
         value: identityDraft,
       });
 
-      await refreshBundle({ dialogMessage: "身份证号已提交，当前状态为待审核。", quiet: true });
+      await refreshBundle({ dialogMessage: copy.identitySubmitted, quiet: true });
       setIdentityEditing(false);
     } catch (error) {
-      setDialogNotice({ tone: "error", message: toErrorMessage(error) });
+      setDialogNotice({ tone: "error", message: toErrorMessage(error, sharedCopy) });
     } finally {
       setBusyKey(null);
     }
@@ -483,10 +534,10 @@ export function useDashboardSharedMyState() {
         value: passportDraft,
       });
 
-      await refreshBundle({ dialogMessage: "护照号码已提交，当前状态为待审核。", quiet: true });
+      await refreshBundle({ dialogMessage: copy.passportSubmitted, quiet: true });
       setPassportEditing(false);
     } catch (error) {
-      setDialogNotice({ tone: "error", message: toErrorMessage(error) });
+      setDialogNotice({ tone: "error", message: toErrorMessage(error, sharedCopy) });
     } finally {
       setBusyKey(null);
     }
@@ -502,9 +553,9 @@ export function useDashboardSharedMyState() {
 
     try {
       await uploadUserMedia(supabase, { files, kind: "image", userId: authUser.id });
-      await refreshBundle({ dialogMessage: "个人照片已上传，当前状态为待审核。", quiet: true });
+      await refreshBundle({ dialogMessage: copy.photosUploaded, quiet: true });
     } catch (error) {
-      setDialogNotice({ tone: "error", message: toErrorMessage(error) });
+      setDialogNotice({ tone: "error", message: toErrorMessage(error, sharedCopy) });
     } finally {
       setBusyKey(null);
     }
@@ -520,9 +571,9 @@ export function useDashboardSharedMyState() {
 
     try {
       await uploadUserMedia(supabase, { files, kind: "video", userId: authUser.id });
-      await refreshBundle({ dialogMessage: "个人视频已上传，当前状态为待审核。", quiet: true });
+      await refreshBundle({ dialogMessage: copy.videosUploaded, quiet: true });
     } catch (error) {
-      setDialogNotice({ tone: "error", message: toErrorMessage(error) });
+      setDialogNotice({ tone: "error", message: toErrorMessage(error, sharedCopy) });
     } finally {
       setBusyKey(null);
     }
@@ -538,9 +589,9 @@ export function useDashboardSharedMyState() {
 
     try {
       await deleteUserMediaAssets(supabase, targets);
-      await refreshBundle({ dialogMessage: "所选照片已删除。", quiet: true });
+      await refreshBundle({ dialogMessage: copy.photosDeleted, quiet: true });
     } catch (error) {
-      setDialogNotice({ tone: "error", message: toErrorMessage(error) });
+      setDialogNotice({ tone: "error", message: toErrorMessage(error, sharedCopy) });
     } finally {
       setBusyKey(null);
     }
@@ -556,9 +607,9 @@ export function useDashboardSharedMyState() {
 
     try {
       await deleteUserMediaAssets(supabase, targets);
-      await refreshBundle({ dialogMessage: "所选视频已删除。", quiet: true });
+      await refreshBundle({ dialogMessage: copy.videosDeleted, quiet: true });
     } catch (error) {
-      setDialogNotice({ tone: "error", message: toErrorMessage(error) });
+      setDialogNotice({ tone: "error", message: toErrorMessage(error, sharedCopy) });
     } finally {
       setBusyKey(null);
     }
@@ -566,24 +617,24 @@ export function useDashboardSharedMyState() {
 
   const dialogTitle =
     activeDialog === "identity"
-      ? "基础信息"
+      ? copy.identityTitle
       : activeDialog === "passport"
-        ? "通行信息"
+        ? copy.passportTitle
         : activeDialog === "photos"
-          ? "个人照片"
+          ? copy.photosTitle
           : activeDialog === "videos"
-            ? "个人视频"
+            ? copy.videosTitle
             : "";
 
   const dialogDescription =
     activeDialog === "identity"
-      ? "提交后会进入审核流程，审核通过后会同步更新你的身份资料。"
+      ? copy.identityDescription
       : activeDialog === "passport"
-        ? "提交后会进入审核流程，审核通过后会同步更新你的通行资料。"
+        ? copy.passportDescription
         : activeDialog === "photos"
-          ? "上传后会进入待审核，审核通过后会展示在你的个人资料中。"
+          ? copy.mediaDescription
           : activeDialog === "videos"
-            ? "上传后会进入待审核，审核通过后会展示在你的个人资料中。"
+            ? copy.mediaDescription
             : "";
 
   const dialogActions =
@@ -600,7 +651,7 @@ export function useDashboardSharedMyState() {
           ) : (
             <Trash2 className="size-4" />
           )}
-          删除照片
+          {copy.deletePhotos}
         </Button>
         <Button
           className="h-11 rounded-full bg-[#486782] px-5 text-white hover:bg-[#3e5f79]"
@@ -612,7 +663,7 @@ export function useDashboardSharedMyState() {
           ) : (
             <Upload className="size-4" />
           )}
-          上传照片
+          {copy.uploadPhotos}
         </Button>
       </>
     ) : activeDialog === "videos" ? (
@@ -628,7 +679,7 @@ export function useDashboardSharedMyState() {
           ) : (
             <Trash2 className="size-4" />
           )}
-          删除视频
+          {copy.deleteVideos}
         </Button>
         <Button
           className="h-11 rounded-full bg-[#486782] px-5 text-white hover:bg-[#3e5f79]"
@@ -640,68 +691,80 @@ export function useDashboardSharedMyState() {
           ) : (
             <Upload className="size-4" />
           )}
-          上传视频
+          {copy.uploadVideos}
         </Button>
       </>
     ) : undefined;
 
-
   return {
-    activeDialog,
-    assets,
-    bodyBundle: bundle,
     bundle,
-    busyKey,
-    certified,
-    closeDialog,
-    closeProfileDialog,
-    copyInviteCode,
-    deletePhotoAssets,
-    deleteVideoAssets,
-    dialogActions,
-    dialogDescription,
-    dialogNotice,
-    dialogTitle,
-    displayCity,
-    displayName,
-    identityDraft,
-    identityEditing,
-    identityStatus,
-    identityValue,
     loading,
-    membershipLabel,
-    openDialog,
-    openProfileDialog,
-    pageError,
-    pageNotice,
-    passportDraft,
-    passportEditing,
-    passportStatus,
-    passportValue,
-    photoAssets,
     photoInputRef,
-    photoStatus,
-    profileCityDraft,
-    profileDialogNotice,
-    profileDialogOpen,
-    profileStats,
-    recoverCloudSync,
-    refreshBundle,
-    saveProfileCity,
-    sendPasswordReset,
-    setIdentityDraft,
-    setIdentityEditing,
-    setPassportDraft,
-    setPassportEditing,
-    setProfileCityDraft,
-    submitIdentity,
-    submitPassport,
-    supabase,
-    uploadPhotos,
-    uploadVideos,
-    verificationStatus,
-    videoAssets,
     videoInputRef,
-    videoStatus,
+    supabase,
+    ui: {
+      busyKey,
+    },
+    page: {
+      error: pageError,
+      notice: pageNotice,
+      recoverCloudSync,
+      refreshBundle,
+    },
+    account: {
+      certified,
+      copyInviteCode,
+      displayCity,
+      displayName,
+      membershipLabel,
+      profileStats,
+      sendPasswordReset,
+      verificationStatus,
+    },
+    profileDialog: {
+      close: closeProfileDialog,
+      notice: profileDialogNotice,
+      open: profileDialogOpen,
+      openDialog: openProfileDialog,
+      saveCity: saveProfileCity,
+      setCityDraft: setProfileCityDraft,
+      cityDraft: profileCityDraft,
+    },
+    assetDialog: {
+      actions: dialogActions,
+      activeDialog,
+      assets,
+      close: closeDialog,
+      deletePhotoAssets,
+      deleteVideoAssets,
+      description: dialogDescription,
+      notice: dialogNotice,
+      openDialog,
+      photoAssets,
+      photoStatus,
+      title: dialogTitle,
+      uploadPhotos,
+      uploadVideos,
+      videoAssets,
+      videoStatus,
+    },
+    identity: {
+      draft: identityDraft,
+      editing: identityEditing,
+      setDraft: setIdentityDraft,
+      setEditing: setIdentityEditing,
+      status: identityStatus,
+      submit: submitIdentity,
+      value: identityValue,
+    },
+    passport: {
+      draft: passportDraft,
+      editing: passportEditing,
+      setDraft: setPassportDraft,
+      setEditing: setPassportEditing,
+      status: passportStatus,
+      submit: submitPassport,
+      value: passportValue,
+    },
   };
 }

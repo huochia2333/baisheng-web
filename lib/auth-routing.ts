@@ -7,32 +7,71 @@ export type AppRole =
   | "finance"
   | "client";
 
-export function getDefaultWorkspaceBasePath(role: AppRole | null) {
-  if (role === "manager") {
-    return "/manager";
+const WORKSPACE_BASE_PATH_BY_ROLE = {
+  administrator: "/admin",
+  manager: "/manager",
+  recruiter: "/recruiter",
+  salesman: "/salesman",
+  operator: "/operator",
+  finance: "/finance",
+  client: "/client",
+} as const satisfies Record<AppRole, string>;
+
+export type WorkspaceBasePath = (typeof WORKSPACE_BASE_PATH_BY_ROLE)[AppRole];
+
+export const WORKSPACE_BASE_PATHS = [
+  "/admin",
+  "/manager",
+  "/recruiter",
+  "/salesman",
+  "/operator",
+  "/finance",
+  "/client",
+] as const satisfies readonly WorkspaceBasePath[];
+
+const UNKNOWN_ROLE_WORKSPACE_BASE_PATHS: readonly WorkspaceBasePath[] = ["/client"];
+
+const WORKSPACE_ACCESS_BY_ROLE = {
+  administrator: ["/admin"],
+  manager: ["/manager"],
+  recruiter: ["/recruiter"],
+  salesman: ["/salesman"],
+  operator: ["/operator"],
+  finance: ["/finance"],
+  client: ["/client"],
+} as const satisfies Record<AppRole, readonly WorkspaceBasePath[]>;
+
+export function getDefaultWorkspaceBasePath(role: AppRole | null): WorkspaceBasePath {
+  if (!role) {
+    return UNKNOWN_ROLE_WORKSPACE_BASE_PATHS[0];
   }
 
-  if (role === "recruiter") {
-    return "/recruiter";
+  return WORKSPACE_BASE_PATH_BY_ROLE[role];
+}
+
+export function getAllowedWorkspaceBasePaths(
+  role: AppRole | null,
+): readonly WorkspaceBasePath[] {
+  return role ? WORKSPACE_ACCESS_BY_ROLE[role] : UNKNOWN_ROLE_WORKSPACE_BASE_PATHS;
+}
+
+export function canAccessWorkspaceBasePath(
+  role: AppRole | null,
+  basePath: string,
+): boolean {
+  return getAllowedWorkspaceBasePaths(role).some(
+    (allowedBasePath) => allowedBasePath === basePath,
+  );
+}
+
+export function getWorkspaceBasePath(pathname: string): WorkspaceBasePath | null {
+  for (const basePath of WORKSPACE_BASE_PATHS) {
+    if (pathname === basePath || pathname.startsWith(`${basePath}/`)) {
+      return basePath;
+    }
   }
 
-  if (role === "salesman") {
-    return "/salesman";
-  }
-
-  if (role === "operator") {
-    return "/operator";
-  }
-
-  if (role === "finance") {
-    return "/finance";
-  }
-
-  if (role === "client") {
-    return "/client";
-  }
-
-  return "/admin";
+  return null;
 }
 
 export function getDefaultSignedInPathForRole(role: AppRole | null) {

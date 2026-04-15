@@ -1,8 +1,9 @@
-"use client";
+﻿"use client";
 
 import { useCallback, useMemo, useRef, useState } from "react";
 import type { ReactNode } from "react";
 
+import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import {
   BriefcaseBusiness,
@@ -21,6 +22,7 @@ import {
   UsersRound,
 } from "lucide-react";
 
+import { useLocale } from "@/components/i18n/locale-provider";
 import {
   markBrowserCloudSyncActivity,
   resetBrowserCloudSyncState,
@@ -51,15 +53,27 @@ import {
   type UserStatus,
 } from "@/lib/user-self-service";
 
+import { Button } from "../ui/button";
+import { DashboardCenteredLoadingState } from "./dashboard-centered-loading-state";
+import { DashboardMetricCard } from "./dashboard-metric-card";
 import {
   EmptyState,
   PageBanner,
   formatDateTime,
   mapUserStatus,
-  toErrorMessage,
   type NoticeTone,
 } from "./dashboard-shared-ui";
-import { Button } from "../ui/button";
+import {
+  getManagerCandidateLabel,
+  getOptionalEmailLabel,
+  getOptionalRecordLabel,
+  getOptionalTeamAssignmentLabel,
+  getTeamDisplayName,
+  getTeamManagementDescription,
+  getTeamManagerLabel,
+  resolvePreferredTeamId,
+  toTeamManagementErrorMessage,
+} from "./team-management-copy";
 
 type PageFeedback = { tone: NoticeTone; message: string } | null;
 
@@ -72,6 +86,8 @@ const EMPTY_TEAM_DETAIL: TeamDetail = {
 export function TeamManagementClient() {
   const router = useRouter();
   const supabase = getBrowserSupabaseClient();
+  const { locale } = useLocale();
+  const t = useTranslations("TeamManagement");
 
   const [loading, setLoading] = useState(true);
   const [syncGeneration, setSyncGeneration] = useState(0);
@@ -211,7 +227,7 @@ export function TeamManagementClient() {
 
         setPageFeedback({
           tone: "error",
-          message: toTeamManagementErrorMessage(error),
+          message: toTeamManagementErrorMessage(error, t),
         });
       } finally {
         if (showLoading && isMounted()) {
@@ -219,7 +235,7 @@ export function TeamManagementClient() {
         }
       }
     },
-    [recoverCloudSync, router, selectedTeamId, supabase],
+    [recoverCloudSync, router, selectedTeamId, supabase, t],
   );
 
   useSupabaseAuthSync(supabase, {
@@ -264,16 +280,16 @@ export function TeamManagementClient() {
   );
 
   const filteredMembers = useMemo(
-    () => filterTeamMembers(detail.members, memberSearchText),
-    [detail.members, memberSearchText],
+    () => filterTeamMembers(detail.members, memberSearchText, locale),
+    [detail.members, locale, memberSearchText],
   );
   const filteredClients = useMemo(
-    () => filterTeamClients(detail.clients, clientSearchText),
-    [clientSearchText, detail.clients],
+    () => filterTeamClients(detail.clients, clientSearchText, locale),
+    [clientSearchText, detail.clients, locale],
   );
   const filteredCandidates = useMemo(
-    () => filterTeamCandidates(candidateSalesmen, candidateSearchText),
-    [candidateSalesmen, candidateSearchText],
+    () => filterTeamCandidates(candidateSalesmen, candidateSearchText, locale),
+    [candidateSalesmen, candidateSearchText, locale],
   );
   const availableCandidateCount = useMemo(
     () => candidateSalesmen.filter((candidate) => candidate.assignable).length,
@@ -321,12 +337,12 @@ export function TeamManagementClient() {
       await refreshQuietly(teamId);
       setPageFeedback({
         tone: "success",
-        message: detail.team ? "团队信息已更新。" : "团队已创建，现在可以继续添加业务员成员。",
+        message: detail.team ? t("feedback.updated") : t("feedback.createdAndContinue"),
       });
     } catch (error) {
       setPageFeedback({
         tone: "error",
-        message: toTeamManagementErrorMessage(error),
+        message: toTeamManagementErrorMessage(error, t),
       });
     } finally {
       setBusyKey(null);
@@ -337,6 +353,7 @@ export function TeamManagementClient() {
     refreshAuthClaims,
     refreshQuietly,
     supabase,
+    t,
     teamNameDraft,
     viewerRole,
   ]);
@@ -359,12 +376,12 @@ export function TeamManagementClient() {
       setCreateManagerUserIdDraft("");
       setPageFeedback({
         tone: "success",
-        message: "新团队已创建。",
+        message: t("feedback.created"),
       });
     } catch (error) {
       setPageFeedback({
         tone: "error",
-        message: toTeamManagementErrorMessage(error),
+        message: toTeamManagementErrorMessage(error, t),
       });
     } finally {
       setBusyKey(null);
@@ -375,6 +392,7 @@ export function TeamManagementClient() {
     refreshAuthClaims,
     refreshQuietly,
     supabase,
+    t,
     viewerRole,
   ]);
 
@@ -395,18 +413,18 @@ export function TeamManagementClient() {
         await refreshQuietly(teamId);
         setPageFeedback({
           tone: "success",
-          message: "团队成员已加入。",
+          message: t("feedback.memberAdded"),
         });
       } catch (error) {
         setPageFeedback({
           tone: "error",
-          message: toTeamManagementErrorMessage(error),
+          message: toTeamManagementErrorMessage(error, t),
         });
       } finally {
         setBusyKey(null);
       }
     },
-    [detail.team?.team_id, refreshAuthClaims, refreshQuietly, supabase],
+    [detail.team?.team_id, refreshAuthClaims, refreshQuietly, supabase, t],
   );
 
   const handleRemoveSalesman = useCallback(
@@ -426,18 +444,18 @@ export function TeamManagementClient() {
         await refreshQuietly(teamId);
         setPageFeedback({
           tone: "success",
-          message: "团队成员已移出。",
+          message: t("feedback.memberRemoved"),
         });
       } catch (error) {
         setPageFeedback({
           tone: "error",
-          message: toTeamManagementErrorMessage(error),
+          message: toTeamManagementErrorMessage(error, t),
         });
       } finally {
         setBusyKey(null);
       }
     },
-    [detail.team?.team_id, refreshAuthClaims, refreshQuietly, supabase],
+    [detail.team?.team_id, refreshAuthClaims, refreshQuietly, supabase, t],
   );
 
   const handleDeleteTeam = useCallback(async () => {
@@ -447,7 +465,9 @@ export function TeamManagementClient() {
 
     if (typeof window !== "undefined") {
       const confirmed = window.confirm(
-        `确认删除团队“${detail.team.team_name ?? "未命名团队"}”吗？此操作会移除团队记录及成员归属关系。`,
+        t("confirmDelete", {
+          teamName: getTeamDisplayName(detail.team.team_name, t),
+        }),
       );
 
       if (!confirmed) {
@@ -462,17 +482,17 @@ export function TeamManagementClient() {
       await refreshQuietly(null);
       setPageFeedback({
         tone: "success",
-        message: "团队已删除。",
+        message: t("feedback.deleted"),
       });
     } catch (error) {
       setPageFeedback({
         tone: "error",
-        message: toTeamManagementErrorMessage(error),
+        message: toTeamManagementErrorMessage(error, t),
       });
     } finally {
       setBusyKey(null);
     }
-  }, [detail.team, refreshQuietly, supabase, viewerRole]);
+  }, [detail.team, refreshQuietly, supabase, t, viewerRole]);
 
   const handleSelectTeam = useCallback(
     async (teamId: string) => {
@@ -502,7 +522,7 @@ export function TeamManagementClient() {
   }, [refreshQuietly, selectedTeamId]);
 
   if (loading) {
-    return <TeamManagementLoadingState />;
+    return <DashboardCenteredLoadingState message={t("loading")} />;
   }
 
   return (
@@ -515,39 +535,19 @@ export function TeamManagementClient() {
         <div className="flex flex-col gap-6 xl:flex-row xl:items-end xl:justify-between">
           <div className="max-w-3xl">
             <span className="inline-flex rounded-full bg-[#e6edf2] px-3 py-1 text-xs font-semibold text-[#486782]">
-              团队组织协作
+              {t("header.badge")}
             </span>
-            <h2 className="mt-4 text-4xl font-bold tracking-tight text-[#1f2a32]">团队管理</h2>
+            <h2 className="mt-4 text-4xl font-bold tracking-tight text-[#1f2a32]">{t("header.title")}</h2>
             <p className="mt-3 text-[15px] leading-8 text-[#65717b]">
-              {getTeamManagementDescription(viewerRole)}
+              {getTeamManagementDescription(viewerRole, t)}
             </p>
           </div>
 
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:min-w-[560px] xl:grid-cols-4">
-            <SummaryCard
-              accent="blue"
-              count={aggregateStats.teamCount}
-              icon={<Building2 className="size-5" />}
-              label="可见团队"
-            />
-            <SummaryCard
-              accent="green"
-              count={aggregateStats.totalMembers}
-              icon={<UsersRound className="size-5" />}
-              label="团队成员"
-            />
-            <SummaryCard
-              accent="gold"
-              count={aggregateStats.totalClients}
-              icon={<BriefcaseBusiness className="size-5" />}
-              label="团队客户"
-            />
-            <SummaryCard
-              accent="blue"
-              count={aggregateStats.manageableTeams}
-              icon={<Crown className="size-5" />}
-              label="可管理团队"
-            />
+            <DashboardMetricCard accent="blue" icon={<Building2 className="size-5" />} label={t("summary.visibleTeams")} value={aggregateStats.teamCount} />
+            <DashboardMetricCard accent="green" icon={<UsersRound className="size-5" />} label={t("summary.teamMembers")} value={aggregateStats.totalMembers} />
+            <DashboardMetricCard accent="gold" icon={<BriefcaseBusiness className="size-5" />} label={t("summary.teamClients")} value={aggregateStats.totalClients} />
+            <DashboardMetricCard accent="blue" icon={<Crown className="size-5" />} label={t("summary.manageableTeams")} value={aggregateStats.manageableTeams} />
           </div>
         </div>
 
@@ -563,11 +563,11 @@ export function TeamManagementClient() {
             ) : (
               <RefreshCw className="size-4" />
             )}
-            刷新团队数据
+            {t("header.refresh")}
           </Button>
           {canManageSelectedTeam ? (
             <div className="inline-flex items-center rounded-full bg-[#eef5ef] px-4 py-2 text-sm text-[#4c7259]">
-              当前团队支持直接调整名称和成员
+              {t("header.manageableHint")}
             </div>
           ) : null}
         </div>
@@ -576,40 +576,40 @@ export function TeamManagementClient() {
       {canView && viewerRole === "administrator" ? (
         <section className="rounded-[28px] border border-white/85 bg-white/72 p-6 shadow-[0_18px_45px_rgba(96,113,128,0.06)] xl:p-8">
           <SectionHeader
-            description="管理员可以直接新建团队，并在创建时指定经理。未被其他团队占用的经理会优先显示为可分配。"
-            title="创建团队"
+            description={t("adminCreate.description")}
+            title={t("adminCreate.title")}
           />
 
           <div className="mt-6 grid gap-4 xl:grid-cols-[1fr_1fr_auto]">
             <label className="block">
               <p className="font-label text-[11px] font-semibold tracking-[0.18em] text-[#7d8890] uppercase">
-                团队名称
+                {t("adminCreate.teamNameLabel")}
               </p>
               <input
                 className="mt-3 h-12 w-full rounded-[18px] border border-[#e1ddd7] bg-white px-4 text-[15px] text-[#23313a] outline-none transition focus:border-[#bfd2e1] focus:ring-4 focus:ring-[#bfd2e1]/30"
                 onChange={(event) => setCreateTeamNameDraft(event.target.value)}
-                placeholder="请输入团队名称"
+                placeholder={t("adminCreate.teamNamePlaceholder")}
                 value={createTeamNameDraft}
               />
             </label>
 
             <label className="block">
               <p className="font-label text-[11px] font-semibold tracking-[0.18em] text-[#7d8890] uppercase">
-                指定经理
+                {t("adminCreate.managerLabel")}
               </p>
               <select
                 className="mt-3 h-12 w-full rounded-[18px] border border-[#e1ddd7] bg-white px-4 text-[15px] text-[#23313a] outline-none transition focus:border-[#bfd2e1] focus:ring-4 focus:ring-[#bfd2e1]/30"
                 onChange={(event) => setCreateManagerUserIdDraft(event.target.value)}
                 value={createManagerUserIdDraft}
               >
-                <option value="">暂不指定经理</option>
+                <option value="">{t("shared.managerOptionNone")}</option>
                 {createManagerCandidates.map((candidate) => (
                   <option
                     disabled={!candidate.assignable}
                     key={candidate.user_id}
                     value={candidate.user_id}
                   >
-                    {getManagerCandidateLabel(candidate)}
+                    {getManagerCandidateLabel(candidate, t)}
                   </option>
                 ))}
               </select>
@@ -626,7 +626,7 @@ export function TeamManagementClient() {
                 ) : (
                   <CirclePlus className="size-4" />
                 )}
-                新建团队
+                {t("adminCreate.button")}
               </Button>
             </div>
           </div>
@@ -636,9 +636,9 @@ export function TeamManagementClient() {
       {!canView ? (
         <section className="rounded-[28px] border border-white/85 bg-white/72 p-6 shadow-[0_18px_45px_rgba(96,113,128,0.06)] xl:p-8">
           <EmptyState
-            description="当前账号暂时没有团队面板访问权限。团队模块会根据角色和激活状态展示不同范围的数据。"
+            description={t("states.noPermissionDescription")}
             icon={<ShieldAlert className="size-6" />}
-            title="暂无查看权限"
+            title={t("states.noPermissionTitle")}
           />
         </section>
       ) : viewerRole === "manager" && overviews.length === 0 ? (
@@ -650,11 +650,10 @@ export function TeamManagementClient() {
               </div>
               <div>
                 <h3 className="text-2xl font-bold tracking-tight text-[#23313a]">
-                  创建你的团队面板
+                  {t("managerSetup.title")}
                 </h3>
                 <p className="mt-2 text-sm leading-7 text-[#6f7b85]">
-                  数据库里团队由 `team_profiles` 作为主表、`team_profiles_data`
-                  维护成员。你现在还没有团队记录，可以先创建团队名称，再继续添加业务员。
+                  {t("managerSetup.description")}
                 </p>
               </div>
             </div>
@@ -662,12 +661,12 @@ export function TeamManagementClient() {
             <div className="mt-6 rounded-[24px] border border-[#ebe7e1] bg-[#fbfaf8] p-5 shadow-[0_10px_24px_rgba(96,113,128,0.04)]">
               <label className="block">
                 <p className="font-label text-[11px] font-semibold tracking-[0.18em] text-[#7d8890] uppercase">
-                  团队名称
+                  {t("managerSetup.teamNameLabel")}
                 </p>
                 <input
                   className="mt-3 h-12 w-full rounded-[18px] border border-[#e1ddd7] bg-white px-4 text-[15px] text-[#23313a] outline-none transition focus:border-[#bfd2e1] focus:ring-4 focus:ring-[#bfd2e1]/30"
                   onChange={(event) => setTeamNameDraft(event.target.value)}
-                  placeholder="请输入团队名称"
+                  placeholder={t("managerSetup.teamNamePlaceholder")}
                   value={teamNameDraft}
                 />
               </label>
@@ -683,7 +682,7 @@ export function TeamManagementClient() {
                   ) : (
                     <Building2 className="size-4" />
                   )}
-                  创建团队
+                  {t("managerSetup.button")}
                 </Button>
               </div>
             </div>
@@ -691,18 +690,18 @@ export function TeamManagementClient() {
 
           <section className="rounded-[28px] border border-white/85 bg-white/72 p-6 shadow-[0_18px_45px_rgba(96,113,128,0.06)] xl:p-8">
             <EmptyState
-              description="团队建立后，这里会开始展示成员、团队客户和可加入的业务员候选。"
+              description={t("managerSetup.emptyDescription")}
               icon={<UsersRound className="size-6" />}
-              title="团队数据暂未建立"
+              title={t("managerSetup.emptyTitle")}
             />
           </section>
         </section>
       ) : overviews.length === 0 ? (
         <section className="rounded-[28px] border border-white/85 bg-white/72 p-6 shadow-[0_18px_45px_rgba(96,113,128,0.06)] xl:p-8">
           <EmptyState
-            description="当前可见范围内还没有团队数据。等团队关系建立后，这里会自动汇总团队概览。"
+            description={t("states.noTeamDataDescription")}
             icon={<Building2 className="size-6" />}
-            title="暂无团队数据"
+            title={t("states.noTeamDataTitle")}
           />
         </section>
       ) : (
@@ -710,8 +709,8 @@ export function TeamManagementClient() {
           {overviews.length > 1 || viewerRole !== "manager" ? (
             <section className="rounded-[28px] border border-white/85 bg-white/72 p-6 shadow-[0_18px_45px_rgba(96,113,128,0.06)] xl:p-8">
               <SectionHeader
-                description="先选择一个团队查看详细成员和客户结构。经理默认会优先定位到自己可管理的团队。"
-                title="团队总览"
+                description={t("overview.description")}
+                title={t("overview.title")}
               />
 
               <div className="mt-6 grid gap-4 lg:grid-cols-2">
@@ -730,25 +729,31 @@ export function TeamManagementClient() {
                     <div className="flex flex-wrap items-start justify-between gap-3">
                       <div>
                         <p className="text-xl font-semibold tracking-tight text-[#23313a]">
-                          {team.team_name ?? "未命名团队"}
+                          {getTeamDisplayName(team.team_name, t)}
                         </p>
                         <p className="mt-2 text-sm leading-7 text-[#6f7b85]">
-                          负责人：{team.manager_name ?? team.manager_email ?? "未设置"}
+                          {t("overview.managerPrefix", {
+                            managerLabel: getTeamManagerLabel(
+                              team.manager_name,
+                              team.manager_email,
+                              t,
+                            ),
+                          })}
                         </p>
                       </div>
                       <div className="flex flex-wrap gap-2">
-                        {team.can_manage ? <DataPill accent="blue">可管理</DataPill> : null}
+                        {team.can_manage ? <DataPill accent="blue">{t("shared.pills.manageable")}</DataPill> : null}
                         {selectedTeamId === team.team_id ? (
-                          <DataPill accent="green">当前查看</DataPill>
+                          <DataPill accent="green">{t("shared.pills.currentView")}</DataPill>
                         ) : null}
                       </div>
                     </div>
 
                     <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
-                      <MiniMetric label="成员" value={team.member_count} />
-                      <MiniMetric label="活跃成员" value={team.active_member_count} />
-                      <MiniMetric label="客户" value={team.client_count} />
-                      <MiniMetric label="VIP 客户" value={team.vip_client_count} />
+                      <MiniMetric label={t("overview.metrics.members")} value={team.member_count} />
+                      <MiniMetric label={t("overview.metrics.activeMembers")} value={team.active_member_count} />
+                      <MiniMetric label={t("overview.metrics.clients")} value={team.client_count} />
+                      <MiniMetric label={t("overview.metrics.vipClients")} value={team.vip_client_count} />
                     </div>
 
                     {viewerRole === "administrator" &&
@@ -756,7 +761,7 @@ export function TeamManagementClient() {
                     detail.members.length > 0 ? (
                       <div className="mt-4 rounded-[18px] bg-[#f7f5f2] px-4 py-4">
                         <p className="text-[11px] font-semibold tracking-[0.16em] text-[#88939b] uppercase">
-                          团队成员预览
+                          {t("overview.memberPreview")}
                         </p>
                         <div className="mt-3 flex flex-wrap gap-2">
                           {detail.members.slice(0, 8).map((member) => (
@@ -765,7 +770,9 @@ export function TeamManagementClient() {
                             </DataPill>
                           ))}
                           {detail.members.length > 8 ? (
-                            <DataPill accent="gold">+{detail.members.length - 8} 更多</DataPill>
+                            <DataPill accent="gold">
+                              {t("overview.moreMembers", { count: detail.members.length - 8 })}
+                            </DataPill>
                           ) : null}
                         </div>
                       </div>
@@ -784,28 +791,34 @@ export function TeamManagementClient() {
                     <div>
                       <div className="flex flex-wrap items-center gap-2">
                         <h3 className="text-3xl font-bold tracking-tight text-[#23313a]">
-                          {detail.team.team_name ?? "未命名团队"}
+                          {getTeamDisplayName(detail.team.team_name, t)}
                         </h3>
-                        {detail.team.can_manage ? <DataPill accent="blue">可管理</DataPill> : null}
+                        {detail.team.can_manage ? <DataPill accent="blue">{t("shared.pills.manageable")}</DataPill> : null}
                         {viewerRole === "administrator" ? (
-                          <DataPill accent="gold">管理员视角</DataPill>
+                          <DataPill accent="gold">{t("shared.pills.adminView")}</DataPill>
                         ) : null}
                       </div>
                       <p className="mt-3 text-sm leading-7 text-[#6f7b85]">
-                        团队负责人：{detail.team.manager_name ?? detail.team.manager_email ?? "未设置"}。
-                        最后一次成员加入时间：{formatDateTime(detail.team.last_member_joined_at)}。
+                        {t("detail.managerSummary", {
+                          managerLabel: getTeamManagerLabel(
+                            detail.team.manager_name,
+                            detail.team.manager_email,
+                            t,
+                          ),
+                          joinedAt: formatDateTime(detail.team.last_member_joined_at, locale),
+                        })}
                       </p>
                     </div>
 
                     {canManageSelectedTeam ? (
                       <div className="w-full max-w-[360px] rounded-[24px] border border-[#ebe7e1] bg-[#fbfaf8] p-4 shadow-[0_10px_24px_rgba(96,113,128,0.04)]">
                         <p className="font-label text-[11px] font-semibold tracking-[0.18em] text-[#7d8890] uppercase">
-                          编辑团队信息
+                          {t("detail.editTitle")}
                         </p>
                         <input
                           className="mt-3 h-11 w-full rounded-[16px] border border-[#e1ddd7] bg-white px-4 text-sm text-[#23313a] outline-none transition focus:border-[#bfd2e1] focus:ring-4 focus:ring-[#bfd2e1]/30"
                           onChange={(event) => setTeamNameDraft(event.target.value)}
-                          placeholder="请输入团队名称"
+                          placeholder={t("detail.teamNamePlaceholder")}
                           value={teamNameDraft}
                         />
                         {viewerRole === "administrator" ? (
@@ -814,14 +827,14 @@ export function TeamManagementClient() {
                             onChange={(event) => setManagerUserIdDraft(event.target.value)}
                             value={managerUserIdDraft}
                           >
-                            <option value="">暂不指定经理</option>
+                            <option value="">{t("shared.managerOptionNone")}</option>
                             {managerCandidates.map((candidate) => (
                               <option
                                 disabled={!candidate.assignable}
                                 key={candidate.user_id}
                                 value={candidate.user_id}
                               >
-                                {getManagerCandidateLabel(candidate)}
+                                {getManagerCandidateLabel(candidate, t)}
                               </option>
                             ))}
                           </select>
@@ -836,7 +849,7 @@ export function TeamManagementClient() {
                           ) : (
                             <Building2 className="size-4" />
                           )}
-                          保存团队信息
+                          {t("detail.saveButton")}
                         </Button>
                         {viewerRole === "administrator" ? (
                           <Button
@@ -850,7 +863,7 @@ export function TeamManagementClient() {
                             ) : (
                               <Trash2 className="size-4" />
                             )}
-                            删除团队
+                            {t("detail.deleteButton")}
                           </Button>
                         ) : null}
                       </div>
@@ -858,60 +871,42 @@ export function TeamManagementClient() {
                   </div>
 
                   <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-                    <MetricCard
-                      icon={<UsersRound className="size-5" />}
-                      label="团队成员"
-                      tone="blue"
-                      value={detail.team.member_count}
-                    />
-                    <MetricCard
-                      icon={<Star className="size-5" />}
-                      label="活跃成员"
-                      tone="green"
-                      value={detail.team.active_member_count}
-                    />
-                    <MetricCard
-                      icon={<BriefcaseBusiness className="size-5" />}
-                      label="团队客户"
-                      tone="gold"
-                      value={detail.team.client_count}
-                    />
-                    <MetricCard
-                      icon={<Crown className="size-5" />}
-                      label="VIP 客户"
-                      tone="blue"
-                      value={detail.team.vip_client_count}
-                    />
+                    <MetricCard icon={<UsersRound className="size-5" />} label={t("detail.metrics.members")} tone="blue" value={detail.team.member_count} />
+                    <MetricCard icon={<Star className="size-5" />} label={t("detail.metrics.activeMembers")} tone="green" value={detail.team.active_member_count} />
+                    <MetricCard icon={<BriefcaseBusiness className="size-5" />} label={t("detail.metrics.clients")} tone="gold" value={detail.team.client_count} />
+                    <MetricCard icon={<Crown className="size-5" />} label={t("detail.metrics.vipClients")} tone="blue" value={detail.team.vip_client_count} />
                   </div>
                 </div>
               </section>
 
               <section className="rounded-[28px] border border-white/85 bg-white/72 p-6 shadow-[0_18px_45px_rgba(96,113,128,0.06)] xl:p-8">
                 <SectionHeader
-                  description="这里按数据库里的推荐关系汇总团队客户，方便快速判断团队当前结构。"
-                  title="团队画像"
+                  description={t("insights.description")}
+                  title={t("insights.title")}
                 />
 
                 <div className="mt-6 space-y-4">
                   <InsightCard
                     description={
                       detail.team.active_member_count === 0
-                        ? "当前团队还没有激活中的业务员，建议先补齐成员。"
-                        : "当前团队已经形成基础成员结构，可以继续安排客户转化。"
+                        ? t("insights.activeEmptyDescription")
+                        : t("insights.activeReadyDescription")
                     }
-                    title={`${detail.team.active_member_count} 名活跃业务员`}
+                    title={t("insights.activeTitle", { count: detail.team.active_member_count })}
                   />
                   <InsightCard
                     description={
                       detail.team.vip_client_count === 0
-                        ? "暂时还没有 VIP 客户。后续一旦团队客户完成 VIP 标记，这里会同步增长。"
-                        : "已有客户完成 VIP 标记，可以直接结合订单和佣金模块继续跟进。"
+                        ? t("insights.vipEmptyDescription")
+                        : t("insights.vipReadyDescription")
                     }
-                    title={`${detail.team.vip_client_count} 名 VIP 客户`}
+                    title={t("insights.vipTitle", { count: detail.team.vip_client_count })}
                   />
                   <InsightCard
-                    description={`当前选中团队下，共沉淀 ${detail.clients.length} 条可见客户推荐关系。`}
-                    title={`${detail.clients.length} 条客户关系`}
+                    description={t("insights.relationsDescription", {
+                      count: detail.clients.length,
+                    })}
+                    title={t("insights.relationsTitle", { count: detail.clients.length })}
                   />
                 </div>
               </section>
@@ -922,14 +917,14 @@ export function TeamManagementClient() {
             <section className="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
               <section className="rounded-[28px] border border-white/85 bg-white/72 p-6 shadow-[0_18px_45px_rgba(96,113,128,0.06)] xl:p-8">
                 <SectionHeader
-                  description="业务员成员来自 `team_profiles_data`，每个成员卡片上会同步展示直接客户数量。"
-                  title="团队成员"
+                  description={t("members.description")}
+                  title={t("members.title")}
                 />
 
                 <div className="mt-5">
                   <SearchField
                     onChange={setMemberSearchText}
-                    placeholder="搜索成员姓名、邮箱或客户状态"
+                    placeholder={t("members.searchPlaceholder")}
                     value={memberSearchText}
                   />
                 </div>
@@ -947,9 +942,9 @@ export function TeamManagementClient() {
                     ))
                   ) : (
                     <EmptyState
-                      description="当前搜索条件下没有匹配到团队成员。"
+                      description={t("members.emptyDescription")}
                       icon={<UsersRound className="size-6" />}
-                      title="没有成员结果"
+                      title={t("members.emptyTitle")}
                     />
                   )}
                 </div>
@@ -958,20 +953,20 @@ export function TeamManagementClient() {
               {canManageSelectedTeam ? (
                 <section className="rounded-[28px] border border-white/85 bg-white/72 p-6 shadow-[0_18px_45px_rgba(96,113,128,0.06)] xl:p-8">
                   <SectionHeader
-                    description="候选列表来自 `salesman` 角色用户。已经归属其他团队的业务员会保留标记，不能重复加入。"
-                    title="可加入业务员"
+                    description={t("candidates.description")}
+                    title={t("candidates.title")}
                   />
 
                   <div className="mt-5">
                     <SearchField
                       onChange={setCandidateSearchText}
-                      placeholder="搜索业务员姓名、邮箱或当前团队"
+                      placeholder={t("candidates.searchPlaceholder")}
                       value={candidateSearchText}
                     />
                   </div>
 
                   <div className="mt-4 rounded-[22px] border border-[#d9e8dc] bg-[#edf5ef] px-4 py-3 text-sm text-[#42624b]">
-                    当前共有 {availableCandidateCount} 位可直接加入的业务员候选。
+                    {t("candidates.availableCount", { count: availableCandidateCount })}
                   </div>
 
                   <div className="mt-6 space-y-3">
@@ -986,9 +981,9 @@ export function TeamManagementClient() {
                       ))
                     ) : (
                       <EmptyState
-                        description="当前搜索条件下没有候选业务员。"
+                        description={t("candidates.emptyDescription")}
                         icon={<UserPlus className="size-6" />}
-                        title="没有候选结果"
+                        title={t("candidates.emptyTitle")}
                       />
                     )}
                   </div>
@@ -996,9 +991,9 @@ export function TeamManagementClient() {
               ) : (
                 <section className="rounded-[28px] border border-white/85 bg-white/72 p-6 shadow-[0_18px_45px_rgba(96,113,128,0.06)] xl:p-8">
                   <EmptyState
-                    description="当前视角主要用于查看团队结构，不提供成员变更操作。"
+                    description={t("candidates.readOnlyDescription")}
                     icon={<ShieldAlert className="size-6" />}
-                    title="当前为只读视角"
+                    title={t("candidates.readOnlyTitle")}
                   />
                 </section>
               )}
@@ -1008,14 +1003,14 @@ export function TeamManagementClient() {
           {detail.team ? (
             <section className="rounded-[28px] border border-white/85 bg-white/72 p-6 shadow-[0_18px_45px_rgba(96,113,128,0.06)] xl:p-8">
               <SectionHeader
-                description="团队客户根据业务员推荐关系拼出来，并同步展示 VIP 标记。"
-                title="团队客户"
+                description={t("clients.description")}
+                title={t("clients.title")}
               />
 
               <div className="mt-5">
                 <SearchField
                   onChange={setClientSearchText}
-                  placeholder="搜索客户姓名、邮箱或推荐业务员"
+                  placeholder={t("clients.searchPlaceholder")}
                   value={clientSearchText}
                 />
               </div>
@@ -1031,9 +1026,9 @@ export function TeamManagementClient() {
                 ) : (
                   <div className="lg:col-span-2">
                     <EmptyState
-                      description="当前搜索条件下没有匹配到团队客户。"
+                      description={t("clients.emptyDescription")}
                       icon={<BriefcaseBusiness className="size-6" />}
-                      title="没有客户结果"
+                      title={t("clients.emptyTitle")}
                     />
                   </div>
                 )}
@@ -1043,16 +1038,6 @@ export function TeamManagementClient() {
         </>
       )}
     </section>
-  );
-}
-
-function TeamManagementLoadingState() {
-  return (
-    <div className="mx-auto flex min-h-[60vh] w-full max-w-[1320px] items-center justify-center">
-      <div className="rounded-[28px] border border-white/85 bg-white/72 px-6 py-5 text-sm text-[#60707d] shadow-[0_18px_45px_rgba(96,113,128,0.06)]">
-        正在加载团队数据...
-      </div>
-    </div>
   );
 }
 
@@ -1071,47 +1056,6 @@ function SectionHeader({
   );
 }
 
-function SummaryCard({
-  label,
-  count,
-  icon,
-  accent,
-}: {
-  label: string;
-  count: number;
-  icon: ReactNode;
-  accent: "blue" | "green" | "gold";
-}) {
-  return (
-    <div
-      className={[
-        "rounded-[24px] border px-5 py-4 shadow-[0_10px_24px_rgba(96,113,128,0.06)]",
-        accent === "blue" ? "border-[#d9e3eb] bg-[#f4f8fb]" : "",
-        accent === "green" ? "border-[#dce8df] bg-[#f2f7f3]" : "",
-        accent === "gold" ? "border-[#eadfbf] bg-[#fbf5e8]" : "",
-      ].join(" ")}
-    >
-      <div className="flex items-center gap-3">
-        <div
-          className={[
-            "flex h-11 w-11 items-center justify-center rounded-full text-white",
-            accent === "blue" ? "bg-[#486782]" : "",
-            accent === "green" ? "bg-[#4c7259]" : "",
-            accent === "gold" ? "bg-[#b7892f]" : "",
-          ].join(" ")}
-        >
-          {icon}
-        </div>
-        <div>
-          <p className="font-label text-[11px] font-semibold tracking-[0.18em] text-[#7d8890] uppercase">
-            {label}
-          </p>
-          <p className="mt-1 text-2xl font-bold tracking-tight text-[#23313a]">{count}</p>
-        </div>
-      </div>
-    </div>
-  );
-}
 
 function MetricCard({
   icon,
@@ -1192,7 +1136,9 @@ function MemberCard({
   onRemove: (salesmanUserId: string) => Promise<void>;
   busy: boolean;
 }) {
-  const status = mapUserStatus(member.status);
+  const t = useTranslations("TeamManagement");
+  const { locale } = useLocale();
+  const status = mapUserStatus(member.status, locale);
 
   return (
     <article className="rounded-[24px] border border-[#ebe7e1] bg-white p-5 shadow-[0_10px_24px_rgba(96,113,128,0.05)]">
@@ -1207,7 +1153,10 @@ function MemberCard({
             </DataPill>
           </div>
           <p className="mt-2 text-sm leading-7 text-[#6f7b85]">
-            {member.email ?? "暂无邮箱"} / 直属客户 {member.client_count} 人
+            {t("memberCard.emailAndClients", {
+              email: getOptionalEmailLabel(member.email, t),
+              count: member.client_count,
+            })}
           </p>
         </div>
 
@@ -1223,14 +1172,14 @@ function MemberCard({
             ) : (
               <UserMinus className="size-4" />
             )}
-            移出团队
+            {t("memberCard.remove")}
           </Button>
         ) : null}
       </div>
 
       <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
-        <MiniInfo label="加入团队时间" value={formatDateTime(member.joined_at)} />
-        <MiniInfo label="账号创建时间" value={formatDateTime(member.created_at)} />
+        <MiniInfo label={t("memberCard.joinedAt")} value={formatDateTime(member.joined_at, locale)} />
+        <MiniInfo label={t("memberCard.accountCreatedAt")} value={formatDateTime(member.created_at, locale)} />
       </div>
     </article>
   );
@@ -1245,7 +1194,9 @@ function CandidateCard({
   onAdd: (salesmanUserId: string) => Promise<void>;
   busy: boolean;
 }) {
-  const status = mapUserStatus(candidate.status);
+  const t = useTranslations("TeamManagement");
+  const { locale } = useLocale();
+  const status = mapUserStatus(candidate.status, locale);
 
   return (
     <article className="rounded-[22px] border border-[#ebe7e1] bg-white p-4 shadow-[0_10px_24px_rgba(96,113,128,0.05)]">
@@ -1260,7 +1211,9 @@ function CandidateCard({
                 {status.label}
               </DataPill>
             </div>
-            <p className="mt-2 text-sm leading-7 text-[#6f7b85]">{candidate.email ?? "暂无邮箱"}</p>
+            <p className="mt-2 text-sm leading-7 text-[#6f7b85]">
+              {getOptionalEmailLabel(candidate.email, t)}
+            </p>
           </div>
 
           <Button
@@ -1273,13 +1226,21 @@ function CandidateCard({
             ) : (
               <UserPlus className="size-4" />
             )}
-            {candidate.assignable ? "加入团队" : "不可加入"}
+            {candidate.assignable ? t("candidateCard.add") : t("candidateCard.disabled")}
           </Button>
         </div>
 
         <div className="grid grid-cols-1 gap-3">
-          <MiniInfo label="当前归属团队" value={candidate.current_team_name ?? "未分配"} />
-          <MiniInfo label="直属客户数量" value={`${candidate.direct_client_count} 人`} />
+          <MiniInfo
+            label={t("candidateCard.currentTeam")}
+            value={getOptionalTeamAssignmentLabel(candidate.current_team_name, t)}
+          />
+          <MiniInfo
+            label={t("candidateCard.directClientCount")}
+            value={t("candidateCard.directClientCountValue", {
+              count: candidate.direct_client_count,
+            })}
+          />
         </div>
       </div>
     </article>
@@ -1287,7 +1248,9 @@ function CandidateCard({
 }
 
 function ClientCard({ client }: { client: TeamClient }) {
-  const status = mapUserStatus(client.status);
+  const t = useTranslations("TeamManagement");
+  const { locale } = useLocale();
+  const status = mapUserStatus(client.status, locale);
 
   return (
     <article className="rounded-[22px] border border-[#ebe7e1] bg-white p-5 shadow-[0_10px_24px_rgba(96,113,128,0.05)]">
@@ -1300,15 +1263,15 @@ function ClientCard({ client }: { client: TeamClient }) {
             <DataPill accent={status.accent === "success" ? "green" : "gold"}>
               {status.label}
             </DataPill>
-            {client.vip_status ? <DataPill accent="blue">VIP</DataPill> : null}
+            {client.vip_status ? <DataPill accent="blue">{t("shared.pills.vip")}</DataPill> : null}
           </div>
-          <p className="mt-2 text-sm leading-7 text-[#6f7b85]">{client.email ?? "暂无邮箱"}</p>
+          <p className="mt-2 text-sm leading-7 text-[#6f7b85]">{getOptionalEmailLabel(client.email, t)}</p>
         </div>
       </div>
 
       <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
-        <MiniInfo label="推荐业务员" value={client.referrer_name ?? "暂无记录"} />
-        <MiniInfo label="关联时间" value={formatDateTime(client.created_at)} />
+        <MiniInfo label={t("clientCard.referrer")} value={getOptionalRecordLabel(client.referrer_name, t)} />
+        <MiniInfo label={t("clientCard.relatedAt")} value={formatDateTime(client.created_at, locale)} />
       </div>
     </article>
   );
@@ -1369,19 +1332,22 @@ function MiniInfo({ label, value }: { label: string; value: string }) {
   );
 }
 
-function resolvePreferredTeamId(
-  overviews: TeamOverview[],
-  preferredTeamId: string | null,
-) {
-  if (preferredTeamId && overviews.some((team) => team.team_id === preferredTeamId)) {
-    return preferredTeamId;
+function canViewTeamPanel(role: AppRole | null, status: UserStatus | null) {
+  if (role === "administrator") {
+    return true;
   }
 
-  const manageableTeam = overviews.find((team) => team.can_manage);
-  return manageableTeam?.team_id ?? overviews[0]?.team_id ?? null;
+  return (
+    status === "active" &&
+    (role === "manager" || role === "operator" || role === "finance" || role === "salesman")
+  );
 }
 
-function filterTeamMembers(members: TeamMember[], searchText: string) {
+function filterTeamMembers(
+  members: TeamMember[],
+  searchText: string,
+  locale: "zh" | "en",
+) {
   const normalizedSearchText = searchText.trim().toLowerCase();
 
   if (!normalizedSearchText) {
@@ -1389,7 +1355,7 @@ function filterTeamMembers(members: TeamMember[], searchText: string) {
   }
 
   return members.filter((member) =>
-    [member.name, member.email, mapUserStatus(member.status).label, `${member.client_count}`]
+    [member.name, member.email, mapUserStatus(member.status, locale).label, `${member.client_count}`]
       .filter(Boolean)
       .join(" ")
       .toLowerCase()
@@ -1397,7 +1363,11 @@ function filterTeamMembers(members: TeamMember[], searchText: string) {
   );
 }
 
-function filterTeamClients(clients: TeamClient[], searchText: string) {
+function filterTeamClients(
+  clients: TeamClient[],
+  searchText: string,
+  locale: "zh" | "en",
+) {
   const normalizedSearchText = searchText.trim().toLowerCase();
 
   if (!normalizedSearchText) {
@@ -1409,7 +1379,7 @@ function filterTeamClients(clients: TeamClient[], searchText: string) {
       client.name,
       client.email,
       client.referrer_name,
-      mapUserStatus(client.status).label,
+      mapUserStatus(client.status, locale).label,
       client.vip_status ? "vip" : "",
     ]
       .filter(Boolean)
@@ -1422,6 +1392,7 @@ function filterTeamClients(clients: TeamClient[], searchText: string) {
 function filterTeamCandidates(
   candidates: TeamSalesmanCandidate[],
   searchText: string,
+  locale: "zh" | "en",
 ) {
   const normalizedSearchText = searchText.trim().toLowerCase();
 
@@ -1434,94 +1405,11 @@ function filterTeamCandidates(
       candidate.name,
       candidate.email,
       candidate.current_team_name,
-      mapUserStatus(candidate.status).label,
+      mapUserStatus(candidate.status, locale).label,
     ]
       .filter(Boolean)
       .join(" ")
       .toLowerCase()
       .includes(normalizedSearchText),
   );
-}
-
-function getManagerCandidateLabel(candidate: TeamManagerCandidate) {
-  const baseLabel = candidate.name ?? candidate.email ?? candidate.user_id;
-
-  if (candidate.current_team_name) {
-    return `${baseLabel}（当前负责：${candidate.current_team_name}${candidate.assignable ? "" : "，不可改派"}）`;
-  }
-
-  return `${baseLabel}${candidate.assignable ? "" : "（不可分配）"}`;
-}
-
-function canViewTeamPanel(role: AppRole | null, status: UserStatus | null) {
-  if (role === "administrator") {
-    return true;
-  }
-
-  return (
-    status === "active" &&
-    (role === "manager" || role === "operator" || role === "finance" || role === "salesman")
-  );
-}
-
-function getTeamManagementDescription(role: AppRole | null) {
-  if (role === "manager") {
-    return "经理可以管理自己的团队资料、成员和团队客户结构。面板会根据团队表、成员表与推荐关系自动汇总。";
-  }
-
-  if (role === "administrator") {
-    return "管理员可以查看全部团队，并直接创建团队、删除团队、调整团队成员，以及更换团队经理。";
-  }
-
-  if (role === "salesman") {
-    return "业务员可以查看当前可见团队结构，了解团队成员、客户沉淀和负责人的组织关系。";
-  }
-
-  if (role === "finance" || role === "operator") {
-    return "当前页面会按数据库权限展示可见团队的结构概览，方便协同查看团队成员和客户沉淀。";
-  }
-
-  return "这里会把团队主表、成员表和客户推荐关系汇总成一个可直接查看的管理面板。";
-}
-
-function toTeamManagementErrorMessage(error: unknown) {
-  const baseMessage = toErrorMessage(error);
-
-  if (baseMessage.includes("team profile does not exist")) {
-    return "请先创建团队，再继续添加成员。";
-  }
-
-  if (baseMessage.includes("team name is required")) {
-    return "请先填写团队名称。";
-  }
-
-  if (baseMessage.includes("team not found or not visible")) {
-    return "当前选中的团队不可见，已经尝试重新同步。";
-  }
-
-  if (baseMessage.includes("current user cannot add this salesman to team")) {
-    return "这个业务员当前不能加入团队，可能已经归属其他团队。";
-  }
-
-  if (baseMessage.includes("current user cannot assign this manager to team")) {
-    return "这个经理当前不能分配到该团队，可能已经负责其他团队。";
-  }
-
-  if (baseMessage.includes("current user cannot manage team")) {
-    return "当前账号暂时不能管理团队资料。";
-  }
-
-  if (baseMessage.includes("current user cannot manage team members")) {
-    return "当前账号暂时不能调整团队成员。";
-  }
-
-  if (baseMessage.includes("current user cannot delete team")) {
-    return "当前账号暂时不能删除团队。";
-  }
-
-  if (baseMessage.includes("team not found")) {
-    return "目标团队不存在，可能已被其他人修改。";
-  }
-
-  return baseMessage;
 }

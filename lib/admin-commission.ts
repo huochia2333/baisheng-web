@@ -7,6 +7,10 @@ import {
   type AppRole,
   type UserStatus,
 } from "./user-self-service";
+import {
+  getDashboardQueryRange,
+  MAX_DASHBOARD_QUERY_ROWS,
+} from "./dashboard-pagination";
 
 const ADMIN_COMMISSION_SELECT =
   "id,order_overview_id,beneficiary_user_id,commission_category,source_customer_user_id,source_salesman_user_id,order_amount_rmb_snapshot,cost_amount_rmb_snapshot,service_fee_amount_rmb_snapshot,commission_amount_rmb,calculation_snapshot,settlement_status,settled_at,settlement_note,created_at,updated_at";
@@ -121,9 +125,13 @@ export function canViewAdminCommissionBoard(
 
 export async function getAdminCommissions(
   supabase: SupabaseClient,
+  options?: {
+    beneficiaryUserId?: string | null;
+    limit?: number;
+  },
 ): Promise<AdminCommissionRow[]> {
   const [commissionRows, userOptions] = await Promise.all([
-    getCommissionRecordRows(supabase),
+    getCommissionRecordRows(supabase, options),
     getOrderUserOptions(supabase),
   ]);
 
@@ -148,12 +156,27 @@ export async function getAdminCommissions(
 
 async function getCommissionRecordRows(
   supabase: SupabaseClient,
+  options?: {
+    beneficiaryUserId?: string | null;
+    limit?: number;
+  },
 ): Promise<CommissionRecordRow[]> {
+  const { from, to } = getDashboardQueryRange(
+    options?.limit ?? MAX_DASHBOARD_QUERY_ROWS,
+  );
+  let commissionQuery = supabase.from("commission_record").select(ADMIN_COMMISSION_SELECT);
+
+  if (options?.beneficiaryUserId) {
+    commissionQuery = commissionQuery.eq(
+      "beneficiary_user_id",
+      options.beneficiaryUserId,
+    );
+  }
+
   const { data, error } = await withRequestTimeout(
-    supabase
-      .from("commission_record")
-      .select(ADMIN_COMMISSION_SELECT)
+    commissionQuery
       .order("created_at", { ascending: false })
+      .range(from, to)
       .returns<CommissionRecordRow[]>(),
   );
 

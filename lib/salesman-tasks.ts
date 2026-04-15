@@ -8,6 +8,10 @@ import type {
   TaskStatus,
 } from "./admin-tasks";
 import { getCurrentSessionContext, type AppRole, type UserStatus } from "./user-self-service";
+import {
+  getDashboardQueryRange,
+  MAX_DASHBOARD_QUERY_ROWS,
+} from "./dashboard-pagination";
 
 const TASK_SELECT =
   "id,task_name,task_intro,created_by_user_id,accepted_by_user_id,scope,team_id,status,created_at,accepted_at,completed_at";
@@ -68,12 +72,15 @@ export async function getCurrentSalesmanTaskViewerContext(
 
 export async function getVisibleSalesmanTasks(
   supabase: SupabaseClient,
+  limit = MAX_DASHBOARD_QUERY_ROWS,
 ): Promise<SalesmanTaskRow[]> {
+  const { from, to } = getDashboardQueryRange(limit);
   const { data, error } = await withRequestTimeout(
     supabase
       .from("task_main")
       .select(TASK_SELECT)
       .order("created_at", { ascending: false })
+      .range(from, to)
       .returns<TaskMainRecord[]>(),
   );
 

@@ -1,0 +1,1393 @@
+{
+  "Metadata": {
+    "appTitle": "柏盛管理系统",
+    "appDescription": "柏盛管理系统的登录、注册与业务工作台。"
+  },
+  "ErrorBoundary": {
+    "badge": "页面保护",
+    "title": "当前页面暂时出错",
+    "description": "局部异常已经被拦住，你可以先重试一次；如果问题持续，再刷新页面。",
+    "tryAgain": "重试",
+    "reload": "刷新页面"
+  },
+  "LanguageToggle": {
+    "zh": "中文",
+    "en": "EN"
+  },
+  "AuthShell": {
+    "brandTitle": "柏盛管理系统",
+    "brandSubtitle": "精选管理工作台",
+    "copyright": "© 2026 柏盛管理系统",
+    "privacy": "隐私政策",
+    "terms": "服务条款",
+    "help": "帮助中心",
+    "secureAccess": "安全访问入口"
+  },
+  "LoginPage": {
+    "title": "登录",
+    "asideTitle": "让每一次协作都有迹可循",
+    "asideDescription": "专为追求效率的合作伙伴打造。在这里，数据即沟通。",
+    "noteTitle": "今日灵感",
+    "noteDescription": "设计不只是视觉，更是一种思考和呼吸的方式。",
+    "headerTitle": "欢迎回来",
+    "headerDescription": "请输入您的凭据访问柏盛管理系统。",
+    "footerPrompt": "还没有账号？",
+    "footerLinkLabel": "立即注册",
+    "mobileNoteTitle": "今日灵感",
+    "mobileNoteDescription": "设计不只是视觉，更是一种思考和呼吸的方式。"
+  },
+  "RegisterPage": {
+    "title": "注册",
+    "asideTitle": "开启您的人生<br></br>策展管理之旅",
+    "asideDescription": "在这个数字化的空间里，我们不仅管理数据，更在雕琢每一份专业深度。",
+    "noteTitle": "系统邀请制",
+    "noteDescription": "柏盛目前采用邀请制以保障服务质量。如果您尚未获得邀请码，请联系系统管理员或推荐人。",
+    "headerTitle": "注册柏盛账号",
+    "headerDescription": "请填写以下信息以创建您的管理账户。",
+    "footerPrompt": "已有账号？",
+    "footerLinkLabel": "返回登录",
+    "mobileNoteTitle": "系统邀请制",
+    "mobileNoteDescription": "柏盛目前采用邀请制以保障服务质量。如果您尚未获得邀请码，请联系系统管理员或推荐人。"
+  },
+  "ForgotPasswordPage": {
+    "title": "忘记密码",
+    "asideTitle": "找回访问权限",
+    "asideDescription": "通过邮箱完成密码重置，几分钟内就能重新回到你的协作空间。",
+    "noteTitle": "密码重置",
+    "noteDescription": "系统会把重置链接发送到你的注册邮箱。点击邮件中的链接后，会回到当前页面继续设置新密码。",
+    "headerTitle": "忘记密码",
+    "footerPrompt": "想起密码了？",
+    "footerLinkLabel": "返回登录"
+  },
+  "LoginForm": {
+    "email": "电子邮箱",
+    "password": "访问密码",
+    "forgotPassword": "忘记密码？",
+    "passwordPlaceholder": "请输入您的访问密码",
+    "submit": "登录",
+    "submitting": "登录中...",
+    "registeredNotice": "注册请求已提交。若当前需要邮箱验证，请先完成验证后再登录。",
+    "passwordResetNotice": "新密码已经更新完成，请使用新密码重新登录。",
+    "serviceUnavailable": "当前服务暂时不可用，请稍后再试。",
+    "invalidCredentials": "邮箱或密码不正确，请重新输入。",
+    "emailNotConfirmed": "邮箱尚未验证，请先完成邮箱验证。"
+  },
+  "RegisterForm": {
+    "username": "用户名称",
+    "usernamePlaceholder": "您的姓名或代号",
+    "phone": "手机号码",
+    "phonePlaceholder": "11 位手机号码",
+    "email": "电子邮箱",
+    "inviteCode": "邀请码",
+    "inviteCodePlaceholder": "必填项",
+    "password": "设置密码",
+    "passwordPlaceholder": "包含字母与数字的 8 位以上密码",
+    "termsPrefix": "我已阅读并同意",
+    "terms": "服务条款",
+    "and": "和",
+    "privacy": "隐私政策",
+    "submit": "立即注册并开启体验",
+    "submitting": "注册中...",
+    "acceptTerms": "请先阅读并同意服务条款与隐私政策。",
+    "serviceUnavailable": "当前服务暂时不可用，请稍后再试。",
+    "referralRequired": "邀请码不能为空。",
+    "referralNotFound": "邀请码不存在，请确认后重新输入。",
+    "referralMaxUses": "邀请码已达到使用上限。",
+    "referralExpired": "邀请码已过期，请联系管理员获取新的邀请码。",
+    "userExists": "该邮箱已注册，请直接登录。"
+  },
+  "ForgotPasswordForm": {
+    "recoverySuccess": "重置链接验证成功，请设置新的登录密码。",
+    "serviceUnavailable": "当前服务暂时不可用，请稍后再试。",
+    "resetEmailSent": "重置密码邮件已发送，请检查邮箱并点击邮件里的链接继续。",
+    "passwordTooShort": "新密码至少需要 8 位。",
+    "passwordMismatch": "两次输入的新密码不一致，请重新确认。",
+    "newPassword": "新密码",
+    "newPasswordPlaceholder": "请输入新的登录密码",
+    "confirmPassword": "确认新密码",
+    "confirmPasswordPlaceholder": "请再次输入新的登录密码",
+    "savePassword": "保存新密码",
+    "savingPassword": "保存中...",
+    "email": "电子邮箱",
+    "emailPlaceholder": "请输入注册时使用的邮箱",
+    "sendResetEmail": "发送重置邮件",
+    "resendResetEmail": "重新发送重置邮件",
+    "sending": "发送中...",
+    "resendCountdown": "{seconds} 秒后可重新发送",
+    "backToLogin": "返回登录",
+    "userNotFound": "没有找到这个邮箱对应的账户。",
+    "tooFrequent": "请求过于频繁，请稍后再试。",
+    "authSessionMissing": "重置链接已失效，请重新发送一封重置邮件。"
+  },
+  "DashboardShell": {
+    "brandTitle": "柏盛管理系统",
+    "logout": "退出登录",
+    "serviceUnavailable": "当前服务暂时不可用，请稍后再试。",
+    "nav": {
+      "my": "我的",
+      "orders": "订单",
+      "referrals": "推荐树",
+      "team": "团队",
+      "commission": "佣金",
+      "exchangeRates": "汇率",
+      "tasks": "任务",
+      "reviews": "审核"
+    },
+    "roles": {
+      "admin": {
+        "accountLabel": "管理员账号",
+        "subtitle": "系统管理岗位",
+        "title": "管理工作台",
+        "workspaceLabel": "管理中心"
+      },
+      "salesman": {
+        "accountLabel": "业务员账号",
+        "subtitle": "业务拓展岗位",
+        "title": "业务工作台",
+        "workspaceLabel": "业务中心"
+      },
+      "recruiter": {
+        "accountLabel": "招聘员账号",
+        "subtitle": "招聘业务员岗位",
+        "title": "招聘工作台",
+        "workspaceLabel": "招聘中心"
+      },
+      "manager": {
+        "accountLabel": "经理账号",
+        "subtitle": "团队管理岗位",
+        "title": "经理工作台",
+        "workspaceLabel": "经理中心"
+      },
+      "operator": {
+        "accountLabel": "运营账号",
+        "subtitle": "运营岗位",
+        "title": "运营工作台",
+        "workspaceLabel": "运营中心"
+      },
+      "finance": {
+        "accountLabel": "财务账号",
+        "subtitle": "财务岗位",
+        "title": "财务工作台",
+        "workspaceLabel": "财务中心"
+      },
+      "client": {
+        "accountLabel": "客户账号",
+        "subtitle": "客户岗位",
+        "title": "客户工作台",
+        "workspaceLabel": "客户中心"
+      }
+    }
+  },
+  "WorkspaceLoadingShell": {
+    "title": "正在切换工作台",
+    "description": "首次进入某个板块时，开发环境通常会先完成编译和数据准备。"
+  },
+  "WorkspaceLoadingTitles": {
+    "admin": "正在打开管理中心",
+    "client": "正在打开客户中心",
+    "finance": "正在打开财务中心",
+    "manager": "正在打开经理中心",
+    "operator": "正在打开运营中心",
+    "recruiter": "正在打开招聘中心",
+    "salesman": "正在打开业务中心"
+  },
+  "AdminSectionPlaceholder": {
+    "viewMyPage": "查看我的页面",
+    "badge": "当前模块会继续按角色扩展对应能力"
+  },
+  "WorkspaceSections": {
+    "fallbacks": {
+      "admin": {
+        "title": "管理工作台",
+        "description": "当前模块正在建设中。我们已经把管理工作台的导航结构搭好，后续可以在这个壳子上继续扩展具体内容。"
+      },
+      "client": {
+        "title": "客户工作台",
+        "description": "当前模块正在建设中。我们已经把客户工作台的导航结构搭好，后续可以在这个壳子上继续扩展具体内容。"
+      },
+      "finance": {
+        "title": "财务工作台",
+        "description": "当前模块正在建设中。我们已经把财务工作台的导航结构搭好，后续可以在这个壳子上继续扩展具体内容。"
+      },
+      "manager": {
+        "title": "经理工作台",
+        "description": "当前模块正在建设中。我们已经把经理工作台的导航结构搭好，后续可以在这个壳子上继续扩展具体内容。"
+      },
+      "operator": {
+        "title": "运营工作台",
+        "description": "当前模块正在建设中。我们已经把运营工作台的导航结构搭好，后续可以在这个壳子上继续扩展具体内容。"
+      },
+      "recruiter": {
+        "title": "招聘工作台",
+        "description": "当前模块正在建设中。我们已经把招聘工作台的导航结构搭好，后续可以在这个壳子上继续扩展具体内容。"
+      },
+      "salesman": {
+        "title": "业务工作台",
+        "description": "当前模块正在建设中。我们已经把业务工作台的导航结构搭好，后续可以在这个壳子上继续扩展具体内容。"
+      }
+    },
+    "orders": {
+      "title": "订单管理",
+      "description": "这里将承接订单的查看、筛选、状态流转和异常处理，后续会继续按管理员、业务员、财务和客户角色拆分视图。"
+    },
+    "referrals": {
+      "title": "推荐树",
+      "description": "这里会按当前角色展示可见的推荐关系，包括自己被谁推荐，以及自己推荐了谁。不同角色会在数据库权限范围内看到对应关系。"
+    },
+    "team": {
+      "title": "团队管理",
+      "description": "这里会承接团队成员、状态统计和组织协作信息，并逐步按不同角色补齐对应操作能力。"
+    },
+    "commission": {
+      "title": "佣金中心",
+      "description": "这里将整合佣金规则、结算明细、发放进度和异常记录，后续会继续细化成财务与业务岗位的专属界面。"
+    },
+    "exchange-rates": {
+      "title": "汇率管理",
+      "description": "这里将维护汇率来源、更新时间、历史曲线和人工校准记录，为订单和财务模块提供统一数据基础。"
+    },
+    "tasks": {
+      "title": "任务看板",
+      "description": "这里会聚合待办、提醒、责任人和进度节点，帮助不同岗位持续跟进业务任务。"
+    },
+    "reviews": {
+      "title": "审核中心",
+      "description": "这里将处理资料审核、实名认证、风险复核和审批流。后续运营、经理与客户角色也可以从这里派生不同的审核视图。"
+    }
+  },
+  "DashboardShared": {
+    "loading": "正在同步云端资料...",
+    "inputHint": "提交后将进入审核流程。",
+    "statusHeadings": {
+      "approved": "审核通过",
+      "pending": "待审核"
+    },
+    "mediaStatus": {
+      "pending": "待审核",
+      "approvedGeneric": "审核通过",
+      "approvedIdentity": "通过认证",
+      "identityEmpty": "请填写身份证号",
+      "passportEmpty": "请填写护照号",
+      "photosEmpty": "请上传个人照片",
+      "videosEmpty": "请上传个人视频"
+    },
+    "userStatus": {
+      "active": "已激活",
+      "suspended": "已停用",
+      "pending": "待审核"
+    },
+    "assetStatus": {
+      "pass": "审核通过",
+      "pending": "待审核",
+      "denied": "已驳回"
+    },
+    "video": {
+      "badge": "视频",
+      "count": "{count} 条视频",
+      "defaultTitle": "个人介绍视频"
+    },
+    "fallback": {
+      "noRecordYet": "暂无记录"
+    },
+    "errors": {
+      "unknown": "发生了未知错误，请稍后再试。",
+      "duplicatePending": "已有相同内容正在审核中，请等待审核结果。",
+      "duplicateStored": "提交内容与当前已存档资料一致，无需重复提交。",
+      "permission": "当前账号没有执行该操作的权限。"
+    }
+  },
+  "DashboardMy": {
+    "bundleUnavailable": "云端资料暂时不可用，请刷新页面后重试。",
+    "bundleSyncDescription": "当前页面依赖云端登录态和资料查询。刚从闲置状态恢复时，如果同步请求没有返回，现在会直接提示失败，你可以重新同步而不是一直停留在加载中。",
+    "bundleSyncTitle": "资料同步没有完成",
+    "retrySync": "重新同步资料",
+    "editProfile": "编辑个人资料",
+    "changePassword": "修改密码",
+    "copyInviteCode": "复制邀请码",
+    "refreshProfile": "刷新资料",
+    "verificationTitle": "实名认证状态",
+    "verificationApproved": "通过认证",
+    "verificationPending": "审核中",
+    "verificationEmpty": "未认证",
+    "verificationApprovedDescription": "身份证资料已经通过审核，当前账号已完成实名认证。",
+    "verificationPendingDescription": "身份证资料已提交，当前正在审核中。",
+    "verificationEmptyDescription": "身份证资料通过审核后，这里会显示通过认证。",
+    "identityMediaTitle": "身份证明与多媒体",
+    "copyright": "© 2026 柏盛管理系统",
+    "privacy": "隐私政策",
+    "terms": "服务条款",
+    "help": "帮助中心",
+    "identitySubmit": "提交身份证号",
+    "identityLabel": "身份证号",
+    "identityPlaceholder": "请填写身份证号",
+    "identityPendingDescription": "身份证号已提交，当前状态为待审核。",
+    "identityApprovedDescription": "身份证号已审核通过。",
+    "retryEdit": "重新填写",
+    "passportSubmit": "提交护照号码",
+    "passportLabel": "护照号码",
+    "passportPlaceholder": "请输入护照号码",
+    "passportPendingDescription": "护照号码已提交，当前状态为待审核。",
+    "passportApprovedDescription": "护照号码已审核通过。",
+    "previewUnavailable": "无法预览",
+    "photoItem": "个人照片 {index}",
+    "delete": "删除",
+    "photoEmptyTitle": "请上传个人照片",
+    "photoEmptyDescription": "上传后会进入待审核，审核完成后会在这里展示全部照片。",
+    "photoPendingDescription": "至少有一张个人照片正在等待审核。",
+    "photoApprovedDescription": "个人照片已审核通过。",
+    "videoEmptyTitle": "请上传个人视频",
+    "videoEmptyDescription": "上传后会进入待审核，审核完成后会在这里展示全部视频。",
+    "videoPendingDescription": "至少有一条个人视频正在等待审核。",
+    "videoApprovedDescription": "个人视频已审核通过。",
+    "editProfileDescription": "注册完成后可以在这里补充城市信息，保存后会同步更新“我的”页展示。",
+    "cityLabel": "所在城市",
+    "cityPlaceholder": "请填写所在城市",
+    "saveCity": "保存城市"
+  },
+  "DashboardMyState": {
+    "unnamedUser": "未命名用户",
+    "pendingCity": "待补充城市",
+    "pendingValue": "待补充",
+    "pendingReferralCode": "待生成",
+    "standardMembership": "标准会员",
+    "vipMembership": "VIP 尊享会员",
+    "identityTitle": "基础信息",
+    "passportTitle": "通行信息",
+    "photosTitle": "个人照片",
+    "videosTitle": "个人视频",
+    "photoCountLabel": "{count} 张照片",
+    "uploadPhotosPrompt": "请上传个人照片",
+    "phoneLabel": "手机号码",
+    "emailLabel": "电子邮箱",
+    "passwordLabel": "账号密码",
+    "passwordValue": "可发送重置邮件",
+    "inviteCodeLabel": "邀请码",
+    "accountStatusLabel": "账号状态",
+    "lastLoginLabel": "最后登录",
+    "missingEmailForReset": "当前账号缺少邮箱，无法发送重置邮件。",
+    "resetSent": "重置密码邮件已发送，请检查你的邮箱。",
+    "missingInviteCode": "当前账号还没有可复制的邀请码。",
+    "inviteCopied": "邀请码已复制到剪贴板。",
+    "inviteCopyFailed": "复制失败，请稍后重试。",
+    "profileSaved": "个人资料已保存。",
+    "cityUpdated": "城市信息已更新。",
+    "identitySubmitted": "身份证号已提交，当前状态为待审核。",
+    "passportSubmitted": "护照号码已提交，当前状态为待审核。",
+    "photosUploaded": "个人照片已上传，当前状态为待审核。",
+    "videosUploaded": "个人视频已上传，当前状态为待审核。",
+    "photosDeleted": "所选照片已删除。",
+    "videosDeleted": "所选视频已删除。",
+    "identityDescription": "提交后会进入审核流程，审核通过后会同步更新你的身份资料。",
+    "passportDescription": "提交后会进入审核流程，审核通过后会同步更新你的通行资料。",
+    "mediaDescription": "上传后会进入待审核，审核通过后会展示在你的个人资料中。",
+    "deletePhotos": "删除照片",
+    "uploadPhotos": "上传照片",
+    "deleteVideos": "删除视频",
+    "uploadVideos": "上传视频"
+  },
+  "Orders": {
+    "metadata": {
+      "admin": "订单中心",
+      "salesman": "客户订单",
+      "client": "我的订单"
+    },
+    "modes": {
+      "admin": {
+        "badge": "订单工作台",
+        "title": "订单中心",
+        "description": "列表会优先展示关键订单信息，点击任意订单即可查看完整细节。",
+        "createTitle": "创建订单",
+        "createDescription": "填写订单基础信息后，系统会立即将新订单写入订单列表。",
+        "emptyDescription": "当前还没有订单记录，新的订单录入后会出现在这里。",
+        "noPermissionDescription": "当前登录账号暂时没有订单中心查看权限。"
+      },
+      "salesman": {
+        "badge": "业务员订单",
+        "title": "客户订单",
+        "description": "这里只展示你和关联客户的订单，你可以直接为自己名下的客户创建新订单。",
+        "createTitle": "创建客户订单",
+        "createDescription": "当前页面只允许为你已关联的客户创建订单，创建后会立即出现在列表中。",
+        "emptyDescription": "你和关联客户的订单会展示在这里，当前还没有可查看的订单。",
+        "noPermissionDescription": "当前登录账号暂时没有业务员订单查看权限。",
+        "noCreateTargetHint": "你当前还没有可创建订单的关联客户。"
+      },
+      "client": {
+        "badge": "客户订单",
+        "title": "我的订单",
+        "description": "这里会展示与你本人相关的订单记录，你可以随时打开查看完整订单详情。",
+        "createTitle": "创建订单",
+        "emptyDescription": "你当前还没有订单记录，后续生成的新订单会自动展示在这里。",
+        "noPermissionDescription": "当前登录账号暂时没有客户订单查看权限。"
+      }
+    },
+    "feedback": {
+      "createSuccess": "订单 {orderNumber} 已创建成功。",
+      "updateSuccess": "订单 {orderNumber} 已更新成功。",
+      "deleteConfirm": "确定要软删除订单 {orderNumber} 吗？删除后将从列表中隐藏。",
+      "deleteSuccess": "订单 {orderNumber} 已软删除。"
+    },
+    "summary": {
+      "total": "订单总数",
+      "pending": "待处理订单",
+      "completed": "已完成订单"
+    },
+    "states": {
+      "noViewPermissionTitle": "暂无查看权限",
+      "emptyTitle": "订单列表暂时为空",
+      "noMatchTitle": "没有匹配结果",
+      "noMatchDescription": "没有找到符合当前筛选条件的订单，可以调整关键词后再试。"
+    },
+    "filters": {
+      "orderNumberLabel": "订单编号",
+      "orderNumberPlaceholder": "输入订单编号查找",
+      "orderEntryUserLabel": "订单录入员",
+      "orderEntryUserPlaceholder": "输入录入员姓名或邮箱",
+      "orderingUserLabel": "订单客户",
+      "orderingUserPlaceholder": "输入客户姓名或邮箱",
+      "resultSummary": "共 {total} 条，匹配 {matched} 条",
+      "clear": "清空筛选"
+    },
+    "table": {
+      "orderNumber": "订单编号",
+      "rmbAmount": "人民币总计",
+      "costAmount": "订单成本",
+      "orderEntryUser": "订单录入员",
+      "orderingUser": "订单客户",
+      "orderStatus": "订单状态",
+      "orderType": "订单类型",
+      "createdAt": "创建日期"
+    },
+    "dialogs": {
+      "editDescription": "编辑后会立即覆盖当前订单信息，并同步更新订单详情。",
+      "saveChanges": "保存修改",
+      "editTitle": "编辑订单"
+    }
+  },
+  "OrdersUI": {
+    "loading": "正在加载订单列表...",
+    "cancel": "取消",
+    "status": {
+      "pending": "待处理",
+      "inProgress": "处理中",
+      "settled": "已结算",
+      "completed": "已完成",
+      "cancelled": "已取消",
+      "refunding": "退款中",
+      "notProvided": "待补充"
+    },
+    "fallback": {
+      "formContent": "表单内容",
+      "item": "第 {index} 项",
+      "yes": "是",
+      "no": "否"
+    },
+    "categories": {
+      "purchase": "采购订单",
+      "service": "服务订单"
+    },
+    "subtypes": {
+      "purchase": {
+        "sourcing": "货源采购",
+        "dropshipping": "一件代发",
+        "touristShopping": "旅游购物",
+        "groupBuying": "团购"
+      },
+      "service": {
+        "tourEscort": "旅游陪同",
+        "medicalEscort": "医疗陪同",
+        "digitalSurvival": "数字化生存",
+        "airportTransfer": "机场接送",
+        "carService": "用车服务",
+        "vipRecharge": "VIP 充值"
+      }
+    },
+    "fields": {
+      "originalCurrency": "原始货币",
+      "amount": "金额总计",
+      "dailyExchangeRate": "当日汇率",
+      "transactionRate": "公司成交汇率（自动）",
+      "rmbAmount": "人民币总计",
+      "costAmount": "订单成本",
+      "orderEntryUser": "订单录入员",
+      "orderingUser": "订单客户",
+      "orderStatus": "订单状态",
+      "orderType": "订单类型",
+      "purchaseSubtype": "采购小类",
+      "purchaseDetails": "采购订单明细",
+      "serviceSubtype": "服务小类",
+      "serviceDiscount": "订单折扣",
+      "serviceDetails": "服务订单明细"
+    },
+    "placeholders": {
+      "originalCurrency": "例如 USD、CNY、EUR",
+      "amount": "请输入金额总计",
+      "dailyExchangeRate": "请输入当日汇率",
+      "transactionRate": "自动按当日汇率计算",
+      "rmbAmount": "请输入人民币总计",
+      "costAmount": "请输入内部成本，留空则不记录",
+      "purchaseDetails": "可填写 JSON，或按行输入，例如：\n商品名称: iPhone 16 Pro\n数量: 2\n收货城市: 上海",
+      "serviceDetails": "可填写 JSON，或按行输入，例如：\n服务日期: 2026-04-02\n服务地点: 上海浦东机场\n接待人数: 3"
+    },
+    "hints": {
+      "transactionRate": "自动 = 当日汇率 * 0.99",
+      "lockedOrderEntryUser": "当前页面创建的订单会自动归属到当前业务员名下。",
+      "autoTimestamps": "创建订单后，系统会自动写入创建时间；编辑订单保存后，系统会自动更新最后一次改动时间。"
+    },
+    "select": {
+      "orderEntryUser": "请选择订单录入员",
+      "orderingUser": "请选择订单客户",
+      "orderType": "请选择订单类型",
+      "purchaseSubtype": "请选择采购小类",
+      "serviceSubtype": "请选择服务小类",
+      "serviceDiscount": "请选择订单折扣"
+    },
+    "validation": {
+      "selectPrompt": "请选择{label}。",
+      "inputPrompt": "请填写{label}。",
+      "invalidFormat": "{label}格式不正确。",
+      "invalidDetails": "{label}格式不正确，请填写 JSON，或按“字段: 内容”逐行输入。",
+      "minZero": "{label}不能小于 0。"
+    },
+    "errors": {
+      "duplicateOrderNumber": "订单编号生成冲突，请稍后重试。",
+      "invalidForeignKeys": "请选择有效的订单录入员、订单客户、订单类型，以及对应的采购/服务子表选项。",
+      "cannotCreate": "你没有创建该订单的权限。",
+      "cannotUpdate": "你没有修改该订单的权限。",
+      "updatedScopeNotAllowed": "更新后的订单范围超出了你的可操作范围。",
+      "cannotDelete": "你没有删除该订单的权限。",
+      "inactiveOrderNumber": "只有 active 状态用户才能创建新订单编号。",
+      "orderNotFound": "没有找到对应订单。"
+    },
+    "purchaseSection": {
+      "title": "采购订单信息",
+      "createDescription": "当前订单类型为采购订单，请继续填写采购子表信息。订单明细支持 JSON，也支持每行一个“字段: 内容”。",
+      "editDescription": "当前订单类型为采购订单，可直接修改采购子表信息。订单明细支持 JSON，也支持每行一个“字段: 内容”。",
+      "loading": "正在加载采购订单信息..."
+    },
+    "serviceSection": {
+      "title": "服务订单信息",
+      "createDescription": "当前订单类型为服务订单，请继续填写服务子表信息。订单明细支持 JSON，也支持每行一个“字段: 内容”。",
+      "editDescription": "当前订单类型为服务订单，可直接修改服务子表信息。订单明细支持 JSON，也支持每行一个“字段: 内容”。",
+      "loading": "正在加载服务订单信息..."
+    },
+    "details": {
+      "editOrder": "编辑订单",
+      "deleteOrder": "删除订单",
+      "description": "查看订单的完整金额、汇率、人员信息以及关联表单内容。",
+      "title": "订单详情",
+      "titleWithOrderNumber": "订单 {orderNumber}",
+      "fields": {
+        "orderNumber": "订单编号",
+        "orderStatus": "订单状态",
+        "orderType": "订单类型",
+        "originalCurrency": "原始货币",
+        "amount": "金额总计",
+        "rmbAmount": "人民币总计",
+        "costAmount": "订单成本",
+        "dailyExchangeRate": "当日汇率",
+        "transactionRate": "公司成交汇率",
+        "orderEntryUser": "订单录入员",
+        "orderingUser": "订单客户",
+        "createdAt": "创建日期",
+        "updatedAt": "最后一次改动日期"
+      },
+      "supplementary": {
+        "loading": "正在加载关联表单内容...",
+        "empty": "当前订单还没有对应的采购单或服务单表单内容。",
+        "purchaseForm": "采购订单表单",
+        "serviceForm": "服务订单表单",
+        "purchaseSubtype": "采购小类",
+        "serviceSubtype": "服务小类",
+        "sourceForm": "来源表单",
+        "discount": "订单折扣",
+        "noMoreDetails": "当前关联表单还没有填写更多明细内容。"
+      }
+    }
+  },
+  "Reviews": {
+    "metadata": {
+      "title": "审核中心"
+    },
+    "header": {
+      "badge": "审核工作台",
+      "title": "审核中心"
+    },
+    "summary": {
+      "privacy": "隐私待审核",
+      "media": "媒体待审核"
+    },
+    "states": {
+      "noPermissionTitle": "暂无审核权限",
+      "noPermissionDescription": "当前登录账号不是管理员，无法访问隐私审核和媒体审核列表。"
+    },
+    "tabs": {
+      "privacy": "隐私审核",
+      "media": "媒体审核"
+    },
+    "actions": {
+      "approve": "通过",
+      "reject": "拒绝"
+    },
+    "confirm": {
+      "privacy": "确定要{action}这条个人隐私资料审核吗？",
+      "media": "确定要{action}这条个人媒体审核吗？"
+    },
+    "feedback": {
+      "privacyApproved": "个人隐私资料已审核通过。",
+      "privacyRejected": "个人隐私资料已拒绝。",
+      "mediaApproved": "个人媒体已审核通过。",
+      "mediaRejected": "个人媒体已拒绝。"
+    }
+  },
+  "ReviewsUI": {
+    "loading": "正在加载审核列表...",
+    "fallback": {
+      "unnamedUser": "未命名用户",
+      "notProvided": "待补充"
+    },
+    "actions": {
+      "approve": "通过",
+      "reject": "拒绝"
+    },
+    "privacy": {
+      "emptyTitle": "隐私审核队列为空",
+      "emptyDescription": "当前没有待审核的身份证或护照资料，新的提交内容到达后会出现在这里。",
+      "columns": {
+        "name": "用户名",
+        "email": "邮箱",
+        "idCard": "身份证号",
+        "passport": "护照号",
+        "actions": "操作"
+      }
+    },
+    "media": {
+      "emptyTitle": "媒体审核队列为空",
+      "emptyDescription": "当前没有待审核的个人照片或视频，新的媒体提交后会出现在这里。",
+      "previewTitle": "媒体预览",
+      "previewUnavailable": "无法预览",
+      "video": "视频",
+      "image": "图片",
+      "videoPreview": "视频预览",
+      "imagePreview": "图片预览",
+      "columns": {
+        "preview": "媒体缩略图",
+        "name": "用户名",
+        "email": "邮箱",
+        "actions": "操作"
+      }
+    }
+  },
+  "ExchangeRates": {
+    "metadata": {
+      "title": "汇率中心"
+    },
+    "loading": "正在加载汇率数据...",
+    "header": {
+      "badge": "汇率工作台",
+      "title": "汇率中心",
+      "description": "统一查看当前生效汇率与完整历史记录，确保订单和财务模块引用同一份汇率基线。"
+    },
+    "summary": {
+      "pairs": "币种对数",
+      "history": "历史记录",
+      "latestUpdated": "最近更新",
+      "noRecord": "暂无记录"
+    },
+    "actions": {
+      "create": "新增汇率",
+      "edit": "编辑",
+      "delete": "删除"
+    },
+    "states": {
+      "noManageTitle": "暂无管理权限",
+      "noManageDescription": "当前登录账号暂时没有管理汇率记录的权限。",
+      "noViewTitle": "暂无查看权限",
+      "noViewDescription": "当前登录账号暂时没有查看汇率记录的权限。"
+    },
+    "latest": {
+      "eyebrow": "当前快照",
+      "title": "最新汇率",
+      "description": "每个币种对仅保留一条当前生效的汇率，并按最近更新时间排序。",
+      "countSummary": "共 {count} 个币种对",
+      "emptyTitle": "汇率列表暂时为空",
+      "emptyDescription": "当前还没有任何汇率记录，新增后会优先出现在这里。",
+      "noMatchTitle": "没有匹配结果",
+      "noMatchDescription": "没有找到符合当前筛选条件的最新汇率。",
+      "card": {
+        "eyebrow": "币种对",
+        "latestBadge": "最新",
+        "currentRate": "当前汇率",
+        "historyCount": "历史记录 {count} 条"
+      }
+    },
+    "filters": {
+      "originalCurrencyLabel": "原始货币",
+      "originalCurrencyPlaceholder": "搜索 USD、EUR、CNY 等",
+      "targetCurrencyLabel": "目标货币",
+      "targetCurrencyPlaceholder": "搜索 CNY、USDT 等",
+      "resultSummary": "共 {total} 条，匹配 {matched} 条",
+      "clear": "清空筛选"
+    },
+    "history": {
+      "eyebrow": "历史",
+      "title": "历史记录",
+      "backHome": "返回我的页面",
+      "emptyTitle": "历史记录暂时为空",
+      "emptyDescription": "当前还没有历史汇率记录，后续新增后会按时间倒序展示。",
+      "noMatchTitle": "没有匹配结果",
+      "noMatchDescription": "没有找到符合当前筛选条件的历史记录。",
+      "columns": {
+        "originalCurrency": "原始货币",
+        "targetCurrency": "目标货币",
+        "rate": "汇率值",
+        "updatedAt": "更新时间",
+        "actions": "操作"
+      }
+    },
+    "dialogs": {
+      "cancel": "取消",
+      "currencyHint": "货币代码会在保存时自动转成大写，例如 usd 会被保存为 USD。",
+      "fields": {
+        "originalCurrency": "原始货币",
+        "targetCurrency": "目标货币",
+        "dailyExchangeRate": "汇率值"
+      },
+      "placeholders": {
+        "originalCurrency": "例如 USD",
+        "targetCurrency": "例如 CNY",
+        "dailyExchangeRate": "请输入汇率值"
+      },
+      "create": {
+        "title": "新增汇率",
+        "description": "保存后会立刻写入历史记录，并刷新对应币种对的最新汇率。",
+        "submit": "新增汇率"
+      },
+      "edit": {
+        "title": "编辑汇率",
+        "description": "保存后会直接更新当前这条历史记录，并同步刷新同一币种对的最新汇率。",
+        "submit": "保存修改"
+      }
+    },
+    "feedback": {
+      "created": "汇率 {pairLabel} 已新增。",
+      "updated": "汇率 {pairLabel} 已更新。",
+      "deleteConfirm": "确定要删除 {pairLabel} 的这条汇率记录吗？删除后无法恢复。",
+      "deleted": "汇率 {pairLabel} 已删除。"
+    },
+    "validation": {
+      "originalCurrencyRequired": "\u8bf7\u8f93\u5165\u539f\u59cb\u8d27\u5e01\u4ee3\u7801\u3002",
+      "targetCurrencyRequired": "\u8bf7\u8f93\u5165\u76ee\u6807\u8d27\u5e01\u4ee3\u7801\u3002",
+      "inputPrompt": "\u8bf7\u8f93\u5165{label}\u3002",
+      "invalidFormat": "{label}\u683c\u5f0f\u4e0d\u6b63\u786e\u3002",
+      "greaterThanZero": "{label}\u5fc5\u987b\u5927\u4e8e 0\u3002"
+    },
+    "errors": {
+      "duplicateKey": "\u5f53\u524d\u6c47\u7387\u8bb0\u5f55\u4fdd\u5b58\u5931\u8d25\uff0c\u8bf7\u68c0\u67e5\u662f\u5426\u5b58\u5728\u91cd\u590d\u4e3b\u952e\u540e\u91cd\u8bd5\u3002",
+      "positiveRate": "\u6c47\u7387\u503c\u5fc5\u987b\u5927\u4e8e 0\u3002",
+      "permission": "\u5f53\u524d\u8d26\u53f7\u6ca1\u6709\u67e5\u770b\u6216\u64cd\u4f5c\u6c47\u7387\u6570\u636e\u7684\u6743\u9650\u3002"
+    }
+  },
+  "Referrals": {
+    "loading": "正在加载推荐关系...",
+    "header": {
+      "badge": "推荐关系网络",
+      "title": "推荐树"
+    },
+    "summary": {
+      "visibleEdges": "可见关系",
+      "matchedEdges": "匹配关系",
+      "visibleUsers": "可见用户",
+      "matchedNodes": "匹配节点",
+      "rootNodes": "根节点"
+    },
+    "states": {
+      "noPermissionTitle": "暂无查看权限",
+      "noPermissionDescription": "当前账号不是 active 状态，暂时无法查看推荐树。",
+      "emptyTitle": "推荐树暂时为空",
+      "emptyDescription": "当前可见范围内还没有推荐关系。后续一旦产生邀请注册记录，这里会自动展示。",
+      "noMatchTitle": "没有匹配结果",
+      "noMatchDescription": "当前搜索条件下没有匹配到推荐关系。可以换个姓名、邮箱或角色再试。"
+    },
+    "tree": {
+      "title": "层级推荐树",
+      "searchPlaceholder": "搜索姓名、邮箱或角色",
+      "referredOn": "推荐于 {date}",
+      "currentAccount": "当前账号",
+      "teamSales": "团队业务员",
+      "downstreamCount": "{count} 个下游",
+      "noEmail": "暂无邮箱"
+    },
+    "roles": {
+      "administrator": "管理员",
+      "operator": "运营",
+      "manager": "经理",
+      "recruiter": "招聘员",
+      "salesman": "业务员",
+      "finance": "财务",
+      "client": "客户",
+      "unknown": "未分配角色"
+    },
+    "sections": {
+      "manager": "经理可以查看自己的上下游关系，以及团队业务员各自的上下游推荐链路。树中会单独标记团队业务员。",
+      "recruiter": "招聘员可以查看是谁推荐了自己，以及自己推荐了哪些业务员。推荐树不会继续展开无关的团队关系。",
+      "default": "当前页面会用树形结构展示你的直接上游和直接下游关系，而不是拆成多张列表。"
+    },
+    "errors": {
+      "noPermission": "当前账号没有查看推荐树的权限。"
+    }
+  },
+  "Commission": {
+    "metadata": {
+      "adminTitle": "佣金看板",
+      "salesmanTitle": "我的佣金"
+    },
+    "loading": "正在加载佣金数据...",
+    "options": {
+      "settlement": {
+        "all": "全部状态",
+        "pending": "待结算",
+        "paid": "已结算",
+        "cancelled": "已取消",
+        "reversed": "已冲销"
+      },
+      "category": {
+        "all": "全部类型",
+        "salesmanPurchase": "业务员采购佣金",
+        "salesmanService": "业务员服务佣金",
+        "referralPurchase": "推荐采购佣金",
+        "referralService": "推荐服务佣金",
+        "referralVipFirstYearBonus": "推荐 VIP 首年奖励",
+        "manualAdjustment": "手工调整"
+      }
+    },
+    "header": {
+      "badge": "佣金工作台",
+      "title": "佣金看板",
+      "description": "统一查看全部佣金记录、结算进度和受益人汇总，方便运营核对。"
+    },
+    "summary": {
+      "recordCount": "佣金记录数",
+      "totalAmount": "佣金总额",
+      "pendingAmount": "待结算金额",
+      "paidAmount": "已结算金额"
+    },
+    "states": {
+      "noPermissionTitle": "暂无佣金查看权限",
+      "noPermissionDescription": "当前账号无法查看全量佣金看板。"
+    },
+    "filters": {
+      "title": "筛选佣金",
+      "description": "当前筛选条件下匹配到 {records} 条记录，涉及 {beneficiaries} 位受益人。",
+      "reset": "重置筛选",
+      "keywordLabel": "关键词",
+      "keywordPlaceholder": "搜索订单、用户、邮箱或佣金类型",
+      "beneficiaryLabel": "受益人",
+      "allBeneficiaries": "全部受益人",
+      "orderNumberLabel": "订单号",
+      "orderNumberPlaceholder": "搜索指定订单号",
+      "settlementStatusLabel": "结算状态",
+      "categoryLabel": "佣金类型"
+    },
+    "chips": {
+      "beneficiaryPrefix": "受益人：",
+      "selected": "已选择",
+      "orderNumberPrefix": "订单：",
+      "settlementPrefix": "结算：",
+      "categoryPrefix": "类型："
+    },
+    "beneficiaries": {
+      "title": "受益人汇总",
+      "description": "点击某位受益人即可快速聚焦到与此人相关的全部佣金记录。",
+      "emptyTitle": "暂无受益人汇总",
+      "emptyDescription": "当前筛选条件下没有受益人记录。",
+      "columns": {
+        "beneficiary": "受益人",
+        "roleStatus": "角色与状态",
+        "recordCount": "记录数",
+        "totalAmount": "总额",
+        "pendingAmount": "待结算",
+        "paidAmount": "已结算",
+        "latestRecord": "最近记录",
+        "actions": "操作"
+      },
+      "actions": {
+        "viewAll": "查看该人全部记录"
+      }
+    },
+    "table": {
+      "title": "佣金明细",
+      "description": "按订单、受益人、来源关系和结算信息查看每一条佣金记录。",
+      "emptyTitle": "暂无佣金明细",
+      "emptyDescription": "当前筛选条件下没有匹配的佣金记录。",
+      "columns": {
+        "orderStatus": "订单与状态",
+        "beneficiary": "受益人",
+        "category": "佣金类型",
+        "source": "来源",
+        "amountSnapshot": "金额快照",
+        "commissionSettlement": "佣金与结算",
+        "timestamps": "时间"
+      }
+    },
+    "shared": {
+      "deletedOrder": "订单已删除",
+      "note": "备注：{note}",
+      "fields": {
+        "customer": "客户",
+        "salesman": "业务员",
+        "orderAmount": "订单金额",
+        "costAmount": "成本金额",
+        "serviceFee": "服务费",
+        "createdAt": "创建时间",
+        "settledAt": "结算时间",
+        "orderNumber": "订单号"
+      },
+      "fallback": {
+        "none": "暂无"
+      },
+      "roles": {
+        "administrator": "管理员",
+        "operator": "运营",
+        "manager": "经理",
+        "recruiter": "招聘",
+        "salesman": "业务员",
+        "finance": "财务",
+        "client": "客户",
+        "unknown": "未知角色"
+      },
+      "orderStatuses": {
+        "pending": "待处理",
+        "inProgress": "处理中",
+        "settled": "已结算",
+        "completed": "已完成",
+        "cancelled": "已取消",
+        "refunding": "退款中",
+        "unknown": "未知状态"
+      },
+      "settlementStatuses": {
+        "pending": "待结算",
+        "paid": "已结算",
+        "cancelled": "已取消",
+        "reversed": "已冲销",
+        "unknown": "未知状态"
+      },
+      "categories": {
+        "salesmanPurchase": "业务员采购佣金",
+        "salesmanService": "业务员服务佣金",
+        "referralPurchase": "推荐采购佣金",
+        "referralService": "推荐服务佣金",
+        "referralVipFirstYearBonus": "推荐 VIP 首年奖励",
+        "manualAdjustment": "手工调整",
+        "default": "佣金"
+      },
+      "origin": {
+        "customerFallback": "客户",
+        "salesmanPurchase": "来自客户 {customerLabel} 的采购订单 {orderNumber}。",
+        "salesmanService": "来自客户 {customerLabel} 的服务订单 {orderNumber}。",
+        "referralPurchase": "来自被推荐客户 {customerLabel} 的采购订单 {orderNumber}。",
+        "referralService": "来自被推荐客户 {customerLabel} 的服务订单 {orderNumber}。",
+        "referralVipFirstYearBonus": "来自被推荐客户 {customerLabel} 的 VIP 首年订单 {orderNumber}。",
+        "manualAdjustment": "来自订单 {orderNumber} 的手工调整。",
+        "default": "来自订单 {orderNumber} 的佣金记录。"
+      },
+      "errors": {
+        "noAdminAccess": "当前账号无法查看全量佣金看板。",
+        "noSalesmanAccess": "当前账号无法查看个人佣金记录。"
+      }
+    },
+    "salesman": {
+      "loading": "正在加载我的佣金...",
+      "header": {
+        "badge": "我的佣金",
+        "title": "业务员佣金记录",
+        "description": "查看自己的佣金总额、结算进度，以及每笔佣金对应的订单来源。"
+      },
+      "summary": {
+        "totalAmount": "佣金总额",
+        "pendingAmount": "待结算金额",
+        "paidAmount": "已结算金额"
+      },
+      "states": {
+        "noPermissionTitle": "暂无个人佣金查看权限",
+        "noPermissionDescription": "当前账号无法查看个人佣金记录。",
+        "emptyTitle": "暂无佣金记录",
+        "emptyDescription": "当前账号还没有产生佣金记录。"
+      },
+      "table": {
+        "title": "佣金来历明细",
+        "description": "每条记录都会说明佣金来自哪张订单、属于哪种类型，以及当前是否已经结算。",
+        "columns": {
+          "origin": "来历",
+          "orderCustomer": "订单与客户",
+          "category": "佣金类型",
+          "amount": "金额",
+          "settlement": "结算状态",
+          "time": "时间"
+        },
+        "amountHint": "订单金额：{amount}"
+      }
+    }
+  },
+  "Tasks": {
+    "metadata": {
+      "adminTitle": "管理员任务板",
+      "salesmanTitle": "我的任务"
+    },
+    "shared": {
+      "status": {
+        "toBeAccepted": "待领取",
+        "accepted": "进行中",
+        "completed": "已完成"
+      },
+      "scope": {
+        "public": "面向全员",
+        "team": "团队任务"
+      },
+      "fallback": {
+        "unnamedTeam": "未命名团队",
+        "noTaskIntro": "暂无任务说明。",
+        "noRecord": "暂无记录"
+      },
+      "attachmentCount": "{count} 个附件",
+      "moreAttachments": "还有 {count} 个附件",
+      "errors": {
+        "admin": {
+          "taskNameBlank": "任务名称不能为空。",
+          "teamRequired": "团队任务必须绑定一个具体团队。",
+          "authExpired": "登录状态已失效，请重新登录后再试。",
+          "taskNotFound": "任务不存在，建议先刷新任务列表。",
+          "duplicateAttachmentPath": "附件路径出现冲突，请重新上传一次。",
+          "attachmentCountExceeded": "附件数量超出限制，请最多上传 10 个文件。",
+          "attachmentEmpty": "检测到空文件，附件大小必须大于 0。",
+          "attachmentTooLarge": "存在超出限制的附件，单个文件不能超过 20 MB。",
+          "attachmentTotalTooLarge": "附件总大小超出限制，请控制在 100 MB 以内。",
+          "attachmentTypeNotAllowed": "存在不支持的附件类型，请上传常见文档、图片、音视频或压缩文件。",
+          "storage": "任务附件处理失败，请稍后重试。"
+        },
+        "salesman": {
+          "cannotAccept": "当前还不能接取这项任务。",
+          "alreadyAccepted": "这项任务刚刚已经被接取了，请刷新后查看最新状态。",
+          "cannotComplete": "当前还不能完成这项任务。",
+          "notAccepted": "这项任务当前还不能标记为完成。",
+          "inactive": "当前账号未激活，暂时不能处理任务。"
+        }
+      }
+    },
+    "admin": {
+      "loading": "正在加载任务面板...",
+      "feedback": {
+        "createdWithAttachments": "任务和附件已创建。",
+        "created": "任务已创建。",
+        "assignmentUpdated": "任务归属已更新。",
+        "assignmentPublic": "任务已更新为面向全员。",
+        "deletedWithAttachmentCleanupWarning": "任务已删除，但附件清理未完全成功，请稍后检查存储桶。",
+        "deleted": "任务已删除。"
+      },
+      "confirmDelete": "确认删除任务“{taskName}”吗？任务附件也会一起清理。",
+      "header": {
+        "badge": "平台任务调度",
+        "title": "管理员任务板",
+        "description": "在这里可以集中查看任务进展、发布新任务，并在任务开始前调整协作范围与归属。",
+        "refresh": "刷新数据",
+        "create": "新建任务"
+      },
+      "summary": {
+        "total": "任务总数",
+        "pending": "待领取",
+        "accepted": "进行中",
+        "completed": "已完成",
+        "teamScoped": "团队任务"
+      },
+      "states": {
+        "noPermissionTitle": "没有访问权限",
+        "noPermissionDescription": "当前账号不是管理员，暂时不能进入任务调度面板。",
+        "emptyTitle": "暂时没有匹配任务",
+        "emptyDescription": "当前筛选条件下还没有任务。你可以调整筛选条件，或先创建一条新任务。"
+      },
+      "filters": {
+        "searchLabel": "搜索任务",
+        "searchPlaceholder": "搜索任务名、创建人、团队或领取人",
+        "statusLabel": "状态",
+        "statusAll": "全部状态",
+        "scopeLabel": "范围",
+        "scopeAll": "全部范围",
+        "teamLabel": "团队",
+        "teamAll": "全部团队"
+      },
+      "list": {
+        "title": "任务清单",
+        "description": "当前共匹配到 {count} 个任务。你可以通过搜索和筛选快速找到需要查看的内容。"
+      },
+      "createDialog": {
+        "title": "新建任务",
+        "description": "可以选择面向全员开放任务，或设置为指定团队可见。附件会和任务一起保存。",
+        "taskNameLabel": "任务名称",
+        "taskNamePlaceholder": "例如：跟进本周客户回访资料",
+        "scopeLabel": "分配范围",
+        "teamLabel": "目标团队",
+        "teamPlaceholder": "请选择团队",
+        "taskIntroLabel": "任务说明",
+        "taskIntroPlaceholder": "补充任务背景、目标、执行要求和注意事项。",
+        "attachmentsLabel": "附件",
+        "attachmentsCta": "点击选择附件，可一次上传多个文件",
+        "attachmentsHint": "文件会进入 task-attachments 存储桶，并记录到 task_sub 表。最多 {maxFiles} 个文件，单个不超过 {maxPerFile}，总计不超过 {maxTotal}。",
+        "noAttachments": "暂未选择附件。当前版本支持先把任务与附件一起创建。",
+        "cancel": "取消",
+        "submit": "创建任务"
+      },
+      "assignmentDialog": {
+        "title": "调整任务设置",
+        "titleWithName": "调整任务设置：{taskName}",
+        "description": "任务开始处理后会以查看为主，如需调整范围或归属，请在开始前完成设置。",
+        "currentAssignment": "当前分配：{assignmentLabel}",
+        "viewOnlyNotice": "该任务正在处理中或已完成，当前仅支持查看。",
+        "scopeLabel": "新的分配范围",
+        "teamLabel": "目标团队",
+        "teamPlaceholder": "请选择团队",
+        "cancel": "取消",
+        "submit": "保存设置"
+      },
+      "card": {
+        "reassign": "调整归属",
+        "delete": "删除",
+        "assignmentLabel": "当前分配",
+        "creatorLabel": "创建人",
+        "assigneeLabel": "领取人",
+        "createdAtLabel": "创建时间",
+        "acceptedAtLabel": "领取时间",
+        "completedAtLabel": "完成时间",
+        "attachmentsOverview": "附件概览",
+        "viewOnlyNotice": "该任务当前仅支持查看。"
+      },
+      "validation": {
+        "taskNameRequired": "请先填写任务名称。",
+        "teamRequiredForCreate": "请选择目标团队。",
+        "teamRequiredForAssignment": "请先选择团队。"
+      }
+    },
+    "salesman": {
+      "loading": "正在加载任务...",
+      "feedback": {
+        "accepted": "任务已接取，开始处理吧。",
+        "completed": "任务已完成。"
+      },
+      "header": {
+        "badge": "我的任务",
+        "title": "任务中心",
+        "description": "查看当前可参与的任务，跟进自己正在处理的事项，并在完成后及时更新进度。"
+      },
+      "summary": {
+        "all": "可见任务",
+        "available": "待接取",
+        "inProgress": "进行中",
+        "completed": "已完成"
+      },
+      "states": {
+        "noPermissionTitle": "暂时无法查看任务",
+        "noPermissionDescription": "当前账号暂时不能进入任务中心，请确认账号角色和状态。",
+        "emptyTitle": "还没有任务",
+        "emptyDescription": "暂时没有符合当前条件的任务，稍后再来看看。"
+      },
+      "filters": {
+        "searchLabel": "搜索任务",
+        "searchPlaceholder": "搜索任务名称、说明或任务范围",
+        "focusLabel": "查看范围",
+        "focusAll": "全部任务",
+        "focusAvailable": "待接取",
+        "focusInProgress": "进行中",
+        "focusCompleted": "已完成",
+        "scopeLabel": "任务类型",
+        "scopeAll": "全部类型"
+      },
+      "list": {
+        "title": "任务列表",
+        "description": "当前共匹配到 {count} 个任务。"
+      },
+      "card": {
+        "taskScopeLabel": "任务范围",
+        "createdAtLabel": "发布时间",
+        "acceptedAtLabel": "开始时间",
+        "completedAtLabel": "完成时间",
+        "attachmentsTitle": "任务附件",
+        "accept": "接取任务",
+        "complete": "标记完成",
+        "takenByOthers": "这项任务当前已有同事接手。",
+        "completedByMe": "你已完成这项任务。",
+        "completedGeneric": "这项任务已完成。"
+      }
+    }
+  },
+  "TeamManagement": {
+    "loading": "正在加载团队数据...",
+    "header": {
+      "badge": "团队组织协作",
+      "title": "团队管理",
+      "refresh": "刷新团队数据",
+      "manageableHint": "当前团队支持直接调整名称和成员。"
+    },
+    "summary": {
+      "visibleTeams": "可见团队",
+      "teamMembers": "团队成员",
+      "teamClients": "团队客户",
+      "manageableTeams": "可管理团队"
+    },
+    "descriptions": {
+      "manager": "经理可以管理自己的团队资料、成员和团队客户结构。面板会根据团队表、成员表与推荐关系自动汇总。",
+      "administrator": "管理员可以查看全部团队，并直接创建团队、删除团队、调整团队成员，以及更换团队经理。",
+      "salesman": "业务员可以查看当前可见团队结构，了解团队成员、客户沉淀和负责人的组织关系。",
+      "readOnly": "当前页面会按数据库权限展示可见团队的结构概览，方便运营和财务协同查看团队成员和客户沉淀。",
+      "fallback": "这里会把团队主表、成员表和客户推荐关系汇总成一个可直接查看的管理面板。"
+    },
+    "feedback": {
+      "updated": "团队信息已更新。",
+      "createdAndContinue": "团队已创建，现在可以继续添加业务员成员。",
+      "created": "新团队已创建。",
+      "memberAdded": "团队成员已加入。",
+      "memberRemoved": "团队成员已移出。",
+      "deleted": "团队已删除。"
+    },
+    "confirmDelete": "确认删除团队“{teamName}”吗？此操作会移除团队记录及成员归属关系。",
+    "adminCreate": {
+      "title": "创建团队",
+      "description": "管理员可以直接新建团队，并在创建时指定经理。未被其他团队占用的经理会优先显示为可分配。",
+      "teamNameLabel": "团队名称",
+      "teamNamePlaceholder": "请输入团队名称",
+      "managerLabel": "指定经理",
+      "button": "新建团队"
+    },
+    "states": {
+      "noPermissionTitle": "暂无查看权限",
+      "noPermissionDescription": "当前账号暂时没有团队面板访问权限。团队模块会根据角色和激活状态展示不同范围的数据。",
+      "noTeamDataTitle": "暂无团队数据",
+      "noTeamDataDescription": "当前可见范围内还没有团队数据。等团队关系建立后，这里会自动汇总团队概览。"
+    },
+    "managerSetup": {
+      "title": "创建你的团队面板",
+      "description": "数据库里团队由 `team_profiles` 作为主表、`team_profiles_data` 维护成员。你现在还没有团队记录，可以先创建团队名称，再继续添加业务员。",
+      "teamNameLabel": "团队名称",
+      "teamNamePlaceholder": "请输入团队名称",
+      "button": "创建团队",
+      "emptyTitle": "团队数据暂未建立",
+      "emptyDescription": "团队建立后，这里会开始展示成员、团队客户和可加入的业务员候选。"
+    },
+    "overview": {
+      "title": "团队总览",
+      "description": "先选择一个团队查看详细成员和客户结构。经理默认会优先定位到自己可管理的团队。",
+      "managerPrefix": "负责人：{managerLabel}",
+      "memberPreview": "团队成员预览",
+      "moreMembers": "+{count} 更多",
+      "metrics": {
+        "members": "成员",
+        "activeMembers": "活跃成员",
+        "clients": "客户",
+        "vipClients": "VIP 客户"
+      }
+    },
+    "detail": {
+      "managerSummary": "团队负责人：{managerLabel}。最后一次成员加入时间：{joinedAt}。",
+      "editTitle": "编辑团队信息",
+      "teamNamePlaceholder": "请输入团队名称",
+      "saveButton": "保存团队信息",
+      "deleteButton": "删除团队",
+      "metrics": {
+        "members": "团队成员",
+        "activeMembers": "活跃成员",
+        "clients": "团队客户",
+        "vipClients": "VIP 客户"
+      }
+    },
+    "insights": {
+      "title": "团队画像",
+      "description": "这里按数据库里的推荐关系汇总团队客户，方便快速判断团队当前结构。",
+      "activeTitle": "{count} 名活跃业务员",
+      "activeEmptyDescription": "当前团队还没有激活中的业务员，建议先补齐成员。",
+      "activeReadyDescription": "当前团队已经形成基础成员结构，可以继续安排客户转化。",
+      "vipTitle": "{count} 名 VIP 客户",
+      "vipEmptyDescription": "暂时还没有 VIP 客户。后续一旦团队客户完成 VIP 标记，这里会同步增长。",
+      "vipReadyDescription": "已有客户完成 VIP 标记，可以直接结合订单和佣金模块继续跟进。",
+      "relationsTitle": "{count} 条客户关系",
+      "relationsDescription": "当前选中团队下，共沉淀 {count} 条可见客户推荐关系。"
+    },
+    "members": {
+      "title": "团队成员",
+      "description": "业务员成员来自 `team_profiles_data`，每个成员卡片上会同步展示直接客户数量。",
+      "searchPlaceholder": "搜索成员姓名、邮箱或客户状态",
+      "emptyTitle": "没有成员结果",
+      "emptyDescription": "当前搜索条件下没有匹配到团队成员。"
+    },
+    "candidates": {
+      "title": "可加入业务员",
+      "description": "候选列表来自 `salesman` 角色用户。已经归属其他团队的业务员会保留标记，不能重复加入。",
+      "searchPlaceholder": "搜索业务员姓名、邮箱或当前团队",
+      "availableCount": "当前共有 {count} 位可直接加入的业务员候选。",
+      "emptyTitle": "没有候选结果",
+      "emptyDescription": "当前搜索条件下没有候选业务员。",
+      "readOnlyTitle": "当前为只读视角",
+      "readOnlyDescription": "当前视角主要用于查看团队结构，不提供成员变更操作。"
+    },
+    "clients": {
+      "title": "团队客户",
+      "description": "团队客户根据业务员推荐关系拼出来，并同步展示 VIP 标记。",
+      "searchPlaceholder": "搜索客户姓名、邮箱或推荐业务员",
+      "emptyTitle": "没有客户结果",
+      "emptyDescription": "当前搜索条件下没有匹配到团队客户。"
+    },
+    "memberCard": {
+      "emailAndClients": "{email} / 直属客户 {count} 人",
+      "remove": "移出团队",
+      "joinedAt": "加入团队时间",
+      "accountCreatedAt": "账号创建时间"
+    },
+    "candidateCard": {
+      "add": "加入团队",
+      "disabled": "不可加入",
+      "currentTeam": "当前归属团队",
+      "directClientCount": "直属客户数量",
+      "directClientCountValue": "{count} 人"
+    },
+    "clientCard": {
+      "referrer": "推荐业务员",
+      "relatedAt": "关联时间"
+    },
+    "shared": {
+      "managerOptionNone": "暂不指定经理",
+      "pills": {
+        "manageable": "可管理",
+        "currentView": "当前查看",
+        "adminView": "管理员视角",
+        "vip": "VIP"
+      },
+      "fallback": {
+        "noEmail": "暂无邮箱",
+        "noRecord": "暂无记录",
+        "notSet": "未设置",
+        "unassigned": "未分配",
+        "unnamedTeam": "未命名团队"
+      },
+      "managerCandidate": {
+        "currentTeamAssignable": "{label}（当前负责：{teamName}）",
+        "currentTeamLocked": "{label}（当前负责：{teamName}，不可改派）",
+        "unassignable": "{label}（不可分配）"
+      }
+    },
+    "errors": {
+      "missingTeamId": "团队资料保存后没有返回团队 ID。",
+      "teamProfileMissing": "请先创建团队，再继续添加成员。",
+      "teamNameRequired": "请先填写团队名称。",
+      "teamNotVisible": "当前选中的团队不可见，已经尝试重新同步。",
+      "salesmanNotAssignable": "这个业务员当前不能加入团队，可能已经归属其他团队。",
+      "managerNotAssignable": "这个经理当前不能分配到该团队，可能已经负责其他团队。",
+      "cannotManageTeam": "当前账号暂时不能管理团队资料。",
+      "cannotManageMembers": "当前账号暂时不能调整团队成员。",
+      "cannotDeleteTeam": "当前账号暂时不能删除团队。",
+      "teamNotFound": "目标团队不存在，可能已被其他人修改。"
+    }
+  },
+  "DashboardPagination": {
+    "previous": "\u4e0a\u4e00\u9875",
+    "next": "\u4e0b\u4e00\u9875",
+    "page": "\u7b2c {page} \u9875\uff0c\u5171 {pageCount} \u9875",
+    "range": "\u7b2c {start}-{end} \u6761\uff0c\u5171 {total} \u6761"
+  }
+}
+

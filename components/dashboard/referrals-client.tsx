@@ -3,6 +3,7 @@
 import { useCallback, useMemo, useRef, useState } from "react";
 import type { ReactNode } from "react";
 
+import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import {
   ChevronDown,
@@ -17,6 +18,7 @@ import {
   UsersRound,
 } from "lucide-react";
 
+import { useLocale } from "@/components/i18n/locale-provider";
 import {
   markBrowserCloudSyncActivity,
   resetBrowserCloudSyncState,
@@ -33,15 +35,21 @@ import { useSupabaseAuthSync } from "@/lib/use-supabase-auth-sync";
 import type { AppRole, UserStatus } from "@/lib/user-self-service";
 
 import {
+  createDashboardSharedCopy,
   EmptyState,
-  PageBanner,
   formatDateTime,
   mapUserStatus,
+  PageBanner,
   toErrorMessage,
+  type DashboardSharedCopy,
   type NoticeTone,
 } from "./dashboard-shared-ui";
+import { DashboardCenteredLoadingState } from "./dashboard-centered-loading-state";
+import { DashboardMetricCard } from "./dashboard-metric-card";
 
 type PageFeedback = { tone: NoticeTone; message: string } | null;
+type TranslationValues = Record<string, string | number>;
+type ReferralTranslator = (key: string, values?: TranslationValues) => string;
 
 type ReferralPerson = {
   userId: string;
@@ -58,9 +66,75 @@ type ReferralGraph = {
   parentByChild: Map<string, string>;
 };
 
+type ReferralsCopy = {
+  errors: {
+    noPermission: string;
+  };
+  roles: {
+    administrator: string;
+    client: string;
+    finance: string;
+    manager: string;
+    operator: string;
+    recruiter: string;
+    salesman: string;
+    unknown: string;
+  };
+  sections: {
+    default: string;
+    manager: string;
+    recruiter: string;
+  };
+  tree: {
+    currentAccount: string;
+    downstreamCount: (count: number) => string;
+    noEmail: string;
+    referredOn: (date: string) => string;
+    teamSales: string;
+  };
+};
+
+function createReferralsCopy(t: ReferralTranslator): ReferralsCopy {
+  return {
+    errors: {
+      noPermission: t("errors.noPermission"),
+    },
+    roles: {
+      administrator: t("roles.administrator"),
+      client: t("roles.client"),
+      finance: t("roles.finance"),
+      manager: t("roles.manager"),
+      operator: t("roles.operator"),
+      recruiter: t("roles.recruiter"),
+      salesman: t("roles.salesman"),
+      unknown: t("roles.unknown"),
+    },
+    sections: {
+      default: t("sections.default"),
+      manager: t("sections.manager"),
+      recruiter: t("sections.recruiter"),
+    },
+    tree: {
+      currentAccount: t("tree.currentAccount"),
+      downstreamCount: (count) => t("tree.downstreamCount", { count }),
+      noEmail: t("tree.noEmail"),
+      referredOn: (date) => t("tree.referredOn", { date }),
+      teamSales: t("tree.teamSales"),
+    },
+  };
+}
+
 export function ReferralsClient() {
   const router = useRouter();
   const supabase = getBrowserSupabaseClient();
+  const t = useTranslations("Referrals");
+  const sharedT = useTranslations("DashboardShared");
+  const { locale } = useLocale();
+  const copy = useMemo(() => createReferralsCopy(t), [t]);
+  const sharedCopy = useMemo(
+    () => createDashboardSharedCopy(sharedT),
+    [sharedT],
+  );
 
   const [loading, setLoading] = useState(true);
   const [syncGeneration, setSyncGeneration] = useState(0);
@@ -117,6 +191,7 @@ export function ReferralsClient() {
         setCanViewReferrals(nextCanViewReferrals);
         setCurrentViewerId(viewer.user.id);
         setCurrentViewerRole(viewer.role);
+
         if (!nextCanViewReferrals) {
           setEdges([]);
           setPageFeedback(null);
@@ -138,7 +213,7 @@ export function ReferralsClient() {
 
         setPageFeedback({
           tone: "error",
-          message: toReferralErrorMessage(error),
+          message: toReferralErrorMessage(error, copy, sharedCopy),
         });
       } finally {
         if (showLoading && isMounted()) {
@@ -146,7 +221,7 @@ export function ReferralsClient() {
         }
       }
     },
-    [recoverCloudSync, router, supabase],
+    [copy, recoverCloudSync, router, sharedCopy, supabase],
   );
 
   useSupabaseAuthSync(supabase, {
@@ -179,12 +254,12 @@ export function ReferralsClient() {
 
   const graph = useMemo(() => buildReferralGraph(edges), [edges]);
   const sectionDescription = useMemo(
-    () => getReferralSectionDescription(currentViewerRole),
-    [currentViewerRole],
+    () => getReferralSectionDescription(currentViewerRole, copy),
+    [copy, currentViewerRole],
   );
   const treeDisplay = useMemo(
-    () => buildTreeDisplayData(graph, searchText),
-    [graph, searchText],
+    () => buildTreeDisplayData(graph, searchText, locale, copy, sharedCopy),
+    [copy, graph, locale, searchText, sharedCopy],
   );
   const visibleEdgeCount = useMemo(
     () =>
@@ -197,7 +272,7 @@ export function ReferralsClient() {
   );
 
   if (loading) {
-    return <ReferralsLoadingState />;
+    return <DashboardCenteredLoadingState message={t("loading")} />;
   }
 
   return (
@@ -210,32 +285,36 @@ export function ReferralsClient() {
         <div className="flex flex-col gap-6 xl:flex-row xl:items-end xl:justify-between">
           <div className="max-w-3xl">
             <span className="inline-flex rounded-full bg-[#e4edf3] px-3 py-1 text-xs font-semibold text-[#486782]">
-              推荐关系网络
+              {t("header.badge")}
             </span>
-            <h2 className="mt-4 text-4xl font-bold tracking-tight text-[#1f2a32]">推荐树</h2>
+            <h2 className="mt-4 text-4xl font-bold tracking-tight text-[#1f2a32]">
+              {t("header.title")}
+            </h2>
             {sectionDescription ? (
-              <p className="mt-3 text-[15px] leading-8 text-[#65717b]">{sectionDescription}</p>
+              <p className="mt-3 text-[15px] leading-8 text-[#65717b]">
+                {sectionDescription}
+              </p>
             ) : null}
           </div>
 
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 xl:min-w-[560px]">
-            <SummaryCard
+            <DashboardMetricCard
               accent="blue"
-              count={visibleEdgeCount}
               icon={<GitBranchPlus className="size-5" />}
-              label={searchText.trim() ? "匹配关系" : "可见关系"}
+              label={searchText.trim() ? t("summary.matchedEdges") : t("summary.visibleEdges")}
+              value={visibleEdgeCount}
             />
-            <SummaryCard
+            <DashboardMetricCard
               accent="green"
-              count={treeDisplay.visibleNodeIds.size}
               icon={<UsersRound className="size-5" />}
-              label={searchText.trim() ? "匹配节点" : "可见用户"}
+              label={searchText.trim() ? t("summary.matchedNodes") : t("summary.visibleUsers")}
+              value={treeDisplay.visibleNodeIds.size}
             />
-            <SummaryCard
+            <DashboardMetricCard
               accent="gold"
-              count={treeDisplay.rootIds.length}
               icon={<Network className="size-5" />}
-              label="根节点"
+              label={t("summary.rootNodes")}
+              value={treeDisplay.rootIds.length}
             />
           </div>
         </div>
@@ -244,25 +323,25 @@ export function ReferralsClient() {
       {canViewReferrals === false ? (
         <section className="rounded-[28px] border border-white/85 bg-white/72 p-6 shadow-[0_18px_45px_rgba(96,113,128,0.06)] xl:p-8">
           <EmptyState
-            description="当前账号不是 active 状态，暂时无法查看推荐树。"
+            description={t("states.noPermissionDescription")}
             icon={<ShieldAlert className="size-6" />}
-            title="暂无查看权限"
+            title={t("states.noPermissionTitle")}
           />
         </section>
       ) : edges.length === 0 ? (
         <section className="rounded-[28px] border border-white/85 bg-white/72 p-6 shadow-[0_18px_45px_rgba(96,113,128,0.06)] xl:p-8">
           <EmptyState
-            description="当前可见范围内还没有推荐关系。后续一旦产生邀请注册记录，这里会自动展示。"
+            description={t("states.emptyDescription")}
             icon={<Network className="size-6" />}
-            title="推荐树暂时为空"
+            title={t("states.emptyTitle")}
           />
         </section>
       ) : treeDisplay.rootIds.length === 0 ? (
         <section className="rounded-[28px] border border-white/85 bg-white/72 p-6 shadow-[0_18px_45px_rgba(96,113,128,0.06)] xl:p-8">
           <EmptyState
-            description="当前搜索条件下没有匹配到推荐关系。可以换个姓名、邮箱或角色再试。"
+            description={t("states.noMatchDescription")}
             icon={<Search className="size-6" />}
-            title="没有匹配结果"
+            title={t("states.noMatchTitle")}
           />
         </section>
       ) : (
@@ -270,7 +349,7 @@ export function ReferralsClient() {
           <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
             <div>
               <h3 className="text-2xl font-bold tracking-tight text-[#23313a]">
-                层级推荐树
+                {t("tree.title")}
               </h3>
             </div>
 
@@ -279,7 +358,7 @@ export function ReferralsClient() {
               <input
                 className="w-full bg-transparent text-sm text-[#23313a] outline-none placeholder:text-[#8a949c]"
                 onChange={(event) => setSearchText(event.target.value)}
-                placeholder="搜索姓名、邮箱或角色"
+                placeholder={t("tree.searchPlaceholder")}
                 type="text"
                 value={searchText}
               />
@@ -292,13 +371,16 @@ export function ReferralsClient() {
                 {treeDisplay.rootIds.map((rootId) => (
                   <ReferralTreeNode
                     key={rootId}
+                    copy={copy}
                     currentViewerId={currentViewerId}
                     forceExpanded={searchText.trim().length > 0}
                     graph={graph}
                     incomingEdge={null}
                     isRoot
+                    locale={locale}
                     matchingNodeIds={treeDisplay.matchingNodeIds}
                     nodeId={rootId}
+                    sharedCopy={sharedCopy}
                     visibleNodeIds={treeDisplay.visibleNodeIds}
                   />
                 ))}
@@ -311,58 +393,6 @@ export function ReferralsClient() {
   );
 }
 
-function ReferralsLoadingState() {
-  return (
-    <div className="mx-auto flex min-h-[60vh] w-full max-w-[1320px] items-center justify-center">
-      <div className="rounded-[28px] border border-white/85 bg-white/72 px-6 py-5 text-sm text-[#60707d] shadow-[0_18px_45px_rgba(96,113,128,0.06)]">
-        正在加载推荐关系...
-      </div>
-    </div>
-  );
-}
-
-function SummaryCard({
-  label,
-  count,
-  icon,
-  accent,
-}: {
-  label: string;
-  count: number;
-  icon: ReactNode;
-  accent: "blue" | "green" | "gold";
-}) {
-  return (
-    <div
-      className={[
-        "rounded-[24px] border px-5 py-4 shadow-[0_10px_24px_rgba(96,113,128,0.06)]",
-        accent === "blue" ? "border-[#d9e3eb] bg-[#f4f8fb]" : "",
-        accent === "green" ? "border-[#dce8df] bg-[#f2f7f3]" : "",
-        accent === "gold" ? "border-[#eadfbf] bg-[#fbf5e8]" : "",
-      ].join(" ")}
-    >
-      <div className="flex items-center gap-3">
-        <div
-          className={[
-            "flex h-11 w-11 items-center justify-center rounded-full text-white",
-            accent === "blue" ? "bg-[#486782]" : "",
-            accent === "green" ? "bg-[#4c7259]" : "",
-            accent === "gold" ? "bg-[#b7892f]" : "",
-          ].join(" ")}
-        >
-          {icon}
-        </div>
-        <div>
-          <p className="font-label text-[11px] font-semibold tracking-[0.18em] text-[#7d8890] uppercase">
-            {label}
-          </p>
-          <p className="mt-1 text-2xl font-bold tracking-tight text-[#23313a]">{count}</p>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 function ReferralTreeNode({
   nodeId,
   graph,
@@ -372,6 +402,9 @@ function ReferralTreeNode({
   incomingEdge,
   isRoot = false,
   forceExpanded,
+  locale,
+  copy,
+  sharedCopy,
 }: {
   nodeId: string;
   graph: ReferralGraph;
@@ -381,6 +414,9 @@ function ReferralTreeNode({
   incomingEdge: ReferralTreeEdge | null;
   isRoot?: boolean;
   forceExpanded: boolean;
+  locale: "zh" | "en";
+  copy: ReferralsCopy;
+  sharedCopy: DashboardSharedCopy;
 }) {
   const person = graph.nodes.get(nodeId);
   const childEdges = (graph.childEdgesByParent.get(nodeId) ?? []).filter((edge) =>
@@ -408,7 +444,7 @@ function ReferralTreeNode({
       {incomingEdge ? (
         <div className="mb-2 ml-6 flex flex-wrap items-center gap-2 text-[11px] leading-6 text-[#7b868f]">
           <span className="rounded-full bg-[#eef3f6] px-2.5 py-0.5 font-medium text-[#486782]">
-            推荐于 {formatDateTime(incomingEdge.created_at)}
+            {copy.tree.referredOn(formatDateTime(incomingEdge.created_at, locale))}
           </span>
         </div>
       ) : null}
@@ -458,17 +494,25 @@ function ReferralTreeNode({
                 <p className="truncate text-lg font-semibold tracking-tight text-[#23313a]">
                   {getPersonDisplayName(person)}
                 </p>
-                {isCurrentViewer ? <NodeTag accent="blue">当前账号</NodeTag> : null}
-                {person.isTeamSalesman ? <NodeTag accent="green">团队业务员</NodeTag> : null}
-                {hasChildren ? <NodeTag accent="gold">{childEdges.length} 个下游</NodeTag> : null}
+                {isCurrentViewer ? (
+                  <NodeTag accent="blue">{copy.tree.currentAccount}</NodeTag>
+                ) : null}
+                {person.isTeamSalesman ? (
+                  <NodeTag accent="green">{copy.tree.teamSales}</NodeTag>
+                ) : null}
+                {hasChildren ? (
+                  <NodeTag accent="gold">
+                    {copy.tree.downstreamCount(childEdges.length)}
+                  </NodeTag>
+                ) : null}
               </div>
 
               <div className="mt-2 flex flex-wrap items-center gap-2 text-sm leading-7 text-[#6f7b85]">
-                <span>{person.email ?? "暂无邮箱"}</span>
+                <span>{person.email ?? copy.tree.noEmail}</span>
                 <span className="text-[#a6b0b7]">/</span>
-                <span>{getRoleLabel(person.role)}</span>
+                <span>{getRoleLabel(person.role, copy)}</span>
                 <span className="text-[#a6b0b7]">/</span>
-                <span>{mapUserStatus(person.status).label}</span>
+                <span>{mapUserStatus(person.status, sharedCopy).label}</span>
               </div>
             </div>
           </div>
@@ -481,12 +525,15 @@ function ReferralTreeNode({
             {childEdges.map((childEdge) => (
               <ReferralTreeNode
                 key={`${childEdge.referrer_user_id}-${childEdge.new_user_id}`}
+                copy={copy}
                 currentViewerId={currentViewerId}
                 forceExpanded={forceExpanded}
                 graph={graph}
                 incomingEdge={childEdge}
+                locale={locale}
                 matchingNodeIds={matchingNodeIds}
                 nodeId={childEdge.new_user_id}
+                sharedCopy={sharedCopy}
                 visibleNodeIds={visibleNodeIds}
               />
             ))}
@@ -570,7 +617,13 @@ function buildReferralGraph(edges: ReferralTreeEdge[]): ReferralGraph {
   };
 }
 
-function buildTreeDisplayData(graph: ReferralGraph, searchText: string) {
+function buildTreeDisplayData(
+  graph: ReferralGraph,
+  searchText: string,
+  locale: "zh" | "en",
+  copy: ReferralsCopy,
+  sharedCopy: DashboardSharedCopy,
+) {
   const normalizedSearchText = searchText.trim().toLowerCase();
   const matchingNodeIds = new Set<string>();
   const visibleNodeIds = new Set<string>();
@@ -581,7 +634,7 @@ function buildTreeDisplayData(graph: ReferralGraph, searchText: string) {
     }
   } else {
     for (const [nodeId, person] of graph.nodes.entries()) {
-      if (matchesReferralPerson(person, normalizedSearchText)) {
+      if (matchesReferralPerson(person, normalizedSearchText, copy, sharedCopy)) {
         matchingNodeIds.add(nodeId);
       }
     }
@@ -601,7 +654,7 @@ function buildTreeDisplayData(graph: ReferralGraph, searchText: string) {
   rootIds.sort((left, right) =>
     getSortablePersonLabel(graph.nodes.get(left)).localeCompare(
       getSortablePersonLabel(graph.nodes.get(right)),
-      "zh-CN",
+      locale === "zh" ? "zh-CN" : "en-US",
     ),
   );
 
@@ -649,12 +702,17 @@ function collectDescendantNodeIds(
   }
 }
 
-function matchesReferralPerson(person: ReferralPerson, normalizedSearchText: string) {
+function matchesReferralPerson(
+  person: ReferralPerson,
+  normalizedSearchText: string,
+  copy: ReferralsCopy,
+  sharedCopy: DashboardSharedCopy,
+) {
   const haystack = [
     person.name,
     person.email,
-    getRoleLabel(person.role),
-    mapUserStatus(person.status).label,
+    getRoleLabel(person.role, copy),
+    mapUserStatus(person.status, sharedCopy).label,
   ]
     .filter(Boolean)
     .join(" ")
@@ -679,38 +737,49 @@ function canReadReferralTreeByRole(role: AppRole | null, status: UserStatus | nu
   return status === "active" && role !== null;
 }
 
-function getRoleLabel(role: AppRole | null) {
-  if (role === "administrator") return "管理员";
-  if (role === "operator") return "运营";
-  if (role === "manager") return "经理";
-  if (role === "recruiter") return "招聘员";
-  if (role === "salesman") return "业务员";
-  if (role === "finance") return "财务";
-  if (role === "client") return "客户";
-  return "未设置角色";
+function getRoleLabel(role: AppRole | null, copy: ReferralsCopy) {
+  if (role === "administrator") return copy.roles.administrator;
+  if (role === "operator") return copy.roles.operator;
+  if (role === "manager") return copy.roles.manager;
+  if (role === "recruiter") return copy.roles.recruiter;
+  if (role === "salesman") return copy.roles.salesman;
+  if (role === "finance") return copy.roles.finance;
+  if (role === "client") return copy.roles.client;
+  return copy.roles.unknown;
 }
 
-function getReferralSectionDescription(role: AppRole | null) {
+function getReferralSectionDescription(role: AppRole | null, copy: ReferralsCopy) {
   if (role === "administrator") {
     return "";
   }
 
   if (role === "manager") {
-    return "经理可以查看自己的上下游，以及团队业务员各自的上下游推荐关系。层级树中会对团队业务员做单独标记。";
+    return copy.sections.manager;
   }
 
   if (role === "recruiter") {
-    return "招聘员可以查看谁推荐了自己，以及自己推荐了哪些业务员，推荐树不会额外穿透其他团队关系。";
+    return copy.sections.recruiter;
   }
 
-  return "当前页面会展示你的直接上游和直接下游关系，并按树状层级展开，而不是分列列表。";
+  return copy.sections.default;
 }
 
-function toReferralErrorMessage(error: unknown) {
-  const baseMessage = toErrorMessage(error);
+function toReferralErrorMessage(
+  error: unknown,
+  copy: ReferralsCopy,
+  sharedCopy: DashboardSharedCopy,
+) {
+  const rawMessage =
+    typeof error === "object" && error !== null && "message" in error
+      ? String(error.message)
+      : "";
+  const baseMessage = toErrorMessage(error, sharedCopy);
 
-  if (baseMessage.includes("row-level security")) {
-    return "当前账号没有查看推荐树的权限。";
+  if (
+    rawMessage.includes("row-level security") ||
+    baseMessage === sharedCopy.errors.permission
+  ) {
+    return copy.errors.noPermission;
   }
 
   return baseMessage;

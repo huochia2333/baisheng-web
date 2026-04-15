@@ -1,6 +1,6 @@
-import LoginPage, { metadata } from "./login/page";
+import LoginPage, { generateMetadata } from "./login/page";
 
-export { metadata };
+export { generateMetadata };
 
 export default async function Home({
   searchParams,

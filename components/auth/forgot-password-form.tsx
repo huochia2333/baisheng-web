@@ -5,6 +5,7 @@ import { startTransition, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowRight, LockKeyhole, Mail, ShieldCheck } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 import { getAuthSession } from "@/lib/auth-session-client";
 import { getBrowserSupabaseClient } from "@/lib/supabase";
@@ -18,6 +19,7 @@ type ForgotPasswordMode = "request" | "sent" | "reset";
 
 export function ForgotPasswordForm() {
   const router = useRouter();
+  const t = useTranslations("ForgotPasswordForm");
   const supabase = getBrowserSupabaseClient();
   const [mode, setMode] = useState<ForgotPasswordMode>("request");
   const [checkingRecovery, setCheckingRecovery] = useState(true);
@@ -51,14 +53,19 @@ export function ForgotPasswordForm() {
 
         if (recoveryHint && session?.user) {
           setRecoveryReady(true);
-          setNotice("重置链接验证成功，请设置新的登录密码。");
+          setNotice(t("recoverySuccess"));
         }
       } catch (sessionError) {
         if (!isMounted()) {
           return;
         }
 
-        setError(formatForgotPasswordError(getErrorMessage(sessionError)));
+        setError(
+          formatForgotPasswordError(
+            getErrorMessage(sessionError, t("serviceUnavailable")),
+            t,
+          ),
+        );
       } finally {
         if (isMounted()) {
           setCheckingRecovery(false);
@@ -74,7 +81,7 @@ export function ForgotPasswordForm() {
         setMode("reset");
         setRecoveryReady(true);
         setError(null);
-        setNotice("重置链接验证成功，请设置新的登录密码。");
+        setNotice(t("recoverySuccess"));
         return;
       }
 
@@ -118,7 +125,7 @@ export function ForgotPasswordForm() {
 
     if (!supabase) {
       setSubmitting(false);
-      setError("当前服务暂时不可用，请稍后再试。");
+      setError(t("serviceUnavailable"));
       return;
     }
 
@@ -136,9 +143,18 @@ export function ForgotPasswordForm() {
 
       setMode("sent");
       setCooldownRemaining(30);
-      setNotice("重置密码邮件已发送，请检查邮箱并点击邮件里的链接继续。");
+      setNotice(t("resetEmailSent"));
     } catch (resetError) {
-      setError(formatForgotPasswordError(getErrorMessage(resetError)));
+      if (shouldMaskForgotPasswordError(resetError)) {
+        setMode("sent");
+        setCooldownRemaining(30);
+        setNotice(t("resetEmailSent"));
+        return;
+      }
+
+      setError(
+        formatForgotPasswordError(getErrorMessage(resetError, t("serviceUnavailable")), t),
+      );
     } finally {
       setSubmitting(false);
     }
@@ -150,12 +166,12 @@ export function ForgotPasswordForm() {
     setNotice(null);
 
     if (password.length < 8) {
-      setError("新密码至少需要 8 位。");
+      setError(t("passwordTooShort"));
       return;
     }
 
     if (password !== confirmPassword) {
-      setError("两次输入的新密码不一致，请重新确认。");
+      setError(t("passwordMismatch"));
       return;
     }
 
@@ -163,7 +179,7 @@ export function ForgotPasswordForm() {
 
     if (!supabase) {
       setSubmitting(false);
-      setError("当前服务暂时不可用，请稍后再试。");
+      setError(t("serviceUnavailable"));
       return;
     }
 
@@ -184,7 +200,9 @@ export function ForgotPasswordForm() {
         router.replace("/login?passwordReset=1");
       });
     } catch (updateError) {
-      setError(formatForgotPasswordError(getErrorMessage(updateError)));
+      setError(
+        formatForgotPasswordError(getErrorMessage(updateError, t("serviceUnavailable")), t),
+      );
     } finally {
       setSubmitting(false);
     }
@@ -193,6 +211,14 @@ export function ForgotPasswordForm() {
   if (checkingRecovery || !supabase) {
     return <AuthLoadingShell variant="recovery" />;
   }
+
+  const resetButtonLabel = submitting
+    ? t("sending")
+    : cooldownRemaining > 0
+      ? t("resendCountdown", { seconds: cooldownRemaining })
+      : mode === "sent"
+        ? t("resendResetEmail")
+        : t("sendResetEmail");
 
   return (
     <div className="space-y-6">
@@ -205,10 +231,10 @@ export function ForgotPasswordForm() {
             <AuthField
               autoComplete="new-password"
               icon={<LockKeyhole className="size-4" />}
-              label="新密码"
+              label={t("newPassword")}
               name="password"
               onChange={(event) => setPassword(event.target.value)}
-              placeholder="请输入新的登录密码"
+              placeholder={t("newPasswordPlaceholder")}
               required
               type="password"
               value={password}
@@ -216,20 +242,20 @@ export function ForgotPasswordForm() {
             <AuthField
               autoComplete="new-password"
               icon={<ShieldCheck className="size-4" />}
-              label="确认新密码"
+              label={t("confirmPassword")}
               name="confirmPassword"
               onChange={(event) => setConfirmPassword(event.target.value)}
-              placeholder="请再次输入新的登录密码"
+              placeholder={t("confirmPasswordPlaceholder")}
               required
               type="password"
               value={confirmPassword}
             />
             <button
-              className="h-[56px] w-full rounded-full bg-[#486782] text-base font-semibold text-white shadow-[0_10px_30px_rgba(72,103,130,0.28)] transition-all hover:bg-[#3f5f78] disabled:cursor-not-allowed disabled:opacity-70"
+              className="flex h-[56px] w-full items-center justify-center gap-2 rounded-full bg-[#486782] text-base font-semibold text-white shadow-[0_10px_30px_rgba(72,103,130,0.28)] transition-all hover:bg-[#3f5f78] disabled:cursor-not-allowed disabled:opacity-70"
               disabled={submitting}
               type="submit"
             >
-              {submitting ? "保存中..." : "保存新密码"}
+              {submitting ? t("savingPassword") : t("savePassword")}
               <ArrowRight className="size-4" />
             </button>
           </form>
@@ -241,26 +267,20 @@ export function ForgotPasswordForm() {
           <AuthField
             autoComplete="email"
             icon={<Mail className="size-4" />}
-            label="电子邮箱"
+            label={t("email")}
             name="email"
             onChange={(event) => setEmail(event.target.value)}
-            placeholder="请输入注册时使用的邮箱"
+            placeholder={t("emailPlaceholder")}
             required
             type="email"
             value={email}
           />
           <button
-            className="h-[56px] w-full rounded-full bg-[#486782] text-base font-semibold text-white shadow-[0_10px_30px_rgba(72,103,130,0.28)] transition-all hover:bg-[#3f5f78] disabled:cursor-not-allowed disabled:opacity-70"
+            className="flex h-[56px] w-full items-center justify-center gap-2 rounded-full bg-[#486782] text-base font-semibold text-white shadow-[0_10px_30px_rgba(72,103,130,0.28)] transition-all hover:bg-[#3f5f78] disabled:cursor-not-allowed disabled:opacity-70"
             disabled={submitting || cooldownRemaining > 0}
             type="submit"
           >
-            {submitting
-              ? "发送中..."
-              : cooldownRemaining > 0
-                ? `${cooldownRemaining} 秒后可重新发送`
-                : mode === "sent"
-                  ? "重新发送重置邮件"
-                  : "发送重置邮件"}
+            {resetButtonLabel}
             <ArrowRight className="size-4" />
           </button>
         </form>
@@ -271,7 +291,7 @@ export function ForgotPasswordForm() {
           className="font-medium text-[#486782] transition-colors hover:text-[#36536a]"
           href="/login"
         >
-          返回登录
+          {t("backToLogin")}
         </Link>
       </div>
     </div>
@@ -295,22 +315,26 @@ function getRecoveryHint() {
   );
 }
 
-function formatForgotPasswordError(message: string) {
-  if (message.includes("User not found")) {
-    return "没有找到这个邮箱对应的账户。";
-  }
-
+function formatForgotPasswordError(
+  message: string,
+  t: (key: string) => string,
+) {
   if (message.includes("For security purposes")) {
-    return "请求过于频繁，请稍后再试。";
+    return t("tooFrequent");
   }
 
   if (message.includes("Auth session missing")) {
-    return "重置链接已失效，请重新发送一封重置邮件。";
+    return t("authSessionMissing");
   }
 
-  return message;
+  return t("serviceUnavailable");
 }
 
-function getErrorMessage(error: unknown) {
-  return error instanceof Error ? error.message : "当前服务暂时不可用，请稍后再试。";
+function shouldMaskForgotPasswordError(error: unknown) {
+  const message = getErrorMessage(error, "");
+  return message.includes("User not found");
+}
+
+function getErrorMessage(error: unknown, fallback: string) {
+  return error instanceof Error ? error.message : fallback;
 }

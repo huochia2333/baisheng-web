@@ -1,15 +1,15 @@
 "use client";
 
-import { startTransition, useState } from "react";
+import { startTransition, useEffect, useState } from "react";
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowRight, LockKeyhole, Mail } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 import {
-  getAuthSession,
   getDefaultSignedInPathForRole,
-  getRoleFromAccessToken,
+  getRoleFromUser,
 } from "@/lib/auth-session-client";
 import { getBrowserSupabaseClient } from "@/lib/supabase";
 import { useSupabaseAuthSync } from "@/lib/use-supabase-auth-sync";
@@ -26,60 +26,33 @@ export function LoginForm({
   passwordReset?: boolean;
 }) {
   const router = useRouter();
-  const supabase = getBrowserSupabaseClient();
+  const t = useTranslations("LoginForm");
+  const [supabase, setSupabase] = useState<ReturnType<typeof getBrowserSupabaseClient>>(null);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [checkingSession, setCheckingSession] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  useEffect(() => {
+    setSupabase(getBrowserSupabaseClient());
+  }, []);
+
+  const redirectToWorkspace = (user: Parameters<typeof getRoleFromUser>[0]) => {
+    const nextPath = getDefaultSignedInPathForRole(getRoleFromUser(user));
+
+    startTransition(() => {
+      router.replace(nextPath);
+    });
+  };
+
   useSupabaseAuthSync(supabase, {
-    onReady: async ({ isMounted }) => {
-      if (!supabase) {
-        return;
-      }
-
-      try {
-        const session = await getAuthSession(supabase);
-
-        if (!isMounted()) {
-          return;
-        }
-
-        if (session?.user) {
-          const nextPath = getDefaultSignedInPathForRole(
-            getRoleFromAccessToken(session.access_token),
-          );
-
-          startTransition(() => {
-            router.replace(nextPath);
-          });
-          return;
-        }
-      } catch (sessionError) {
-        if (!isMounted()) {
-          return;
-        }
-
-        setError(formatAuthError(getErrorMessage(sessionError)));
-      } finally {
-        if (isMounted()) {
-          setCheckingSession(false);
-        }
-      }
-    },
+    includeInitialSessionEvent: true,
     onAuthStateChange: ({ isMounted, session }) => {
       if (!isMounted() || !session?.user) {
         return;
       }
 
-      const nextPath = getDefaultSignedInPathForRole(
-        getRoleFromAccessToken(session.access_token),
-      );
-
-      startTransition(() => {
-        router.replace(nextPath);
-      });
+      redirectToWorkspace(session.user);
     },
   });
 
@@ -90,7 +63,7 @@ export function LoginForm({
 
     if (!supabase) {
       setSubmitting(false);
-      setError("当前服务暂时不可用，请稍后再试。");
+      setError(t("serviceUnavailable"));
       return;
     }
 
@@ -104,36 +77,26 @@ export function LoginForm({
         throw signInError;
       }
 
-      startTransition(() => {
-        router.replace(
-          getDefaultSignedInPathForRole(
-            getRoleFromAccessToken(data.session?.access_token),
-          ),
-        );
-      });
+      redirectToWorkspace(data.session?.user);
     } catch (signInError) {
-      setError(formatAuthError(getErrorMessage(signInError)));
+      setError(formatLoginError(signInError, t));
     } finally {
       setSubmitting(false);
     }
   };
 
-  if (checkingSession || !supabase) {
+  if (!supabase) {
     return <AuthLoadingShell variant="login" />;
   }
 
   return (
     <form className="space-y-6" onSubmit={handleSubmit}>
       {registered ? (
-        <AuthFeedback tone="success">
-          注册请求已提交。若当前需要邮箱验证，请先完成验证后再登录。
-        </AuthFeedback>
+        <AuthFeedback tone="success">{t("registeredNotice")}</AuthFeedback>
       ) : null}
 
       {passwordReset ? (
-        <AuthFeedback tone="success">
-          新密码已经更新完成，请使用新密码重新登录。
-        </AuthFeedback>
+        <AuthFeedback tone="success">{t("passwordResetNotice")}</AuthFeedback>
       ) : null}
 
       {error ? <AuthFeedback tone="error">{error}</AuthFeedback> : null}
@@ -141,7 +104,7 @@ export function LoginForm({
       <AuthField
         autoComplete="email"
         icon={<Mail className="size-4" />}
-        label="电子邮箱"
+        label={t("email")}
         name="email"
         onChange={(event) => setEmail(event.target.value)}
         placeholder="name@example.com"
@@ -153,13 +116,13 @@ export function LoginForm({
       <div className="space-y-2">
         <div className="flex items-center justify-between px-1">
           <span className="font-label text-[11px] font-semibold tracking-[0.18em] text-[#5d7388] uppercase">
-            访问密码
+            {t("password")}
           </span>
           <Link
             className="text-xs font-medium text-[#5d7388] transition-colors hover:text-[#36536a]"
             href="/forgot-password"
           >
-            忘记密码？
+            {t("forgotPassword")}
           </Link>
         </div>
         <div className="group relative">
@@ -171,7 +134,7 @@ export function LoginForm({
             className="h-[52px] w-full rounded-[22px] border border-[#ece9e4] bg-[#f2efeb]/90 pl-12 pr-4 text-[15px] text-[#22303a] shadow-[inset_0_1px_0_rgba(255,255,255,0.86)] transition-all placeholder:text-[#a9b1b8] focus:border-[#bfd2e1] focus:bg-white focus:ring-4 focus:ring-[#bfd2e1]/45 focus:outline-none"
             name="password"
             onChange={(event) => setPassword(event.target.value)}
-            placeholder="请输入您的访问密码"
+            placeholder={t("passwordPlaceholder")}
             required
             type="password"
             value={password}
@@ -184,25 +147,23 @@ export function LoginForm({
         disabled={submitting}
         type="submit"
       >
-        {submitting ? "登录中..." : "登录"}
+        {submitting ? t("submitting") : t("submit")}
         <ArrowRight className="size-4 shrink-0" />
       </button>
     </form>
   );
 }
 
-function formatAuthError(message: string) {
+function formatLoginError(error: unknown, t: (key: string) => string) {
+  const message = error instanceof Error ? error.message : "";
+
   if (message.includes("Invalid login credentials")) {
-    return "邮箱或密码不正确，请重新输入。";
+    return t("invalidCredentials");
   }
 
   if (message.includes("Email not confirmed")) {
-    return "邮箱尚未验证，请先完成邮箱验证。";
+    return t("emailNotConfirmed");
   }
 
-  return message;
-}
-
-function getErrorMessage(error: unknown) {
-  return error instanceof Error ? error.message : "当前服务暂时不可用，请稍后再试。";
+  return t("serviceUnavailable");
 }

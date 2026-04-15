@@ -1,17 +1,20 @@
 import type { Session, SupabaseClient, User } from "@supabase/supabase-js";
 
+import { mapWithConcurrencyLimit } from "./async-collection";
+import {
+  getDefaultSignedInPathForRole,
+  getDefaultWorkspaceBasePath,
+  type AppRole,
+} from "./auth-routing";
+import {
+  getAppRoleFromMetadataContainer,
+  getUserStatusFromMetadataContainer,
+  type UserStatus,
+} from "./auth-metadata";
 import { withRequestTimeout } from "./request-timeout";
 
-export type AppRole =
-  | "administrator"
-  | "operator"
-  | "manager"
-  | "recruiter"
-  | "salesman"
-  | "finance"
-  | "client";
-
-export type UserStatus = "inactive" | "active" | "suspended";
+export { getDefaultSignedInPathForRole, getDefaultWorkspaceBasePath };
+export type { AppRole, UserStatus };
 export type PrivacyRequestStatus = "pending" | "pass" | "denied";
 export type MediaKind = "image" | "video";
 
@@ -84,38 +87,39 @@ export type CurrentUserBundle = {
 };
 
 const SIGNED_URL_TTL_SECONDS = 60 * 60;
+const SIGNED_URL_CONCURRENCY = 4;
 const AUTH_SESSION_TIMEOUT_MS = 8_000;
 const AUTH_SESSION_RETRY_DELAY_MS = 350;
 const AUTH_SESSION_TIMEOUT_MESSAGE = "登录状态同步较慢，请稍后重试。";
 const USER_MEDIA_MUTATION_TIMEOUT_MS = 60_000;
 const USER_MEDIA_MUTATION_TIMEOUT_MESSAGE = "媒体操作超时，请稍后重试。";
 
-let currentSessionRequest: Promise<Session | null> | null = null;
-let currentSessionSnapshot: Session | null | undefined;
-let sessionTrackingReady = false;
+const PROFILE_MUTATION_TIMEOUT_MS = 20_000;
+const PROFILE_MUTATION_TIMEOUT_MESSAGE = "Profile update timed out. Please try again.";
+
+type SessionCacheState = {
+  currentSessionRequest: Promise<Session | null> | null;
+  currentSessionSnapshot: Session | null | undefined;
+  sessionTrackingCleanup: (() => void) | null;
+  sessionTrackingReady: boolean;
+  resetVersion: number;
+};
+
+const sessionCacheByClient = new WeakMap<SupabaseClient, SessionCacheState>();
+const SESSION_TRACKING_REGISTRY_KEY = "__baishengSessionTrackingRegistry__" as const;
+
+let sessionCacheResetVersion = 0;
 
 export function resetCurrentSessionCache() {
-  currentSessionRequest = null;
-  currentSessionSnapshot = undefined;
-  sessionTrackingReady = false;
+  sessionCacheResetVersion += 1;
 }
 
 export function getRoleFromUser(user: User | null | undefined): AppRole | null {
-  const role = normalizeOptionalString(user?.app_metadata?.role);
+  return getAppRoleFromMetadataContainer(user);
+}
 
-  if (
-    role === "administrator" ||
-    role === "operator" ||
-    role === "manager" ||
-    role === "recruiter" ||
-    role === "salesman" ||
-    role === "finance" ||
-    role === "client"
-  ) {
-    return role;
-  }
-
-  return null;
+export function getStatusFromUser(user: User | null | undefined): UserStatus | null {
+  return getUserStatusFromMetadataContainer(user);
 }
 
 export async function getRoleFromCurrentSession(
@@ -128,19 +132,52 @@ export async function getRoleFromCurrentSession(
 export async function getCurrentSession(
   supabase: SupabaseClient,
 ): Promise<Session | null> {
-  ensureSessionTracking(supabase);
+  const sessionCache = getSessionCache(supabase);
 
-  if (currentSessionSnapshot !== undefined) {
-    return currentSessionSnapshot;
+  ensureSessionTracking(supabase, sessionCache);
+
+  if (sessionCache.currentSessionSnapshot !== undefined) {
+    return sessionCache.currentSessionSnapshot;
   }
 
-  if (!currentSessionRequest) {
-    currentSessionRequest = resolveCurrentSession(supabase).finally(() => {
-      currentSessionRequest = null;
+  if (!sessionCache.currentSessionRequest) {
+    sessionCache.currentSessionRequest = resolveCurrentSession(
+      supabase,
+      sessionCache,
+    ).finally(() => {
+      sessionCache.currentSessionRequest = null;
     });
   }
 
-  return currentSessionRequest;
+  return sessionCache.currentSessionRequest;
+}
+
+function getSessionCache(supabase: SupabaseClient) {
+  const existingCache = sessionCacheByClient.get(supabase);
+
+  if (existingCache) {
+    if (existingCache.resetVersion !== sessionCacheResetVersion) {
+      existingCache.sessionTrackingCleanup?.();
+      existingCache.currentSessionRequest = null;
+      existingCache.currentSessionSnapshot = undefined;
+      existingCache.sessionTrackingCleanup = null;
+      existingCache.sessionTrackingReady = false;
+      existingCache.resetVersion = sessionCacheResetVersion;
+    }
+
+    return existingCache;
+  }
+
+  const sessionCache: SessionCacheState = {
+    currentSessionRequest: null,
+    currentSessionSnapshot: undefined,
+    sessionTrackingCleanup: null,
+    sessionTrackingReady: false,
+    resetVersion: sessionCacheResetVersion,
+  };
+
+  sessionCacheByClient.set(supabase, sessionCache);
+  return sessionCache;
 }
 
 export async function getCurrentSessionContext(
@@ -152,105 +189,18 @@ export async function getCurrentSessionContext(
   status: UserStatus | null;
 }> {
   const session = await getCurrentSession(supabase);
+  const user = session?.user ?? null;
 
   return {
     session,
-    user: session?.user ?? null,
-    role: getRoleFromAccessToken(session?.access_token),
-    status: getStatusFromAccessToken(session?.access_token),
+    user,
+    role: getRoleFromUser(user),
+    status: getStatusFromUser(user),
   };
-}
-
-export function getRoleFromAccessToken(accessToken: string | null | undefined): AppRole | null {
-  if (!accessToken) {
-    return null;
-  }
-
-  const payload = decodeJwtPayload(accessToken);
-  const appMetadata =
-    typeof payload === "object" && payload !== null && "app_metadata" in payload
-      ? payload.app_metadata
-      : null;
-
-  const role =
-    typeof appMetadata === "object" && appMetadata !== null && "role" in appMetadata
-      ? normalizeOptionalString(appMetadata.role)
-      : null;
-
-  if (
-    role === "administrator" ||
-    role === "operator" ||
-    role === "manager" ||
-    role === "recruiter" ||
-    role === "salesman" ||
-    role === "finance" ||
-    role === "client"
-  ) {
-    return role;
-  }
-
-  return null;
-}
-
-export function getStatusFromAccessToken(
-  accessToken: string | null | undefined,
-): UserStatus | null {
-  if (!accessToken) {
-    return null;
-  }
-
-  const payload = decodeJwtPayload(accessToken);
-  const appMetadata =
-    typeof payload === "object" && payload !== null && "app_metadata" in payload
-      ? payload.app_metadata
-      : null;
-
-  const status =
-    typeof appMetadata === "object" && appMetadata !== null && "status" in appMetadata
-      ? normalizeOptionalString(appMetadata.status)
-      : null;
-
-  if (status === "inactive" || status === "active" || status === "suspended") {
-    return status;
-  }
-
-  return null;
 }
 
 export function getDefaultSignedInPath() {
   return getDefaultSignedInPathForRole(null);
-}
-
-export function getDefaultWorkspaceBasePath(role: AppRole | null) {
-  if (role === "manager") {
-    return "/manager";
-  }
-
-  if (role === "recruiter") {
-    return "/recruiter";
-  }
-
-  if (role === "salesman") {
-    return "/salesman";
-  }
-
-  if (role === "operator") {
-    return "/operator";
-  }
-
-  if (role === "finance") {
-    return "/finance";
-  }
-
-  if (role === "client") {
-    return "/client";
-  }
-
-  return "/admin";
-}
-
-export function getDefaultSignedInPathForRole(role: AppRole | null) {
-  return `${getDefaultWorkspaceBasePath(role)}/my`;
 }
 
 export async function getCurrentUserBundle(
@@ -330,8 +280,10 @@ export async function getCurrentUserBundle(
   );
 
   const mediaAssets = await withRequestTimeout(
-    Promise.all(
-      (mediaResult.data ?? []).map(async (asset) => {
+    mapWithConcurrencyLimit(
+      mediaResult.data ?? [],
+      SIGNED_URL_CONCURRENCY,
+      async (asset) => {
         const { data, error } = await supabase.storage
           .from(asset.bucket_name)
           .createSignedUrl(asset.storage_path, SIGNED_URL_TTL_SECONDS);
@@ -340,7 +292,7 @@ export async function getCurrentUserBundle(
           ...asset,
           previewUrl: error ? null : (data?.signedUrl ?? null),
         } satisfies UserMediaAssetWithPreview;
-      }),
+      },
     ),
   );
 
@@ -368,7 +320,13 @@ export async function createPrivacyRequest(
       ? { user_id: options.userId, id_card_requests: options.value.trim() }
       : { user_id: options.userId, passport_requests: options.value.trim() };
 
-  const { error } = await supabase.from("user_privacy_requests").insert(payload);
+  const { error } = await withRequestTimeout(
+    supabase.from("user_privacy_requests").insert(payload),
+    {
+      timeoutMs: PROFILE_MUTATION_TIMEOUT_MS,
+      message: PROFILE_MUTATION_TIMEOUT_MESSAGE,
+    },
+  );
 
   if (error) {
     throw error;
@@ -421,12 +379,18 @@ export async function updateUserProfileCity(
 ) {
   const normalizedCity = options.city.trim();
 
-  const { data, error } = await supabase
-    .from("user_profiles")
-    .update({ city: normalizedCity })
-    .eq("user_id", options.userId)
-    .select("user_id,name,phone,email,status,city,referral_code,created_at")
-    .maybeSingle<UserProfileRow>();
+  const { data, error } = await withRequestTimeout(
+    supabase
+      .from("user_profiles")
+      .update({ city: normalizedCity })
+      .eq("user_id", options.userId)
+      .select("user_id,name,phone,email,status,city,referral_code,created_at")
+      .maybeSingle<UserProfileRow>(),
+    {
+      timeoutMs: PROFILE_MUTATION_TIMEOUT_MS,
+      message: PROFILE_MUTATION_TIMEOUT_MESSAGE,
+    },
+  );
 
   if (error) {
     throw error;
@@ -480,31 +444,6 @@ async function syncProfileFromAuthMetadataIfPossible(
   return data ?? profile;
 }
 
-function decodeJwtPayload(accessToken: string) {
-  const segments = accessToken.split(".");
-
-  if (segments.length < 2) {
-    return null;
-  }
-
-  try {
-    return JSON.parse(atob(normalizeBase64Url(segments[1])));
-  } catch {
-    return null;
-  }
-}
-
-function normalizeBase64Url(input: string) {
-  const base64 = input.replace(/-/g, "+").replace(/_/g, "/");
-  const padding = base64.length % 4;
-
-  if (padding === 0) {
-    return base64;
-  }
-
-  return `${base64}${"=".repeat(4 - padding)}`;
-}
-
 function normalizeOptionalString(value: unknown) {
   if (typeof value !== "string") {
     return null;
@@ -514,7 +453,10 @@ function normalizeOptionalString(value: unknown) {
   return normalized.length > 0 ? normalized : null;
 }
 
-async function resolveCurrentSession(supabase: SupabaseClient) {
+async function resolveCurrentSession(
+  supabase: SupabaseClient,
+  sessionCache: SessionCacheState,
+) {
   try {
     const session = await withRequestTimeout(
       fetchCurrentSession(supabase),
@@ -524,11 +466,11 @@ async function resolveCurrentSession(supabase: SupabaseClient) {
       },
     );
 
-    currentSessionSnapshot = session;
+    sessionCache.currentSessionSnapshot = session;
     return session;
   } catch (error) {
-    if (currentSessionSnapshot !== undefined) {
-      return currentSessionSnapshot;
+    if (sessionCache.currentSessionSnapshot !== undefined) {
+      return sessionCache.currentSessionSnapshot;
     }
 
     if (!isSessionTimeoutError(error)) {
@@ -537,8 +479,8 @@ async function resolveCurrentSession(supabase: SupabaseClient) {
 
     await delay(AUTH_SESSION_RETRY_DELAY_MS);
 
-    if (currentSessionSnapshot !== undefined) {
-      return currentSessionSnapshot;
+    if (sessionCache.currentSessionSnapshot !== undefined) {
+      return sessionCache.currentSessionSnapshot;
     }
 
     const retriedSession = await withRequestTimeout(
@@ -549,7 +491,7 @@ async function resolveCurrentSession(supabase: SupabaseClient) {
       },
     );
 
-    currentSessionSnapshot = retriedSession;
+    sessionCache.currentSessionSnapshot = retriedSession;
     return retriedSession;
   }
 }
@@ -567,16 +509,51 @@ async function fetchCurrentSession(supabase: SupabaseClient) {
   return session;
 }
 
-function ensureSessionTracking(supabase: SupabaseClient) {
-  if (sessionTrackingReady) {
+function ensureSessionTracking(
+  supabase: SupabaseClient,
+  sessionCache: SessionCacheState,
+) {
+  if (sessionCache.sessionTrackingReady) {
     return;
   }
 
-  sessionTrackingReady = true;
+  const sessionTrackingRegistry = getSessionTrackingRegistry();
+  sessionTrackingRegistry.get(supabase)?.();
 
-  supabase.auth.onAuthStateChange((_event, session) => {
-    currentSessionSnapshot = session;
+  const {
+    data: { subscription },
+  } = supabase.auth.onAuthStateChange((_event, session) => {
+    sessionCache.currentSessionSnapshot = session;
   });
+
+  const cleanup = () => {
+    subscription.unsubscribe();
+
+    if (sessionTrackingRegistry.get(supabase) === cleanup) {
+      sessionTrackingRegistry.delete(supabase);
+    }
+
+    if (sessionCache.sessionTrackingCleanup === cleanup) {
+      sessionCache.sessionTrackingCleanup = null;
+      sessionCache.sessionTrackingReady = false;
+    }
+  };
+
+  sessionCache.sessionTrackingCleanup = cleanup;
+  sessionCache.sessionTrackingReady = true;
+  sessionTrackingRegistry.set(supabase, cleanup);
+}
+
+function getSessionTrackingRegistry() {
+  const globalScope = globalThis as typeof globalThis & {
+    [SESSION_TRACKING_REGISTRY_KEY]?: WeakMap<SupabaseClient, () => void>;
+  };
+
+  if (!globalScope[SESSION_TRACKING_REGISTRY_KEY]) {
+    globalScope[SESSION_TRACKING_REGISTRY_KEY] = new WeakMap<SupabaseClient, () => void>();
+  }
+
+  return globalScope[SESSION_TRACKING_REGISTRY_KEY];
 }
 
 function isSessionTimeoutError(error: unknown) {

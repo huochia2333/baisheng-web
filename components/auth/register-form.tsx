@@ -12,11 +12,12 @@ import {
   Phone,
   UserRound,
 } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 import {
   getAuthSession,
   getDefaultSignedInPathForRole,
-  getRoleFromAccessToken,
+  getRoleFromUser,
 } from "@/lib/auth-session-client";
 import { getBrowserSupabaseClient } from "@/lib/supabase";
 import { useSupabaseAuthSync } from "@/lib/use-supabase-auth-sync";
@@ -27,6 +28,7 @@ import { AuthLoadingShell } from "./auth-loading-shell";
 
 export function RegisterForm() {
   const router = useRouter();
+  const t = useTranslations("RegisterForm");
   const supabase = getBrowserSupabaseClient();
   const [checkingSession, setCheckingSession] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -52,9 +54,7 @@ export function RegisterForm() {
         }
 
         if (session?.user) {
-          const nextPath = getDefaultSignedInPathForRole(
-            getRoleFromAccessToken(session.access_token),
-          );
+          const nextPath = getDefaultSignedInPathForRole(getRoleFromUser(session.user));
 
           startTransition(() => {
             router.replace(nextPath);
@@ -66,7 +66,7 @@ export function RegisterForm() {
           return;
         }
 
-        setError(formatAuthError(getErrorMessage(sessionError)));
+        setError(formatAuthError(getErrorMessage(sessionError, t("serviceUnavailable")), t));
       } finally {
         if (isMounted()) {
           setCheckingSession(false);
@@ -79,7 +79,7 @@ export function RegisterForm() {
     event.preventDefault();
 
     if (!acceptedTerms) {
-      setError("请先阅读并同意服务条款与隐私政策。");
+      setError(t("acceptTerms"));
       return;
     }
 
@@ -88,7 +88,7 @@ export function RegisterForm() {
 
     if (!supabase) {
       setSubmitting(false);
-      setError("当前服务暂时不可用，请稍后再试。");
+      setError(t("serviceUnavailable"));
       return;
     }
 
@@ -115,9 +115,7 @@ export function RegisterForm() {
       }
 
       if (data.session?.user) {
-        const nextPath = getDefaultSignedInPathForRole(
-          getRoleFromAccessToken(data.session.access_token),
-        );
+        const nextPath = getDefaultSignedInPathForRole(getRoleFromUser(data.session.user));
 
         startTransition(() => {
           router.replace(nextPath);
@@ -129,7 +127,7 @@ export function RegisterForm() {
         router.replace("/login?registered=1");
       });
     } catch (signUpError) {
-      setError(formatAuthError(getErrorMessage(signUpError)));
+      setError(formatAuthError(getErrorMessage(signUpError, t("serviceUnavailable")), t));
     } finally {
       setSubmitting(false);
     }
@@ -147,10 +145,10 @@ export function RegisterForm() {
         <AuthField
           autoComplete="username"
           icon={<UserRound className="size-4" />}
-          label="用户名"
+          label={t("username")}
           name="username"
           onChange={(event) => setName(event.target.value)}
-          placeholder="您的姓名或代号"
+          placeholder={t("usernamePlaceholder")}
           required
           type="text"
           value={name}
@@ -158,10 +156,10 @@ export function RegisterForm() {
         <AuthField
           autoComplete="tel"
           icon={<Phone className="size-4" />}
-          label="手机号"
+          label={t("phone")}
           name="phone"
           onChange={(event) => setPhone(event.target.value)}
-          placeholder="11 位手机号"
+          placeholder={t("phonePlaceholder")}
           required
           type="tel"
           value={phone}
@@ -171,7 +169,7 @@ export function RegisterForm() {
       <AuthField
         autoComplete="email"
         icon={<Mail className="size-4" />}
-        label="电子邮箱"
+        label={t("email")}
         name="email"
         onChange={(event) => setEmail(event.target.value)}
         placeholder="example@bs-system.com"
@@ -183,10 +181,10 @@ export function RegisterForm() {
       <AuthField
         autoComplete="one-time-code"
         icon={<KeyRound className="size-4" />}
-        label="邀请码"
+        label={t("inviteCode")}
         name="inviteCode"
         onChange={(event) => setInviteCode(event.target.value)}
-        placeholder="必填项"
+        placeholder={t("inviteCodePlaceholder")}
         required
         type="text"
         value={inviteCode}
@@ -195,10 +193,10 @@ export function RegisterForm() {
       <AuthField
         autoComplete="new-password"
         icon={<LockKeyhole className="size-4" />}
-        label="设置密码"
+        label={t("password")}
         name="password"
         onChange={(event) => setPassword(event.target.value)}
-        placeholder="包含字母与数字的 8 位以上密码"
+        placeholder={t("passwordPlaceholder")}
         required
         type="password"
         value={password}
@@ -217,59 +215,62 @@ export function RegisterForm() {
           <Check className="relative size-3.5 text-white opacity-0 transition-opacity peer-checked:opacity-100" />
         </span>
         <span>
-          我已阅读并同意{" "}
+          {t("termsPrefix")}{" "}
           <a
             className="font-medium text-[#486782] transition-colors hover:text-[#36536a]"
             href="#"
           >
-            服务条款
+            {t("terms")}
           </a>{" "}
-          和{" "}
+          {t("and")}{" "}
           <a
             className="font-medium text-[#486782] transition-colors hover:text-[#36536a]"
             href="#"
           >
-            隐私政策
+            {t("privacy")}
           </a>
         </span>
       </label>
 
       <button
-        className="mt-2 h-[58px] w-full rounded-[20px] bg-[#486782] text-base font-semibold text-white shadow-[0_10px_30px_rgba(72,103,130,0.28)] transition-all hover:bg-[#3f5f78] disabled:cursor-not-allowed disabled:opacity-70"
+        className="mt-2 flex h-[58px] w-full items-center justify-center gap-2 rounded-[20px] bg-[#486782] text-base font-semibold text-white shadow-[0_10px_30px_rgba(72,103,130,0.28)] transition-all hover:bg-[#3f5f78] disabled:cursor-not-allowed disabled:opacity-70"
         disabled={submitting}
         type="submit"
       >
-        {submitting ? "注册中..." : "立即注册并开启体验"}
+        {submitting ? t("submitting") : t("submit")}
         <ArrowRight className="size-4" />
       </button>
     </form>
   );
 }
 
-function formatAuthError(message: string) {
+function formatAuthError(
+  message: string,
+  t: (key: string) => string,
+) {
   if (message.includes("referral_code is required")) {
-    return "邀请码不能为空。";
+    return t("referralRequired");
   }
 
   if (message.includes("referral_code does not exist")) {
-    return "邀请码不存在，请确认后重新输入。";
+    return t("referralNotFound");
   }
 
   if (message.includes("referral_code has reached max_uses")) {
-    return "邀请码已达到使用上限。";
+    return t("referralMaxUses");
   }
 
   if (message.includes("referral_code has expired")) {
-    return "邀请码已过期，请联系管理员获取新的邀请码。";
+    return t("referralExpired");
   }
 
   if (message.includes("User already registered")) {
-    return "该邮箱已注册，请直接登录。";
+    return t("userExists");
   }
 
-  return message;
+  return t("serviceUnavailable");
 }
 
-function getErrorMessage(error: unknown) {
-  return error instanceof Error ? error.message : "当前服务暂时不可用，请稍后再试。";
+function getErrorMessage(error: unknown, fallback: string) {
+  return error instanceof Error ? error.message : fallback;
 }

@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 
 import { getAuthClaimsUserId, getAppRoleFromClaims } from "./auth-claims";
 import {
+  canAccessWorkspaceBasePath,
   getDefaultSignedInPathForRole,
   getDefaultWorkspaceBasePath,
   type AppRole,
@@ -49,7 +50,7 @@ export async function requireWorkspaceAccess(expectedBasePath: string) {
 
   const desiredBasePath = getDefaultWorkspaceBasePath(role);
 
-  if (desiredBasePath !== expectedBasePath) {
+  if (!canAccessWorkspaceBasePath(role, expectedBasePath)) {
     redirect(`${desiredBasePath}/my`);
   }
 }

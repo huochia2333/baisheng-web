@@ -4,6 +4,10 @@ import type {
 } from "@/lib/exchange-rates";
 
 import { normalizeCurrencyCode } from "@/lib/exchange-rates";
+import {
+  DEFAULT_LOCALE,
+  type Locale,
+} from "@/lib/locale";
 
 import { toErrorMessage } from "../dashboard-shared-ui";
 
@@ -12,6 +16,57 @@ export type ExchangeRateFormState = {
   originalCurrency: string;
   targetCurrency: string;
 };
+
+type ExchangeRateTranslator = (
+  key: string,
+  values?: Record<string, string | number>,
+) => string;
+
+export type ExchangeRateCopy = {
+  dialogs: {
+    dailyExchangeRateLabel: string;
+  };
+  errors: {
+    duplicateKey: string;
+    permission: string;
+    positiveRate: string;
+  };
+  summary: {
+    noRecord: string;
+  };
+  validation: {
+    greaterThanZero: (label: string) => string;
+    inputPrompt: (label: string) => string;
+    invalidFormat: (label: string) => string;
+    originalCurrencyRequired: string;
+    targetCurrencyRequired: string;
+  };
+};
+
+export function createExchangeRateCopy(
+  t: ExchangeRateTranslator,
+): ExchangeRateCopy {
+  return {
+    dialogs: {
+      dailyExchangeRateLabel: t("dialogs.fields.dailyExchangeRate"),
+    },
+    errors: {
+      duplicateKey: t("errors.duplicateKey"),
+      permission: t("errors.permission"),
+      positiveRate: t("errors.positiveRate"),
+    },
+    summary: {
+      noRecord: t("summary.noRecord"),
+    },
+    validation: {
+      greaterThanZero: (label) => t("validation.greaterThanZero", { label }),
+      inputPrompt: (label) => t("validation.inputPrompt", { label }),
+      invalidFormat: (label) => t("validation.invalidFormat", { label }),
+      originalCurrencyRequired: t("validation.originalCurrencyRequired"),
+      targetCurrencyRequired: t("validation.targetCurrencyRequired"),
+    },
+  };
+}
 
 export function createExchangeRateFormState(
   defaults?: Partial<ExchangeRateFormState>,
@@ -35,6 +90,7 @@ export function createExchangeRateFormStateFromRow(
 
 export function parseExchangeRateForm(
   formState: ExchangeRateFormState,
+  copy: ExchangeRateCopy,
 ):
   | { ok: true; payload: ExchangeRateFormInput }
   | { ok: false; message: string } {
@@ -42,16 +98,23 @@ export function parseExchangeRateForm(
   const targetCurrency = normalizeCurrencyCode(formState.targetCurrency);
 
   if (!originalCurrency) {
-    return { ok: false, message: "请输入原始货币代码。" };
+    return {
+      ok: false,
+      message: copy.validation.originalCurrencyRequired,
+    };
   }
 
   if (!targetCurrency) {
-    return { ok: false, message: "请输入目标货币代码。" };
+    return {
+      ok: false,
+      message: copy.validation.targetCurrencyRequired,
+    };
   }
 
   const dailyExchangeRate = parsePositiveNumber(
     formState.dailyExchangeRate,
-    "汇率值",
+    copy.dialogs.dailyExchangeRateLabel,
+    copy,
   );
 
   if (typeof dailyExchangeRate === "string") {
@@ -68,36 +131,54 @@ export function parseExchangeRateForm(
   };
 }
 
-export function formatExchangeRateValue(value: number | string | null | undefined) {
+export function formatExchangeRateValue(
+  value: number | string | null | undefined,
+  locale: Locale = DEFAULT_LOCALE,
+  noRecordLabel = "",
+) {
   const numericValue =
     typeof value === "number" ? value : typeof value === "string" ? Number(value) : Number.NaN;
 
   if (!Number.isFinite(numericValue)) {
-    return "暂无记录";
+    return noRecordLabel;
   }
 
-  return new Intl.NumberFormat("zh-CN", {
+  return new Intl.NumberFormat(locale === "zh" ? "zh-CN" : "en-US", {
     maximumFractionDigits: 6,
     minimumFractionDigits: numericValue % 1 === 0 ? 0 : 2,
   }).format(numericValue);
 }
 
-export function toExchangeRateErrorMessage(error: unknown) {
+export function toExchangeRateErrorMessage(
+  error: unknown,
+  copy: ExchangeRateCopy,
+) {
   const message = toErrorMessage(error);
 
   if (message.includes("duplicate key")) {
-    return "当前汇率记录保存失败，请检查是否存在重复主键后重试。";
+    return copy.errors.duplicateKey;
   }
 
   if (message.includes("exchange_rate_daily_exchange_rate_positive")) {
-    return "汇率值必须大于 0。";
+    return copy.errors.positiveRate;
   }
 
   if (message.includes("row-level security")) {
-    return "当前账号没有查看或操作汇率数据的权限。";
+    return copy.errors.permission;
   }
 
   return message;
+}
+
+export function isExchangeRatePermissionMessage(
+  message: string,
+  permissionMessage: string,
+) {
+  return (
+    message.includes("row-level security") ||
+    message.includes("permission to view or manage FX rate data") ||
+    message.includes(permissionMessage)
+  );
 }
 
 function formatEditableExchangeRateValue(value: number | string | null | undefined) {
@@ -112,21 +193,25 @@ function formatEditableExchangeRateValue(value: number | string | null | undefin
   return "";
 }
 
-function parsePositiveNumber(value: string, label: string) {
+function parsePositiveNumber(
+  value: string,
+  label: string,
+  copy: ExchangeRateCopy,
+) {
   const normalized = value.trim();
 
   if (!normalized) {
-    return `请输入${label}。`;
+    return copy.validation.inputPrompt(label);
   }
 
   const parsed = Number(normalized);
 
   if (!Number.isFinite(parsed)) {
-    return `${label}格式不正确。`;
+    return copy.validation.invalidFormat(label);
   }
 
   if (parsed <= 0) {
-    return `${label}必须大于 0。`;
+    return copy.validation.greaterThanZero(label);
   }
 
   return parsed;
