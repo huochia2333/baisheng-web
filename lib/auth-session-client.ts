@@ -32,6 +32,11 @@ export async function getRoleFromAuthClaims(
   fallbackUser?: User | null,
 ): Promise<AppRole | null> {
   const fallbackRole = getRoleFromUser(fallbackUser);
+
+  if (fallbackRole) {
+    return fallbackRole;
+  }
+
   const { data, error } = await supabase.auth.getClaims();
 
   if (error) {

@@ -1,0 +1,8 @@
+@import "tailwindcss" source(none);
+@import "./theme.css";
+@import "./base.css";
+
+@source "./layout.tsx";
+@source "./not-found.tsx";
+@source "./error.tsx";
+@source "./global-error.tsx";

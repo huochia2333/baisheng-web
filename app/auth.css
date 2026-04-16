@@ -2,10 +2,11 @@
 @import "./theme.css";
 @import "./base.css";
 
-@source "./layout.tsx";
-@source "./login";
-@source "./register";
-@source "./forgot-password";
+@source "./(auth)/layout.tsx";
+@source "./(auth)/page.tsx";
+@source "./(auth)/login";
+@source "./(auth)/register";
+@source "./(auth)/forgot-password";
 @source "../components/auth";
 
 @layer utilities {

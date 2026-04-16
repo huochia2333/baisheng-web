@@ -10,12 +10,29 @@ import {
 } from "./auth-routing";
 import { getSupabaseEnv } from "./supabase";
 
-const AUTH_ENTRY_PATHS = new Set(["/", "/login", "/register"]);
+const AUTH_ENTRY_PATHS = new Set(["/", "/login", "/register", "/forgot-password"]);
 
 export async function updateSession(request: NextRequest) {
+  const pathname = request.nextUrl.pathname;
+  const currentBasePath = getWorkspaceBasePath(pathname);
+  const hasAuthCookie = request.cookies.getAll().some((cookie) =>
+    isSupabaseAuthCookieName(cookie.name),
+  );
+
   let supabaseResponse = NextResponse.next({
     request,
   });
+
+  if (!hasAuthCookie) {
+    if (currentBasePath) {
+      return createRedirectResponse(request, supabaseResponse, "/login", {
+        clearSearch: true,
+      });
+    }
+
+    return supabaseResponse;
+  }
+
   const { supabaseUrl, supabaseKey } = getSupabaseEnv();
 
   const supabase = createServerClient(supabaseUrl, supabaseKey, {
@@ -46,8 +63,6 @@ export async function updateSession(request: NextRequest) {
   const { data } = await supabase.auth.getClaims();
   const userId = getAuthClaimsUserId(data?.claims);
   const role = getAppRoleFromClaims(data?.claims);
-  const pathname = request.nextUrl.pathname;
-  const currentBasePath = getWorkspaceBasePath(pathname);
 
   if (currentBasePath) {
     if (!userId) {
@@ -81,6 +96,10 @@ export async function updateSession(request: NextRequest) {
   }
 
   return supabaseResponse;
+}
+
+function isSupabaseAuthCookieName(name: string) {
+  return /^sb-.*-auth-token(?:\.\d+)?$/.test(name);
 }
 
 function createRedirectResponse(

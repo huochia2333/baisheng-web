@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Noto_Sans_SC, Plus_Jakarta_Sans } from "next/font/google";
 import { getLocale, getTranslations } from "next-intl/server";
-import "./auth.css";
+import "./root.css";
 
 import { getDocumentLanguage } from "@/lib/locale";
 

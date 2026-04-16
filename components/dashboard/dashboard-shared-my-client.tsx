@@ -105,14 +105,9 @@ export function DashboardSharedMyClient({
     passport,
     photoInputRef,
     profileDialog,
-    supabase,
     ui,
     videoInputRef,
   } = useDashboardSharedMyState(initialData);
-
-  if (!supabase) {
-    return <LoadingState />;
-  }
 
   if (loading) {
     return <LoadingState />;

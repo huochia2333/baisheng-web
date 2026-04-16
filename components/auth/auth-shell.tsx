@@ -1,16 +1,18 @@
-"use client";
-
 import type { ReactNode } from "react";
 
 import Image from "next/image";
 import Link from "next/link";
 import { GalleryVerticalEnd, ShieldCheck, Sparkles } from "lucide-react";
-import { useTranslations } from "next-intl";
 
 import { LanguageToggle } from "@/components/i18n/language-toggle";
+import type { AuthShellCopy } from "@/lib/auth-shell-copy";
 import { cn } from "@/lib/utils";
 
+const AUTH_SHELL_IMAGE_BLUR_DATA_URL =
+  "data:image/jpeg;base64,/9j/2wBDABIMDRANCxIQDhAUExIVGywdGxgYGzYnKSAsQDlEQz85Pj1HUGZXR0thTT0+WXlaYWltcnNyRVV9hnxvhWZwcm7/2wBDARMUFBsXGzQdHTRuST5Jbm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm7/wAARCAAeABQDASIAAhEBAxEB/8QAGQAAAgMBAAAAAAAAAAAAAAAAAAQBBQYD/8QAHRAAAgIDAQEBAAAAAAAAAAAAAAECAwQREiEiMf/EABgBAAMBAQAAAAAAAAAAAAAAAAEEBQID/8QAGhEAAwEBAQEAAAAAAAAAAAAAAAEhAgMSEf/aAAwDAQACEQMRAD8Asaqxmv58IUoKHWwhNT/GSVlp/UNujKjtAcneo+MCgusFHzpnMXMndRzv0YryLKlsosayWPfynsYys+cXpIDxYds7lLSed1LbYGeeXNsDXlg9ZP/Z";
+
 type AuthShellProps = {
+  copy: AuthShellCopy;
   mode: "login" | "register";
   asideTitle: ReactNode;
   asideDescription: string;
@@ -26,6 +28,7 @@ type AuthShellProps = {
 };
 
 export function AuthShell({
+  copy,
   mode,
   asideTitle,
   asideDescription,
@@ -39,7 +42,6 @@ export function AuthShell({
   footerLinkLabel,
   children,
 }: AuthShellProps) {
-  const t = useTranslations("AuthShell");
   const isRegister = mode === "register";
 
   return (
@@ -60,7 +62,9 @@ export function AuthShell({
                   isRegister ? "opacity-[0.82] saturate-[1.02]" : "opacity-[0.9] saturate-[1.08]",
                 )}
                 fill
+                blurDataURL={AUTH_SHELL_IMAGE_BLUR_DATA_URL}
                 priority
+                placeholder="blur"
                 sizes="(min-width: 1024px) 46vw, 0vw"
                 src="/images/zhang-kaiyv-Xqf2ph7vrgc-unsplash.jpg"
               />
@@ -76,10 +80,10 @@ export function AuthShell({
                 </div>
                 <div className="space-y-0.5">
                   <p className="text-xl font-bold tracking-tight text-[#486782]">
-                    {t("brandTitle")}
+                    {copy.brandTitle}
                   </p>
                   <p className="font-label text-[11px] tracking-[0.2em] text-[#8e99a3] uppercase">
-                    {t("brandSubtitle")}
+                    {copy.brandSubtitle}
                   </p>
                 </div>
               </div>
@@ -130,10 +134,10 @@ export function AuthShell({
                   </div>
                   <div className="space-y-0.5">
                     <p className="text-xl font-bold tracking-tight text-[#486782]">
-                      {t("brandTitle")}
+                      {copy.brandTitle}
                     </p>
                     <p className="font-label text-[11px] tracking-[0.2em] text-[#8e99a3] uppercase">
-                      {t("brandSubtitle")}
+                      {copy.brandSubtitle}
                     </p>
                   </div>
                 </div>
@@ -145,7 +149,7 @@ export function AuthShell({
 
               <header className="mb-10 space-y-3">
                 <p className="font-label text-[11px] font-semibold tracking-[0.22em] text-[#5d7388] uppercase">
-                  {headerEyebrow ?? t("secureAccess")}
+                  {headerEyebrow ?? copy.secureAccess}
                 </p>
                 <h2 className="text-[40px] leading-[1.08] font-bold tracking-[-0.04em] text-[#21303a] sm:text-[46px]">
                   {headerTitle}
@@ -172,16 +176,16 @@ export function AuthShell({
               </div>
 
               <div className="mt-auto flex flex-col gap-4 pt-12 text-xs text-[#97a0a8] sm:flex-row sm:items-center sm:justify-between">
-                <p>{t("copyright")}</p>
+                <p>{copy.copyright}</p>
                 <div className="flex items-center justify-center gap-5 sm:justify-end">
                   <a className="transition-colors hover:text-[#486782]" href="#">
-                    {t("privacy")}
+                    {copy.privacy}
                   </a>
                   <a className="transition-colors hover:text-[#486782]" href="#">
-                    {t("terms")}
+                    {copy.terms}
                   </a>
                   <a className="transition-colors hover:text-[#486782]" href="#">
-                    {t("help")}
+                    {copy.help}
                   </a>
                 </div>
               </div>

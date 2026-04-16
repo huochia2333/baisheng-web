@@ -1,3 +1,4 @@
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
 import { getAuthClaimsUserId, getAppRoleFromClaims } from "./auth-claims";
@@ -15,6 +16,18 @@ type ServerAuthContext = {
 };
 
 export async function getServerAuthContext(): Promise<ServerAuthContext> {
+  const cookieStore = await cookies();
+  const hasAuthCookie = cookieStore.getAll().some((cookie) =>
+    isSupabaseAuthCookieName(cookie.name),
+  );
+
+  if (!hasAuthCookie) {
+    return {
+      role: null,
+      userId: null,
+    };
+  }
+
   const supabase = await getServerSupabaseClient();
   const { data, error } = await supabase.auth.getClaims();
 
@@ -29,6 +42,10 @@ export async function getServerAuthContext(): Promise<ServerAuthContext> {
     role: getAppRoleFromClaims(data?.claims),
     userId: getAuthClaimsUserId(data?.claims),
   };
+}
+
+function isSupabaseAuthCookieName(name: string) {
+  return /^sb-.*-auth-token(?:\.\d+)?$/.test(name);
 }
 
 export async function redirectAuthenticatedUserToWorkspace() {

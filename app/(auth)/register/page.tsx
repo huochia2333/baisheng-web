@@ -2,38 +2,38 @@ import type { Metadata } from "next";
 
 import { getTranslations } from "next-intl/server";
 
-import { LoginForm } from "@/components/auth/login-form";
+import { RegisterForm } from "@/components/auth/register-form";
 import { AuthShell } from "@/components/auth/auth-shell";
 import { ScopedIntlProvider } from "@/components/i18n/scoped-intl-provider";
+import { getAuthShellCopy } from "@/lib/auth-shell-copy";
 import { redirectAuthenticatedUserToWorkspace } from "@/lib/server-auth";
 
 export async function generateMetadata(): Promise<Metadata> {
-  const t = await getTranslations("LoginPage");
+  const t = await getTranslations("RegisterPage");
 
   return {
     title: t("title"),
   };
 }
 
-export default async function LoginPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ passwordReset?: string; registered?: string }>;
-}) {
+export default async function RegisterPage() {
   await redirectAuthenticatedUserToWorkspace();
 
-  const params = await searchParams;
-  const t = await getTranslations("LoginPage");
+  const [t, authShellCopy] = await Promise.all([
+    getTranslations("RegisterPage"),
+    getAuthShellCopy(),
+  ]);
 
   return (
-    <ScopedIntlProvider
-      namespaces={["AuthShell", "LanguageToggle", "LoginForm"]}
-    >
+    <ScopedIntlProvider namespaces={["LanguageToggle", "RegisterForm"]}>
       <AuthShell
-        mode="login"
+        copy={authShellCopy}
+        mode="register"
         asideDescription={t("asideDescription")}
-        asideTitle={t("asideTitle")}
-        footerLinkHref="/register"
+        asideTitle={t.rich("asideTitle", {
+          br: () => <br />,
+        })}
+        footerLinkHref="/login"
         footerLinkLabel={t("footerLinkLabel")}
         footerPrompt={t("footerPrompt")}
         headerDescription={t("headerDescription")}
@@ -41,12 +41,9 @@ export default async function LoginPage({
         noteDescription={t("noteDescription")}
         noteTitle={t("noteTitle")}
       >
-        <LoginForm
-          passwordReset={params.passwordReset === "1"}
-          registered={params.registered === "1"}
-        />
+        <RegisterForm />
 
-        <div className="mt-8 rounded-[26px] border border-[#e7e5e0] bg-white/72 p-5 text-sm text-[#707981] shadow-[0_12px_32px_rgba(115,127,139,0.07)] sm:hidden">
+        <div className="mt-8 rounded-[26px] border border-[#d5dde3] bg-[#eff4f7] p-5 text-sm text-[#627380] shadow-[0_14px_34px_rgba(115,127,139,0.07)] sm:hidden">
           <p className="mb-2 font-semibold text-[#33424d]">{t("mobileNoteTitle")}</p>
           <p className="leading-7">{t("mobileNoteDescription")}</p>
         </div>

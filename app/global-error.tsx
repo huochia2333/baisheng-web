@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 
-import "./auth.css";
+import "./root.css";
 
 import {
   DEFAULT_LOCALE,
