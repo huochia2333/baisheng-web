@@ -336,14 +336,6 @@ export function ReferralsClient() {
             title={t("states.emptyTitle")}
           />
         </section>
-      ) : treeDisplay.rootIds.length === 0 ? (
-        <section className="rounded-[28px] border border-white/85 bg-white/72 p-6 shadow-[0_18px_45px_rgba(96,113,128,0.06)] xl:p-8">
-          <EmptyState
-            description={t("states.noMatchDescription")}
-            icon={<Search className="size-6" />}
-            title={t("states.noMatchTitle")}
-          />
-        </section>
       ) : (
         <section className="rounded-[28px] border border-white/85 bg-white/72 p-6 shadow-[0_18px_45px_rgba(96,113,128,0.06)] xl:p-8">
           <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
@@ -366,26 +358,34 @@ export function ReferralsClient() {
           </div>
 
           <div className="mt-6 overflow-x-auto rounded-[24px] border border-[#ebe7e1] bg-[#fbfaf8] p-5 shadow-[0_10px_24px_rgba(96,113,128,0.04)]">
-            <div className="min-w-[720px]">
-              <div className="grid gap-6">
-                {treeDisplay.rootIds.map((rootId) => (
-                  <ReferralTreeNode
-                    key={rootId}
-                    copy={copy}
-                    currentViewerId={currentViewerId}
-                    forceExpanded={searchText.trim().length > 0}
-                    graph={graph}
-                    incomingEdge={null}
-                    isRoot
-                    locale={locale}
-                    matchingNodeIds={treeDisplay.matchingNodeIds}
-                    nodeId={rootId}
-                    sharedCopy={sharedCopy}
-                    visibleNodeIds={treeDisplay.visibleNodeIds}
-                  />
-                ))}
+            {treeDisplay.rootIds.length === 0 ? (
+              <EmptyState
+                description={t("states.noMatchDescription")}
+                icon={<Search className="size-6" />}
+                title={t("states.noMatchTitle")}
+              />
+            ) : (
+              <div className="min-w-[720px]">
+                <div className="grid gap-6">
+                  {treeDisplay.rootIds.map((rootId) => (
+                    <ReferralTreeNode
+                      key={rootId}
+                      copy={copy}
+                      currentViewerId={currentViewerId}
+                      forceExpanded={searchText.trim().length > 0}
+                      graph={graph}
+                      incomingEdge={null}
+                      isRoot
+                      locale={locale}
+                      matchingNodeIds={treeDisplay.matchingNodeIds}
+                      nodeId={rootId}
+                      sharedCopy={sharedCopy}
+                      visibleNodeIds={treeDisplay.visibleNodeIds}
+                    />
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
           </div>
         </section>
       )}

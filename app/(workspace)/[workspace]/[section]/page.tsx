@@ -6,7 +6,6 @@ import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 
 import { AdminSectionPlaceholder } from "@/components/dashboard/admin-section-placeholder";
-import { WorkspaceLoadingShell } from "@/components/dashboard/workspace-loading-shell";
 import { ScopedIntlProvider } from "@/components/i18n/scoped-intl-provider";
 import {
   getWorkspaceConfigByRouteSegment,
@@ -24,7 +23,6 @@ const AdminCommissionClient = dynamic(
     import("@/components/dashboard/admin-commission-client").then(
       (mod) => mod.AdminCommissionClient,
     ),
-  { loading: renderWorkspaceLoadingShell },
 );
 
 const AdminOrdersClient = dynamic(
@@ -32,7 +30,6 @@ const AdminOrdersClient = dynamic(
     import("@/components/dashboard/admin-orders-client").then(
       (mod) => mod.AdminOrdersClient,
     ),
-  { loading: renderWorkspaceLoadingShell },
 );
 
 const AdminReviewsClient = dynamic(
@@ -40,7 +37,6 @@ const AdminReviewsClient = dynamic(
     import("@/components/dashboard/admin-reviews-client").then(
       (mod) => mod.AdminReviewsClient,
     ),
-  { loading: renderWorkspaceLoadingShell },
 );
 
 const AdminTasksClient = dynamic(
@@ -48,7 +44,6 @@ const AdminTasksClient = dynamic(
     import("@/components/dashboard/admin-tasks-client").then(
       (mod) => mod.AdminTasksClient,
     ),
-  { loading: renderWorkspaceLoadingShell },
 );
 
 const ExchangeRatesClient = dynamic(
@@ -56,7 +51,6 @@ const ExchangeRatesClient = dynamic(
     import("@/components/dashboard/exchange-rates-client").then(
       (mod) => mod.ExchangeRatesClient,
     ),
-  { loading: renderWorkspaceLoadingShell },
 );
 
 const ReferralsClient = dynamic(
@@ -64,7 +58,6 @@ const ReferralsClient = dynamic(
     import("@/components/dashboard/referrals-client").then(
       (mod) => mod.ReferralsClient,
     ),
-  { loading: renderWorkspaceLoadingShell },
 );
 
 const SalesmanCommissionClient = dynamic(
@@ -72,7 +65,6 @@ const SalesmanCommissionClient = dynamic(
     import("@/components/dashboard/salesman-commission-client").then(
       (mod) => mod.SalesmanCommissionClient,
     ),
-  { loading: renderWorkspaceLoadingShell },
 );
 
 const SalesmanTasksClient = dynamic(
@@ -80,7 +72,6 @@ const SalesmanTasksClient = dynamic(
     import("@/components/dashboard/salesman-tasks-client").then(
       (mod) => mod.SalesmanTasksClient,
     ),
-  { loading: renderWorkspaceLoadingShell },
 );
 
 const TeamManagementClient = dynamic(
@@ -88,7 +79,6 @@ const TeamManagementClient = dynamic(
     import("@/components/dashboard/team-management-client").then(
       (mod) => mod.TeamManagementClient,
     ),
-  { loading: renderWorkspaceLoadingShell },
 );
 
 export async function generateMetadata({
@@ -219,19 +209,11 @@ export default async function WorkspaceSectionPage({ params }: SectionPageProps)
   return <ScopedIntlProvider namespaces={namespaces}>{content}</ScopedIntlProvider>;
 }
 
-function renderWorkspaceLoadingShell() {
-  return <WorkspaceLoadingShell />;
-}
-
 function getSectionNamespaces(
   section: string,
   config: WorkspaceRouteConfig,
 ) {
-  const namespaces = [
-    "AdminSectionPlaceholder",
-    "WorkspaceLoadingShell",
-    "WorkspaceLoadingTitles",
-  ];
+  const namespaces = ["AdminSectionPlaceholder"];
 
   if (section === "orders" && config.pageVariants.orders) {
     namespaces.push("Orders", "OrdersUI", "DashboardPagination", "DashboardShared");

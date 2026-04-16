@@ -118,7 +118,6 @@ export function AdminShellNav({ items, mode }: AdminShellNavProps) {
             <Link
               key={item.href}
               href={item.href}
-              prefetch={false}
               className={cn(
                 "inline-flex items-center gap-2 rounded-full px-4 py-2.5 text-sm whitespace-nowrap transition-colors",
                 isActive
@@ -145,7 +144,6 @@ export function AdminShellNav({ items, mode }: AdminShellNavProps) {
           <Link
             key={item.href}
             href={item.href}
-            prefetch={false}
             className={cn(
               "mx-1 flex items-center gap-3 rounded-[18px] px-4 py-3 text-sm transition-all duration-200",
               isActive
