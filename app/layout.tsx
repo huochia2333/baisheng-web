@@ -7,6 +7,7 @@ import { getDocumentLanguage } from "@/lib/locale";
 
 const notoSansSC = Noto_Sans_SC({
   display: "swap",
+  preload: false,
   variable: "--font-body-sans",
   subsets: ["latin"],
   weight: ["400", "700"],

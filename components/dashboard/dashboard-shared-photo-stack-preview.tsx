@@ -1,13 +1,10 @@
+import type { UserMediaAssetWithPreview } from "@/lib/user-self-service";
 import { cn } from "@/lib/utils";
-
-export type PhotoThumbnail = {
-  alt: string;
-  src: string;
-};
+import { LazyDashboardImagePreview } from "./dashboard-media-preview";
 
 type PhotoStackPreviewProps = {
+  assets: UserMediaAssetWithPreview[];
   footerLabel: string;
-  thumbnails: PhotoThumbnail[];
 };
 
 const fallbackFrames = [
@@ -23,12 +20,12 @@ const frameClasses = [
 ];
 
 export function PhotoStackPreview({
+  assets,
   footerLabel,
-  thumbnails,
 }: PhotoStackPreviewProps) {
   const visibleFrames = frameClasses.map((frameClass, index) => ({
     frameClass,
-    thumbnail: thumbnails[index],
+    thumbnail: assets[index],
     fallbackClass: fallbackFrames[index],
   }));
 
@@ -36,21 +33,20 @@ export function PhotoStackPreview({
     <div className="absolute inset-0 p-4">
       {visibleFrames.map(({ frameClass, thumbnail, fallbackClass }, index) => (
         <div
-          key={thumbnail?.src ?? `fallback-${index}`}
+          key={thumbnail?.id ?? `fallback-${index}`}
           className={cn(
             "absolute overflow-hidden rounded-[16px] border border-white/85 shadow-[0_14px_24px_rgba(86,103,119,0.18)]",
             frameClass,
-            !thumbnail && fallbackClass,
+            thumbnail ? "bg-[#e8e3dc]" : fallbackClass,
           )}
         >
           {thumbnail ? (
-            // Object URLs are rendered directly here for local preview stacking.
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              alt={thumbnail.alt}
-              className="h-full w-full object-cover"
-              loading="lazy"
-              src={thumbnail.src}
+            <LazyDashboardImagePreview
+              alt={thumbnail.original_name}
+              asset={thumbnail}
+              className="h-full w-full"
+              imageClassName="h-full w-full object-cover"
+              loadingFallback={<div className="h-full w-full bg-[#e8e3dc]" />}
             />
           ) : null}
         </div>

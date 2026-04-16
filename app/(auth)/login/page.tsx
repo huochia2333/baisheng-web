@@ -21,9 +21,8 @@ export default async function LoginPage({
 }: {
   searchParams: Promise<{ passwordReset?: string; registered?: string }>;
 }) {
-  await redirectAuthenticatedUserToWorkspace();
-
-  const [params, t, authShellCopy] = await Promise.all([
+  const [, params, t, authShellCopy] = await Promise.all([
+    redirectAuthenticatedUserToWorkspace(),
     searchParams,
     getTranslations("LoginPage"),
     getAuthShellCopy(),

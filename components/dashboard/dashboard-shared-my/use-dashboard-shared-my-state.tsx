@@ -41,7 +41,6 @@ import {
 } from "../dashboard-shared-ui";
 import {
   PhotoStackPreview,
-  type PhotoThumbnail,
 } from "../dashboard-shared-photo-stack-preview";
 import { Button } from "../../ui/button";
 
@@ -342,13 +341,6 @@ export function useDashboardSharedMyState(initialData: CurrentUserBundle | null 
     vipMembership?.status === "active" &&
     (!vipMembership.expires_at || new Date(vipMembership.expires_at).getTime() > Date.now());
   const membershipLabel = hasActiveVip ? copy.vipMembership : copy.standardMembership;
-  const photoThumbnails: PhotoThumbnail[] = photoAssets
-    .filter((asset) => asset.previewUrl)
-    .map((asset) => ({
-      alt: asset.original_name,
-      src: asset.previewUrl as string,
-    }));
-
   const assets = [
     {
       key: "identity" as const,
@@ -371,12 +363,12 @@ export function useDashboardSharedMyState(initialData: CurrentUserBundle | null 
       tone: photoStatus,
       body: (
         <PhotoStackPreview
+          assets={photoAssets}
           footerLabel={
             photoAssets.length
               ? copy.photoCountLabel(photoAssets.length)
               : copy.uploadPhotosPrompt
           }
-          thumbnails={photoThumbnails}
         />
       ),
     },

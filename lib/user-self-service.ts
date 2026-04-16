@@ -1,6 +1,5 @@
 import type { Session, SupabaseClient, User } from "@supabase/supabase-js";
 
-import { mapWithConcurrencyLimit } from "./async-collection";
 import { getAppRoleFromClaims, getUserStatusFromClaims } from "./auth-claims";
 import {
   getDefaultSignedInPathForRole,
@@ -88,7 +87,7 @@ export type CurrentUserBundle = {
 };
 
 const SIGNED_URL_TTL_SECONDS = 60 * 60;
-const SIGNED_URL_CONCURRENCY = 10;
+const SIGNED_URL_CACHE_GRACE_MS = 30_000;
 const AUTH_SESSION_TIMEOUT_MS = 8_000;
 const AUTH_SESSION_RETRY_DELAY_MS = 350;
 const AUTH_SESSION_TIMEOUT_MESSAGE = "登录状态同步较慢，请稍后重试。";
@@ -109,12 +108,22 @@ type SessionCacheState = {
 };
 
 const sessionCacheByClient = new WeakMap<SupabaseClient, SessionCacheState>();
+const userMediaPreviewUrlCache = new Map<
+  string,
+  {
+    expiresAt: number;
+    url: string | null;
+  }
+>();
+const userMediaPreviewUrlRequestCache = new Map<string, Promise<string | null>>();
 const SESSION_TRACKING_REGISTRY_KEY = "__baishengSessionTrackingRegistry__" as const;
 
 let sessionCacheResetVersion = 0;
 
 export function resetCurrentSessionCache() {
   sessionCacheResetVersion += 1;
+  userMediaPreviewUrlCache.clear();
+  userMediaPreviewUrlRequestCache.clear();
 }
 
 export function getRoleFromUser(user: User | null | undefined): AppRole | null {
@@ -195,9 +204,11 @@ export async function getCurrentSessionContext(
   role: AppRole | null;
   status: UserStatus | null;
 }> {
-  const session = await getCurrentSession(supabase);
+  const [session, claims] = await Promise.all([
+    getCurrentSession(supabase),
+    getCurrentClaims(supabase),
+  ]);
   const user = session?.user ?? null;
-  const claims = user ? await getCurrentClaims(supabase) : null;
 
   return {
     session,
@@ -287,22 +298,10 @@ export async function getCurrentUserBundle(
     role,
   );
 
-  const mediaAssets = await withRequestTimeout(
-    mapWithConcurrencyLimit(
-      mediaResult.data ?? [],
-      SIGNED_URL_CONCURRENCY,
-      async (asset) => {
-        const { data, error } = await supabase.storage
-          .from(asset.bucket_name)
-          .createSignedUrl(asset.storage_path, SIGNED_URL_TTL_SECONDS);
-
-        return {
-          ...asset,
-          previewUrl: error ? null : (data?.signedUrl ?? null),
-        } satisfies UserMediaAssetWithPreview;
-      },
-    ),
-  );
+  const mediaAssets = (mediaResult.data ?? []).map((asset) => ({
+    ...asset,
+    previewUrl: null,
+  })) satisfies UserMediaAssetWithPreview[];
 
   return {
     authUser: user,
@@ -313,6 +312,47 @@ export async function getCurrentUserBundle(
     mediaAssets,
     vipMembership: vipResult.data,
   };
+}
+
+export async function createUserMediaAssetPreviewUrl(
+  supabase: SupabaseClient,
+  asset: Pick<UserMediaAssetRow, "bucket_name" | "storage_path"> & {
+    previewUrl?: string | null;
+  },
+) {
+  if (asset.previewUrl) {
+    cacheUserMediaPreviewUrl(asset, asset.previewUrl);
+    return asset.previewUrl;
+  }
+
+  const cacheKey = getUserMediaPreviewCacheKey(asset);
+  const cachedPreviewUrl = getCachedUserMediaPreviewUrl(cacheKey);
+
+  if (cachedPreviewUrl !== undefined) {
+    return cachedPreviewUrl;
+  }
+
+  const pendingRequest = userMediaPreviewUrlRequestCache.get(cacheKey);
+
+  if (pendingRequest) {
+    return pendingRequest;
+  }
+
+  const request = supabase.storage
+    .from(asset.bucket_name)
+    .createSignedUrl(asset.storage_path, SIGNED_URL_TTL_SECONDS)
+    .then(({ data, error }) => {
+      const previewUrl = error ? null : (data?.signedUrl ?? null);
+      cacheUserMediaPreviewUrl(asset, previewUrl);
+      return previewUrl;
+    })
+    .catch(() => null)
+    .finally(() => {
+      userMediaPreviewUrlRequestCache.delete(cacheKey);
+    });
+
+  userMediaPreviewUrlRequestCache.set(cacheKey, request);
+  return request;
 }
 
 export async function createPrivacyRequest(
@@ -522,9 +562,7 @@ async function getCurrentClaims(supabase: SupabaseClient): Promise<unknown | nul
 
   ensureSessionTracking(supabase, sessionCache);
 
-  const session = await getCurrentSession(supabase);
-
-  if (!session?.access_token) {
+  if (sessionCache.currentSessionSnapshot === null) {
     sessionCache.currentClaimsSnapshot = null;
     return null;
   }
@@ -674,4 +712,35 @@ function getFunctionErrorResponse(error: unknown) {
 
   const { context } = error as { context?: unknown };
   return context instanceof Response ? context : null;
+}
+
+function getUserMediaPreviewCacheKey(
+  asset: Pick<UserMediaAssetRow, "bucket_name" | "storage_path">,
+) {
+  return `${asset.bucket_name}:${asset.storage_path}`;
+}
+
+function getCachedUserMediaPreviewUrl(cacheKey: string) {
+  const cachedEntry = userMediaPreviewUrlCache.get(cacheKey);
+
+  if (!cachedEntry) {
+    return undefined;
+  }
+
+  if (Date.now() >= cachedEntry.expiresAt - SIGNED_URL_CACHE_GRACE_MS) {
+    userMediaPreviewUrlCache.delete(cacheKey);
+    return undefined;
+  }
+
+  return cachedEntry.url;
+}
+
+function cacheUserMediaPreviewUrl(
+  asset: Pick<UserMediaAssetRow, "bucket_name" | "storage_path">,
+  previewUrl: string | null,
+) {
+  userMediaPreviewUrlCache.set(getUserMediaPreviewCacheKey(asset), {
+    expiresAt: Date.now() + SIGNED_URL_TTL_SECONDS * 1000,
+    url: previewUrl,
+  });
 }

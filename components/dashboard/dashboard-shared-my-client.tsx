@@ -21,6 +21,10 @@ import type { CurrentUserBundle } from "@/lib/user-self-service";
 import { cn } from "@/lib/utils";
 
 import {
+  LazyDashboardImagePreview,
+  LazyDashboardVideoPreview,
+} from "./dashboard-media-preview";
+import {
   EmptyState,
   formatFileSize,
   InputCard,
@@ -517,19 +521,18 @@ export function DashboardSharedMyClient({
                     className="rounded-[24px] border border-[#ebe7e1] bg-white p-3 shadow-[0_10px_24px_rgba(96,113,128,0.05)]"
                   >
                     <div className="aspect-[4/5] overflow-hidden rounded-[18px] bg-[#ece9e4]">
-                      {photo.previewUrl ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img
-                          alt={photo.original_name}
-                          className="h-full w-full object-cover"
-                          loading="lazy"
-                          src={photo.previewUrl}
-                        />
-                      ) : (
-                        <div className="flex h-full items-center justify-center text-sm text-[#7d8890]">
-                          {copy.previewUnavailable}
-                        </div>
-                      )}
+                      <LazyDashboardImagePreview
+                        alt={photo.original_name}
+                        asset={photo}
+                        className="h-full w-full"
+                        errorFallback={
+                          <div className="flex h-full items-center justify-center text-sm text-[#7d8890]">
+                            {copy.previewUnavailable}
+                          </div>
+                        }
+                        imageClassName="h-full w-full object-cover"
+                        loadingFallback={<div className="h-full w-full animate-pulse bg-[#e7e3dd]" />}
+                      />
                     </div>
                     <div className="mt-3 space-y-3 px-1">
                       <div className="flex items-start justify-between gap-3">
@@ -582,18 +585,18 @@ export function DashboardSharedMyClient({
                     className="rounded-[24px] border border-[#ebe7e1] bg-white p-3 shadow-[0_10px_24px_rgba(96,113,128,0.05)]"
                   >
                     <div className="overflow-hidden rounded-[18px] bg-[#172029]">
-                      {video.previewUrl ? (
-                        <video
-                          className="aspect-video w-full bg-[#172029] object-cover"
-                          controls
-                          preload="metadata"
-                          src={video.previewUrl}
-                        />
-                      ) : (
-                        <div className="flex aspect-video items-center justify-center text-sm text-white/72">
-                          {copy.previewUnavailable}
-                        </div>
-                      )}
+                      <LazyDashboardVideoPreview
+                        asset={video}
+                        className="aspect-video w-full"
+                        errorFallback={
+                          <div className="flex aspect-video items-center justify-center text-sm text-white/72">
+                            {copy.previewUnavailable}
+                          </div>
+                        }
+                        loadingFallback={<div className="h-full w-full animate-pulse bg-white/8" />}
+                        preload="metadata"
+                        videoClassName="aspect-video w-full bg-[#172029] object-cover"
+                      />
                     </div>
                     <div className="mt-3 space-y-3 px-1">
                       <div className="flex items-start justify-between gap-3">

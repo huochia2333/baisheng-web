@@ -1,6 +1,6 @@
 "use client";
 
-import { startTransition, useEffect, useState } from "react";
+import { startTransition, useState } from "react";
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -16,7 +16,6 @@ import { useSupabaseAuthSync } from "@/lib/use-supabase-auth-sync";
 
 import { AuthFeedback } from "./auth-feedback";
 import { AuthField } from "./auth-field";
-import { AuthLoadingShell } from "./auth-loading-shell";
 
 export function LoginForm({
   registered = false,
@@ -27,15 +26,13 @@ export function LoginForm({
 }) {
   const router = useRouter();
   const t = useTranslations("LoginForm");
-  const [supabase, setSupabase] = useState<ReturnType<typeof getBrowserSupabaseClient>>(null);
+  const [supabase] = useState<ReturnType<typeof getBrowserSupabaseClient>>(() =>
+    typeof window !== "undefined" ? getBrowserSupabaseClient() : null,
+  );
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    setSupabase(getBrowserSupabaseClient());
-  }, []);
 
   const redirectToWorkspace = async (user?: Parameters<typeof getRoleFromAuthClaims>[1]) => {
     const role = supabase ? await getRoleFromAuthClaims(supabase, user) : null;
@@ -85,10 +82,6 @@ export function LoginForm({
       setSubmitting(false);
     }
   };
-
-  if (!supabase) {
-    return <AuthLoadingShell variant="login" />;
-  }
 
   return (
     <form className="space-y-6" onSubmit={handleSubmit}>
