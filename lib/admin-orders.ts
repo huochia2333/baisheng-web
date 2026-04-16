@@ -487,6 +487,21 @@ export async function deleteAdminOrder(
   supabase: SupabaseClient,
   orderNumber: string,
 ): Promise<void> {
+  await runDeleteAdminOrder(supabase, orderNumber, false);
+}
+
+export async function forceDeleteAdminOrder(
+  supabase: SupabaseClient,
+  orderNumber: string,
+): Promise<void> {
+  await runDeleteAdminOrder(supabase, orderNumber, true);
+}
+
+async function runDeleteAdminOrder(
+  supabase: SupabaseClient,
+  orderNumber: string,
+  force: boolean,
+): Promise<void> {
   const normalizedOrderNumber = orderNumber.trim();
 
   if (!normalizedOrderNumber) {
@@ -496,7 +511,7 @@ export async function deleteAdminOrder(
   const { error } = await withRequestTimeout(
     supabase.rpc("delete_order", {
       p_order_number: normalizedOrderNumber,
-      p_force: false,
+      p_force: force,
     }),
   );
 

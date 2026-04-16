@@ -478,6 +478,8 @@ function OrderDetailsDialog({
   onEdit,
   onDelete,
   deletePending,
+  onForceDelete,
+  forceDeletePending,
   onOpenChange,
 }: {
   canDelete: boolean;
@@ -492,6 +494,8 @@ function OrderDetailsDialog({
   onEdit: (order: AdminOrderRow) => void;
   onDelete: () => void;
   deletePending: boolean;
+  onForceDelete: () => void;
+  forceDeletePending: boolean;
   onOpenChange: (open: boolean) => void;
 }) {
   const { locale } = useLocale();
@@ -553,6 +557,7 @@ function OrderDetailsDialog({
     supplementaryState.orderNumber === orderNumber ? supplementaryState.detail : null;
   const supplementaryError =
     supplementaryState.orderNumber === orderNumber ? supplementaryState.error : null;
+  const deleteActionPending = deletePending || forceDeletePending;
 
   return (
     <DashboardDialog
@@ -566,20 +571,35 @@ function OrderDetailsDialog({
               </Button>
             ) : null}
             {canDelete ? (
-              <Button
-                className="border-[#efd6d6] bg-white text-[#b13d3d] hover:bg-[#fff4f4]"
-                disabled={deletePending}
-                onClick={onDelete}
-                type="button"
-                variant="outline"
-              >
-                {deletePending ? (
-                  <LoaderCircle className="size-4 animate-spin" />
-                ) : (
-                  <Trash2 className="size-4" />
-                )}
-                {t("details.deleteOrder")}
-              </Button>
+              <>
+                <Button
+                  className="border-[#efd6d6] bg-white text-[#b13d3d] hover:bg-[#fff4f4]"
+                  disabled={deleteActionPending}
+                  onClick={onDelete}
+                  type="button"
+                  variant="outline"
+                >
+                  {deletePending ? (
+                    <LoaderCircle className="size-4 animate-spin" />
+                  ) : (
+                    <Trash2 className="size-4" />
+                  )}
+                  {t("details.softDeleteOrder")}
+                </Button>
+                <Button
+                  className="bg-[#b13d3d] text-white hover:bg-[#972f2f]"
+                  disabled={deleteActionPending}
+                  onClick={onForceDelete}
+                  type="button"
+                >
+                  {forceDeletePending ? (
+                    <LoaderCircle className="size-4 animate-spin" />
+                  ) : (
+                    <Trash2 className="size-4" />
+                  )}
+                  {t("details.forceDeleteOrder")}
+                </Button>
+              </>
             ) : null}
           </>
         ) : null

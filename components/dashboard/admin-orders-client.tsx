@@ -9,6 +9,7 @@ import { ReceiptText, ShieldAlert } from "lucide-react";
 import {
   createAdminOrder,
   deleteAdminOrder,
+  forceDeleteAdminOrder,
   getAdminOrders,
   getAdminOrderCosts,
   getAdminOrderSupplementaryDetail,
@@ -260,6 +261,7 @@ export function AdminOrdersClient({
     createOrderFormState(),
   );
   const [deletePending, setDeletePending] = useState(false);
+  const [forceDeletePending, setForceDeletePending] = useState(false);
   const loadingStateRef = useRef(true);
   const editSupplementaryLoadTokenRef = useRef(0);
 
@@ -694,15 +696,21 @@ export function AdminOrdersClient({
   ]);
 
   const handleDeleteOrder = useCallback(async () => {
-    if (!supabase || !selectedOrder || deletePending || !canDeleteOrders) {
+    if (
+      !supabase ||
+      !selectedOrder ||
+      deletePending ||
+      forceDeletePending ||
+      !canDeleteOrders
+    ) {
       return;
     }
 
+    const targetOrder = selectedOrder;
+
     if (
       typeof window !== "undefined" &&
-      !window.confirm(
-        t("feedback.deleteConfirm", { orderNumber: selectedOrder.order_number }),
-      )
+      !window.confirm(t("feedback.deleteConfirm", { orderNumber: targetOrder.order_number }))
     ) {
       return;
     }
@@ -711,14 +719,14 @@ export function AdminOrdersClient({
     setPageFeedback(null);
 
     try {
-      await deleteAdminOrder(supabase, selectedOrder.order_number);
+      await deleteAdminOrder(supabase, targetOrder.order_number);
       setOrders((current) =>
-        current.filter((item) => item.order_number !== selectedOrder.order_number),
+        current.filter((item) => item.order_number !== targetOrder.order_number),
       );
       setSelectedOrder(null);
       setPageFeedback({
         tone: "success",
-        message: t("feedback.deleteSuccess", { orderNumber: selectedOrder.order_number }),
+        message: t("feedback.deleteSuccess", { orderNumber: targetOrder.order_number }),
       });
     } catch (error) {
       setPageFeedback({
@@ -728,7 +736,70 @@ export function AdminOrdersClient({
     } finally {
       setDeletePending(false);
     }
-  }, [canDeleteOrders, deletePending, ordersUiCopy, selectedOrder, sharedCopy, supabase, t]);
+  }, [
+    canDeleteOrders,
+    deletePending,
+    forceDeletePending,
+    ordersUiCopy,
+    selectedOrder,
+    sharedCopy,
+    supabase,
+    t,
+  ]);
+
+  const handleForceDeleteOrder = useCallback(async () => {
+    if (
+      !supabase ||
+      !selectedOrder ||
+      deletePending ||
+      forceDeletePending ||
+      !canDeleteOrders
+    ) {
+      return;
+    }
+
+    const targetOrder = selectedOrder;
+
+    if (
+      typeof window !== "undefined" &&
+      !window.confirm(
+        t("feedback.forceDeleteConfirm", { orderNumber: targetOrder.order_number }),
+      )
+    ) {
+      return;
+    }
+
+    setForceDeletePending(true);
+    setPageFeedback(null);
+
+    try {
+      await forceDeleteAdminOrder(supabase, targetOrder.order_number);
+      setOrders((current) =>
+        current.filter((item) => item.order_number !== targetOrder.order_number),
+      );
+      setSelectedOrder(null);
+      setPageFeedback({
+        tone: "success",
+        message: t("feedback.forceDeleteSuccess", { orderNumber: targetOrder.order_number }),
+      });
+    } catch (error) {
+      setPageFeedback({
+        tone: "error",
+        message: toOrderErrorMessage(error, ordersUiCopy, sharedCopy),
+      });
+    } finally {
+      setForceDeletePending(false);
+    }
+  }, [
+    canDeleteOrders,
+    deletePending,
+    forceDeletePending,
+    ordersUiCopy,
+    selectedOrder,
+    sharedCopy,
+    supabase,
+    t,
+  ]);
 
   const handleSelectOrder = useCallback((order: AdminOrderRow) => {
     setSelectedOrder(order);
@@ -894,6 +965,8 @@ export function AdminOrdersClient({
         deletePending={deletePending}
         onDelete={handleDeleteOrder}
         onEdit={openEditDialog}
+        forceDeletePending={forceDeletePending}
+        onForceDelete={handleForceDeleteOrder}
         order={selectedOrder}
         orderTypeMetaById={orderTypeMetaById}
         showOrderEntryUser={viewConfig.showOrderEntryDetail}

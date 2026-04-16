@@ -430,7 +430,9 @@
       "createSuccess": "订单 {orderNumber} 已创建成功。",
       "updateSuccess": "订单 {orderNumber} 已更新成功。",
       "deleteConfirm": "确定要软删除订单 {orderNumber} 吗？删除后将从列表中隐藏。",
-      "deleteSuccess": "订单 {orderNumber} 已软删除。"
+      "deleteSuccess": "订单 {orderNumber} 已软删除。",
+      "forceDeleteConfirm": "确定要彻底删除订单 {orderNumber} 吗？此操作会直接从数据库抹除该订单，且无法恢复。",
+      "forceDeleteSuccess": "订单 {orderNumber} 已彻底删除。"
     },
     "summary": {
       "total": "订单总数",
@@ -578,7 +580,8 @@
     },
     "details": {
       "editOrder": "编辑订单",
-      "deleteOrder": "删除订单",
+      "softDeleteOrder": "软删除",
+      "forceDeleteOrder": "彻底删除",
       "description": "查看订单的完整金额、汇率、人员信息以及关联表单内容。",
       "title": "订单详情",
       "titleWithOrderNumber": "订单 {orderNumber}",

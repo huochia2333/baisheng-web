@@ -430,7 +430,9 @@
       "createSuccess": "Order {orderNumber} was created successfully.",
       "updateSuccess": "Order {orderNumber} was updated successfully.",
       "deleteConfirm": "Are you sure you want to soft-delete order {orderNumber}? It will be hidden from the list afterward.",
-      "deleteSuccess": "Order {orderNumber} was soft-deleted."
+      "deleteSuccess": "Order {orderNumber} was soft-deleted.",
+      "forceDeleteConfirm": "Are you sure you want to permanently delete order {orderNumber}? This will remove it from the database and cannot be undone.",
+      "forceDeleteSuccess": "Order {orderNumber} was permanently deleted."
     },
     "summary": {
       "total": "Total Orders",
@@ -578,7 +580,8 @@
     },
     "details": {
       "editOrder": "Edit Order",
-      "deleteOrder": "Delete Order",
+      "softDeleteOrder": "Soft Delete",
+      "forceDeleteOrder": "Delete Permanently",
       "description": "Review the full order amounts, exchange rates, related users, and linked form details.",
       "title": "Order Details",
       "titleWithOrderNumber": "Order {orderNumber}",
