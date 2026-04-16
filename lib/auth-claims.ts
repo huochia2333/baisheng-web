@@ -1,5 +1,9 @@
 import type { AppRole } from "./auth-routing";
-import { getAppRoleFromMetadataContainer } from "./auth-metadata";
+import {
+  getAppRoleFromMetadataContainer,
+  getUserStatusFromMetadataContainer,
+  type UserStatus,
+} from "./auth-metadata";
 
 export function getAuthClaimsUserId(claims: unknown) {
   return normalizeOptionalString(readRecord(claims)?.sub);
@@ -7,6 +11,10 @@ export function getAuthClaimsUserId(claims: unknown) {
 
 export function getAppRoleFromClaims(claims: unknown): AppRole | null {
   return getAppRoleFromMetadataContainer(claims);
+}
+
+export function getUserStatusFromClaims(claims: unknown): UserStatus | null {
+  return getUserStatusFromMetadataContainer(claims);
 }
 
 function readRecord(value: unknown): Record<string, unknown> | null {

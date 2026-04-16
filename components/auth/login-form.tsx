@@ -9,7 +9,7 @@ import { useTranslations } from "next-intl";
 
 import {
   getDefaultSignedInPathForRole,
-  getRoleFromUser,
+  getRoleFromAuthClaims,
 } from "@/lib/auth-session-client";
 import { getBrowserSupabaseClient } from "@/lib/supabase";
 import { useSupabaseAuthSync } from "@/lib/use-supabase-auth-sync";
@@ -37,8 +37,8 @@ export function LoginForm({
     setSupabase(getBrowserSupabaseClient());
   }, []);
 
-  const redirectToWorkspace = (user: Parameters<typeof getRoleFromUser>[0]) => {
-    const role = getRoleFromUser(user);
+  const redirectToWorkspace = async (user?: Parameters<typeof getRoleFromAuthClaims>[1]) => {
+    const role = supabase ? await getRoleFromAuthClaims(supabase, user) : null;
     const nextPath = role ? getDefaultSignedInPathForRole(role) : "/";
 
     startTransition(() => {
@@ -48,12 +48,12 @@ export function LoginForm({
 
   useSupabaseAuthSync(supabase, {
     includeInitialSessionEvent: true,
-    onAuthStateChange: ({ isMounted, session }) => {
+    onAuthStateChange: async ({ isMounted, session }) => {
       if (!isMounted() || !session?.user) {
         return;
       }
 
-      redirectToWorkspace(session.user);
+      await redirectToWorkspace(session.user);
     },
   });
 
@@ -78,7 +78,7 @@ export function LoginForm({
         throw signInError;
       }
 
-      redirectToWorkspace(data.session?.user);
+      await redirectToWorkspace(data.session?.user);
     } catch (signInError) {
       setError(formatLoginError(signInError, t));
     } finally {

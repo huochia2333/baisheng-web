@@ -10,6 +10,12 @@
     "tryAgain": "Try Again",
     "reload": "Reload Page"
   },
+  "NotFoundPage": {
+    "badge": "404",
+    "title": "The page you requested does not exist",
+    "description": "The link may be outdated, or the page may have been moved or removed. Return to the main workspace entry and continue from there.",
+    "primaryAction": "Back to Main Entry"
+  },
   "LanguageToggle": {
     "zh": "中文",
     "en": "EN"

@@ -17,7 +17,7 @@ import { useTranslations } from "next-intl";
 import {
   getAuthSession,
   getDefaultSignedInPathForRole,
-  getRoleFromUser,
+  getRoleFromAuthClaims,
 } from "@/lib/auth-session-client";
 import { getBrowserSupabaseClient } from "@/lib/supabase";
 import { useSupabaseAuthSync } from "@/lib/use-supabase-auth-sync";
@@ -54,7 +54,7 @@ export function RegisterForm() {
         }
 
         if (session?.user) {
-          const role = getRoleFromUser(session.user);
+          const role = await getRoleFromAuthClaims(supabase, session.user);
           const nextPath = role ? getDefaultSignedInPathForRole(role) : "/";
 
           startTransition(() => {
@@ -116,7 +116,7 @@ export function RegisterForm() {
       }
 
       if (data.session?.user) {
-        const role = getRoleFromUser(data.session.user);
+        const role = await getRoleFromAuthClaims(supabase, data.session.user);
         const nextPath = role ? getDefaultSignedInPathForRole(role) : "/";
 
         startTransition(() => {

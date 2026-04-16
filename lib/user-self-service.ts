@@ -1,6 +1,7 @@
 import type { Session, SupabaseClient, User } from "@supabase/supabase-js";
 
 import { mapWithConcurrencyLimit } from "./async-collection";
+import { getAppRoleFromClaims, getUserStatusFromClaims } from "./auth-claims";
 import {
   getDefaultSignedInPathForRole,
   getDefaultWorkspaceBasePath,
@@ -98,6 +99,8 @@ const PROFILE_MUTATION_TIMEOUT_MS = 20_000;
 const PROFILE_MUTATION_TIMEOUT_MESSAGE = "Profile update timed out. Please try again.";
 
 type SessionCacheState = {
+  currentClaimsRequest: Promise<unknown | null> | null;
+  currentClaimsSnapshot: unknown | null | undefined;
   currentSessionRequest: Promise<Session | null> | null;
   currentSessionSnapshot: Session | null | undefined;
   sessionTrackingCleanup: (() => void) | null;
@@ -158,6 +161,8 @@ function getSessionCache(supabase: SupabaseClient) {
   if (existingCache) {
     if (existingCache.resetVersion !== sessionCacheResetVersion) {
       existingCache.sessionTrackingCleanup?.();
+      existingCache.currentClaimsRequest = null;
+      existingCache.currentClaimsSnapshot = undefined;
       existingCache.currentSessionRequest = null;
       existingCache.currentSessionSnapshot = undefined;
       existingCache.sessionTrackingCleanup = null;
@@ -169,6 +174,8 @@ function getSessionCache(supabase: SupabaseClient) {
   }
 
   const sessionCache: SessionCacheState = {
+    currentClaimsRequest: null,
+    currentClaimsSnapshot: undefined,
     currentSessionRequest: null,
     currentSessionSnapshot: undefined,
     sessionTrackingCleanup: null,
@@ -190,12 +197,13 @@ export async function getCurrentSessionContext(
 }> {
   const session = await getCurrentSession(supabase);
   const user = session?.user ?? null;
+  const claims = user ? await getCurrentClaims(supabase) : null;
 
   return {
     session,
     user,
-    role: getRoleFromUser(user),
-    status: getStatusFromUser(user),
+    role: getAppRoleFromClaims(claims) ?? getRoleFromUser(user),
+    status: getUserStatusFromClaims(claims) ?? getStatusFromUser(user),
   };
 }
 
@@ -509,6 +517,50 @@ async function fetchCurrentSession(supabase: SupabaseClient) {
   return session;
 }
 
+async function getCurrentClaims(supabase: SupabaseClient): Promise<unknown | null> {
+  const sessionCache = getSessionCache(supabase);
+
+  ensureSessionTracking(supabase, sessionCache);
+
+  const session = await getCurrentSession(supabase);
+
+  if (!session?.access_token) {
+    sessionCache.currentClaimsSnapshot = null;
+    return null;
+  }
+
+  if (sessionCache.currentClaimsSnapshot !== undefined) {
+    return sessionCache.currentClaimsSnapshot;
+  }
+
+  if (!sessionCache.currentClaimsRequest) {
+    sessionCache.currentClaimsRequest = resolveCurrentClaims(
+      supabase,
+      sessionCache,
+    ).finally(() => {
+      sessionCache.currentClaimsRequest = null;
+    });
+  }
+
+  return sessionCache.currentClaimsRequest;
+}
+
+async function resolveCurrentClaims(
+  supabase: SupabaseClient,
+  sessionCache: SessionCacheState,
+) {
+  const { data, error } = await supabase.auth.getClaims();
+
+  if (error) {
+    sessionCache.currentClaimsSnapshot = null;
+    return null;
+  }
+
+  const claims = data?.claims ?? null;
+  sessionCache.currentClaimsSnapshot = claims;
+  return claims;
+}
+
 function ensureSessionTracking(
   supabase: SupabaseClient,
   sessionCache: SessionCacheState,
@@ -523,6 +575,8 @@ function ensureSessionTracking(
   const {
     data: { subscription },
   } = supabase.auth.onAuthStateChange((_event, session) => {
+    sessionCache.currentClaimsRequest = null;
+    sessionCache.currentClaimsSnapshot = undefined;
     sessionCache.currentSessionSnapshot = session;
   });
 

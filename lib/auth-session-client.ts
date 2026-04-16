@@ -1,5 +1,6 @@
 import type { Session, SupabaseClient, User } from "@supabase/supabase-js";
 
+import { getAppRoleFromClaims } from "./auth-claims";
 import { getAppRoleFromMetadataContainer } from "./auth-metadata";
 import type { AppRole } from "./auth-routing";
 
@@ -24,4 +25,18 @@ export function getRoleFromUser(user: User | null | undefined): AppRole | null {
 
 export function getRoleFromSession(session: Session | null | undefined): AppRole | null {
   return getRoleFromUser(session?.user);
+}
+
+export async function getRoleFromAuthClaims(
+  supabase: SupabaseClient,
+  fallbackUser?: User | null,
+): Promise<AppRole | null> {
+  const fallbackRole = getRoleFromUser(fallbackUser);
+  const { data, error } = await supabase.auth.getClaims();
+
+  if (error) {
+    return fallbackRole;
+  }
+
+  return getAppRoleFromClaims(data?.claims) ?? fallbackRole;
 }

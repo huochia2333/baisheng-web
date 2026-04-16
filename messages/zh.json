@@ -10,6 +10,12 @@
     "tryAgain": "重试",
     "reload": "刷新页面"
   },
+  "NotFoundPage": {
+    "badge": "404",
+    "title": "你访问的页面不存在",
+    "description": "这个链接可能已经失效，或者页面已被移动或删除。请返回主入口后继续操作。",
+    "primaryAction": "返回主入口"
+  },
   "LanguageToggle": {
     "zh": "中文",
     "en": "EN"

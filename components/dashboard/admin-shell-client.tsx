@@ -22,9 +22,9 @@ import {
   getDefaultWorkspaceBasePath,
   getWorkspaceBasePath,
 } from "@/lib/auth-routing";
+import { getRoleFromAuthClaims } from "@/lib/auth-session-client";
 import { getBrowserSupabaseClient } from "@/lib/supabase";
 import { useSupabaseAuthSync } from "@/lib/use-supabase-auth-sync";
-import { getRoleFromUser } from "@/lib/user-self-service";
 import type { WorkspaceNavItem } from "@/lib/workspace-config";
 import { cn } from "@/lib/utils";
 
@@ -62,8 +62,14 @@ export function AdminShellSessionSync() {
 
   useSupabaseAuthSync(supabase, {
     includeInitialSessionEvent: true,
-    onAuthStateChange: ({ isMounted, session }) => {
+    onAuthStateChange: async ({ isMounted, session }) => {
       if (!isMounted()) {
+        return;
+      }
+
+      const authClient = supabase;
+
+      if (!authClient) {
         return;
       }
 
@@ -78,7 +84,7 @@ export function AdminShellSessionSync() {
         return;
       }
 
-      const role = getRoleFromUser(session.user);
+      const role = await getRoleFromAuthClaims(authClient, session.user);
 
       if (!role) {
         return;
