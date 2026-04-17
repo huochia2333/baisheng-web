@@ -1,6 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
+import { readAuthClaimsFromAccessToken } from "./auth-access-token";
 import { getAuthClaimsUserId, getAppRoleFromClaims } from "./auth-claims";
 import {
   canAccessWorkspaceBasePath,
@@ -60,9 +61,12 @@ export async function updateSession(request: NextRequest) {
     },
   });
 
-  const { data } = await supabase.auth.getClaims();
-  const userId = getAuthClaimsUserId(data?.claims);
-  const role = getAppRoleFromClaims(data?.claims);
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+  const claims = readAuthClaimsFromAccessToken(session?.access_token);
+  const userId = getAuthClaimsUserId(claims);
+  const role = getAppRoleFromClaims(claims);
 
   if (currentBasePath) {
     if (!userId) {

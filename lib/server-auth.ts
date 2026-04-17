@@ -1,6 +1,7 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
+import { readAuthClaimsFromAccessToken } from "./auth-access-token";
 import { getAuthClaimsUserId, getAppRoleFromClaims } from "./auth-claims";
 import {
   canAccessWorkspaceBasePath,
@@ -29,7 +30,10 @@ export async function getServerAuthContext(): Promise<ServerAuthContext> {
   }
 
   const supabase = await getServerSupabaseClient();
-  const { data, error } = await supabase.auth.getClaims();
+  const {
+    data: { session },
+    error,
+  } = await supabase.auth.getSession();
 
   if (error) {
     return {
@@ -38,9 +42,11 @@ export async function getServerAuthContext(): Promise<ServerAuthContext> {
     };
   }
 
+  const claims = readAuthClaimsFromAccessToken(session?.access_token);
+
   return {
-    role: getAppRoleFromClaims(data?.claims),
-    userId: getAuthClaimsUserId(data?.claims),
+    role: getAppRoleFromClaims(claims),
+    userId: getAuthClaimsUserId(claims),
   };
 }
 
