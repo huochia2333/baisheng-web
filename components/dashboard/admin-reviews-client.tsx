@@ -3,10 +3,16 @@
 import { FileBadge2, ImageIcon, ShieldAlert } from "lucide-react";
 import { useTranslations } from "next-intl";
 
+import type { AdminReviewsPageData } from "@/lib/admin-reviews";
 import { cn } from "@/lib/utils";
 
 import { EmptyState, PageBanner } from "./dashboard-shared-ui";
-import { MediaPreviewDialog, MediaReviewList, PrivacyReviewList, ReviewLoadingState, ReviewSummaryCard } from "./admin-reviews/admin-reviews-ui";
+import {
+  MediaPreviewDialog,
+  MediaReviewList,
+  PrivacyReviewList,
+  ReviewSummaryCard,
+} from "./admin-reviews/admin-reviews-ui";
 import { useAdminReviewsPage } from "./admin-reviews/use-admin-reviews-page";
 
 const reviewTabIconMap = {
@@ -14,7 +20,7 @@ const reviewTabIconMap = {
   privacy: FileBadge2,
 } as const;
 
-export function AdminReviewsClient() {
+export function AdminReviewsClient({ initialData }: { initialData: AdminReviewsPageData }) {
   const t = useTranslations("Reviews");
   const {
     activeTab,
@@ -23,7 +29,6 @@ export function AdminReviewsClient() {
     handleMediaReview,
     handlePrivacyReview,
     hasPermission,
-    loading,
     mediaRows,
     pageFeedback,
     previewAsset,
@@ -31,12 +36,7 @@ export function AdminReviewsClient() {
     reviewTabs,
     setActiveTab,
     setPreviewAsset,
-    supabase,
-  } = useAdminReviewsPage();
-
-  if (!supabase || loading) {
-    return <ReviewLoadingState />;
-  }
+  } = useAdminReviewsPage(initialData);
 
   return (
     <section className="mx-auto flex w-full max-w-[1320px] flex-col gap-8">

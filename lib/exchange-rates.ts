@@ -49,6 +49,13 @@ export type ExchangeRateViewerContext = {
   status: UserStatus | null;
 };
 
+export type ExchangeRatesPageMode = "manage" | "readonly";
+
+export type ExchangeRatesPageData = {
+  hasPermission: boolean;
+  rates: ExchangeRateRow[];
+};
+
 export async function getCurrentExchangeRateViewerContext(
   supabase: SupabaseClient,
 ): Promise<ExchangeRateViewerContext | null> {
@@ -74,6 +81,35 @@ export function canReadExchangeRatesByRole(
 
 export function canManageExchangeRatesByRole(role: AppRole | null) {
   return role === "administrator";
+}
+
+export function canViewExchangeRatesPage(
+  mode: ExchangeRatesPageMode,
+  role: AppRole | null,
+  status: UserStatus | null,
+) {
+  return mode === "manage"
+    ? canManageExchangeRatesByRole(role)
+    : canReadExchangeRatesByRole(role, status);
+}
+
+export async function getExchangeRatesPageData(
+  supabase: SupabaseClient,
+  mode: ExchangeRatesPageMode,
+): Promise<ExchangeRatesPageData> {
+  const viewer = await getCurrentExchangeRateViewerContext(supabase);
+
+  if (!viewer || !canViewExchangeRatesPage(mode, viewer.role, viewer.status)) {
+    return {
+      hasPermission: false,
+      rates: [],
+    };
+  }
+
+  return {
+    hasPermission: true,
+    rates: await getExchangeRates(supabase),
+  };
 }
 
 export async function getExchangeRates(

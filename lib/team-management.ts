@@ -1,7 +1,11 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 import { withRequestTimeout } from "./request-timeout";
-import type { UserStatus } from "./user-self-service";
+import {
+  getCurrentSessionContext,
+  type AppRole,
+  type UserStatus,
+} from "./user-self-service";
 
 export type TeamOverview = {
   team_id: string;
@@ -67,6 +71,18 @@ export type TeamManagerCandidate = {
   assignable: boolean;
 };
 
+export type TeamManagementPageData = {
+  viewerRole: AppRole | null;
+  viewerStatus: UserStatus | null;
+  canView: boolean;
+  overviews: TeamOverview[];
+  detail: TeamDetail;
+  selectedTeamId: string | null;
+  candidateSalesmen: TeamSalesmanCandidate[];
+  managerCandidates: TeamManagerCandidate[];
+  createManagerCandidates: TeamManagerCandidate[];
+};
+
 export async function getVisibleTeamOverviews(
   supabase: SupabaseClient,
 ): Promise<TeamOverview[]> {
@@ -85,6 +101,79 @@ export async function getVisibleTeamOverviews(
   return data
     .map((item) => normalizeTeamOverview(item))
     .filter((item): item is TeamOverview => item !== null);
+}
+
+export function canViewTeamPanel(role: AppRole | null, status: UserStatus | null) {
+  if (role === "administrator") {
+    return true;
+  }
+
+  return (
+    status === "active" &&
+    (role === "manager" || role === "operator" || role === "finance" || role === "salesman")
+  );
+}
+
+export function resolvePreferredTeamId(
+  overviews: TeamOverview[],
+  preferredTeamId: string | null,
+) {
+  if (preferredTeamId && overviews.some((team) => team.team_id === preferredTeamId)) {
+    return preferredTeamId;
+  }
+
+  const manageableTeam = overviews.find((team) => team.can_manage);
+  return manageableTeam?.team_id ?? overviews[0]?.team_id ?? null;
+}
+
+export async function getTeamManagementPageData(
+  supabase: SupabaseClient,
+  preferredTeamId?: string | null,
+): Promise<TeamManagementPageData> {
+  const sessionContext = await getCurrentSessionContext(supabase);
+
+  if (!sessionContext.user) {
+    return createEmptyTeamManagementPageData({
+      viewerRole: null,
+      viewerStatus: null,
+    });
+  }
+
+  if (!canViewTeamPanel(sessionContext.role, sessionContext.status)) {
+    return createEmptyTeamManagementPageData({
+      viewerRole: sessionContext.role,
+      viewerStatus: sessionContext.status,
+    });
+  }
+
+  const overviews = await getVisibleTeamOverviews(supabase);
+  const selectedTeamId = resolvePreferredTeamId(overviews, preferredTeamId ?? null);
+  const detail = selectedTeamId ? await getTeamDetail(supabase, selectedTeamId) : EMPTY_TEAM_DETAIL;
+
+  const [candidateSalesmen, managerCandidates, createManagerCandidates] = await Promise.all([
+    detail.team?.can_manage &&
+    (sessionContext.role === "administrator" || sessionContext.role === "manager")
+      ? getTeamSalesmanCandidates(supabase, detail.team.team_id)
+      : Promise.resolve([]),
+    sessionContext.role === "administrator" && detail.team
+      ? getTeamManagerCandidates(supabase, detail.team.team_id)
+      : Promise.resolve([]),
+    sessionContext.role === "administrator"
+      ? getTeamManagerCandidates(supabase, null)
+      : Promise.resolve([]),
+  ]);
+
+  return {
+    viewerRole: sessionContext.role,
+    viewerStatus: sessionContext.status,
+    canView: true,
+    overviews,
+    detail,
+    selectedTeamId: detail.team?.team_id ?? selectedTeamId ?? null,
+    candidateSalesmen,
+    managerCandidates,
+    createManagerCandidates,
+  };
 }
 
 export async function getTeamDetail(
@@ -285,13 +374,32 @@ export async function removeMyTeamSalesman(
   });
 }
 
+const EMPTY_TEAM_DETAIL: TeamDetail = {
+  team: null,
+  members: [],
+  clients: [],
+};
+
+function createEmptyTeamManagementPageData(options: {
+  viewerRole: AppRole | null;
+  viewerStatus: UserStatus | null;
+}): TeamManagementPageData {
+  return {
+    viewerRole: options.viewerRole,
+    viewerStatus: options.viewerStatus,
+    canView: canViewTeamPanel(options.viewerRole, options.viewerStatus),
+    overviews: [],
+    detail: EMPTY_TEAM_DETAIL,
+    selectedTeamId: null,
+    candidateSalesmen: [],
+    managerCandidates: [],
+    createManagerCandidates: [],
+  };
+}
+
 function normalizeTeamDetail(value: unknown): TeamDetail {
   if (typeof value !== "object" || value === null) {
-    return {
-      team: null,
-      members: [],
-      clients: [],
-    };
+    return EMPTY_TEAM_DETAIL;
   }
 
   const team =

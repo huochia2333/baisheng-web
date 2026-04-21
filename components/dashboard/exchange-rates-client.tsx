@@ -1,36 +1,28 @@
 "use client";
 
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { useTranslations } from "next-intl";
 import { ShieldAlert } from "lucide-react";
-import { useRouter } from "next/navigation";
 
 import {
   markBrowserCloudSyncActivity,
-  shouldRecoverBrowserCloudSyncState,
 } from "@/lib/browser-sync-recovery";
 import {
   buildExchangeRateLatestRows,
-  canManageExchangeRatesByRole,
-  canReadExchangeRatesByRole,
   createExchangeRate,
   deleteExchangeRate,
-  getCurrentExchangeRateViewerContext,
+  getExchangeRatesPageData,
   getExchangeRatePairLabel,
-  getExchangeRates,
   normalizeCurrencyCode,
   sortExchangeRateRows,
+  type ExchangeRatesPageData,
   updateExchangeRate,
   type ExchangeRateRow,
 } from "@/lib/exchange-rates";
 import { getBrowserSupabaseClient } from "@/lib/supabase";
-import { useBrowserCloudSyncRecovery } from "@/lib/use-browser-cloud-sync-recovery";
 import { useDashboardPagination } from "@/lib/use-dashboard-pagination";
-import { useResumeRecovery } from "@/lib/use-resume-recovery";
-import { useSupabaseAuthSync } from "@/lib/use-supabase-auth-sync";
 
-import { DashboardCenteredLoadingState } from "./dashboard-centered-loading-state";
 import {
   EmptyState,
   PageBanner,
@@ -52,9 +44,11 @@ import {
   toExchangeRateErrorMessage,
   type ExchangeRateFormState,
 } from "./exchange-rates/exchange-rates-utils";
+import { useWorkspaceSyncEffect } from "./workspace-session-provider";
 
 type ExchangeRatesClientProps = {
   homeHref: string;
+  initialData: ExchangeRatesPageData;
   mode: "manage" | "readonly";
 };
 
@@ -67,18 +61,16 @@ type PageFeedback = { tone: NoticeTone; message: string } | null;
 
 export function ExchangeRatesClient({
   homeHref,
+  initialData,
   mode,
 }: ExchangeRatesClientProps) {
-  const router = useRouter();
   const supabase = getBrowserSupabaseClient();
   const t = useTranslations("ExchangeRates");
   const exchangeRateCopy = useMemo(() => createExchangeRateCopy(t), [t]);
 
-  const [loading, setLoading] = useState(true);
-  const { recoverCloudSync, syncGeneration } = useBrowserCloudSyncRecovery();
-  const [hasPermission, setHasPermission] = useState<boolean | null>(null);
+  const [hasPermission, setHasPermission] = useState(initialData.hasPermission);
   const [pageFeedback, setPageFeedback] = useState<PageFeedback>(null);
-  const [rates, setRates] = useState<ExchangeRateRow[]>([]);
+  const [rates, setRates] = useState<ExchangeRateRow[]>(initialData.rates);
   const [filters, setFilters] = useState<FilterState>({
     originalCurrency: "",
     targetCurrency: "",
@@ -100,61 +92,29 @@ export function ExchangeRatesClient({
   const [editingRate, setEditingRate] = useState<ExchangeRateRow | null>(null);
   const [deletePendingId, setDeletePendingId] = useState<string | null>(null);
 
-  const loadingStateRef = useRef(true);
-  loadingStateRef.current = loading;
+  const applyPageData = useCallback((pageData: ExchangeRatesPageData) => {
+    setHasPermission(pageData.hasPermission);
+    setRates(pageData.rates);
+  }, []);
 
-  const loadExchangeRates = useCallback(
-    async ({
-      isMounted,
-      showLoading,
-    }: {
-      isMounted: () => boolean;
-      showLoading: boolean;
-    }) => {
+  useEffect(() => {
+    applyPageData(initialData);
+  }, [applyPageData, initialData]);
+
+  const refreshExchangeRates = useCallback(
+    async ({ isMounted }: { isMounted: () => boolean }) => {
       if (!supabase) {
         return;
       }
 
-      if (showLoading && isMounted()) {
-        setLoading(true);
-      }
-
       try {
-        if (shouldRecoverBrowserCloudSyncState()) {
-          recoverCloudSync();
-          return;
-        }
-
-        const viewer = await getCurrentExchangeRateViewerContext(supabase);
+        const nextPageData = await getExchangeRatesPageData(supabase, mode);
 
         if (!isMounted()) {
           return;
         }
 
-        if (!viewer) {
-          router.replace("/login");
-          return;
-        }
-
-        const nextCanRead = canReadExchangeRatesByRole(viewer.role, viewer.status);
-        const nextCanManage = canManageExchangeRatesByRole(viewer.role);
-        const nextHasPermission = mode === "manage" ? nextCanManage : nextCanRead;
-
-        setHasPermission(nextHasPermission);
-
-        if (!nextHasPermission) {
-          setRates([]);
-          setPageFeedback(null);
-          return;
-        }
-
-        const nextRates = await getExchangeRates(supabase);
-
-        if (!isMounted()) {
-          return;
-        }
-
-        setRates(nextRates);
+        applyPageData(nextPageData);
         setPageFeedback(null);
       } catch (error) {
         if (!isMounted()) {
@@ -174,42 +134,12 @@ export function ExchangeRatesClient({
           tone: "error",
           message,
         });
-      } finally {
-        if (showLoading && isMounted()) {
-          setLoading(false);
-        }
       }
     },
-    [exchangeRateCopy, mode, recoverCloudSync, router, supabase],
+    [applyPageData, exchangeRateCopy, mode, supabase],
   );
 
-  useSupabaseAuthSync(supabase, {
-    refreshKey: syncGeneration,
-    onReady: ({ isMounted }) =>
-      loadExchangeRates({
-        isMounted,
-        showLoading: loadingStateRef.current,
-      }),
-    onAuthStateChange: async ({ isMounted, session }) => {
-      if (!isMounted()) {
-        return;
-      }
-
-      if (!session?.user) {
-        router.replace("/login");
-        return;
-      }
-
-      await loadExchangeRates({
-        isMounted,
-        showLoading: false,
-      });
-    },
-  });
-
-  useResumeRecovery(recoverCloudSync, {
-    enabled: Boolean(supabase),
-  });
+  useWorkspaceSyncEffect(refreshExchangeRates);
 
   const canManage = mode === "manage" && hasPermission === true;
   const latestRows = useMemo(() => buildExchangeRateLatestRows(rates), [rates]);
@@ -504,10 +434,6 @@ export function ExchangeRatesClient({
     },
     [handleDeleteRate],
   );
-
-  if (!supabase || loading) {
-    return <DashboardCenteredLoadingState message={t("loading")} />;
-  }
 
   return (
     <section className="mx-auto flex w-full max-w-[1320px] flex-col gap-8">

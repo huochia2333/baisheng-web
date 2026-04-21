@@ -18,13 +18,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 
-import {
-  getDefaultWorkspaceBasePath,
-  getWorkspaceBasePath,
-} from "@/lib/auth-routing";
-import { getRoleFromAuthClaims } from "@/lib/auth-session-client";
 import { getBrowserSupabaseClient } from "@/lib/supabase";
-import { useSupabaseAuthSync } from "@/lib/use-supabase-auth-sync";
 import type { WorkspaceNavItem } from "@/lib/workspace-config";
 import { cn } from "@/lib/utils";
 
@@ -54,55 +48,6 @@ const NAV_ICONS: Record<WorkspaceNavItem["segment"], LucideIcon> = {
   tasks: ClipboardList,
   team: UsersRound,
 };
-
-export function AdminShellSessionSync() {
-  const pathname = usePathname();
-  const router = useRouter();
-  const supabase = getBrowserSupabaseClient();
-
-  useSupabaseAuthSync(supabase, {
-    includeInitialSessionEvent: true,
-    onAuthStateChange: async ({ isMounted, session }) => {
-      if (!isMounted()) {
-        return;
-      }
-
-      const authClient = supabase;
-
-      if (!authClient) {
-        return;
-      }
-
-      if (!session?.user) {
-        router.replace("/login");
-        return;
-      }
-
-      const currentBasePath = getWorkspaceBasePath(pathname);
-
-      if (!currentBasePath) {
-        return;
-      }
-
-      const role = await getRoleFromAuthClaims(authClient, session.user);
-
-      if (!role) {
-        return;
-      }
-
-      const desiredBasePath = getDefaultWorkspaceBasePath(role);
-
-      if (currentBasePath === desiredBasePath) {
-        return;
-      }
-
-      const suffix = pathname.slice(currentBasePath.length) || "/my";
-      router.replace(`${desiredBasePath}${suffix}`);
-    },
-  });
-
-  return null;
-}
 
 export function AdminShellNav({ items, mode }: AdminShellNavProps) {
   const pathname = usePathname();

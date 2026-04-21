@@ -47,6 +47,12 @@ export type PendingMediaReviewWithPreview = PendingMediaReviewRow & {
   previewUrl: string | null;
 };
 
+export type AdminReviewsPageData = {
+  hasPermission: boolean;
+  privacyRows: PendingPrivacyReviewRow[];
+  mediaRows: PendingMediaReviewWithPreview[];
+};
+
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
 }
@@ -131,6 +137,35 @@ export async function getCurrentReviewerContext(
   return {
     user,
     role,
+  };
+}
+
+export function canViewAdminReviews(role: AppRole | null) {
+  return role === "administrator";
+}
+
+export async function getAdminReviewsPageData(
+  supabase: SupabaseClient,
+): Promise<AdminReviewsPageData> {
+  const reviewer = await getCurrentReviewerContext(supabase);
+
+  if (!reviewer || !canViewAdminReviews(reviewer.role)) {
+    return {
+      hasPermission: false,
+      privacyRows: [],
+      mediaRows: [],
+    };
+  }
+
+  const [privacyRows, mediaRows] = await Promise.all([
+    getPendingPrivacyReviews(supabase),
+    getPendingMediaReviews(supabase),
+  ]);
+
+  return {
+    hasPermission: true,
+    privacyRows,
+    mediaRows,
   };
 }
 

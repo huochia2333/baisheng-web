@@ -1,6 +1,7 @@
 import type { SupabaseClient, User } from "@supabase/supabase-js";
 
 import { withRequestTimeout } from "./request-timeout";
+import { getVisibleTeamOverviews, type TeamOverview } from "./team-management";
 import {
   getCurrentSessionContext,
   type AppRole,
@@ -69,6 +70,8 @@ const ADMIN_TASK_ATTACHMENT_ALLOWED_EXTENSIONS = new Set([
 
 export type TaskScope = "public" | "team";
 export type TaskStatus = "to_be_accepted" | "accepted" | "completed";
+export type AdminTaskStatusFilter = "all" | TaskStatus;
+export type AdminTaskScopeFilter = "all" | TaskScope;
 
 export type AdminTaskViewerContext = {
   user: User;
@@ -119,6 +122,27 @@ export type AdminTaskRow = AdminTaskMainRow & {
   accepted_by: TaskProfileSummary | null;
   team: TaskTeamSummary | null;
   attachments: AdminTaskAttachment[];
+};
+
+export type AdminTasksPageData = {
+  viewerId: string | null;
+  viewerRole: AppRole | null;
+  viewerStatus: UserStatus | null;
+  canView: boolean;
+  tasks: AdminTaskRow[];
+  teamOptions: TeamOverview[];
+};
+
+export type AdminTasksFilters = {
+  searchText: string;
+  scope: AdminTaskScopeFilter;
+  status: AdminTaskStatusFilter;
+  teamId: string;
+};
+
+export type AdminTasksSearchParams = {
+  filters: AdminTasksFilters;
+  page: number;
 };
 
 export type CreateAdminTaskInput = {
@@ -186,6 +210,71 @@ export async function getCurrentTaskViewerContext(
     user,
     role,
     status,
+  };
+}
+
+export function canViewAdminTaskBoard(role: AppRole | null, status: UserStatus | null) {
+  return role === "administrator" && (status === null || status === "active");
+}
+
+export function normalizeAdminTasksFilters(
+  filters?: Partial<AdminTasksFilters> | null,
+): AdminTasksFilters {
+  return {
+    searchText: normalizeNullableString(filters?.searchText) ?? "",
+    scope: normalizeAdminTaskScopeFilter(filters?.scope),
+    status: normalizeAdminTaskStatusFilter(filters?.status),
+    teamId: normalizeNullableString(filters?.teamId) ?? "all",
+  };
+}
+
+export function parseAdminTasksSearchParams(
+  searchParams: Record<string, string | string[] | undefined>,
+): AdminTasksSearchParams {
+  return {
+    filters: normalizeAdminTasksFilters({
+      searchText: getSingleSearchParam(searchParams.searchText),
+      scope: normalizeAdminTaskScopeFilter(getSingleSearchParam(searchParams.scope)),
+      status: normalizeAdminTaskStatusFilter(getSingleSearchParam(searchParams.status)),
+      teamId: getSingleSearchParam(searchParams.teamId),
+    }),
+    page: normalizePositiveInteger(getSingleSearchParam(searchParams.page), 1),
+  };
+}
+
+export async function getAdminTasksPageData(
+  supabase: SupabaseClient,
+): Promise<AdminTasksPageData> {
+  const viewer = await getCurrentTaskViewerContext(supabase);
+
+  if (!viewer) {
+    return createEmptyAdminTasksPageData({
+      viewerId: null,
+      viewerRole: null,
+      viewerStatus: null,
+    });
+  }
+
+  if (!canViewAdminTaskBoard(viewer.role, viewer.status)) {
+    return createEmptyAdminTasksPageData({
+      viewerId: viewer.user.id,
+      viewerRole: viewer.role,
+      viewerStatus: viewer.status,
+    });
+  }
+
+  const [tasks, teamOptions] = await Promise.all([
+    getAdminTasks(supabase),
+    getVisibleTeamOverviews(supabase),
+  ]);
+
+  return {
+    viewerId: viewer.user.id,
+    viewerRole: viewer.role,
+    viewerStatus: viewer.status,
+    canView: true,
+    tasks,
+    teamOptions,
   };
 }
 
@@ -446,6 +535,45 @@ export async function deleteAdminTask(
       attachmentCleanupFailed: true,
     };
   }
+}
+
+function createEmptyAdminTasksPageData(options: {
+  viewerId: string | null;
+  viewerRole: AppRole | null;
+  viewerStatus: UserStatus | null;
+}): AdminTasksPageData {
+  return {
+    viewerId: options.viewerId,
+    viewerRole: options.viewerRole,
+    viewerStatus: options.viewerStatus,
+    canView: canViewAdminTaskBoard(options.viewerRole, options.viewerStatus),
+    tasks: [],
+    teamOptions: [],
+  };
+}
+
+function getSingleSearchParam(value: string | string[] | undefined) {
+  return Array.isArray(value) ? value[0] : value;
+}
+
+function normalizePositiveInteger(value: string | null | undefined, fallback: number) {
+  const parsed = Number.parseInt(value ?? "", 10);
+
+  if (!Number.isFinite(parsed) || parsed < 1) {
+    return fallback;
+  }
+
+  return parsed;
+}
+
+function normalizeAdminTaskScopeFilter(value: unknown): AdminTaskScopeFilter {
+  return value === "public" || value === "team" ? value : "all";
+}
+
+function normalizeAdminTaskStatusFilter(value: unknown): AdminTaskStatusFilter {
+  return value === "to_be_accepted" || value === "accepted" || value === "completed"
+    ? value
+    : "all";
 }
 
 async function getTaskAttachmentsByTaskIds(

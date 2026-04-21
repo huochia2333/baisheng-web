@@ -1,90 +1,64 @@
 "use client";
 
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import type { ReactNode } from "react";
 import { useTranslations } from "next-intl";
-import { useRouter } from "next/navigation";
 import { BadgeDollarSign, Coins, ReceiptText, ShieldAlert, WalletCards } from "lucide-react";
 
-import { canViewSalesmanCommissionBoard, getCurrentSalesmanCommissionViewerContext, getVisibleSalesmanCommissions } from "@/lib/salesman-commission";
-import { shouldRecoverBrowserCloudSyncState } from "@/lib/browser-sync-recovery";
+import { getSalesmanCommissionPageData, type SalesmanCommissionPageData } from "@/lib/salesman-commission";
 import { getBrowserSupabaseClient } from "@/lib/supabase";
-import { useBrowserCloudSyncRecovery } from "@/lib/use-browser-cloud-sync-recovery";
 import { useDashboardPagination } from "@/lib/use-dashboard-pagination";
-import { useResumeRecovery } from "@/lib/use-resume-recovery";
-import { useSupabaseAuthSync } from "@/lib/use-supabase-auth-sync";
 import type { AdminCommissionRow, CommissionSettlementStatus } from "@/lib/admin-commission";
-import type { AppRole, UserStatus } from "@/lib/user-self-service";
 import { cn } from "@/lib/utils";
 import { useLocale } from "@/components/i18n/locale-provider";
 
 import { formatCommissionMoney, getCommissionCategoryLabel, getCommissionOrderStatusLabel, getCommissionOriginText, getCommissionSettlementStatusLabel, toCommissionErrorMessage } from "./commission-copy";
-import { DashboardCenteredLoadingState } from "./dashboard-centered-loading-state";
 import { DashboardMetricCard } from "./dashboard-metric-card";
 import { DashboardPaginationControls } from "./dashboard-pagination-controls";
 import { EmptyState, PageBanner, formatDateTime, type NoticeTone } from "./dashboard-shared-ui";
+import { useWorkspaceSyncEffect } from "./workspace-session-provider";
 
 type PageFeedback = { tone: NoticeTone; message: string } | null;
 
-export function SalesmanCommissionClient() {
-  const router = useRouter();
+export function SalesmanCommissionClient({
+  initialData,
+}: {
+  initialData: SalesmanCommissionPageData;
+}) {
   const supabase = getBrowserSupabaseClient();
   const t = useTranslations("Commission");
   const { locale } = useLocale();
-  const [loading, setLoading] = useState(true);
-  const { recoverCloudSync, syncGeneration } = useBrowserCloudSyncRecovery();
   const [pageFeedback, setPageFeedback] = useState<PageFeedback>(null);
-  const [viewerRole, setViewerRole] = useState<AppRole | null>(null);
-  const [viewerStatus, setViewerStatus] = useState<UserStatus | null>(null);
-  const [commissions, setCommissions] = useState<AdminCommissionRow[]>([]);
-  const loadingStateRef = useRef(true);
-  loadingStateRef.current = loading;
+  const [hasPermission, setHasPermission] = useState(initialData.hasPermission);
+  const [commissions, setCommissions] = useState<AdminCommissionRow[]>(initialData.commissions);
 
-  const loadCommissionBoard = useCallback(async ({ isMounted, showLoading }: { isMounted: () => boolean; showLoading: boolean }) => {
+  const applyPageData = useCallback((pageData: SalesmanCommissionPageData) => {
+    setHasPermission(pageData.hasPermission);
+    setCommissions(pageData.commissions);
+  }, []);
+
+  const refreshCommissionBoard = useCallback(async ({ isMounted }: { isMounted: () => boolean }) => {
     if (!supabase) return;
-    if (showLoading && isMounted()) setLoading(true);
+
     try {
-      if (shouldRecoverBrowserCloudSyncState()) { recoverCloudSync(); return; }
-      const viewer = await getCurrentSalesmanCommissionViewerContext(supabase);
+      const nextPageData = await getSalesmanCommissionPageData(supabase);
       if (!isMounted()) return;
-      if (!viewer) { router.replace("/login"); return; }
-      setViewerRole(viewer.role);
-      setViewerStatus(viewer.status);
-      if (!canViewSalesmanCommissionBoard(viewer.role, viewer.status)) { setCommissions([]); setPageFeedback(null); return; }
-      const nextCommissions = await getVisibleSalesmanCommissions(supabase, viewer);
-      if (!isMounted()) return;
-      setCommissions(nextCommissions);
+      applyPageData(nextPageData);
       setPageFeedback(null);
     } catch (error) {
       if (!isMounted()) return;
       setPageFeedback({ tone: "error", message: toCommissionErrorMessage(error, t, "salesman") });
-    } finally {
-      if (showLoading && isMounted()) setLoading(false);
     }
-  }, [recoverCloudSync, router, supabase, t]);
+  }, [applyPageData, supabase, t]);
 
-  useSupabaseAuthSync(supabase, {
-    refreshKey: syncGeneration,
-    onReady: ({ isMounted }) => loadCommissionBoard({ isMounted, showLoading: loadingStateRef.current }),
-    onAuthStateChange: async ({ isMounted, session }) => {
-      if (!isMounted()) return;
-      if (!session?.user) { router.replace("/login"); return; }
-      await loadCommissionBoard({ isMounted, showLoading: false });
-    },
-  });
-  useResumeRecovery(recoverCloudSync, { enabled: Boolean(supabase) });
+  useWorkspaceSyncEffect(refreshCommissionBoard);
 
-  const hasPermission = canViewSalesmanCommissionBoard(viewerRole, viewerStatus);
   const commissionsPagination = useDashboardPagination(commissions);
   const summary = useMemo(() => ({
     totalAmount: commissions.reduce((sum, commission) => sum + commission.commissionAmountRmb, 0),
     pendingAmount: commissions.filter((commission) => commission.settlementStatus === "pending").reduce((sum, commission) => sum + commission.commissionAmountRmb, 0),
     paidAmount: commissions.filter((commission) => commission.settlementStatus === "paid").reduce((sum, commission) => sum + commission.commissionAmountRmb, 0),
   }), [commissions]);
-
-  if (!supabase || loading) {
-    return <DashboardCenteredLoadingState message={t("salesman.loading")} />;
-  }
 
   return (
     <section className="mx-auto flex w-full max-w-[1320px] flex-col gap-8">

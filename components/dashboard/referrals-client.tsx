@@ -1,10 +1,9 @@
 "use client";
 
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import type { ReactNode } from "react";
 
 import { useTranslations } from "next-intl";
-import { useRouter } from "next/navigation";
 import {
   ChevronDown,
   ChevronRight,
@@ -20,18 +19,11 @@ import {
 
 import { useLocale } from "@/components/i18n/locale-provider";
 import {
-  markBrowserCloudSyncActivity,
-  resetBrowserCloudSyncState,
-  shouldRecoverBrowserCloudSyncState,
-} from "@/lib/browser-sync-recovery";
-import {
-  getCurrentReferralTreeViewerContext,
-  getReferralTreeEdges,
+  getReferralsPageData,
+  type ReferralsPageData,
   type ReferralTreeEdge,
 } from "@/lib/referrals";
 import { getBrowserSupabaseClient } from "@/lib/supabase";
-import { useResumeRecovery } from "@/lib/use-resume-recovery";
-import { useSupabaseAuthSync } from "@/lib/use-supabase-auth-sync";
 import type { AppRole, UserStatus } from "@/lib/user-self-service";
 
 import {
@@ -44,8 +36,8 @@ import {
   type DashboardSharedCopy,
   type NoticeTone,
 } from "./dashboard-shared-ui";
-import { DashboardCenteredLoadingState } from "./dashboard-centered-loading-state";
 import { DashboardMetricCard } from "./dashboard-metric-card";
+import { useWorkspaceSyncEffect } from "./workspace-session-provider";
 
 type PageFeedback = { tone: NoticeTone; message: string } | null;
 type TranslationValues = Record<string, string | number>;
@@ -124,8 +116,11 @@ function createReferralsCopy(t: ReferralTranslator): ReferralsCopy {
   };
 }
 
-export function ReferralsClient() {
-  const router = useRouter();
+export function ReferralsClient({
+  initialData,
+}: {
+  initialData: ReferralsPageData;
+}) {
   const supabase = getBrowserSupabaseClient();
   const t = useTranslations("Referrals");
   const sharedT = useTranslations("DashboardShared");
@@ -136,75 +131,38 @@ export function ReferralsClient() {
     [sharedT],
   );
 
-  const [loading, setLoading] = useState(true);
-  const [syncGeneration, setSyncGeneration] = useState(0);
-  const [canViewReferrals, setCanViewReferrals] = useState<boolean | null>(null);
+  const [canViewReferrals, setCanViewReferrals] = useState(initialData.canViewReferrals);
   const [pageFeedback, setPageFeedback] = useState<PageFeedback>(null);
-  const [edges, setEdges] = useState<ReferralTreeEdge[]>([]);
-  const [currentViewerId, setCurrentViewerId] = useState<string | null>(null);
-  const [currentViewerRole, setCurrentViewerRole] = useState<AppRole | null>(null);
+  const [edges, setEdges] = useState<ReferralTreeEdge[]>(initialData.edges);
+  const [currentViewerId, setCurrentViewerId] = useState<string | null>(
+    initialData.currentViewerId,
+  );
+  const [currentViewerRole, setCurrentViewerRole] = useState<AppRole | null>(
+    initialData.currentViewerRole,
+  );
   const [searchText, setSearchText] = useState("");
-  const loadingStateRef = useRef(true);
 
-  loadingStateRef.current = loading;
-
-  const recoverCloudSync = useCallback(() => {
-    resetBrowserCloudSyncState();
-    markBrowserCloudSyncActivity();
-    setSyncGeneration((current) => current + 1);
+  const applyPageData = useCallback((pageData: ReferralsPageData) => {
+    setCanViewReferrals(pageData.canViewReferrals);
+    setEdges(pageData.edges);
+    setCurrentViewerId(pageData.currentViewerId);
+    setCurrentViewerRole(pageData.currentViewerRole);
   }, []);
 
-  const loadReferrals = useCallback(
-    async ({
-      isMounted,
-      showLoading,
-    }: {
-      isMounted: () => boolean;
-      showLoading: boolean;
-    }) => {
+  const refreshReferrals = useCallback(
+    async ({ isMounted }: { isMounted: () => boolean }) => {
       if (!supabase) {
         return;
       }
 
-      if (showLoading && isMounted()) {
-        setLoading(true);
-      }
-
       try {
-        if (shouldRecoverBrowserCloudSyncState()) {
-          recoverCloudSync();
-          return;
-        }
-
-        const viewer = await getCurrentReferralTreeViewerContext(supabase);
+        const nextPageData = await getReferralsPageData(supabase);
 
         if (!isMounted()) {
           return;
         }
 
-        if (!viewer) {
-          router.replace("/login");
-          return;
-        }
-
-        const nextCanViewReferrals = canReadReferralTreeByRole(viewer.role, viewer.status);
-        setCanViewReferrals(nextCanViewReferrals);
-        setCurrentViewerId(viewer.user.id);
-        setCurrentViewerRole(viewer.role);
-
-        if (!nextCanViewReferrals) {
-          setEdges([]);
-          setPageFeedback(null);
-          return;
-        }
-
-        const nextEdges = await getReferralTreeEdges(supabase);
-
-        if (!isMounted()) {
-          return;
-        }
-
-        setEdges(nextEdges);
+        applyPageData(nextPageData);
         setPageFeedback(null);
       } catch (error) {
         if (!isMounted()) {
@@ -215,42 +173,12 @@ export function ReferralsClient() {
           tone: "error",
           message: toReferralErrorMessage(error, copy, sharedCopy),
         });
-      } finally {
-        if (showLoading && isMounted()) {
-          setLoading(false);
-        }
       }
     },
-    [copy, recoverCloudSync, router, sharedCopy, supabase],
+    [applyPageData, copy, sharedCopy, supabase],
   );
 
-  useSupabaseAuthSync(supabase, {
-    refreshKey: syncGeneration,
-    onReady: ({ isMounted }) =>
-      loadReferrals({
-        isMounted,
-        showLoading: loadingStateRef.current,
-      }),
-    onAuthStateChange: async ({ isMounted, session }) => {
-      if (!isMounted()) {
-        return;
-      }
-
-      if (!session?.user) {
-        router.replace("/login");
-        return;
-      }
-
-      await loadReferrals({
-        isMounted,
-        showLoading: false,
-      });
-    },
-  });
-
-  useResumeRecovery(recoverCloudSync, {
-    enabled: Boolean(supabase),
-  });
+  useWorkspaceSyncEffect(refreshReferrals);
 
   const graph = useMemo(() => buildReferralGraph(edges), [edges]);
   const sectionDescription = useMemo(
@@ -270,10 +198,6 @@ export function ReferralsClient() {
       ).length,
     [edges, treeDisplay.visibleNodeIds],
   );
-
-  if (loading) {
-    return <DashboardCenteredLoadingState message={t("loading")} />;
-  }
 
   return (
     <section className="mx-auto flex w-full max-w-[1320px] flex-col gap-8">
@@ -731,10 +655,6 @@ function getSortablePersonLabel(person: ReferralPerson | undefined) {
   }
 
   return getPersonDisplayName(person);
-}
-
-function canReadReferralTreeByRole(role: AppRole | null, status: UserStatus | null) {
-  return status === "active" && role !== null;
 }
 
 function getRoleLabel(role: AppRole | null, copy: ReferralsCopy) {

@@ -490,7 +490,7 @@ function OrderDetailsDialog({
   order: AdminOrderRow | null;
   userLabelById: Map<string, string>;
   orderTypeMetaById: Map<string, ReturnType<typeof getOrderTypeMetaFromCategory>>;
-  supabase: NonNullable<ReturnType<typeof getBrowserSupabaseClient>>;
+  supabase: ReturnType<typeof getBrowserSupabaseClient>;
   onEdit: (order: AdminOrderRow) => void;
   onDelete: () => void;
   deletePending: boolean;
@@ -516,7 +516,7 @@ function OrderDetailsDialog({
   });
 
   useEffect(() => {
-    if (!orderNumber) {
+    if (!orderNumber || !supabase) {
       return;
     }
 

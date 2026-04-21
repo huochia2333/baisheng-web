@@ -38,6 +38,13 @@ export type ReferralTreeViewerContext = {
   status: UserStatus | null;
 };
 
+export type ReferralsPageData = {
+  canViewReferrals: boolean;
+  currentViewerId: string | null;
+  currentViewerRole: AppRole | null;
+  edges: ReferralTreeEdge[];
+};
+
 export async function getCurrentReferralTreeViewerContext(
   supabase: SupabaseClient,
 ): Promise<ReferralTreeViewerContext | null> {
@@ -51,6 +58,37 @@ export async function getCurrentReferralTreeViewerContext(
     user,
     role,
     status,
+  };
+}
+
+export function canReadReferralTreeByRole(
+  role: AppRole | null,
+  status: UserStatus | null,
+) {
+  return status === "active" && role !== null;
+}
+
+export async function getReferralsPageData(
+  supabase: SupabaseClient,
+): Promise<ReferralsPageData> {
+  const viewer = await getCurrentReferralTreeViewerContext(supabase);
+
+  if (!viewer) {
+    return {
+      canViewReferrals: false,
+      currentViewerId: null,
+      currentViewerRole: null,
+      edges: [],
+    };
+  }
+
+  const canViewReferrals = canReadReferralTreeByRole(viewer.role, viewer.status);
+
+  return {
+    canViewReferrals,
+    currentViewerId: viewer.user.id,
+    currentViewerRole: viewer.role,
+    edges: canViewReferrals ? await getReferralTreeEdges(supabase) : [],
   };
 }
 

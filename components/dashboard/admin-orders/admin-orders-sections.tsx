@@ -58,19 +58,18 @@ type OrdersPaginationState = {
 
 type OrdersTableSectionProps = {
   canViewOrderCosts: boolean;
-  filteredOrders: AdminOrderRow[];
   filters: {
     orderEntryUser: string;
     orderNumber: string;
     orderingUser: string;
   };
+  matchedOrdersCount: number;
   onClearFilters: () => void;
   onOrderEntryUserChange: (value: string) => void;
   onOrderNumberChange: (value: string) => void;
   onOrderingUserChange: (value: string) => void;
   onSelectOrder: (order: AdminOrderRow) => void;
   orderTypeMetaById: Map<string, ReturnType<typeof getOrderTypeMetaFromCategory>>;
-  ordersCount: number;
   pagination: OrdersPaginationState;
   rows: AdminOrderRow[];
   showCreatedAtColumn: boolean;
@@ -78,6 +77,7 @@ type OrdersTableSectionProps = {
   showOrderEntryFilter: boolean;
   showOrderingColumn: boolean;
   showOrderingFilter: boolean;
+  totalOrdersCount: number;
   userLabelById: Map<string, string>;
 };
 
@@ -155,15 +155,14 @@ export const OrdersHeaderSection = memo(function OrdersHeaderSection({
 
 export const OrdersTableSection = memo(function OrdersTableSection({
   canViewOrderCosts,
-  filteredOrders,
   filters,
+  matchedOrdersCount,
   onClearFilters,
   onOrderEntryUserChange,
   onOrderNumberChange,
   onOrderingUserChange,
   onSelectOrder,
   orderTypeMetaById,
-  ordersCount,
   pagination,
   rows,
   showCreatedAtColumn,
@@ -171,6 +170,7 @@ export const OrdersTableSection = memo(function OrdersTableSection({
   showOrderEntryFilter,
   showOrderingColumn,
   showOrderingFilter,
+  totalOrdersCount,
   userLabelById,
 }: OrdersTableSectionProps) {
   const t = useTranslations("Orders");
@@ -229,8 +229,8 @@ export const OrdersTableSection = memo(function OrdersTableSection({
         <div className="flex flex-col justify-end gap-3 lg:items-end">
           <p className="text-sm text-[#69747d]">
             {t("filters.resultSummary", {
-              total: ordersCount,
-              matched: filteredOrders.length,
+              total: totalOrdersCount,
+              matched: matchedOrdersCount,
             })}
           </p>
           <Button
@@ -244,7 +244,7 @@ export const OrdersTableSection = memo(function OrdersTableSection({
         </div>
       </div>
 
-      {filteredOrders.length === 0 ? (
+      {matchedOrdersCount === 0 ? (
         <EmptyState
           description={t("states.noMatchDescription")}
           icon={<ClipboardList className="size-6" />}

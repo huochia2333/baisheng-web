@@ -1,47 +1,26 @@
 ﻿"use client";
 
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from "react";
 
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { ReceiptText, ShieldAlert } from "lucide-react";
 
 import {
+  type AdminOrdersFilters,
+  type AdminOrdersPageData,
   createAdminOrder,
   deleteAdminOrder,
   forceDeleteAdminOrder,
-  getAdminOrders,
-  getAdminOrderCosts,
   getAdminOrderSupplementaryDetail,
-  getCurrentOrderViewerContext,
-  mergeAdminOrdersWithCosts,
-  getOrderDiscountTypeOptions,
-  getOrderTypeOptions,
-  getOrderUserOptions,
-  getPurchaseOrderTypeOptions,
-  getServiceOrderTypeOptions,
   updateAdminOrder,
   type AdminOrderRow,
-  type BusinessCategoryOption,
-  type OrderDiscountTypeOption,
-  type OrderUserOption,
-  type PurchaseOrderTypeOption,
-  type ServiceOrderTypeOption,
 } from "@/lib/admin-orders";
-import {
-  shouldRecoverBrowserCloudSyncState,
-} from "@/lib/browser-sync-recovery";
 import { getBrowserSupabaseClient } from "@/lib/supabase";
-import { useBrowserCloudSyncRecovery } from "@/lib/use-browser-cloud-sync-recovery";
-import type { AppRole, UserStatus } from "@/lib/user-self-service";
-import { useSupabaseAuthSync } from "@/lib/use-supabase-auth-sync";
-import { useResumeRecovery } from "@/lib/use-resume-recovery";
-import { useDashboardPagination } from "@/lib/use-dashboard-pagination";
 
 import {
   createDashboardSharedCopy,
   EmptyState,
-  normalizeSearchText,
   PageBanner,
   normalizeOptionalString,
   type NoticeTone,
@@ -49,7 +28,6 @@ import {
 import {
   OrderDetailsDialog,
   OrderFormDialog,
-  OrdersLoadingState,
 } from "./admin-orders/admin-orders-ui";
 import {
   OrdersHeaderSection,
@@ -59,8 +37,6 @@ import {
   applyOrderFormDefaults,
   canCreateOrderByRole,
   canDeleteOrderByRole,
-  canReadOrderByRole,
-  canReadOrderCostByRole,
   canUpdateOrderByRole,
   createOrdersUiCopy,
   createOrderFormState,
@@ -70,16 +46,16 @@ import {
   getOrderUserOptionLabel,
   getServiceSubtypeCostPreset,
   parseCreateOrderForm,
-  resolveOrderUserLabel,
   toOrderErrorMessage,
   type OrderFormState,
 } from "./admin-orders/admin-orders-utils";
+import { useWorkspaceSyncEffect } from "./workspace-session-provider";
 
 type PageFeedback = { tone: NoticeTone; message: string } | null;
 
 type OrdersClientMode = "admin" | "salesman" | "client";
 
-const EMPTY_ORDER_FILTERS = {
+const EMPTY_ORDER_FILTERS: AdminOrdersFilters = {
   orderEntryUser: "",
   orderNumber: "",
   orderingUser: "",
@@ -215,12 +191,27 @@ function getNextOrderFormState<Key extends keyof OrderFormState>(
   return nextState;
 }
 
+function areOrderFiltersEqual(
+  left: AdminOrdersFilters,
+  right: AdminOrdersFilters,
+) {
+  return (
+    left.orderEntryUser === right.orderEntryUser &&
+    left.orderNumber === right.orderNumber &&
+    left.orderingUser === right.orderingUser
+  );
+}
+
 export function AdminOrdersClient({
+  initialData,
   mode = "admin",
 }: {
+  initialData: AdminOrdersPageData;
   mode?: OrdersClientMode;
 }) {
+  const pathname = usePathname();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const t = useTranslations("Orders");
   const ordersUiT = useTranslations("OrdersUI");
   const sharedT = useTranslations("DashboardShared");
@@ -228,21 +219,9 @@ export function AdminOrdersClient({
   const viewConfig = getOrdersViewConfig(mode, t);
   const ordersUiCopy = useMemo(() => createOrdersUiCopy(ordersUiT), [ordersUiT]);
   const sharedCopy = useMemo(() => createDashboardSharedCopy(sharedT), [sharedT]);
-
-  const [loading, setLoading] = useState(true);
-  const { recoverCloudSync, syncGeneration } = useBrowserCloudSyncRecovery();
-  const [canViewOrders, setCanViewOrders] = useState<boolean | null>(null);
+  const [, startRouteTransition] = useTransition();
   const [pageFeedback, setPageFeedback] = useState<PageFeedback>(null);
-  const [orders, setOrders] = useState<AdminOrderRow[]>([]);
-  const [userOptions, setUserOptions] = useState<OrderUserOption[]>([]);
-  const [typeOptions, setTypeOptions] = useState<BusinessCategoryOption[]>([]);
-  const [purchaseTypeOptions, setPurchaseTypeOptions] = useState<PurchaseOrderTypeOption[]>([]);
-  const [serviceTypeOptions, setServiceTypeOptions] = useState<ServiceOrderTypeOption[]>([]);
-  const [discountOptions, setDiscountOptions] = useState<OrderDiscountTypeOption[]>([]);
-  const [currentViewerId, setCurrentViewerId] = useState<string | null>(null);
-  const [currentViewerRole, setCurrentViewerRole] = useState<AppRole | null>(null);
-  const [currentViewerStatus, setCurrentViewerStatus] = useState<UserStatus | null>(null);
-  const [filters, setFilters] = useState(EMPTY_ORDER_FILTERS);
+  const [filters, setFilters] = useState<AdminOrdersFilters>(initialData.filters);
 
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [createPending, setCreatePending] = useState(false);
@@ -262,155 +241,122 @@ export function AdminOrdersClient({
   );
   const [deletePending, setDeletePending] = useState(false);
   const [forceDeletePending, setForceDeletePending] = useState(false);
-  const loadingStateRef = useRef(true);
   const editSupplementaryLoadTokenRef = useRef(0);
+  const {
+    canViewOrderCosts: serverCanViewOrderCosts,
+    canViewOrders,
+    currentViewerId,
+    currentViewerRole,
+    currentViewerStatus,
+    matchedOrdersCount,
+    orderDiscountOptions,
+    orderTypeOptions,
+    orders,
+    pagination,
+    purchaseOrderTypeOptions,
+    serviceOrderTypeOptions,
+    summary,
+    totalOrdersCount,
+    userOptions,
+  } = initialData;
 
-  loadingStateRef.current = loading;
+  useEffect(() => {
+    setFilters(initialData.filters);
+  }, [initialData.filters]);
 
-  const loadOrders = useCallback(
-    async ({
-      isMounted,
-      showLoading,
-    }: {
-      isMounted: () => boolean;
-      showLoading: boolean;
-    }) => {
-      if (!supabase) {
-        return;
+  useEffect(() => {
+    setSelectedOrder((current) => {
+      if (!current) {
+        return current;
       }
 
-      if (showLoading && isMounted()) {
-        setLoading(true);
-      }
+      return orders.find((item) => item.id === current.id) ?? null;
+    });
+  }, [orders]);
 
-      try {
-        if (shouldRecoverBrowserCloudSyncState()) {
-          recoverCloudSync();
-          return;
-        }
+  useEffect(() => {
+    if (createDialogOpen) {
+      return;
+    }
 
-        const viewer = await getCurrentOrderViewerContext(supabase);
-
-        if (!isMounted()) {
-          return;
-        }
-
-        if (!viewer) {
-          router.replace("/login");
-          return;
-        }
-
-        const nextCanViewOrders = canReadOrderByRole(viewer.role, viewer.status);
-        const nextCanViewOrderCosts =
-          viewConfig.allowCost && canReadOrderCostByRole(viewer.role, viewer.status);
-        setCanViewOrders(nextCanViewOrders);
-        setCurrentViewerId(viewer.user.id);
-        setCurrentViewerRole(viewer.role);
-        setCurrentViewerStatus(viewer.status);
-
-        if (!nextCanViewOrders) {
-          setOrders([]);
-          setUserOptions([]);
-          setTypeOptions([]);
-          setPurchaseTypeOptions([]);
-          setServiceTypeOptions([]);
-          setDiscountOptions([]);
-          setPageFeedback(null);
-          return;
-        }
-
-        const [
-          nextOrders,
-          nextUserOptions,
-          nextTypeOptions,
-          nextPurchaseTypeOptions,
-          nextServiceTypeOptions,
-          nextDiscountOptions,
-        ] = await Promise.all([
-          getAdminOrders(supabase),
-          getOrderUserOptions(supabase),
-          getOrderTypeOptions(supabase),
-          getPurchaseOrderTypeOptions(supabase),
-          getServiceOrderTypeOptions(supabase),
-          getOrderDiscountTypeOptions(supabase),
-        ]);
-        const nextOrderCosts =
-          nextCanViewOrderCosts && nextOrders.length > 0
-            ? await getAdminOrderCosts(
-                supabase,
-                nextOrders.map((order) => order.id),
-              )
-            : [];
-
-        if (!isMounted()) {
-          return;
-        }
-
-        setOrders(
-          nextCanViewOrderCosts
-            ? mergeAdminOrdersWithCosts(nextOrders, nextOrderCosts)
-            : nextOrders,
-        );
-        setUserOptions(nextUserOptions);
-        setTypeOptions(nextTypeOptions);
-        setPurchaseTypeOptions(nextPurchaseTypeOptions);
-        setServiceTypeOptions(nextServiceTypeOptions);
-        setDiscountOptions(nextDiscountOptions);
-        setPageFeedback(null);
-        setCreateFormState((current) =>
-          applyOrderFormDefaults(current, {
-            orderEntryUser: viewer.user.id,
-            orderType: nextTypeOptions[0]?.id ?? "",
-          }),
-        );
-      } catch (error) {
-        if (!isMounted()) {
-          return;
-        }
-
-        setPageFeedback({
-          tone: "error",
-          message: toOrderErrorMessage(error, ordersUiCopy, sharedCopy),
-        });
-      } finally {
-        if (showLoading && isMounted()) {
-          setLoading(false);
-        }
-      }
-    },
-    [ordersUiCopy, recoverCloudSync, router, sharedCopy, supabase, viewConfig.allowCost],
-  );
-
-  useSupabaseAuthSync(supabase, {
-    refreshKey: syncGeneration,
-    onReady: ({ isMounted }) =>
-      loadOrders({
-        isMounted,
-        showLoading: loadingStateRef.current,
+    setCreateFormState((current) =>
+      applyOrderFormDefaults(current, {
+        orderEntryUser: currentViewerId ?? "",
+        orderType: orderTypeOptions[0]?.id ?? "",
       }),
-    onAuthStateChange: async ({ isMounted, session }) => {
-      if (!isMounted()) {
-        return;
+    );
+  }, [createDialogOpen, currentViewerId, orderTypeOptions]);
+
+  const replaceOrdersRoute = useCallback(
+    (next: {
+      filters?: AdminOrdersFilters;
+      page?: number;
+    }) => {
+      const nextFilters = next.filters ?? filters;
+      const nextPage = next.page ?? pagination.page;
+      const nextParams = new URLSearchParams(searchParams.toString());
+
+      if (nextFilters.orderNumber) {
+        nextParams.set("orderNumber", nextFilters.orderNumber);
+      } else {
+        nextParams.delete("orderNumber");
       }
 
-      if (!session?.user) {
-        router.replace("/login");
-        return;
+      if (nextFilters.orderEntryUser) {
+        nextParams.set("orderEntryUser", nextFilters.orderEntryUser);
+      } else {
+        nextParams.delete("orderEntryUser");
       }
 
-      await loadOrders({
-        isMounted,
-        showLoading: false,
+      if (nextFilters.orderingUser) {
+        nextParams.set("orderingUser", nextFilters.orderingUser);
+      } else {
+        nextParams.delete("orderingUser");
+      }
+
+      if (nextPage > 1) {
+        nextParams.set("page", String(nextPage));
+      } else {
+        nextParams.delete("page");
+      }
+
+      const nextQuery = nextParams.toString();
+
+      startRouteTransition(() => {
+        router.replace(nextQuery ? `${pathname}?${nextQuery}` : pathname, {
+          scroll: false,
+        });
       });
     },
-  });
+    [filters, pagination.page, pathname, router, searchParams],
+  );
 
-  useResumeRecovery(recoverCloudSync, {
-    enabled: Boolean(supabase),
-  });
+  useEffect(() => {
+    if (areOrderFiltersEqual(filters, initialData.filters)) {
+      return;
+    }
 
-  const canViewOrderCosts =
-    viewConfig.allowCost && canReadOrderCostByRole(currentViewerRole, currentViewerStatus);
+    const timeoutId = globalThis.setTimeout(() => {
+      replaceOrdersRoute({
+        filters,
+        page: 1,
+      });
+    }, 250);
+
+    return () => {
+      globalThis.clearTimeout(timeoutId);
+    };
+  }, [filters, initialData.filters, replaceOrdersRoute]);
+
+  const refreshOrdersRoute = useCallback(() => {
+    startRouteTransition(() => {
+      router.refresh();
+    });
+  }, [router, startRouteTransition]);
+
+  useWorkspaceSyncEffect(refreshOrdersRoute);
+
+  const canViewOrderCosts = viewConfig.allowCost && serverCanViewOrderCosts;
   const canCreateOrders =
     viewConfig.allowCreate && canCreateOrderByRole(currentViewerRole, currentViewerStatus);
   const canEditOrders =
@@ -440,73 +386,56 @@ export function AdminOrdersClient({
     canCreateOrders &&
     (!viewConfig.limitOrderingUsersToClients || orderingUserOptions.length > 0);
 
-  const summary = useMemo(() => {
-    return {
-      total: orders.length,
-      pending: orders.filter((order) => order.order_status === "pending").length,
-      completed: orders.filter((order) => order.order_status === "completed").length,
-    };
-  }, [orders]);
-
   const userLabelById = useMemo(() => {
     return new Map(userOptions.map((option) => [option.user_id, getOrderUserOptionLabel(option)]));
   }, [userOptions]);
 
   const orderTypeMetaById = useMemo(() => {
     return new Map(
-      typeOptions.map((option) => [
+      orderTypeOptions.map((option) => [
         option.id,
         getOrderTypeMetaFromCategory(option.category, ordersUiCopy),
       ]),
     );
-  }, [ordersUiCopy, typeOptions]);
+  }, [orderTypeOptions, ordersUiCopy]);
 
   const orderCategoryByTypeId = useMemo(() => {
     return new Map(
-      typeOptions.map((option) => [option.id, normalizeOptionalString(option.category)]),
+      orderTypeOptions.map((option) => [option.id, normalizeOptionalString(option.category)]),
     );
-  }, [typeOptions]);
+  }, [orderTypeOptions]);
 
-  const filteredOrders = useMemo(() => {
-    return orders.filter((order) => {
-      const orderNumber = normalizeSearchText(order.order_number);
-      const orderEntryUser = normalizeSearchText(
-        resolveOrderUserLabel(order.order_entry_user, userLabelById),
-      );
-      const orderingUser = normalizeSearchText(
-        resolveOrderUserLabel(order.ordering_user, userLabelById),
-      );
+  const goToPage = useCallback(
+    (page: number) => {
+      replaceOrdersRoute({
+        filters,
+        page,
+      });
+    },
+    [filters, replaceOrdersRoute],
+  );
 
-      return (
-        orderNumber.includes(normalizeSearchText(filters.orderNumber)) &&
-        orderEntryUser.includes(normalizeSearchText(filters.orderEntryUser)) &&
-        orderingUser.includes(normalizeSearchText(filters.orderingUser))
-      );
-    });
-  }, [filters.orderEntryUser, filters.orderNumber, filters.orderingUser, orders, userLabelById]);
-  const ordersPagination = useDashboardPagination(filteredOrders);
   const ordersPaginationState = useMemo(
     () => ({
-      endIndex: ordersPagination.endIndex,
-      hasNextPage: ordersPagination.hasNextPage,
-      hasPreviousPage: ordersPagination.hasPreviousPage,
-      onNextPage: ordersPagination.goToNextPage,
-      onPreviousPage: ordersPagination.goToPreviousPage,
-      page: ordersPagination.page,
-      pageCount: ordersPagination.pageCount,
-      startIndex: ordersPagination.startIndex,
-      totalItems: ordersPagination.totalItems,
+      endIndex: pagination.endIndex,
+      hasNextPage: pagination.hasNextPage,
+      hasPreviousPage: pagination.hasPreviousPage,
+      onNextPage: () => goToPage(pagination.page + 1),
+      onPreviousPage: () => goToPage(pagination.page - 1),
+      page: pagination.page,
+      pageCount: pagination.pageCount,
+      startIndex: pagination.startIndex,
+      totalItems: pagination.totalItems,
     }),
     [
-      ordersPagination.endIndex,
-      ordersPagination.goToNextPage,
-      ordersPagination.goToPreviousPage,
-      ordersPagination.hasNextPage,
-      ordersPagination.hasPreviousPage,
-      ordersPagination.page,
-      ordersPagination.pageCount,
-      ordersPagination.startIndex,
-      ordersPagination.totalItems,
+      goToPage,
+      pagination.endIndex,
+      pagination.hasNextPage,
+      pagination.hasPreviousPage,
+      pagination.page,
+      pagination.pageCount,
+      pagination.startIndex,
+      pagination.totalItems,
     ],
   );
 
@@ -520,11 +449,11 @@ export function AdminOrdersClient({
     setCreateFormState(
       createOrderFormState({
         orderEntryUser: currentViewerId ?? "",
-        orderType: typeOptions[0]?.id ?? "",
+        orderType: orderTypeOptions[0]?.id ?? "",
       }),
     );
     setCreateDialogOpen(true);
-  }, [canOpenCreateDialog, currentViewerId, typeOptions]);
+  }, [canOpenCreateDialog, currentViewerId, orderTypeOptions]);
 
   const openEditDialog = useCallback(
     (order: AdminOrderRow) => {
@@ -606,18 +535,20 @@ export function AdminOrdersClient({
 
     try {
       const createdOrder = await createAdminOrder(supabase, parsed.payload);
-      setOrders((current) => [createdOrder, ...current]);
       setCreateDialogOpen(false);
       setCreateDialogFeedback(null);
       setCreateFormState(
         createOrderFormState({
           orderEntryUser: currentViewerId ?? "",
-          orderType: typeOptions[0]?.id ?? "",
+          orderType: orderTypeOptions[0]?.id ?? "",
         }),
       );
       setPageFeedback({
         tone: "success",
         message: t("feedback.createSuccess", { orderNumber: createdOrder.order_number }),
+      });
+      startRouteTransition(() => {
+        router.refresh();
       });
     } catch (error) {
       setCreateDialogFeedback({
@@ -637,7 +568,9 @@ export function AdminOrdersClient({
     sharedCopy,
     supabase,
     t,
-    typeOptions,
+    orderTypeOptions,
+    router,
+    startRouteTransition,
   ]);
 
   const handleEditOrder = useCallback(async () => {
@@ -662,18 +595,16 @@ export function AdminOrdersClient({
         ...parsed.payload,
       });
 
-      setOrders((current) =>
-        current.map((item) =>
-          item.order_number === editOriginalOrderNumber ? updatedOrder : item,
-        ),
-      );
       setEditDialogOpen(false);
       setEditDialogFeedback(null);
       setEditOriginalOrderNumber(null);
-      setSelectedOrder(updatedOrder);
+      setSelectedOrder(null);
       setPageFeedback({
         tone: "success",
         message: t("feedback.updateSuccess", { orderNumber: updatedOrder.order_number }),
+      });
+      startRouteTransition(() => {
+        router.refresh();
       });
     } catch (error) {
       setEditDialogFeedback({
@@ -693,6 +624,8 @@ export function AdminOrdersClient({
     sharedCopy,
     supabase,
     t,
+    router,
+    startRouteTransition,
   ]);
 
   const handleDeleteOrder = useCallback(async () => {
@@ -720,13 +653,13 @@ export function AdminOrdersClient({
 
     try {
       await deleteAdminOrder(supabase, targetOrder.order_number);
-      setOrders((current) =>
-        current.filter((item) => item.order_number !== targetOrder.order_number),
-      );
       setSelectedOrder(null);
       setPageFeedback({
         tone: "success",
         message: t("feedback.deleteSuccess", { orderNumber: targetOrder.order_number }),
+      });
+      startRouteTransition(() => {
+        router.refresh();
       });
     } catch (error) {
       setPageFeedback({
@@ -745,6 +678,8 @@ export function AdminOrdersClient({
     sharedCopy,
     supabase,
     t,
+    router,
+    startRouteTransition,
   ]);
 
   const handleForceDeleteOrder = useCallback(async () => {
@@ -774,13 +709,13 @@ export function AdminOrdersClient({
 
     try {
       await forceDeleteAdminOrder(supabase, targetOrder.order_number);
-      setOrders((current) =>
-        current.filter((item) => item.order_number !== targetOrder.order_number),
-      );
       setSelectedOrder(null);
       setPageFeedback({
         tone: "success",
         message: t("feedback.forceDeleteSuccess", { orderNumber: targetOrder.order_number }),
+      });
+      startRouteTransition(() => {
+        router.refresh();
       });
     } catch (error) {
       setPageFeedback({
@@ -799,6 +734,8 @@ export function AdminOrdersClient({
     sharedCopy,
     supabase,
     t,
+    router,
+    startRouteTransition,
   ]);
 
   const handleSelectOrder = useCallback((order: AdminOrderRow) => {
@@ -830,10 +767,6 @@ export function AdminOrdersClient({
     setFilters(EMPTY_ORDER_FILTERS);
   }, []);
 
-  if (!supabase || loading) {
-    return <OrdersLoadingState />;
-  }
-
   return (
     <section className="mx-auto flex w-full max-w-[1320px] flex-col gap-8">
       {pageFeedback ? (
@@ -860,7 +793,7 @@ export function AdminOrdersClient({
             title={t("states.noViewPermissionTitle")}
           />
         </section>
-      ) : orders.length === 0 ? (
+      ) : totalOrdersCount === 0 ? (
         <section className="rounded-[28px] border border-white/85 bg-white/72 p-6 shadow-[0_18px_45px_rgba(96,113,128,0.06)] xl:p-8">
           <EmptyState
             description={viewConfig.emptyDescription}
@@ -871,22 +804,22 @@ export function AdminOrdersClient({
       ) : (
         <OrdersTableSection
           canViewOrderCosts={canViewOrderCosts}
-          filteredOrders={filteredOrders}
           filters={filters}
+          matchedOrdersCount={matchedOrdersCount}
           onClearFilters={clearFilters}
           onOrderEntryUserChange={handleOrderEntryUserChange}
           onOrderNumberChange={handleOrderNumberChange}
           onOrderingUserChange={handleOrderingUserChange}
           onSelectOrder={handleSelectOrder}
           orderTypeMetaById={orderTypeMetaById}
-          ordersCount={orders.length}
           pagination={ordersPaginationState}
-          rows={ordersPagination.items}
+          rows={orders}
           showCreatedAtColumn={viewConfig.showCreatedAtColumn}
           showOrderEntryColumn={viewConfig.showOrderEntryColumn}
           showOrderEntryFilter={viewConfig.showOrderEntryFilter}
           showOrderingColumn={viewConfig.showOrderingColumn}
           showOrderingFilter={viewConfig.showOrderingFilter}
+          totalOrdersCount={totalOrdersCount}
           userLabelById={userLabelById}
         />
       )}
@@ -898,14 +831,14 @@ export function AdminOrdersClient({
         lockOrderEntryUser={viewConfig.lockOrderEntryToCurrentViewer}
         mode="create"
         open={createDialogOpen}
-        orderDiscountOptions={discountOptions}
+        orderDiscountOptions={orderDiscountOptions}
         orderEntryUserOptions={orderEntryUserOptions}
-        orderTypeOptions={typeOptions}
+        orderTypeOptions={orderTypeOptions}
         orderUserOptions={userOptions}
         orderingUserOptions={orderingUserOptions}
         pending={createPending}
-        purchaseOrderTypeOptions={purchaseTypeOptions}
-        serviceOrderTypeOptions={serviceTypeOptions}
+        purchaseOrderTypeOptions={purchaseOrderTypeOptions}
+        serviceOrderTypeOptions={serviceOrderTypeOptions}
         showCostField={canViewOrderCosts}
         submitLabel={viewConfig.createTitle}
         title={viewConfig.createTitle}
@@ -930,12 +863,12 @@ export function AdminOrdersClient({
         formState={editFormState}
         mode="edit"
         open={editDialogOpen}
-        orderDiscountOptions={discountOptions}
-        orderTypeOptions={typeOptions}
+        orderDiscountOptions={orderDiscountOptions}
+        orderTypeOptions={orderTypeOptions}
         orderUserOptions={userOptions}
         pending={editPending}
-        purchaseOrderTypeOptions={purchaseTypeOptions}
-        serviceOrderTypeOptions={serviceTypeOptions}
+        purchaseOrderTypeOptions={purchaseOrderTypeOptions}
+        serviceOrderTypeOptions={serviceOrderTypeOptions}
         showCostField={canViewOrderCosts}
         supplementaryLoading={editSupplementaryLoading}
         submitLabel={t("dialogs.saveChanges")}

@@ -8,6 +8,22 @@ import { getTranslations } from "next-intl/server";
 import { AdminSectionPlaceholder } from "@/components/dashboard/admin-section-placeholder";
 import { ScopedIntlProvider } from "@/components/i18n/scoped-intl-provider";
 import {
+  getAdminOrdersPageData,
+  parseAdminOrdersSearchParams,
+} from "@/lib/admin-orders";
+import { getAdminCommissionPageData } from "@/lib/admin-commission";
+import { getAdminReviewsPageData } from "@/lib/admin-reviews";
+import { getAdminTasksPageData, parseAdminTasksSearchParams } from "@/lib/admin-tasks";
+import { getExchangeRatesPageData } from "@/lib/exchange-rates";
+import { getReferralsPageData } from "@/lib/referrals";
+import { getSalesmanCommissionPageData } from "@/lib/salesman-commission";
+import {
+  getSalesmanTasksPageData,
+  parseSalesmanTasksSearchParams,
+} from "@/lib/salesman-tasks";
+import { getServerSupabaseClient } from "@/lib/supabase-server";
+import { getTeamManagementPageData } from "@/lib/team-management";
+import {
   getWorkspaceConfigByRouteSegment,
   getWorkspaceHomeHref,
   type WorkspaceRouteConfig,
@@ -16,6 +32,7 @@ import { getWorkspaceSectionKey } from "@/lib/workspace-sections";
 
 type SectionPageProps = {
   params: Promise<{ section: string; workspace: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 };
 
 const AdminCommissionClient = dynamic(
@@ -146,8 +163,14 @@ export async function generateMetadata({
   };
 }
 
-export default async function WorkspaceSectionPage({ params }: SectionPageProps) {
-  const { section, workspace } = await params;
+export default async function WorkspaceSectionPage({
+  params,
+  searchParams,
+}: SectionPageProps) {
+  const [{ section, workspace }, resolvedSearchParams] = await Promise.all([
+    params,
+    searchParams,
+  ]);
   const config = getWorkspaceConfigByRouteSegment(workspace);
 
   if (!config) {
@@ -158,32 +181,68 @@ export default async function WorkspaceSectionPage({ params }: SectionPageProps)
   let content: ReactNode | null = null;
 
   if (section === "orders" && config.pageVariants.orders) {
-    content = <AdminOrdersClient mode={config.pageVariants.orders} />;
+    const supabase = await getServerSupabaseClient();
+    const orderSearchParams = parseAdminOrdersSearchParams(resolvedSearchParams);
+    const initialData = await getAdminOrdersPageData(supabase, {
+      filters: orderSearchParams.filters,
+      includeOrderCosts: config.pageVariants.orders === "admin",
+      page: orderSearchParams.page,
+    });
+
+    content = (
+      <AdminOrdersClient
+        initialData={initialData}
+        mode={config.pageVariants.orders}
+      />
+    );
   } else if (section === "commission") {
     if (config.pageVariants.commission === "admin") {
-      content = <AdminCommissionClient />;
+      const supabase = await getServerSupabaseClient();
+      const initialData = await getAdminCommissionPageData(supabase);
+      content = <AdminCommissionClient initialData={initialData} />;
     } else if (config.pageVariants.commission === "salesman") {
-      content = <SalesmanCommissionClient />;
+      const supabase = await getServerSupabaseClient();
+      const initialData = await getSalesmanCommissionPageData(supabase);
+      content = <SalesmanCommissionClient initialData={initialData} />;
     }
   } else if (section === "exchange-rates" && config.pageVariants.exchangeRates) {
+    const supabase = await getServerSupabaseClient();
+    const initialData = await getExchangeRatesPageData(
+      supabase,
+      config.pageVariants.exchangeRates,
+    );
+
     content = (
       <ExchangeRatesClient
         homeHref={getWorkspaceHomeHref(config)}
+        initialData={initialData}
         mode={config.pageVariants.exchangeRates}
       />
     );
   } else if (section === "tasks") {
     if (config.pageVariants.tasks === "admin") {
-      content = <AdminTasksClient />;
+      const supabase = await getServerSupabaseClient();
+      const initialData = await getAdminTasksPageData(supabase);
+      const initialView = parseAdminTasksSearchParams(resolvedSearchParams);
+      content = <AdminTasksClient initialData={initialData} initialView={initialView} />;
     } else if (config.pageVariants.tasks === "salesman") {
-      content = <SalesmanTasksClient />;
+      const supabase = await getServerSupabaseClient();
+      const initialData = await getSalesmanTasksPageData(supabase);
+      const initialView = parseSalesmanTasksSearchParams(resolvedSearchParams);
+      content = <SalesmanTasksClient initialData={initialData} initialView={initialView} />;
     }
   } else if (section === "reviews" && config.pageVariants.reviews) {
-    content = <AdminReviewsClient />;
+    const supabase = await getServerSupabaseClient();
+    const initialData = await getAdminReviewsPageData(supabase);
+    content = <AdminReviewsClient initialData={initialData} />;
   } else if (section === "referrals" && config.pageVariants.referrals) {
-    content = <ReferralsClient />;
+    const supabase = await getServerSupabaseClient();
+    const initialData = await getReferralsPageData(supabase);
+    content = <ReferralsClient initialData={initialData} />;
   } else if (section === "team" && config.pageVariants.team) {
-    content = <TeamManagementClient />;
+    const supabase = await getServerSupabaseClient();
+    const initialData = await getTeamManagementPageData(supabase);
+    content = <TeamManagementClient initialData={initialData} />;
   }
 
   if (!content) {

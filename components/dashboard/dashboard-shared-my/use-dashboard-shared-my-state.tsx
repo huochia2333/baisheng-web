@@ -1,6 +1,6 @@
 ﻿"use client";
 
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
@@ -9,12 +9,6 @@ import { LoaderCircle, Trash2, Upload } from "lucide-react";
 import { useLocale } from "@/components/i18n/locale-provider";
 import { getBrowserSupabaseClient } from "@/lib/supabase";
 import {
-  markBrowserCloudSyncActivity,
-  resetBrowserCloudSyncState,
-  shouldRecoverBrowserCloudSyncState,
-} from "@/lib/browser-sync-recovery";
-import { useResumeRecovery } from "@/lib/use-resume-recovery";
-import {
   createPrivacyRequest,
   deleteUserMediaAssets,
   getCurrentUserBundle,
@@ -22,7 +16,6 @@ import {
   updateUserProfileCity,
   uploadUserMedia,
 } from "@/lib/user-self-service";
-import { useSupabaseAuthSync } from "@/lib/use-supabase-auth-sync";
 
 import {
   createDashboardSharedCopy,
@@ -40,6 +33,10 @@ import {
   VideoPreview,
 } from "../dashboard-shared-ui";
 import {
+  useWorkspaceRecoverCloudSync,
+  useWorkspaceSyncEffect,
+} from "../workspace-session-provider";
+import {
   PhotoStackPreview,
 } from "../dashboard-shared-photo-stack-preview";
 import { Button } from "../../ui/button";
@@ -51,9 +48,10 @@ export function useDashboardSharedMyState(initialData: CurrentUserBundle | null 
   const sharedT = useTranslations("DashboardShared");
   const sharedCopy = createDashboardSharedCopy(sharedT);
   const supabase = getBrowserSupabaseClient();
+  const recoverWorkspaceCloudSync = useWorkspaceRecoverCloudSync();
   const photoInputRef = useRef<HTMLInputElement>(null);
   const videoInputRef = useRef<HTMLInputElement>(null);
-  const skipInitialBundleLoadRef = useRef(Boolean(initialData));
+  const hasLoadedInitialBundleRef = useRef(Boolean(initialData));
   const copy = {
     unnamedUser: t("unnamedUser"),
     pendingCity: t("pendingCity"),
@@ -98,7 +96,6 @@ export function useDashboardSharedMyState(initialData: CurrentUserBundle | null 
 
   const [bundle, setBundle] = useState<CurrentUserBundle | null>(initialData);
   const [loading, setLoading] = useState(initialData === null);
-  const [syncGeneration, setSyncGeneration] = useState(0);
   const [pageError, setPageError] = useState<string | null>(null);
   const [pageNotice, setPageNotice] = useState<{ tone: NoticeTone; message: string } | null>(
     null,
@@ -119,17 +116,13 @@ export function useDashboardSharedMyState(initialData: CurrentUserBundle | null 
   const [identityEditing, setIdentityEditing] = useState(false);
   const [passportEditing, setPassportEditing] = useState(false);
   const [busyKey, setBusyKey] = useState<string | null>(null);
-  const bundleStateRef = useRef<CurrentUserBundle | null>(null);
-  const loadingStateRef = useRef(true);
-
-  bundleStateRef.current = bundle;
-  loadingStateRef.current = loading;
 
   const recoverCloudSync = useCallback(() => {
-    resetBrowserCloudSyncState();
-    markBrowserCloudSyncActivity();
-    setSyncGeneration((current) => current + 1);
-  }, []);
+    setPageError(null);
+    setPageNotice(null);
+    setLoading(true);
+    recoverWorkspaceCloudSync();
+  }, [recoverWorkspaceCloudSync]);
 
   const loadBundle = useCallback(
     async ({
@@ -148,11 +141,6 @@ export function useDashboardSharedMyState(initialData: CurrentUserBundle | null 
       }
 
       try {
-        if (shouldRecoverBrowserCloudSyncState()) {
-          recoverCloudSync();
-          return;
-        }
-
         const nextBundle = await getCurrentUserBundle(supabase);
 
         if (!isMounted()) {
@@ -178,47 +166,40 @@ export function useDashboardSharedMyState(initialData: CurrentUserBundle | null 
         }
       }
     },
-    [recoverCloudSync, router, sharedCopy, supabase],
+    [router, sharedCopy, supabase],
   );
 
-  useSupabaseAuthSync(supabase, {
-    refreshKey: syncGeneration,
-    onReady: ({ isMounted }) => {
-      if (skipInitialBundleLoadRef.current) {
-        skipInitialBundleLoadRef.current = false;
-        markBrowserCloudSyncActivity();
+  useEffect(() => {
+    if (initialData !== null || !supabase || hasLoadedInitialBundleRef.current) {
+      return;
+    }
 
-        if (isMounted()) {
-          setLoading(false);
-        }
+    let mounted = true;
+    hasLoadedInitialBundleRef.current = true;
 
-        return;
-      }
+    void loadBundle({
+      isMounted: () => mounted,
+      showLoading: true,
+    });
 
-      return loadBundle({
-        isMounted,
-        showLoading: loadingStateRef.current || !bundleStateRef.current,
-      });
-    },
-    onAuthStateChange: async ({ isMounted, session }) => {
-      if (!isMounted()) {
-        return;
-      }
+    return () => {
+      mounted = false;
+    };
+  }, [initialData, loadBundle, supabase]);
 
-      if (!session?.user) {
-        router.replace("/login");
-        return;
-      }
+  useWorkspaceSyncEffect(({ isMounted, syncVersion }) => {
+    if (syncVersion === 0 || !supabase) {
+      return;
+    }
 
-      await loadBundle({
-        isMounted,
-        showLoading: false,
-      });
-    },
-  });
+    if (!hasLoadedInitialBundleRef.current) {
+      hasLoadedInitialBundleRef.current = true;
+    }
 
-  useResumeRecovery(recoverCloudSync, {
-    enabled: Boolean(supabase),
+    return loadBundle({
+      isMounted,
+      showLoading: !bundle,
+    });
   });
 
   const refreshBundle = async ({

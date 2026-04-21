@@ -1,27 +1,22 @@
 "use client";
 
-import { useCallback, useDeferredValue, useMemo, useRef, useState } from "react";
+import { useCallback, useDeferredValue, useMemo, useState } from "react";
 import type { ReactNode } from "react";
 import { useTranslations } from "next-intl";
-import { useRouter } from "next/navigation";
 import { BadgeDollarSign, Coins, ReceiptText, RefreshCcw, Search, ShieldAlert, UsersRound, WalletCards } from "lucide-react";
 
-import { canViewAdminCommissionBoard, getAdminCommissions, getCurrentCommissionViewerContext, type AdminCommissionRow, type CommissionCategory, type CommissionSettlementStatus } from "@/lib/admin-commission";
-import { shouldRecoverBrowserCloudSyncState } from "@/lib/browser-sync-recovery";
+import { getAdminCommissionPageData, type AdminCommissionPageData, type AdminCommissionRow, type CommissionCategory, type CommissionSettlementStatus } from "@/lib/admin-commission";
 import { getBrowserSupabaseClient } from "@/lib/supabase";
-import { useBrowserCloudSyncRecovery } from "@/lib/use-browser-cloud-sync-recovery";
 import { useDashboardPagination } from "@/lib/use-dashboard-pagination";
-import { useResumeRecovery } from "@/lib/use-resume-recovery";
-import { useSupabaseAuthSync } from "@/lib/use-supabase-auth-sync";
 import type { AppRole, UserStatus } from "@/lib/user-self-service";
 import { cn } from "@/lib/utils";
 import { useLocale } from "@/components/i18n/locale-provider";
 
 import { formatCommissionMoney, formatNullableCommissionMoney, getCommissionCategoryLabel, getCommissionOrderStatusLabel, getCommissionRoleLabel, getCommissionSettlementStatusLabel, toCommissionErrorMessage } from "./commission-copy";
-import { DashboardCenteredLoadingState } from "./dashboard-centered-loading-state";
 import { DashboardMetricCard } from "./dashboard-metric-card";
 import { DashboardPaginationControls } from "./dashboard-pagination-controls";
 import { EmptyState, PageBanner, formatDateTime, mapUserStatus, normalizeSearchText, type NoticeTone } from "./dashboard-shared-ui";
+import { useWorkspaceSyncEffect } from "./workspace-session-provider";
 import { Button } from "../ui/button";
 
 type PageFeedback = { tone: NoticeTone; message: string } | null;
@@ -32,8 +27,11 @@ type BeneficiarySummaryRow = { userId: string; label: string; name: string | nul
 
 const EMPTY_FILTERS: CommissionFilters = { searchText: "", beneficiaryUserId: "", orderNumber: "", settlementStatus: "all", category: "all" };
 
-export function AdminCommissionClient() {
-  const router = useRouter();
+export function AdminCommissionClient({
+  initialData,
+}: {
+  initialData: AdminCommissionPageData;
+}) {
   const supabase = getBrowserSupabaseClient();
   const t = useTranslations("Commission");
   const { locale } = useLocale();
@@ -54,52 +52,32 @@ export function AdminCommissionClient() {
     { value: "manual_adjustment" as CategoryFilter, label: t("options.category.manualAdjustment") },
   ], [t]);
 
-  const [loading, setLoading] = useState(true);
-  const { recoverCloudSync, syncGeneration } = useBrowserCloudSyncRecovery();
   const [pageFeedback, setPageFeedback] = useState<PageFeedback>(null);
-  const [viewerRole, setViewerRole] = useState<AppRole | null>(null);
-  const [viewerStatus, setViewerStatus] = useState<UserStatus | null>(null);
-  const [commissions, setCommissions] = useState<AdminCommissionRow[]>([]);
+  const [hasPermission, setHasPermission] = useState(initialData.hasPermission);
+  const [commissions, setCommissions] = useState<AdminCommissionRow[]>(initialData.commissions);
   const [filters, setFilters] = useState<CommissionFilters>(EMPTY_FILTERS);
-  const loadingStateRef = useRef(true);
-  loadingStateRef.current = loading;
   const deferredSearchText = useDeferredValue(filters.searchText);
 
-  const loadCommissionBoard = useCallback(async ({ isMounted, showLoading }: { isMounted: () => boolean; showLoading: boolean }) => {
+  const applyPageData = useCallback((pageData: AdminCommissionPageData) => {
+    setHasPermission(pageData.hasPermission);
+    setCommissions(pageData.commissions);
+  }, []);
+
+  const refreshCommissionBoard = useCallback(async ({ isMounted }: { isMounted: () => boolean }) => {
     if (!supabase) return;
-    if (showLoading && isMounted()) setLoading(true);
+
     try {
-      if (shouldRecoverBrowserCloudSyncState()) { recoverCloudSync(); return; }
-      const viewer = await getCurrentCommissionViewerContext(supabase);
+      const nextPageData = await getAdminCommissionPageData(supabase);
       if (!isMounted()) return;
-      if (!viewer) { router.replace("/login"); return; }
-      setViewerRole(viewer.role);
-      setViewerStatus(viewer.status);
-      if (!canViewAdminCommissionBoard(viewer.role, viewer.status)) { setCommissions([]); setPageFeedback(null); return; }
-      const nextCommissions = await getAdminCommissions(supabase);
-      if (!isMounted()) return;
-      setCommissions(nextCommissions);
+      applyPageData(nextPageData);
       setPageFeedback(null);
     } catch (error) {
       if (!isMounted()) return;
       setPageFeedback({ tone: "error", message: toCommissionErrorMessage(error, t, "admin") });
-    } finally {
-      if (showLoading && isMounted()) setLoading(false);
     }
-  }, [recoverCloudSync, router, supabase, t]);
+  }, [applyPageData, supabase, t]);
 
-  useSupabaseAuthSync(supabase, {
-    refreshKey: syncGeneration,
-    onReady: ({ isMounted }) => loadCommissionBoard({ isMounted, showLoading: loadingStateRef.current }),
-    onAuthStateChange: async ({ isMounted, session }) => {
-      if (!isMounted()) return;
-      if (!session?.user) { router.replace("/login"); return; }
-      await loadCommissionBoard({ isMounted, showLoading: false });
-    },
-  });
-  useResumeRecovery(recoverCloudSync, { enabled: Boolean(supabase) });
-
-  const hasPermission = canViewAdminCommissionBoard(viewerRole, viewerStatus);
+  useWorkspaceSyncEffect(refreshCommissionBoard);
   const beneficiaryOptions = useMemo(() => summarizeByBeneficiary(commissions), [commissions]);
   const filteredCommissions = useMemo(() => {
     const searchValue = normalizeSearchText(deferredSearchText);
@@ -127,10 +105,6 @@ export function AdminCommissionClient() {
   const resetFilters = useCallback(() => setFilters(EMPTY_FILTERS), []);
   const drillDownToBeneficiary = useCallback((userId: string) => setFilters({ ...EMPTY_FILTERS, beneficiaryUserId: userId }), []);
   const focusOrderNumber = useCallback((orderNumber: string) => setFilters((current) => ({ ...current, orderNumber, searchText: "" })), []);
-
-  if (!supabase || loading) {
-    return <DashboardCenteredLoadingState message={t("loading")} />;
-  }
 
   return (
     <section className="mx-auto flex w-full max-w-[1320px] flex-col gap-8">

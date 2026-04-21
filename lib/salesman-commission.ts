@@ -16,6 +16,11 @@ export type SalesmanCommissionViewerContext = {
   status: UserStatus | null;
 };
 
+export type SalesmanCommissionPageData = {
+  hasPermission: boolean;
+  commissions: AdminCommissionRow[];
+};
+
 export async function getCurrentSalesmanCommissionViewerContext(
   supabase: SupabaseClient,
 ): Promise<SalesmanCommissionViewerContext | null> {
@@ -37,6 +42,24 @@ export function canViewSalesmanCommissionBoard(
   status: UserStatus | null,
 ) {
   return role === "salesman" && status === "active";
+}
+
+export async function getSalesmanCommissionPageData(
+  supabase: SupabaseClient,
+): Promise<SalesmanCommissionPageData> {
+  const viewer = await getCurrentSalesmanCommissionViewerContext(supabase);
+
+  if (!viewer || !canViewSalesmanCommissionBoard(viewer.role, viewer.status)) {
+    return {
+      hasPermission: false,
+      commissions: [],
+    };
+  }
+
+  return {
+    hasPermission: true,
+    commissions: await getVisibleSalesmanCommissions(supabase, viewer),
+  };
 }
 
 export async function getVisibleSalesmanCommissions(

@@ -37,6 +37,11 @@ export type AdminCommissionViewerContext = {
   status: UserStatus | null;
 };
 
+export type AdminCommissionPageData = {
+  hasPermission: boolean;
+  commissions: AdminCommissionRow[];
+};
+
 export type AdminCommissionActor = {
   userId: string | null;
   label: string;
@@ -121,6 +126,24 @@ export function canViewAdminCommissionBoard(
   status: UserStatus | null,
 ) {
   return role === "administrator" && status === "active";
+}
+
+export async function getAdminCommissionPageData(
+  supabase: SupabaseClient,
+): Promise<AdminCommissionPageData> {
+  const viewer = await getCurrentCommissionViewerContext(supabase);
+
+  if (!viewer || !canViewAdminCommissionBoard(viewer.role, viewer.status)) {
+    return {
+      hasPermission: false,
+      commissions: [],
+    };
+  }
+
+  return {
+    hasPermission: true,
+    commissions: await getAdminCommissions(supabase),
+  };
 }
 
 export async function getAdminCommissions(

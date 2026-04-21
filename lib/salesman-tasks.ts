@@ -7,6 +7,7 @@ import type {
   TaskScope,
   TaskStatus,
 } from "./admin-tasks";
+import { getVisibleTeamOverviews, type TeamOverview } from "./team-management";
 import { getCurrentSessionContext, type AppRole, type UserStatus } from "./user-self-service";
 import {
   getDashboardQueryRange,
@@ -26,6 +27,34 @@ export type SalesmanTaskViewerContext = {
 
 export type SalesmanTaskRow = AdminTaskMainRow & {
   attachments: AdminTaskAttachment[];
+};
+
+export type SalesmanTasksPageData = {
+  viewerId: string | null;
+  viewerRole: AppRole | null;
+  viewerStatus: UserStatus | null;
+  canView: boolean;
+  tasks: SalesmanTaskRow[];
+  teamOptions: TeamOverview[];
+};
+
+export type SalesmanTaskFocusFilter =
+  | "all"
+  | "available"
+  | "in_progress"
+  | "completed";
+
+export type SalesmanTaskScopeFilter = "all" | TaskScope;
+
+export type SalesmanTasksFilters = {
+  searchText: string;
+  focus: SalesmanTaskFocusFilter;
+  scope: SalesmanTaskScopeFilter;
+};
+
+export type SalesmanTasksSearchParams = {
+  filters: SalesmanTasksFilters;
+  page: number;
 };
 
 type TaskMainRecord = {
@@ -67,6 +96,69 @@ export async function getCurrentSalesmanTaskViewerContext(
     user,
     role,
     status,
+  };
+}
+
+export function canViewSalesmanTaskBoard(role: AppRole | null, status: UserStatus | null) {
+  return role === "salesman" && status === "active";
+}
+
+export function normalizeSalesmanTasksFilters(
+  filters?: Partial<SalesmanTasksFilters> | null,
+): SalesmanTasksFilters {
+  return {
+    searchText: normalizeOptionalString(filters?.searchText) ?? "",
+    focus: normalizeSalesmanTaskFocusFilter(filters?.focus),
+    scope: normalizeSalesmanTaskScopeFilter(filters?.scope),
+  };
+}
+
+export function parseSalesmanTasksSearchParams(
+  searchParams: Record<string, string | string[] | undefined>,
+): SalesmanTasksSearchParams {
+  return {
+    filters: normalizeSalesmanTasksFilters({
+      searchText: getSingleSearchParam(searchParams.searchText),
+      focus: normalizeSalesmanTaskFocusFilter(getSingleSearchParam(searchParams.focus)),
+      scope: normalizeSalesmanTaskScopeFilter(getSingleSearchParam(searchParams.scope)),
+    }),
+    page: normalizePositiveInteger(getSingleSearchParam(searchParams.page), 1),
+  };
+}
+
+export async function getSalesmanTasksPageData(
+  supabase: SupabaseClient,
+): Promise<SalesmanTasksPageData> {
+  const viewer = await getCurrentSalesmanTaskViewerContext(supabase);
+
+  if (!viewer) {
+    return createEmptySalesmanTasksPageData({
+      viewerId: null,
+      viewerRole: null,
+      viewerStatus: null,
+    });
+  }
+
+  if (!canViewSalesmanTaskBoard(viewer.role, viewer.status)) {
+    return createEmptySalesmanTasksPageData({
+      viewerId: viewer.user.id,
+      viewerRole: viewer.role,
+      viewerStatus: viewer.status,
+    });
+  }
+
+  const [tasks, teamOptions] = await Promise.all([
+    getVisibleSalesmanTasks(supabase),
+    getVisibleTeamOverviews(supabase),
+  ]);
+
+  return {
+    viewerId: viewer.user.id,
+    viewerRole: viewer.role,
+    viewerStatus: viewer.status,
+    canView: true,
+    tasks,
+    teamOptions,
   };
 }
 
@@ -161,6 +253,45 @@ export async function getTaskAttachmentSignedUrl(
   }
 
   return data.signedUrl;
+}
+
+function createEmptySalesmanTasksPageData(options: {
+  viewerId: string | null;
+  viewerRole: AppRole | null;
+  viewerStatus: UserStatus | null;
+}): SalesmanTasksPageData {
+  return {
+    viewerId: options.viewerId,
+    viewerRole: options.viewerRole,
+    viewerStatus: options.viewerStatus,
+    canView: canViewSalesmanTaskBoard(options.viewerRole, options.viewerStatus),
+    tasks: [],
+    teamOptions: [],
+  };
+}
+
+function getSingleSearchParam(value: string | string[] | undefined) {
+  return Array.isArray(value) ? value[0] : value;
+}
+
+function normalizePositiveInteger(value: string | null | undefined, fallback: number) {
+  const parsed = Number.parseInt(value ?? "", 10);
+
+  if (!Number.isFinite(parsed) || parsed < 1) {
+    return fallback;
+  }
+
+  return parsed;
+}
+
+function normalizeSalesmanTaskFocusFilter(value: unknown): SalesmanTaskFocusFilter {
+  return value === "available" || value === "in_progress" || value === "completed"
+    ? value
+    : "all";
+}
+
+function normalizeSalesmanTaskScopeFilter(value: unknown): SalesmanTaskScopeFilter {
+  return value === "public" || value === "team" ? value : "all";
 }
 
 async function getVisibleTaskAttachments(

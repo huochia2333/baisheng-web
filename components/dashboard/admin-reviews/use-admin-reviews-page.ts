@@ -1,119 +1,69 @@
 "use client";
 
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
-import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 
 import {
+  getAdminReviewsPageData,
+  type AdminReviewsPageData,
   approveMediaReview,
   approvePrivacyReview,
-  getCurrentReviewerContext,
-  getPendingMediaReviews,
-  getPendingPrivacyReviews,
   rejectMediaReview,
   rejectPrivacyReview,
   type PendingMediaReviewWithPreview,
   type PendingPrivacyReviewRow,
 } from "@/lib/admin-reviews";
-import {
-  markBrowserCloudSyncActivity,
-  resetBrowserCloudSyncState,
-  shouldRecoverBrowserCloudSyncState,
-} from "@/lib/browser-sync-recovery";
 import { getBrowserSupabaseClient } from "@/lib/supabase";
-import { useSupabaseAuthSync } from "@/lib/use-supabase-auth-sync";
-import { useResumeRecovery } from "@/lib/use-resume-recovery";
 import {
   createDashboardSharedCopy,
   toErrorMessage,
   type NoticeTone,
 } from "../dashboard-shared-ui";
+import { useWorkspaceSyncEffect } from "../workspace-session-provider";
 
 import type { BusyAction, ReviewTab } from "./types";
 
 type PageFeedback = { tone: NoticeTone; message: string } | null;
 
-export function useAdminReviewsPage() {
-  const router = useRouter();
+export function useAdminReviewsPage(initialData: AdminReviewsPageData) {
   const t = useTranslations("Reviews");
   const sharedT = useTranslations("DashboardShared");
   const sharedCopy = createDashboardSharedCopy(sharedT);
   const supabase = getBrowserSupabaseClient();
 
   const [activeTab, setActiveTab] = useState<ReviewTab>("privacy");
-  const [loading, setLoading] = useState(true);
-  const [syncGeneration, setSyncGeneration] = useState(0);
-  const [hasPermission, setHasPermission] = useState<boolean | null>(null);
+  const [hasPermission, setHasPermission] = useState(initialData.hasPermission);
   const [pageFeedback, setPageFeedback] = useState<PageFeedback>(null);
-  const [privacyRows, setPrivacyRows] = useState<PendingPrivacyReviewRow[]>([]);
-  const [mediaRows, setMediaRows] = useState<PendingMediaReviewWithPreview[]>([]);
+  const [privacyRows, setPrivacyRows] = useState<PendingPrivacyReviewRow[]>(initialData.privacyRows);
+  const [mediaRows, setMediaRows] = useState<PendingMediaReviewWithPreview[]>(initialData.mediaRows);
   const [busyRows, setBusyRows] = useState<Record<string, BusyAction>>({});
   const [previewAsset, setPreviewAsset] = useState<PendingMediaReviewWithPreview | null>(null);
-  const loadingStateRef = useRef(true);
 
-  loadingStateRef.current = loading;
-
-  const recoverCloudSync = useCallback(() => {
-    resetBrowserCloudSyncState();
-    markBrowserCloudSyncActivity();
-    setSyncGeneration((current) => current + 1);
+  const applyPageData = useCallback((pageData: AdminReviewsPageData) => {
+    setHasPermission(pageData.hasPermission);
+    setPrivacyRows(pageData.privacyRows);
+    setMediaRows(pageData.mediaRows);
   }, []);
 
-  const loadPage = useCallback(
-    async ({
-      isMounted,
-      showLoading,
-    }: {
-      isMounted: () => boolean;
-      showLoading: boolean;
-    }) => {
+  useEffect(() => {
+    applyPageData(initialData);
+  }, [applyPageData, initialData]);
+
+  const refreshReviewsPage = useCallback(
+    async ({ isMounted }: { isMounted: () => boolean }) => {
       if (!supabase) {
         return;
       }
 
-      if (showLoading && isMounted()) {
-        setLoading(true);
-      }
-
       try {
-        if (shouldRecoverBrowserCloudSyncState()) {
-          recoverCloudSync();
-          return;
-        }
-
-        const reviewer = await getCurrentReviewerContext(supabase);
+        const nextPageData = await getAdminReviewsPageData(supabase);
 
         if (!isMounted()) {
           return;
         }
 
-        if (!reviewer) {
-          router.replace("/login");
-          return;
-        }
-
-        const isAdmin = reviewer.role === "administrator";
-        setHasPermission(isAdmin);
-
-        if (!isAdmin) {
-          setPrivacyRows([]);
-          setMediaRows([]);
-          setPageFeedback(null);
-          return;
-        }
-
-        const [nextPrivacyRows, nextMediaRows] = await Promise.all([
-          getPendingPrivacyReviews(supabase),
-          getPendingMediaReviews(supabase),
-        ]);
-
-        if (!isMounted()) {
-          return;
-        }
-
-        setPrivacyRows(nextPrivacyRows);
-        setMediaRows(nextMediaRows);
+        applyPageData(nextPageData);
         setPageFeedback(null);
       } catch (error) {
         if (!isMounted()) {
@@ -124,42 +74,12 @@ export function useAdminReviewsPage() {
           tone: "error",
           message: toErrorMessage(error, sharedCopy),
         });
-      } finally {
-        if (showLoading && isMounted()) {
-          setLoading(false);
-        }
       }
     },
-    [recoverCloudSync, router, sharedCopy, supabase],
+    [applyPageData, sharedCopy, supabase],
   );
 
-  useSupabaseAuthSync(supabase, {
-    refreshKey: syncGeneration,
-    onReady: ({ isMounted }) =>
-      loadPage({
-        isMounted,
-        showLoading: loadingStateRef.current,
-      }),
-    onAuthStateChange: async ({ isMounted, session }) => {
-      if (!isMounted()) {
-        return;
-      }
-
-      if (!session?.user) {
-        router.replace("/login");
-        return;
-      }
-
-      await loadPage({
-        isMounted,
-        showLoading: false,
-      });
-    },
-  });
-
-  useResumeRecovery(recoverCloudSync, {
-    enabled: Boolean(supabase),
-  });
+  useWorkspaceSyncEffect(refreshReviewsPage);
 
   const setRowBusyState = useCallback((rowKey: string, action: BusyAction | null) => {
     setBusyRows((current) => {
@@ -309,7 +229,6 @@ export function useAdminReviewsPage() {
     handleMediaReview,
     handlePrivacyReview,
     hasPermission,
-    loading,
     mediaRows,
     pageFeedback,
     previewAsset,

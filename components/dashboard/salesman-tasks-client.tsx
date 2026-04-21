@@ -1,10 +1,10 @@
 ﻿"use client";
 
-import { useCallback, useDeferredValue, useMemo, useRef, useState } from "react";
+import { useCallback, useDeferredValue, useEffect, useMemo, useState, useTransition } from "react";
 import type { ReactNode } from "react";
 
 import { useTranslations } from "next-intl";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import {
   CheckCheck,
   CircleCheckBig,
@@ -21,24 +21,18 @@ import {
 import {
   acceptSalesmanTask,
   completeSalesmanTask,
-  getCurrentSalesmanTaskViewerContext,
   getTaskAttachmentSignedUrl,
-  getVisibleSalesmanTasks,
+  type SalesmanTaskFocusFilter,
+  type SalesmanTasksFilters,
+  type SalesmanTasksSearchParams,
+  type SalesmanTasksPageData,
+  type SalesmanTaskScopeFilter,
   type SalesmanTaskRow,
 } from "@/lib/salesman-tasks";
-import {
-  shouldRecoverBrowserCloudSyncState,
-} from "@/lib/browser-sync-recovery";
+import { paginateDashboardItems } from "@/lib/dashboard-pagination";
 import { getBrowserSupabaseClient } from "@/lib/supabase";
-import { getVisibleTeamOverviews, type TeamOverview } from "@/lib/team-management";
-import { useBrowserCloudSyncRecovery } from "@/lib/use-browser-cloud-sync-recovery";
-import { useDashboardPagination } from "@/lib/use-dashboard-pagination";
-import { useResumeRecovery } from "@/lib/use-resume-recovery";
-import { useSupabaseAuthSync } from "@/lib/use-supabase-auth-sync";
-import type { AppRole, UserStatus } from "@/lib/user-self-service";
 
 import { Button } from "../ui/button";
-import { DashboardCenteredLoadingState } from "./dashboard-centered-loading-state";
 import { DashboardMetricCard } from "./dashboard-metric-card";
 import { DashboardPaginationControls } from "./dashboard-pagination-controls";
 import {
@@ -58,159 +52,107 @@ import {
   resolveSalesmanTaskTargetLabel,
   toSalesmanTaskErrorMessage,
 } from "./tasks-copy";
+import { useWorkspaceSyncEffect } from "./workspace-session-provider";
 
 type PageFeedback = { tone: NoticeTone; message: string } | null;
-type FocusFilter = "all" | "available" | "in_progress" | "completed";
-type ScopeFilter = "all" | "public" | "team";
 
-export function SalesmanTasksClient() {
+function areSalesmanTasksFiltersEqual(
+  left: SalesmanTasksFilters,
+  right: SalesmanTasksFilters,
+) {
+  return (
+    left.searchText === right.searchText &&
+    left.focus === right.focus &&
+    left.scope === right.scope
+  );
+}
+
+export function SalesmanTasksClient({
+  initialData,
+  initialView,
+}: {
+  initialData: SalesmanTasksPageData;
+  initialView: SalesmanTasksSearchParams;
+}) {
+  const pathname = usePathname();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const supabase = getBrowserSupabaseClient();
   const t = useTranslations("Tasks.salesman");
   const sharedT = useTranslations("Tasks.shared");
+  const [isRefreshing, startRefreshTransition] = useTransition();
 
-  const [loading, setLoading] = useState(true);
-  const { recoverCloudSync, syncGeneration } = useBrowserCloudSyncRecovery();
   const [pageFeedback, setPageFeedback] = useState<PageFeedback>(null);
-  const [viewerId, setViewerId] = useState<string | null>(null);
-  const [viewerRole, setViewerRole] = useState<AppRole | null>(null);
-  const [viewerStatus, setViewerStatus] = useState<UserStatus | null>(null);
-  const [tasks, setTasks] = useState<SalesmanTaskRow[]>([]);
-  const [teamOptions, setTeamOptions] = useState<TeamOverview[]>([]);
-  const [filters, setFilters] = useState<{
-    searchText: string;
-    focus: FocusFilter;
-    scope: ScopeFilter;
-  }>({
-    searchText: "",
-    focus: "all",
-    scope: "all",
-  });
+  const [filters, setFilters] = useState<SalesmanTasksFilters>(initialView.filters);
+  const [page, setPage] = useState(initialView.page);
   const [busyTaskId, setBusyTaskId] = useState<string | null>(null);
   const [attachmentBusyKey, setAttachmentBusyKey] = useState<string | null>(null);
-  const loadingStateRef = useRef(true);
-
-  loadingStateRef.current = loading;
 
   const deferredSearchText = useDeferredValue(filters.searchText);
+  const viewerId = initialData.viewerId;
+  const tasks = initialData.tasks;
+  const teamOptions = initialData.teamOptions;
+  const canView = initialData.canView;
 
-  const refreshQuietly = useCallback(async () => {
-    if (!supabase) {
-      return;
-    }
+  useEffect(() => {
+    setFilters(initialView.filters);
+  }, [initialView.filters]);
 
-    const [nextTasks, nextTeamOptions] = await Promise.all([
-      getVisibleSalesmanTasks(supabase),
-      getVisibleTeamOverviews(supabase),
-    ]);
+  useEffect(() => {
+    setPage(initialView.page);
+  }, [initialView.page]);
 
-    setTasks(nextTasks);
-    setTeamOptions(nextTeamOptions);
-  }, [supabase]);
+  const refreshTaskBoard = useCallback(() => {
+    startRefreshTransition(() => {
+      router.refresh();
+    });
+  }, [router, startRefreshTransition]);
 
-  const loadTaskBoard = useCallback(
-    async ({
-      isMounted,
-      showLoading,
-    }: {
-      isMounted: () => boolean;
-      showLoading: boolean;
+  const replaceTasksRoute = useCallback(
+    (next: {
+      filters?: SalesmanTasksFilters;
+      page?: number;
     }) => {
-      if (!supabase) {
-        return;
+      const nextFilters = next.filters ?? filters;
+      const nextPage = next.page ?? page;
+      const nextParams = new URLSearchParams(searchParams.toString());
+
+      if (nextFilters.searchText) {
+        nextParams.set("searchText", nextFilters.searchText);
+      } else {
+        nextParams.delete("searchText");
       }
 
-      if (showLoading && isMounted()) {
-        setLoading(true);
+      if (nextFilters.focus !== "all") {
+        nextParams.set("focus", nextFilters.focus);
+      } else {
+        nextParams.delete("focus");
       }
 
-      try {
-        if (shouldRecoverBrowserCloudSyncState()) {
-          recoverCloudSync();
-          return;
-        }
+      if (nextFilters.scope !== "all") {
+        nextParams.set("scope", nextFilters.scope);
+      } else {
+        nextParams.delete("scope");
+      }
 
-        const viewer = await getCurrentSalesmanTaskViewerContext(supabase);
+      if (nextPage > 1) {
+        nextParams.set("page", String(nextPage));
+      } else {
+        nextParams.delete("page");
+      }
 
-        if (!isMounted()) {
-          return;
-        }
+      const nextQuery = nextParams.toString();
 
-        if (!viewer) {
-          router.replace("/login");
-          return;
-        }
-
-        setViewerId(viewer.user.id);
-        setViewerRole(viewer.role);
-        setViewerStatus(viewer.status);
-
-        if (!canViewSalesmanTaskBoard(viewer.role, viewer.status)) {
-          setTasks([]);
-          setTeamOptions([]);
-          setPageFeedback(null);
-          return;
-        }
-
-        const [nextTasks, nextTeamOptions] = await Promise.all([
-          getVisibleSalesmanTasks(supabase),
-          getVisibleTeamOverviews(supabase),
-        ]);
-
-        if (!isMounted()) {
-          return;
-        }
-
-        setTasks(nextTasks);
-        setTeamOptions(nextTeamOptions);
-        setPageFeedback(null);
-      } catch (error) {
-        if (!isMounted()) {
-          return;
-        }
-
-        setPageFeedback({
-          tone: "error",
-          message: toSalesmanTaskErrorMessage(error, sharedT),
+      startRefreshTransition(() => {
+        router.replace(nextQuery ? `${pathname}?${nextQuery}` : pathname, {
+          scroll: false,
         });
-      } finally {
-        if (showLoading && isMounted()) {
-          setLoading(false);
-        }
-      }
-    },
-    [recoverCloudSync, router, sharedT, supabase],
-  );
-
-  useSupabaseAuthSync(supabase, {
-    refreshKey: syncGeneration,
-    onReady: ({ isMounted }) =>
-      loadTaskBoard({
-        isMounted,
-        showLoading: loadingStateRef.current,
-      }),
-    onAuthStateChange: async ({ isMounted, session }) => {
-      if (!isMounted()) {
-        return;
-      }
-
-      if (!session?.user) {
-        router.replace("/login");
-        return;
-      }
-
-      await loadTaskBoard({
-        isMounted,
-        showLoading: false,
       });
     },
-  });
+    [filters, page, pathname, router, searchParams, startRefreshTransition],
+  );
 
-  useResumeRecovery(recoverCloudSync, {
-    enabled: Boolean(supabase),
-  });
-
-  const canView = canViewSalesmanTaskBoard(viewerRole, viewerStatus);
+  useWorkspaceSyncEffect(refreshTaskBoard);
 
   const summary = useMemo(
     () => ({
@@ -273,7 +215,93 @@ export function SalesmanTasksClient() {
       return searchableText.includes(normalizedSearchText);
     });
   }, [deferredSearchText, filters.focus, filters.scope, sharedT, tasks, teamNameById, viewerId]);
-  const tasksPagination = useDashboardPagination(filteredTasks);
+  const tasksPagination = useMemo(
+    () => paginateDashboardItems(filteredTasks, page),
+    [filteredTasks, page],
+  );
+
+  useEffect(() => {
+    if (tasksPagination.page === page) {
+      return;
+    }
+
+    setPage(tasksPagination.page);
+
+    if (
+      areSalesmanTasksFiltersEqual(filters, initialView.filters) &&
+      initialView.page !== tasksPagination.page
+    ) {
+      replaceTasksRoute({
+        filters,
+        page: tasksPagination.page,
+      });
+    }
+  }, [
+    filters,
+    initialView.filters,
+    initialView.page,
+    page,
+    replaceTasksRoute,
+    tasksPagination.page,
+  ]);
+
+  useEffect(() => {
+    if (areSalesmanTasksFiltersEqual(filters, initialView.filters)) {
+      return;
+    }
+
+    const timeoutId = globalThis.setTimeout(() => {
+      replaceTasksRoute({
+        filters,
+        page: 1,
+      });
+    }, 250);
+
+    return () => {
+      globalThis.clearTimeout(timeoutId);
+    };
+  }, [filters, initialView.filters, replaceTasksRoute]);
+
+  const updateFilter = useCallback(
+    <Key extends keyof SalesmanTasksFilters>(
+      key: Key,
+      value: SalesmanTasksFilters[Key],
+    ) => {
+      setPage(1);
+      setFilters((current) => ({
+        ...current,
+        [key]: value,
+      }));
+    },
+    [],
+  );
+
+  const goToPage = useCallback(
+    (nextPage: number) => {
+      setPage(nextPage);
+      replaceTasksRoute({
+        filters,
+        page: nextPage,
+      });
+    },
+    [filters, replaceTasksRoute],
+  );
+
+  const goToNextPage = useCallback(() => {
+    if (!tasksPagination.hasNextPage) {
+      return;
+    }
+
+    goToPage(tasksPagination.page + 1);
+  }, [goToPage, tasksPagination.hasNextPage, tasksPagination.page]);
+
+  const goToPreviousPage = useCallback(() => {
+    if (!tasksPagination.hasPreviousPage) {
+      return;
+    }
+
+    goToPage(tasksPagination.page - 1);
+  }, [goToPage, tasksPagination.hasPreviousPage, tasksPagination.page]);
 
   const handleAcceptTask = useCallback(
     async (taskId: string) => {
@@ -286,11 +314,11 @@ export function SalesmanTasksClient() {
 
       try {
         await acceptSalesmanTask(supabase, taskId);
-        await refreshQuietly();
         setPageFeedback({
           tone: "success",
           message: t("feedback.accepted"),
         });
+        refreshTaskBoard();
       } catch (error) {
         setPageFeedback({
           tone: "error",
@@ -300,7 +328,7 @@ export function SalesmanTasksClient() {
         setBusyTaskId(null);
       }
     },
-    [busyTaskId, refreshQuietly, sharedT, supabase, t],
+    [busyTaskId, refreshTaskBoard, sharedT, supabase, t],
   );
 
   const handleCompleteTask = useCallback(
@@ -314,11 +342,11 @@ export function SalesmanTasksClient() {
 
       try {
         await completeSalesmanTask(supabase, taskId);
-        await refreshQuietly();
         setPageFeedback({
           tone: "success",
           message: t("feedback.completed"),
         });
+        refreshTaskBoard();
       } catch (error) {
         setPageFeedback({
           tone: "error",
@@ -328,7 +356,7 @@ export function SalesmanTasksClient() {
         setBusyTaskId(null);
       }
     },
-    [busyTaskId, refreshQuietly, sharedT, supabase, t],
+    [busyTaskId, refreshTaskBoard, sharedT, supabase, t],
   );
 
   const handleOpenAttachment = useCallback(
@@ -354,10 +382,6 @@ export function SalesmanTasksClient() {
     },
     [sharedT, supabase],
   );
-
-  if (loading) {
-    return <DashboardCenteredLoadingState message={t("loading")} />;
-  }
 
   return (
     <section className="mx-auto flex w-full max-w-[1320px] flex-col gap-8">
@@ -396,24 +420,19 @@ export function SalesmanTasksClient() {
             <div className="grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1.2fr)_repeat(2,minmax(0,0.6fr))]">
               <SearchField
                 label={t("filters.searchLabel")}
-                onChange={(value) =>
-                  setFilters((current) => ({
-                    ...current,
-                    searchText: value,
-                  }))
-                }
+                onChange={(value) => updateFilter("searchText", value)}
                 placeholder={t("filters.searchPlaceholder")}
                 value={filters.searchText}
               />
 
-              <FilterField label={t("filters.focusLabel")} onChange={(value) => setFilters((current) => ({ ...current, focus: value as FocusFilter }))} value={filters.focus}>
+              <FilterField label={t("filters.focusLabel")} onChange={(value) => updateFilter("focus", value as SalesmanTaskFocusFilter)} value={filters.focus}>
                 <option value="all">{t("filters.focusAll")}</option>
                 <option value="available">{t("filters.focusAvailable")}</option>
                 <option value="in_progress">{t("filters.focusInProgress")}</option>
                 <option value="completed">{t("filters.focusCompleted")}</option>
               </FilterField>
 
-              <FilterField label={t("filters.scopeLabel")} onChange={(value) => setFilters((current) => ({ ...current, scope: value as ScopeFilter }))} value={filters.scope}>
+              <FilterField label={t("filters.scopeLabel")} onChange={(value) => updateFilter("scope", value as SalesmanTaskScopeFilter)} value={filters.scope}>
                 <option value="all">{t("filters.scopeAll")}</option>
                 <option value="public">{sharedT("scope.public")}</option>
                 <option value="team">{sharedT("scope.team")}</option>
@@ -440,7 +459,7 @@ export function SalesmanTasksClient() {
                 {tasksPagination.items.map((task) => (
                   <TaskCard
                     attachmentBusyKey={attachmentBusyKey}
-                    busy={busyTaskId === task.id}
+                    busy={busyTaskId === task.id || isRefreshing}
                     key={task.id}
                     onAccept={() => void handleAcceptTask(task.id)}
                     onComplete={() => void handleCompleteTask(task.id)}
@@ -456,8 +475,8 @@ export function SalesmanTasksClient() {
               endIndex={tasksPagination.endIndex}
               hasNextPage={tasksPagination.hasNextPage}
               hasPreviousPage={tasksPagination.hasPreviousPage}
-              onNextPage={tasksPagination.goToNextPage}
-              onPreviousPage={tasksPagination.goToPreviousPage}
+              onNextPage={goToNextPage}
+              onPreviousPage={goToPreviousPage}
               page={tasksPagination.page}
               pageCount={tasksPagination.pageCount}
               startIndex={tasksPagination.startIndex}
@@ -726,8 +745,4 @@ function InfoTile({ label, value }: { label: string; value: string }) {
       <p className="mt-1 text-sm font-medium leading-7 text-[#23313a]">{value}</p>
     </div>
   );
-}
-
-function canViewSalesmanTaskBoard(role: AppRole | null, status: UserStatus | null) {
-  return role === "salesman" && status === "active";
 }

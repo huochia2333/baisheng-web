@@ -13,6 +13,8 @@ export type DashboardPaginationSlice<T> = {
   totalItems: number;
 };
 
+export type DashboardPaginationState = Omit<DashboardPaginationSlice<never>, "items">;
+
 export function getDashboardQueryRange(limit = MAX_DASHBOARD_QUERY_ROWS) {
   const safeLimit = Math.max(1, Math.trunc(limit));
 
@@ -22,22 +24,38 @@ export function getDashboardQueryRange(limit = MAX_DASHBOARD_QUERY_ROWS) {
   };
 }
 
-export function paginateDashboardItems<T>(
-  items: T[],
+export function getDashboardQueryRangeForPage(
   page: number,
   pageSize = DEFAULT_DASHBOARD_PAGE_SIZE,
-): DashboardPaginationSlice<T> {
-  const totalItems = items.length;
+) {
+  const { page: safePage, pageSize: safePageSize } = getDashboardPaginationState(
+    Number.MAX_SAFE_INTEGER,
+    page,
+    pageSize,
+  );
+  const from = (safePage - 1) * safePageSize;
+
+  return {
+    from,
+    to: from + safePageSize - 1,
+  };
+}
+
+export function getDashboardPaginationState(
+  totalItems: number,
+  page: number,
+  pageSize = DEFAULT_DASHBOARD_PAGE_SIZE,
+): DashboardPaginationState {
+  const safeTotalItems = Math.max(0, Math.trunc(totalItems));
   const safePageSize = Math.max(1, Math.trunc(pageSize));
-  const pageCount = Math.max(1, Math.ceil(totalItems / safePageSize));
+  const pageCount = Math.max(1, Math.ceil(safeTotalItems / safePageSize));
   const safePage = Math.min(Math.max(1, Math.trunc(page)), pageCount);
 
-  if (totalItems === 0) {
+  if (safeTotalItems === 0) {
     return {
       endIndex: 0,
       hasNextPage: false,
       hasPreviousPage: false,
-      items: [],
       page: 1,
       pageCount: 1,
       pageSize: safePageSize,
@@ -50,14 +68,29 @@ export function paginateDashboardItems<T>(
   const endOffset = startOffset + safePageSize;
 
   return {
-    endIndex: Math.min(totalItems, endOffset),
+    endIndex: Math.min(safeTotalItems, endOffset),
     hasNextPage: safePage < pageCount,
     hasPreviousPage: safePage > 1,
-    items: items.slice(startOffset, endOffset),
     page: safePage,
     pageCount,
     pageSize: safePageSize,
     startIndex: startOffset + 1,
-    totalItems,
+    totalItems: safeTotalItems,
+  };
+}
+
+export function paginateDashboardItems<T>(
+  items: T[],
+  page: number,
+  pageSize = DEFAULT_DASHBOARD_PAGE_SIZE,
+): DashboardPaginationSlice<T> {
+  const pagination = getDashboardPaginationState(items.length, page, pageSize);
+
+  return {
+    ...pagination,
+    items:
+      pagination.totalItems === 0
+        ? []
+        : items.slice(pagination.startIndex - 1, pagination.endIndex),
   };
 }

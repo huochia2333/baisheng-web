@@ -7,7 +7,11 @@ import {
   type UserStatus,
 } from "./user-self-service";
 import {
+  DEFAULT_DASHBOARD_PAGE_SIZE,
+  type DashboardPaginationState,
+  getDashboardPaginationState,
   getDashboardQueryRange,
+  getDashboardQueryRangeForPage,
   MAX_DASHBOARD_QUERY_ROWS,
 } from "./dashboard-pagination";
 
@@ -163,6 +167,56 @@ export type OrderViewerContext = {
   status: UserStatus | null;
 };
 
+export type AdminOrdersFilters = {
+  orderEntryUser: string;
+  orderNumber: string;
+  orderingUser: string;
+};
+
+export type AdminOrdersPageData = {
+  canViewOrderCosts: boolean;
+  canViewOrders: boolean;
+  currentViewerId: string | null;
+  currentViewerRole: AppRole | null;
+  currentViewerStatus: UserStatus | null;
+  filters: AdminOrdersFilters;
+  matchedOrdersCount: number;
+  orderDiscountOptions: OrderDiscountTypeOption[];
+  orderTypeOptions: BusinessCategoryOption[];
+  orders: AdminOrderRow[];
+  pagination: DashboardPaginationState;
+  purchaseOrderTypeOptions: PurchaseOrderTypeOption[];
+  serviceOrderTypeOptions: ServiceOrderTypeOption[];
+  summary: {
+    completed: number;
+    pending: number;
+    total: number;
+  };
+  totalOrdersCount: number;
+  userOptions: OrderUserOption[];
+};
+
+type AdminOrderOverviewFilters = {
+  orderEntryUserIds?: string[];
+  orderNumber?: string;
+  orderStatus?: string;
+  orderingUserIds?: string[];
+};
+
+type AdminOrderQueryOptions = {
+  filters?: AdminOrderOverviewFilters;
+  range?: {
+    from: number;
+    to: number;
+  };
+};
+
+type AdminOrderFilterQuery<TQuery> = {
+  eq(column: string, value: string): TQuery;
+  ilike(column: string, value: string): TQuery;
+  in(column: string, values: string[]): TQuery;
+};
+
 export async function getCurrentOrderViewerContext(
   supabase: SupabaseClient,
 ): Promise<OrderViewerContext | null> {
@@ -183,25 +237,9 @@ export async function getAdminOrders(
   supabase: SupabaseClient,
   limit = MAX_DASHBOARD_QUERY_ROWS,
 ): Promise<AdminOrderRow[]> {
-  const { from, to } = getDashboardQueryRange(limit);
-  const { data, error } = await withRequestTimeout(
-    supabase
-      .from("order_overview")
-      .select(ADMIN_ORDER_SELECT)
-      .is("deleted_at", null)
-      .order("created_at", { ascending: false })
-      .range(from, to)
-      .returns<AdminOrderRow[]>(),
-  );
-
-  if (error) {
-    throw error;
-  }
-
-  return (data ?? []).map((item) => ({
-    ...item,
-    cost_amount: null,
-  }));
+  return queryAdminOrders(supabase, {
+    range: getDashboardQueryRange(limit),
+  });
 }
 
 export async function getAdminOrderCosts(
@@ -231,16 +269,7 @@ export function canViewOrderCosts(
   role: AppRole | null,
   status: UserStatus | null,
 ): boolean {
-  if (status !== "active") {
-    return false;
-  }
-
-  return (
-    role === "administrator" ||
-    role === "finance" ||
-    role === "manager" ||
-    role === "salesman"
-  );
+  return canReadOrderCostByRole(role, status);
 }
 
 export function mergeAdminOrdersWithCosts(
@@ -255,6 +284,175 @@ export function mergeAdminOrdersWithCosts(
     ...order,
     cost_amount: costByOrderId.get(order.id) ?? null,
   }));
+}
+
+export function normalizeAdminOrdersFilters(
+  filters?: Partial<AdminOrdersFilters> | null,
+): AdminOrdersFilters {
+  return {
+    orderEntryUser: normalizeOptionalString(filters?.orderEntryUser) ?? "",
+    orderNumber: normalizeOptionalString(filters?.orderNumber) ?? "",
+    orderingUser: normalizeOptionalString(filters?.orderingUser) ?? "",
+  };
+}
+
+export function parseAdminOrdersSearchParams(
+  searchParams: Record<string, string | string[] | undefined>,
+) {
+  return {
+    filters: normalizeAdminOrdersFilters({
+      orderEntryUser: getSingleSearchParam(searchParams.orderEntryUser),
+      orderNumber: getSingleSearchParam(searchParams.orderNumber),
+      orderingUser: getSingleSearchParam(searchParams.orderingUser),
+    }),
+    page: normalizePositiveInteger(getSingleSearchParam(searchParams.page), 1),
+  };
+}
+
+export async function getAdminOrdersPageData(
+  supabase: SupabaseClient,
+  options: {
+    filters?: Partial<AdminOrdersFilters> | null;
+    includeOrderCosts?: boolean;
+    page?: number;
+    pageSize?: number;
+  } = {},
+): Promise<AdminOrdersPageData> {
+  const filters = normalizeAdminOrdersFilters(options.filters);
+  const pageSize = normalizePositiveInteger(options.pageSize, DEFAULT_DASHBOARD_PAGE_SIZE);
+  const requestedPage = normalizePositiveInteger(options.page, 1);
+  const viewer = await getCurrentOrderViewerContext(supabase);
+
+  if (!viewer) {
+    return createEmptyAdminOrdersPageData({
+      filters,
+      page: requestedPage,
+      pageSize,
+    });
+  }
+
+  const canViewOrders = canReadOrderByRole(viewer.role, viewer.status);
+  const canViewOrderCosts =
+    options.includeOrderCosts === true && canReadOrderCostByRole(viewer.role, viewer.status);
+
+  if (!canViewOrders) {
+    return {
+      ...createEmptyAdminOrdersPageData({
+        currentViewerId: viewer.user.id,
+        currentViewerRole: viewer.role,
+        currentViewerStatus: viewer.status,
+        filters,
+        page: requestedPage,
+        pageSize,
+      }),
+      canViewOrders: false,
+    };
+  }
+
+  const [
+    userOptions,
+    orderTypeOptions,
+    purchaseOrderTypeOptions,
+    serviceOrderTypeOptions,
+    orderDiscountOptions,
+    totalOrdersCount,
+    pendingOrdersCount,
+    completedOrdersCount,
+  ] = await Promise.all([
+    getOrderUserOptions(supabase),
+    getOrderTypeOptions(supabase),
+    getPurchaseOrderTypeOptions(supabase),
+    getServiceOrderTypeOptions(supabase),
+    getOrderDiscountTypeOptions(supabase),
+    getAdminOrderCount(supabase),
+    getAdminOrderCount(supabase, { orderStatus: "pending" }),
+    getAdminOrderCount(supabase, { orderStatus: "completed" }),
+  ]);
+
+  const orderEntryUserFilter = resolveAdminOrderUserFilter(
+    userOptions,
+    filters.orderEntryUser,
+  );
+  const orderingUserFilter = resolveAdminOrderUserFilter(
+    userOptions,
+    filters.orderingUser,
+  );
+
+  const filterHasNoMatches =
+    orderEntryUserFilter.hasNoMatches || orderingUserFilter.hasNoMatches;
+  const orderFilters: AdminOrderOverviewFilters = {
+    orderEntryUserIds: orderEntryUserFilter.userIds,
+    orderNumber: filters.orderNumber,
+    orderingUserIds: orderingUserFilter.userIds,
+  };
+  const matchedOrdersCount = filterHasNoMatches
+    ? 0
+    : await getAdminOrderCount(supabase, orderFilters);
+  const pagination = getDashboardPaginationState(
+    matchedOrdersCount,
+    requestedPage,
+    pageSize,
+  );
+
+  if (matchedOrdersCount === 0) {
+    return {
+      canViewOrderCosts,
+      canViewOrders,
+      currentViewerId: viewer.user.id,
+      currentViewerRole: viewer.role,
+      currentViewerStatus: viewer.status,
+      filters,
+      matchedOrdersCount,
+      orderDiscountOptions,
+      orderTypeOptions,
+      orders: [],
+      pagination,
+      purchaseOrderTypeOptions,
+      serviceOrderTypeOptions,
+      summary: {
+        completed: completedOrdersCount,
+        pending: pendingOrdersCount,
+        total: totalOrdersCount,
+      },
+      totalOrdersCount,
+      userOptions,
+    };
+  }
+
+  const orders = await queryAdminOrders(supabase, {
+    filters: orderFilters,
+    range: getDashboardQueryRangeForPage(pagination.page, pagination.pageSize),
+  });
+  const orderCosts =
+    canViewOrderCosts && orders.length > 0
+      ? await getAdminOrderCosts(
+          supabase,
+          orders.map((order) => order.id),
+        )
+      : [];
+
+  return {
+    canViewOrderCosts,
+    canViewOrders,
+    currentViewerId: viewer.user.id,
+    currentViewerRole: viewer.role,
+    currentViewerStatus: viewer.status,
+    filters,
+    matchedOrdersCount,
+    orderDiscountOptions,
+    orderTypeOptions,
+    orders: canViewOrderCosts ? mergeAdminOrdersWithCosts(orders, orderCosts) : orders,
+    pagination,
+    purchaseOrderTypeOptions,
+    serviceOrderTypeOptions,
+    summary: {
+      completed: completedOrdersCount,
+      pending: pendingOrdersCount,
+      total: totalOrdersCount,
+    },
+    totalOrdersCount,
+    userOptions,
+  };
 }
 
 export async function getOrderUserOptions(
@@ -314,6 +512,33 @@ export async function getOrderTypeOptions(
   }
 
   return data ?? [];
+}
+
+export function canReadOrderByRole(role: AppRole | null, status: UserStatus | null) {
+  if (status !== "active") {
+    return false;
+  }
+
+  return (
+    role === "administrator" ||
+    role === "finance" ||
+    role === "manager" ||
+    role === "salesman" ||
+    role === "client"
+  );
+}
+
+export function canReadOrderCostByRole(role: AppRole | null, status: UserStatus | null) {
+  if (status !== "active") {
+    return false;
+  }
+
+  return (
+    role === "administrator" ||
+    role === "finance" ||
+    role === "manager" ||
+    role === "salesman"
+  );
 }
 
 export async function getPurchaseOrderTypeOptions(
@@ -663,4 +888,185 @@ function normalizeUserStatus(value: unknown): UserStatus | null {
   }
 
   return null;
+}
+
+function createEmptyAdminOrdersPageData(options: {
+  currentViewerId?: string | null;
+  currentViewerRole?: AppRole | null;
+  currentViewerStatus?: UserStatus | null;
+  filters: AdminOrdersFilters;
+  page: number;
+  pageSize: number;
+}): AdminOrdersPageData {
+  return {
+    canViewOrderCosts: false,
+    canViewOrders: false,
+    currentViewerId: options.currentViewerId ?? null,
+    currentViewerRole: options.currentViewerRole ?? null,
+    currentViewerStatus: options.currentViewerStatus ?? null,
+    filters: options.filters,
+    matchedOrdersCount: 0,
+    orderDiscountOptions: [],
+    orderTypeOptions: [],
+    orders: [],
+    pagination: getDashboardPaginationState(0, options.page, options.pageSize),
+    purchaseOrderTypeOptions: [],
+    serviceOrderTypeOptions: [],
+    summary: {
+      completed: 0,
+      pending: 0,
+      total: 0,
+    },
+    totalOrdersCount: 0,
+    userOptions: [],
+  };
+}
+
+async function queryAdminOrders(
+  supabase: SupabaseClient,
+  options: AdminOrderQueryOptions = {},
+): Promise<AdminOrderRow[]> {
+  let query = supabase
+    .from("order_overview")
+    .select(ADMIN_ORDER_SELECT)
+    .is("deleted_at", null)
+    .order("created_at", { ascending: false });
+
+  query = applyAdminOrderOverviewFilters(query, options.filters);
+
+  if (options.range) {
+    query = query.range(options.range.from, options.range.to);
+  }
+
+  const { data, error } = await withRequestTimeout(query.returns<AdminOrderRow[]>());
+
+  if (error) {
+    throw error;
+  }
+
+  return (data ?? []).map((item) => ({
+    ...item,
+    cost_amount: null,
+  }));
+}
+
+async function getAdminOrderCount(
+  supabase: SupabaseClient,
+  filters?: AdminOrderOverviewFilters,
+): Promise<number> {
+  let query = supabase
+    .from("order_overview")
+    .select("id", {
+      count: "exact",
+      head: true,
+    })
+    .is("deleted_at", null);
+
+  query = applyAdminOrderOverviewFilters(query, filters);
+
+  const { count, error } = await withRequestTimeout(query);
+
+  if (error) {
+    throw error;
+  }
+
+  return count ?? 0;
+}
+
+function applyAdminOrderOverviewFilters<TQuery extends AdminOrderFilterQuery<TQuery>>(
+  query: TQuery,
+  filters?: AdminOrderOverviewFilters,
+) {
+  let nextQuery = query;
+
+  if (filters?.orderStatus) {
+    nextQuery = nextQuery.eq("order_status", filters.orderStatus);
+  }
+
+  if (filters?.orderNumber) {
+    nextQuery = nextQuery.ilike("order_number", `%${filters.orderNumber}%`);
+  }
+
+  if (filters?.orderEntryUserIds && filters.orderEntryUserIds.length > 0) {
+    nextQuery = nextQuery.in("order_entry_user", filters.orderEntryUserIds);
+  }
+
+  if (filters?.orderingUserIds && filters.orderingUserIds.length > 0) {
+    nextQuery = nextQuery.in("ordering_user", filters.orderingUserIds);
+  }
+
+  return nextQuery;
+}
+
+function resolveAdminOrderUserFilter(
+  userOptions: OrderUserOption[],
+  rawValue: string,
+): {
+  hasNoMatches: boolean;
+  userIds?: string[];
+} {
+  const normalizedValue = normalizeSearchText(rawValue);
+
+  if (!normalizedValue) {
+    return {
+      hasNoMatches: false,
+    };
+  }
+
+  const userIds = userOptions
+    .filter((option) =>
+      normalizeSearchText(getOrderUserSearchLabel(option)).includes(normalizedValue),
+    )
+    .map((option) => option.user_id);
+
+  if (userIds.length === 0) {
+    return {
+      hasNoMatches: true,
+      userIds: [],
+    };
+  }
+
+  return {
+    hasNoMatches: false,
+    userIds,
+  };
+}
+
+function getOrderUserSearchLabel(option: OrderUserOption) {
+  const normalizedName = normalizeOptionalString(option.name);
+  const normalizedEmail = normalizeOptionalString(option.email);
+
+  if (normalizedName && normalizedEmail) {
+    return `${normalizedName} / ${normalizedEmail}`;
+  }
+
+  return normalizedName ?? normalizedEmail ?? option.user_id;
+}
+
+function getSingleSearchParam(value: string | string[] | undefined) {
+  if (Array.isArray(value)) {
+    return value[0];
+  }
+
+  return value;
+}
+
+function normalizePositiveInteger(value: unknown, fallback: number) {
+  const parsed =
+    typeof value === "number" ? value : typeof value === "string" ? Number.parseInt(value, 10) : NaN;
+
+  return Number.isFinite(parsed) && parsed > 0 ? Math.trunc(parsed) : fallback;
+}
+
+function normalizeOptionalString(value: unknown) {
+  if (typeof value !== "string") {
+    return null;
+  }
+
+  const normalized = value.trim();
+  return normalized.length > 0 ? normalized : null;
+}
+
+function normalizeSearchText(value: string | null | undefined) {
+  return (normalizeOptionalString(value) ?? "").toLowerCase().replace(/\s+/g, " ");
 }
