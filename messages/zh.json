@@ -16,6 +16,12 @@
     "description": "这个链接可能已经失效，或者页面已被移动或删除。请返回主入口后继续操作。",
     "primaryAction": "返回主入口"
   },
+  "ForbiddenPage": {
+    "badge": "访问出错",
+    "title": "当前账号无权访问这个页面",
+    "description": "你访问的地址不在当前角色的允许范围内。请返回主入口后，从自己的工作台继续操作。",
+    "primaryAction": "返回主入口"
+  },
   "LanguageToggle": {
     "zh": "中文",
     "en": "EN"

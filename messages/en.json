@@ -16,6 +16,12 @@
     "description": "The link may be outdated, or the page may have been moved or removed. Return to the main workspace entry and continue from there.",
     "primaryAction": "Back to Main Entry"
   },
+  "ForbiddenPage": {
+    "badge": "Access Error",
+    "title": "This account cannot access the current page",
+    "description": "The requested address is outside the pages allowed for the current role. Return to the main entry and continue from the correct workspace.",
+    "primaryAction": "Back to Main Entry"
+  },
   "LanguageToggle": {
     "zh": "中文",
     "en": "EN"

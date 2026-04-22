@@ -21,7 +21,8 @@
 - `app/(auth)`：认证页，包含 `/`、`/login`、`/register`、`/forgot-password`
 - `app/(workspace)/[workspace]/my`：各角色共享“我的”页面入口
 - `app/(workspace)/[workspace]/[section]`：按角色动态装配订单、推荐树、团队、佣金、汇率、任务、审核等页面
-- `proxy.ts`：会话同步、登录保护、越权纠正
+- `app/forbidden.tsx`：统一承接越权访问时的访问错误页
+- `proxy.ts`：会话同步、登录保护、工作台访问前置校验
 - `lib/workspace-config.ts`：角色导航、页面变体和工作台配置中心
 - `lib/auth-routing.ts`：角色与工作台 base path 的映射
 
@@ -42,7 +43,7 @@
 说明：
 
 - `/[role]` 会自动重定向到对应的 `/[role]/my`
-- 越权访问会由 `proxy.ts` 按角色纠正到允许的工作台
+- 越权访问不会再改写到其他工作台，而是直接展示访问错误页
 - 部分低频角色的业务页仍处于过渡或占位阶段，主线开发以 `administrator`、`salesman`、`client` 为主
 
 ## 目录结构

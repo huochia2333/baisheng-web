@@ -1,12 +1,11 @@
 import { cookies } from "next/headers";
-import { redirect } from "next/navigation";
+import { forbidden, redirect } from "next/navigation";
 
 import { readAuthClaimsFromAccessToken } from "./auth-access-token";
 import { getAuthClaimsUserId, getAppRoleFromClaims } from "./auth-claims";
 import {
   canAccessWorkspaceBasePath,
   getDefaultSignedInPathForRole,
-  getDefaultWorkspaceBasePath,
   type AppRole,
 } from "./auth-routing";
 import { getServerSupabaseClient } from "./supabase-server";
@@ -71,9 +70,7 @@ export async function requireWorkspaceAccess(expectedBasePath: string) {
     redirect("/login");
   }
 
-  const desiredBasePath = getDefaultWorkspaceBasePath(role);
-
   if (!canAccessWorkspaceBasePath(role, expectedBasePath)) {
-    redirect(`${desiredBasePath}/my`);
+    forbidden();
   }
 }

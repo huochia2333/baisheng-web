@@ -4,9 +4,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { readAuthClaimsFromAccessToken } from "./auth-access-token";
 import { getAuthClaimsUserId, getAppRoleFromClaims } from "./auth-claims";
 import {
-  canAccessWorkspaceBasePath,
   getDefaultSignedInPathForRole,
-  getDefaultWorkspaceBasePath,
   getWorkspaceBasePath,
 } from "./auth-routing";
 import { getSupabaseEnv } from "./supabase";
@@ -73,18 +71,6 @@ export async function updateSession(request: NextRequest) {
       return createRedirectResponse(request, supabaseResponse, "/login", {
         clearSearch: true,
       });
-    }
-
-    const desiredBasePath = getDefaultWorkspaceBasePath(role);
-
-    if (!canAccessWorkspaceBasePath(role, currentBasePath)) {
-      const suffix = pathname.slice(currentBasePath.length) || "/my";
-
-      return createRedirectResponse(
-        request,
-        supabaseResponse,
-        `${desiredBasePath}${suffix}`,
-      );
     }
   }
 
