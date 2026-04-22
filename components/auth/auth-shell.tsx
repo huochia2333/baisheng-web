@@ -5,7 +5,7 @@ import Link from "next/link";
 import { GalleryVerticalEnd, ShieldCheck, Sparkles } from "lucide-react";
 
 import { LanguageToggle } from "@/components/i18n/language-toggle";
-import type { AuthShellCopy } from "@/lib/auth-shell-copy";
+import type { AuthShellCopy } from "@/lib/auth-shell-content";
 import { cn } from "@/lib/utils";
 
 const AUTH_SHELL_IMAGE_BLUR_DATA_URL =

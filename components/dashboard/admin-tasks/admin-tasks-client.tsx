@@ -39,14 +39,14 @@ import {
 import { paginateDashboardItems } from "@/lib/dashboard-pagination";
 import { getBrowserSupabaseClient } from "@/lib/supabase";
 
-import { Button } from "../ui/button";
+import { Button } from "@/components/ui/button";
 import {
   type AssignmentFormState,
   canManageTask,
   type CreateTaskFormState,
   createEmptyAssignmentForm,
   createEmptyTaskForm,
-} from "./admin-tasks/admin-tasks-utils";
+} from "./admin-tasks-utils";
 import {
   FilterField,
   FormField,
@@ -54,16 +54,16 @@ import {
   TaskCard,
   TaskScopePill,
   TaskStatusPill,
-} from "./admin-tasks/admin-tasks-ui";
-import { DashboardMetricCard } from "./dashboard-metric-card";
-import { DashboardPaginationControls } from "./dashboard-pagination-controls";
+} from "./admin-tasks-ui";
+import { DashboardMetricCard } from "@/components/dashboard/dashboard-metric-card";
+import { DashboardPaginationControls } from "@/components/dashboard/dashboard-pagination-controls";
 import {
   EmptyState,
   PageBanner,
   formatFileSize,
   normalizeSearchText,
   type NoticeTone,
-} from "./dashboard-shared-ui";
+} from "@/components/dashboard/dashboard-shared-ui";
 import {
   getTaskAssignmentLabel,
   getTaskTeamName,
@@ -71,8 +71,8 @@ import {
   toAdminTaskErrorMessage,
   validateTaskAssignmentDraft,
   validateTaskDraft,
-} from "./tasks-copy";
-import { useWorkspaceSyncEffect } from "./workspace-session-provider";
+} from "@/components/dashboard/tasks/tasks-display";
+import { useWorkspaceSyncEffect } from "@/components/dashboard/workspace-session-provider";
 
 type PageFeedback = { tone: NoticeTone; message: string } | null;
 
@@ -84,7 +84,7 @@ const textareaClassName =
   "min-h-[150px] w-full rounded-[22px] border border-[#dfe5ea] bg-white px-4 py-3 text-sm leading-7 text-[#23313a] outline-none transition focus:border-[#bfd2e1] focus:ring-4 focus:ring-[#bfd2e1]/30";
 
 const DashboardDialog = dynamic(
-  () => import("./dashboard-dialog").then((mod) => mod.DashboardDialog),
+  () => import("@/components/dashboard/dashboard-dialog").then((mod) => mod.DashboardDialog),
   { ssr: false },
 );
 

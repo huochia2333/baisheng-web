@@ -28,13 +28,13 @@ import {
   PageBanner,
   normalizeSearchText,
   type NoticeTone,
-} from "./dashboard-shared-ui";
+} from "@/components/dashboard/dashboard-shared-ui";
 import {
   ExchangeRateFormDialog,
   ExchangeRatesHeaderSection,
   ExchangeRatesHistorySection,
   ExchangeRatesLatestSection,
-} from "./exchange-rates/exchange-rates-sections";
+} from "./exchange-rates-sections";
 import {
   createExchangeRateCopy,
   createExchangeRateFormState,
@@ -43,8 +43,8 @@ import {
   parseExchangeRateForm,
   toExchangeRateErrorMessage,
   type ExchangeRateFormState,
-} from "./exchange-rates/exchange-rates-utils";
-import { useWorkspaceSyncEffect } from "./workspace-session-provider";
+} from "./exchange-rates-utils";
+import { useWorkspaceSyncEffect } from "@/components/dashboard/workspace-session-provider";
 
 type ExchangeRatesClientProps = {
   homeHref: string;

@@ -34,14 +34,14 @@ import {
 } from "@/lib/team-management";
 import { getBrowserSupabaseClient } from "@/lib/supabase";
 
-import { Button } from "../ui/button";
-import { DashboardMetricCard } from "./dashboard-metric-card";
+import { Button } from "@/components/ui/button";
+import { DashboardMetricCard } from "@/components/dashboard/dashboard-metric-card";
 import {
   EmptyState,
   formatDateTime,
   PageBanner,
   type NoticeTone,
-} from "./dashboard-shared-ui";
+} from "@/components/dashboard/dashboard-shared-ui";
 import {
   CandidateCard,
   ClientCard,
@@ -52,20 +52,20 @@ import {
   MiniMetric,
   SearchField,
   SectionHeader,
-} from "./team-management/team-management-ui";
+} from "./team-management-ui";
 import {
   filterTeamCandidates,
   filterTeamClients,
   filterTeamMembers,
-} from "./team-management/team-management-utils";
+} from "./team-management-utils";
 import {
   getManagerCandidateLabel,
   getTeamDisplayName,
   getTeamManagementDescription,
   getTeamManagerLabel,
   toTeamManagementErrorMessage,
-} from "./team-management-copy";
-import { useWorkspaceSyncEffect } from "./workspace-session-provider";
+} from "./team-management-display";
+import { useWorkspaceSyncEffect } from "@/components/dashboard/workspace-session-provider";
 
 type PageFeedback = { tone: NoticeTone; message: string } | null;
 

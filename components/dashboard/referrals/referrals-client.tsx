@@ -35,9 +35,9 @@ import {
   toErrorMessage,
   type DashboardSharedCopy,
   type NoticeTone,
-} from "./dashboard-shared-ui";
-import { DashboardMetricCard } from "./dashboard-metric-card";
-import { useWorkspaceSyncEffect } from "./workspace-session-provider";
+} from "@/components/dashboard/dashboard-shared-ui";
+import { DashboardMetricCard } from "@/components/dashboard/dashboard-metric-card";
+import { useWorkspaceSyncEffect } from "@/components/dashboard/workspace-session-provider";
 
 type PageFeedback = { tone: NoticeTone; message: string } | null;
 type TranslationValues = Record<string, string | number>;

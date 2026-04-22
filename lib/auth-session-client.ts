@@ -19,12 +19,8 @@ export async function getAuthSession(supabase: SupabaseClient): Promise<Session 
   return session;
 }
 
-export function getRoleFromUser(user: User | null | undefined): AppRole | null {
+function getRoleFromUser(user: User | null | undefined): AppRole | null {
   return getAppRoleFromMetadataContainer(user);
-}
-
-export function getRoleFromSession(session: Session | null | undefined): AppRole | null {
-  return getRoleFromUser(session?.user);
 }
 
 export async function getRoleFromAuthClaims(

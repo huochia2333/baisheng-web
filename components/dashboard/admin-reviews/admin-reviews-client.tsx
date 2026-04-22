@@ -6,14 +6,14 @@ import { useTranslations } from "next-intl";
 import type { AdminReviewsPageData } from "@/lib/admin-reviews";
 import { cn } from "@/lib/utils";
 
-import { EmptyState, PageBanner } from "./dashboard-shared-ui";
+import { EmptyState, PageBanner } from "@/components/dashboard/dashboard-shared-ui";
 import {
   MediaPreviewDialog,
   MediaReviewList,
   PrivacyReviewList,
   ReviewSummaryCard,
-} from "./admin-reviews/admin-reviews-ui";
-import { useAdminReviewsPage } from "./admin-reviews/use-admin-reviews-page";
+} from "./admin-reviews-ui";
+import { useAdminReviewsPage } from "./use-admin-reviews-page";
 
 const reviewTabIconMap = {
   media: ImageIcon,

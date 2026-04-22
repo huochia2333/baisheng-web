@@ -18,13 +18,6 @@ export function normalizeLocale(value: string | null | undefined): Locale {
   return value === "en" ? "en" : DEFAULT_LOCALE;
 }
 
-export function pickLocalizedValue<T>(
-  locale: Locale,
-  value: LocalizedValue<T>,
-): T {
-  return value[locale];
-}
-
 export function getDocumentLanguage(locale: Locale) {
   return locale === "en" ? "en" : "zh-CN";
 }

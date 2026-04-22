@@ -31,10 +31,9 @@ import {
 } from "@/lib/salesman-tasks";
 import { paginateDashboardItems } from "@/lib/dashboard-pagination";
 import { getBrowserSupabaseClient } from "@/lib/supabase";
-
-import { Button } from "../ui/button";
-import { DashboardMetricCard } from "./dashboard-metric-card";
-import { DashboardPaginationControls } from "./dashboard-pagination-controls";
+import { Button } from "@/components/ui/button";
+import { DashboardMetricCard } from "@/components/dashboard/dashboard-metric-card";
+import { DashboardPaginationControls } from "@/components/dashboard/dashboard-pagination-controls";
 import {
   EmptyState,
   PageBanner,
@@ -42,7 +41,9 @@ import {
   formatFileSize,
   normalizeSearchText,
   type NoticeTone,
-} from "./dashboard-shared-ui";
+} from "@/components/dashboard/dashboard-shared-ui";
+import { useWorkspaceSyncEffect } from "@/components/dashboard/workspace-session-provider";
+
 import {
   getTaskAttachmentCountLabel,
   getTaskIntroText,
@@ -51,8 +52,7 @@ import {
   getTaskTeamName,
   resolveSalesmanTaskTargetLabel,
   toSalesmanTaskErrorMessage,
-} from "./tasks-copy";
-import { useWorkspaceSyncEffect } from "./workspace-session-provider";
+} from "@/components/dashboard/tasks/tasks-display";
 
 type PageFeedback = { tone: NoticeTone; message: string } | null;
 

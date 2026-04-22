@@ -31,7 +31,3 @@ export function withRequestTimeout<T>(
     });
   });
 }
-
-export function isRequestTimeoutError(error: unknown) {
-  return error instanceof Error && error.name === REQUEST_TIMEOUT_ERROR_NAME;
-}

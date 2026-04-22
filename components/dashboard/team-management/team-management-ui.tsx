@@ -17,16 +17,16 @@ import type {
   TeamSalesmanCandidate,
 } from "@/lib/team-management";
 
-import { Button } from "../../ui/button";
+import { Button } from "@/components/ui/button";
 import {
   formatDateTime,
   mapUserStatus,
-} from "../dashboard-shared-ui";
+} from "@/components/dashboard/dashboard-shared-ui";
 import {
   getOptionalEmailLabel,
   getOptionalRecordLabel,
   getOptionalTeamAssignmentLabel,
-} from "../team-management-copy";
+} from "./team-management-display";
 
 export function SectionHeader({
   title,

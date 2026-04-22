@@ -1,6 +1,6 @@
 import { notFound, redirect } from "next/navigation";
 
-import { DashboardSharedMyClient } from "@/components/dashboard/dashboard-shared-my-client";
+import { DashboardSharedMyClient } from "@/components/dashboard/dashboard-shared-my/dashboard-shared-my-client";
 import { ScopedIntlProvider } from "@/components/i18n/scoped-intl-provider";
 import { getServerSupabaseClient } from "@/lib/supabase-server";
 import { getCurrentUserBundle } from "@/lib/user-self-service";

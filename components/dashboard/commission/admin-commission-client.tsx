@@ -11,13 +11,13 @@ import { useDashboardPagination } from "@/lib/use-dashboard-pagination";
 import type { AppRole, UserStatus } from "@/lib/user-self-service";
 import { cn } from "@/lib/utils";
 import { useLocale } from "@/components/i18n/locale-provider";
+import { Button } from "@/components/ui/button";
+import { DashboardMetricCard } from "@/components/dashboard/dashboard-metric-card";
+import { DashboardPaginationControls } from "@/components/dashboard/dashboard-pagination-controls";
+import { EmptyState, PageBanner, formatDateTime, mapUserStatus, normalizeSearchText, type NoticeTone } from "@/components/dashboard/dashboard-shared-ui";
+import { useWorkspaceSyncEffect } from "@/components/dashboard/workspace-session-provider";
 
-import { formatCommissionMoney, formatNullableCommissionMoney, getCommissionCategoryLabel, getCommissionOrderStatusLabel, getCommissionRoleLabel, getCommissionSettlementStatusLabel, toCommissionErrorMessage } from "./commission-copy";
-import { DashboardMetricCard } from "./dashboard-metric-card";
-import { DashboardPaginationControls } from "./dashboard-pagination-controls";
-import { EmptyState, PageBanner, formatDateTime, mapUserStatus, normalizeSearchText, type NoticeTone } from "./dashboard-shared-ui";
-import { useWorkspaceSyncEffect } from "./workspace-session-provider";
-import { Button } from "../ui/button";
+import { formatCommissionMoney, formatNullableCommissionMoney, getCommissionCategoryLabel, getCommissionOrderStatusLabel, getCommissionRoleLabel, getCommissionSettlementStatusLabel, toCommissionErrorMessage } from "./commission-display";
 
 type PageFeedback = { tone: NoticeTone; message: string } | null;
 type SettlementFilter = "all" | CommissionSettlementStatus;

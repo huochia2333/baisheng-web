@@ -24,15 +24,15 @@ import {
   PageBanner,
   normalizeOptionalString,
   type NoticeTone,
-} from "./dashboard-shared-ui";
+} from "@/components/dashboard/dashboard-shared-ui";
 import {
   OrderDetailsDialog,
   OrderFormDialog,
-} from "./admin-orders/admin-orders-ui";
+} from "./admin-orders-ui";
 import {
   OrdersHeaderSection,
   OrdersTableSection,
-} from "./admin-orders/admin-orders-sections";
+} from "./admin-orders-sections";
 import {
   applyOrderFormDefaults,
   canCreateOrderByRole,
@@ -48,8 +48,8 @@ import {
   parseCreateOrderForm,
   toOrderErrorMessage,
   type OrderFormState,
-} from "./admin-orders/admin-orders-utils";
-import { useWorkspaceSyncEffect } from "./workspace-session-provider";
+} from "./admin-orders-utils";
+import { useWorkspaceSyncEffect } from "@/components/dashboard/workspace-session-provider";
 
 type PageFeedback = { tone: NoticeTone; message: string } | null;
 

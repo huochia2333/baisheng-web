@@ -37,63 +37,63 @@ type SectionPageProps = {
 
 const AdminCommissionClient = dynamic(
   () =>
-    import("@/components/dashboard/admin-commission-client").then(
+    import("@/components/dashboard/commission/admin-commission-client").then(
       (mod) => mod.AdminCommissionClient,
     ),
 );
 
 const AdminOrdersClient = dynamic(
   () =>
-    import("@/components/dashboard/admin-orders-client").then(
+    import("@/components/dashboard/admin-orders/admin-orders-client").then(
       (mod) => mod.AdminOrdersClient,
     ),
 );
 
 const AdminReviewsClient = dynamic(
   () =>
-    import("@/components/dashboard/admin-reviews-client").then(
+    import("@/components/dashboard/admin-reviews/admin-reviews-client").then(
       (mod) => mod.AdminReviewsClient,
     ),
 );
 
 const AdminTasksClient = dynamic(
   () =>
-    import("@/components/dashboard/admin-tasks-client").then(
+    import("@/components/dashboard/admin-tasks/admin-tasks-client").then(
       (mod) => mod.AdminTasksClient,
     ),
 );
 
 const ExchangeRatesClient = dynamic(
   () =>
-    import("@/components/dashboard/exchange-rates-client").then(
+    import("@/components/dashboard/exchange-rates/exchange-rates-client").then(
       (mod) => mod.ExchangeRatesClient,
     ),
 );
 
 const ReferralsClient = dynamic(
   () =>
-    import("@/components/dashboard/referrals-client").then(
+    import("@/components/dashboard/referrals/referrals-client").then(
       (mod) => mod.ReferralsClient,
     ),
 );
 
 const SalesmanCommissionClient = dynamic(
   () =>
-    import("@/components/dashboard/salesman-commission-client").then(
+    import("@/components/dashboard/commission/salesman-commission-client").then(
       (mod) => mod.SalesmanCommissionClient,
     ),
 );
 
 const SalesmanTasksClient = dynamic(
   () =>
-    import("@/components/dashboard/salesman-tasks-client").then(
+    import("@/components/dashboard/salesman-tasks/salesman-tasks-client").then(
       (mod) => mod.SalesmanTasksClient,
     ),
 );
 
 const TeamManagementClient = dynamic(
   () =>
-    import("@/components/dashboard/team-management-client").then(
+    import("@/components/dashboard/team-management/team-management-client").then(
       (mod) => mod.TeamManagementClient,
     ),
 );

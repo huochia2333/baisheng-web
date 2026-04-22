@@ -193,26 +193,6 @@ export async function getTeamDetail(
   return normalizeTeamDetail(data);
 }
 
-export async function getManageableTeamSalesmanCandidates(
-  supabase: SupabaseClient,
-): Promise<TeamSalesmanCandidate[]> {
-  const { data, error } = await withRequestTimeout(
-    supabase.rpc("get_manageable_team_salesman_candidates"),
-  );
-
-  if (error) {
-    throw error;
-  }
-
-  if (!Array.isArray(data)) {
-    return [];
-  }
-
-  return data
-    .map((item) => normalizeTeamSalesmanCandidate(item))
-    .filter((item): item is TeamSalesmanCandidate => item !== null);
-}
-
 export async function getTeamSalesmanCandidates(
   supabase: SupabaseClient,
   teamId?: string | null,
@@ -345,33 +325,6 @@ export async function removeTeamSalesman(
   }
 
   return normalizeOptionalString(data);
-}
-
-export async function upsertMyTeamProfile(
-  supabase: SupabaseClient,
-  teamName: string,
-) {
-  return saveTeamProfile(supabase, {
-    teamName,
-  });
-}
-
-export async function addMyTeamSalesman(
-  supabase: SupabaseClient,
-  salesmanUserId: string,
-) {
-  return addTeamSalesman(supabase, {
-    salesmanUserId,
-  });
-}
-
-export async function removeMyTeamSalesman(
-  supabase: SupabaseClient,
-  salesmanUserId: string,
-) {
-  return removeTeamSalesman(supabase, {
-    salesmanUserId,
-  });
 }
 
 const EMPTY_TEAM_DETAIL: TeamDetail = {

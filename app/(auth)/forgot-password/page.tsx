@@ -5,7 +5,7 @@ import { getTranslations } from "next-intl/server";
 import { ForgotPasswordForm } from "@/components/auth/forgot-password-form";
 import { AuthShell } from "@/components/auth/auth-shell";
 import { ScopedIntlProvider } from "@/components/i18n/scoped-intl-provider";
-import { getAuthShellCopy } from "@/lib/auth-shell-copy";
+import { getAuthShellCopy } from "@/lib/auth-shell-content";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("ForgotPasswordPage");

@@ -23,7 +23,7 @@ import { cn } from "@/lib/utils";
 import {
   LazyDashboardImagePreview,
   LazyDashboardVideoPreview,
-} from "./dashboard-media-preview";
+} from "@/components/dashboard/dashboard-media-preview";
 import {
   EmptyState,
   formatFileSize,
@@ -34,12 +34,12 @@ import {
   statusBadgeClass,
   StatusNotice,
   ValueCard,
-} from "./dashboard-shared-ui";
-import { Button } from "../ui/button";
-import { useDashboardSharedMyState } from "./dashboard-shared-my/use-dashboard-shared-my-state";
+} from "@/components/dashboard/dashboard-shared-ui";
+import { Button } from "@/components/ui/button";
+import { useDashboardSharedMyState } from "./use-dashboard-shared-my-state";
 
 const DashboardDialog = dynamic(
-  () => import("./dashboard-dialog").then((mod) => mod.DashboardDialog),
+  () => import("@/components/dashboard/dashboard-dialog").then((mod) => mod.DashboardDialog),
   { ssr: false },
 );
 

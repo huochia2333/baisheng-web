@@ -8,7 +8,7 @@ import type {
 import type { Locale } from "@/lib/locale";
 import type { AppRole } from "@/lib/user-self-service";
 
-import { toErrorMessage } from "./dashboard-shared-ui";
+import { toErrorMessage } from "@/components/dashboard/dashboard-shared-ui";
 
 type TranslationValues = Record<string, string | number>;
 type TranslateFn = (key: string, values?: TranslationValues) => string;

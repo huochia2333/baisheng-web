@@ -1,7 +1,7 @@
 import type { SalesmanTaskRow } from "@/lib/salesman-tasks";
 import type { TaskScope, TaskStatus } from "@/lib/admin-tasks";
 
-import { toErrorMessage } from "./dashboard-shared-ui";
+import { toErrorMessage } from "@/components/dashboard/dashboard-shared-ui";
 
 type TranslationValues = Record<string, string | number>;
 export type TranslateFn = (key: string, values?: TranslationValues) => string;

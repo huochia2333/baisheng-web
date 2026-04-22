@@ -2,11 +2,10 @@
 
 import type {
   TeamManagerCandidate,
-  TeamOverview,
 } from "@/lib/team-management";
 import type { AppRole } from "@/lib/user-self-service";
 
-import { toErrorMessage } from "./dashboard-shared-ui";
+import { toErrorMessage } from "@/components/dashboard/dashboard-shared-ui";
 
 type TranslationValues = Record<string, string | number>;
 export type TeamTranslateFn = (key: string, values?: TranslationValues) => string;
@@ -145,16 +144,4 @@ export function toTeamManagementErrorMessage(
   }
 
   return baseMessage;
-}
-
-export function resolvePreferredTeamId(
-  overviews: TeamOverview[],
-  preferredTeamId: string | null,
-) {
-  if (preferredTeamId && overviews.some((team) => team.team_id === preferredTeamId)) {
-    return preferredTeamId;
-  }
-
-  const manageableTeam = overviews.find((team) => team.can_manage);
-  return manageableTeam?.team_id ?? overviews[0]?.team_id ?? null;
 }

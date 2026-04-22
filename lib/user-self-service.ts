@@ -134,13 +134,6 @@ export function getStatusFromUser(user: User | null | undefined): UserStatus | n
   return getUserStatusFromMetadataContainer(user);
 }
 
-export async function getRoleFromCurrentSession(
-  supabase: SupabaseClient,
-): Promise<AppRole | null> {
-  const { role } = await getCurrentSessionContext(supabase);
-  return role;
-}
-
 export async function getCurrentSession(
   supabase: SupabaseClient,
 ): Promise<Session | null> {
@@ -216,10 +209,6 @@ export async function getCurrentSessionContext(
     role: getAppRoleFromClaims(claims) ?? getRoleFromUser(user),
     status: getUserStatusFromClaims(claims) ?? getStatusFromUser(user),
   };
-}
-
-export function getDefaultSignedInPath() {
-  return getDefaultSignedInPathForRole(null);
 }
 
 export async function getCurrentUserBundle(

@@ -19,11 +19,11 @@ import type {
   TaskStatus,
 } from "@/lib/admin-tasks";
 
-import { Button } from "../../ui/button";
+import { Button } from "@/components/ui/button";
 import {
   formatDateTime,
   formatFileSize,
-} from "../dashboard-shared-ui";
+} from "@/components/dashboard/dashboard-shared-ui";
 import {
   getTaskAssignmentLabel,
   getTaskAttachmentCountLabel,
@@ -32,7 +32,7 @@ import {
   getTaskScopeLabel,
   getTaskStatusMeta,
   resolveTaskActorLabel,
-} from "../tasks-copy";
+} from "@/components/dashboard/tasks/tasks-display";
 import { canManageTask } from "./admin-tasks-utils";
 
 const selectFieldClassName =
