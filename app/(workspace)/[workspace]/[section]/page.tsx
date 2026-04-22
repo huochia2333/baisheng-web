@@ -288,11 +288,11 @@ function getSectionNamespaces(
 
   if (section === "tasks") {
     if (config.pageVariants.tasks === "admin") {
-      namespaces.push("Tasks.admin", "Tasks.shared");
+      namespaces.push("DashboardPagination", "Tasks.admin", "Tasks.shared");
     }
 
     if (config.pageVariants.tasks === "salesman") {
-      namespaces.push("Tasks.salesman", "Tasks.shared");
+      namespaces.push("DashboardPagination", "Tasks.salesman", "Tasks.shared");
     }
   }
 

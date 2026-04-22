@@ -1,0 +1,293 @@
+"use client";
+
+import { useTranslations } from "next-intl";
+import {
+  BriefcaseBusiness,
+  Building2,
+  CirclePlus,
+  Crown,
+  LoaderCircle,
+  RefreshCw,
+  ShieldAlert,
+  Sparkles,
+  UsersRound,
+} from "lucide-react";
+
+import type { TeamManagerCandidate } from "@/lib/team-management";
+import type { AppRole } from "@/lib/user-self-service";
+
+import { Button } from "@/components/ui/button";
+import { DashboardMetricCard } from "@/components/dashboard/dashboard-metric-card";
+import { EmptyState } from "@/components/dashboard/dashboard-shared-ui";
+
+import { SectionHeader } from "./team-management-ui";
+import { getManagerCandidateLabel, getTeamManagementDescription } from "./team-management-display";
+import {
+  teamManagementSectionInputClassName,
+} from "./team-management-section-styles";
+
+export function TeamManagementHeroSection({
+  aggregateStats,
+  canManageSelectedTeam,
+  busyKey,
+  onRefresh,
+  viewerRole,
+}: {
+  aggregateStats: {
+    manageableTeams: number;
+    teamCount: number;
+    totalClients: number;
+    totalMembers: number;
+  };
+  canManageSelectedTeam: boolean;
+  busyKey: string | null;
+  onRefresh: () => void;
+  viewerRole: AppRole | null;
+}) {
+  const t = useTranslations("TeamManagement");
+
+  return (
+    <section className="rounded-[28px] border border-white/90 bg-[#f4f3f1]/92 p-6 shadow-[0_18px_45px_rgba(96,113,128,0.08)] xl:p-8">
+      <div className="flex flex-col gap-6 xl:flex-row xl:items-end xl:justify-between">
+        <div className="max-w-3xl">
+          <span className="inline-flex rounded-full bg-[#e6edf2] px-3 py-1 text-xs font-semibold text-[#486782]">
+            {t("header.badge")}
+          </span>
+          <h2 className="mt-4 text-4xl font-bold tracking-tight text-[#1f2a32]">
+            {t("header.title")}
+          </h2>
+          <p className="mt-3 text-[15px] leading-8 text-[#65717b]">
+            {getTeamManagementDescription(viewerRole, t)}
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:min-w-[560px] xl:grid-cols-4">
+          <DashboardMetricCard
+            accent="blue"
+            icon={<Building2 className="size-5" />}
+            label={t("summary.visibleTeams")}
+            value={aggregateStats.teamCount}
+          />
+          <DashboardMetricCard
+            accent="green"
+            icon={<UsersRound className="size-5" />}
+            label={t("summary.teamMembers")}
+            value={aggregateStats.totalMembers}
+          />
+          <DashboardMetricCard
+            accent="gold"
+            icon={<BriefcaseBusiness className="size-5" />}
+            label={t("summary.teamClients")}
+            value={aggregateStats.totalClients}
+          />
+          <DashboardMetricCard
+            accent="blue"
+            icon={<Crown className="size-5" />}
+            label={t("summary.manageableTeams")}
+            value={aggregateStats.manageableTeams}
+          />
+        </div>
+      </div>
+
+      <div className="mt-6 flex flex-wrap gap-3">
+        <Button
+          className="h-11 rounded-full border-[#d4d8dc] bg-white px-5 text-[#486782] hover:bg-[#f2f4f6]"
+          disabled={busyKey !== null}
+          onClick={onRefresh}
+          variant="outline"
+        >
+          {busyKey === "refresh" ? (
+            <LoaderCircle className="size-4 animate-spin" />
+          ) : (
+            <RefreshCw className="size-4" />
+          )}
+          {t("header.refresh")}
+        </Button>
+        {canManageSelectedTeam ? (
+          <div className="inline-flex items-center rounded-full bg-[#eef5ef] px-4 py-2 text-sm text-[#4c7259]">
+            {t("header.manageableHint")}
+          </div>
+        ) : null}
+      </div>
+    </section>
+  );
+}
+
+export function AdminCreateTeamSection({
+  busyKey,
+  createManagerCandidates,
+  createManagerUserIdDraft,
+  createTeamNameDraft,
+  onCreate,
+  onCreateManagerUserIdChange,
+  onCreateTeamNameChange,
+}: {
+  busyKey: string | null;
+  createManagerCandidates: TeamManagerCandidate[];
+  createManagerUserIdDraft: string;
+  createTeamNameDraft: string;
+  onCreate: () => void;
+  onCreateManagerUserIdChange: (value: string) => void;
+  onCreateTeamNameChange: (value: string) => void;
+}) {
+  const t = useTranslations("TeamManagement");
+
+  return (
+    <section className="rounded-[28px] border border-white/85 bg-white/72 p-6 shadow-[0_18px_45px_rgba(96,113,128,0.06)] xl:p-8">
+      <SectionHeader
+        description={t("adminCreate.description")}
+        title={t("adminCreate.title")}
+      />
+
+      <div className="mt-6 grid gap-4 xl:grid-cols-[1fr_1fr_auto]">
+        <label className="block">
+          <p className="font-label text-[11px] font-semibold tracking-[0.18em] text-[#7d8890] uppercase">
+            {t("adminCreate.teamNameLabel")}
+          </p>
+          <input
+            className={teamManagementSectionInputClassName}
+            onChange={(event) => onCreateTeamNameChange(event.target.value)}
+            placeholder={t("adminCreate.teamNamePlaceholder")}
+            value={createTeamNameDraft}
+          />
+        </label>
+
+        <label className="block">
+          <p className="font-label text-[11px] font-semibold tracking-[0.18em] text-[#7d8890] uppercase">
+            {t("adminCreate.managerLabel")}
+          </p>
+          <select
+            className={teamManagementSectionInputClassName}
+            onChange={(event) => onCreateManagerUserIdChange(event.target.value)}
+            value={createManagerUserIdDraft}
+          >
+            <option value="">{t("shared.managerOptionNone")}</option>
+            {createManagerCandidates.map((candidate) => (
+              <option
+                disabled={!candidate.assignable}
+                key={candidate.user_id}
+                value={candidate.user_id}
+              >
+                {getManagerCandidateLabel(candidate, t)}
+              </option>
+            ))}
+          </select>
+        </label>
+
+        <div className="flex items-end">
+          <Button
+            className="h-12 w-full rounded-full bg-[#486782] px-5 text-white hover:bg-[#3e5f79] xl:w-auto"
+            disabled={!createTeamNameDraft.trim() || busyKey !== null}
+            onClick={onCreate}
+          >
+            {busyKey === "create-team" ? (
+              <LoaderCircle className="size-4 animate-spin" />
+            ) : (
+              <CirclePlus className="size-4" />
+            )}
+            {t("adminCreate.button")}
+          </Button>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+export function NoPermissionSection() {
+  const t = useTranslations("TeamManagement");
+
+  return (
+    <section className="rounded-[28px] border border-white/85 bg-white/72 p-6 shadow-[0_18px_45px_rgba(96,113,128,0.06)] xl:p-8">
+      <EmptyState
+        description={t("states.noPermissionDescription")}
+        icon={<ShieldAlert className="size-6" />}
+        title={t("states.noPermissionTitle")}
+      />
+    </section>
+  );
+}
+
+export function ManagerSetupSection({
+  busyKey,
+  onSave,
+  onTeamNameChange,
+  teamNameDraft,
+}: {
+  busyKey: string | null;
+  onSave: () => void;
+  onTeamNameChange: (value: string) => void;
+  teamNameDraft: string;
+}) {
+  const t = useTranslations("TeamManagement");
+
+  return (
+    <section className="grid gap-6 xl:grid-cols-[1.25fr_0.95fr]">
+      <section className="rounded-[28px] border border-white/85 bg-white/72 p-6 shadow-[0_18px_45px_rgba(96,113,128,0.06)] xl:p-8">
+        <div className="flex items-start gap-4">
+          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#eef3f6] text-[#486782]">
+            <Sparkles className="size-5" />
+          </div>
+          <div>
+            <h3 className="text-2xl font-bold tracking-tight text-[#23313a]">
+              {t("managerSetup.title")}
+            </h3>
+            <p className="mt-2 text-sm leading-7 text-[#6f7b85]">
+              {t("managerSetup.description")}
+            </p>
+          </div>
+        </div>
+
+        <div className="mt-6 rounded-[24px] border border-[#ebe7e1] bg-[#fbfaf8] p-5 shadow-[0_10px_24px_rgba(96,113,128,0.04)]">
+          <label className="block">
+            <p className="font-label text-[11px] font-semibold tracking-[0.18em] text-[#7d8890] uppercase">
+              {t("managerSetup.teamNameLabel")}
+            </p>
+            <input
+              className={teamManagementSectionInputClassName}
+              onChange={(event) => onTeamNameChange(event.target.value)}
+              placeholder={t("managerSetup.teamNamePlaceholder")}
+              value={teamNameDraft}
+            />
+          </label>
+
+          <div className="mt-5 flex flex-wrap gap-3">
+            <Button
+              className="h-11 rounded-full bg-[#486782] px-5 text-white hover:bg-[#3e5f79]"
+              disabled={!teamNameDraft.trim() || busyKey !== null}
+              onClick={onSave}
+            >
+              {busyKey === "save-team" ? (
+                <LoaderCircle className="size-4 animate-spin" />
+              ) : (
+                <Building2 className="size-4" />
+              )}
+              {t("managerSetup.button")}
+            </Button>
+          </div>
+        </div>
+      </section>
+
+      <section className="rounded-[28px] border border-white/85 bg-white/72 p-6 shadow-[0_18px_45px_rgba(96,113,128,0.06)] xl:p-8">
+        <EmptyState
+          description={t("managerSetup.emptyDescription")}
+          icon={<UsersRound className="size-6" />}
+          title={t("managerSetup.emptyTitle")}
+        />
+      </section>
+    </section>
+  );
+}
+
+export function NoTeamDataSection() {
+  const t = useTranslations("TeamManagement");
+
+  return (
+    <section className="rounded-[28px] border border-white/85 bg-white/72 p-6 shadow-[0_18px_45px_rgba(96,113,128,0.06)] xl:p-8">
+      <EmptyState
+        description={t("states.noTeamDataDescription")}
+        icon={<Building2 className="size-6" />}
+        title={t("states.noTeamDataTitle")}
+      />
+    </section>
+  );
+}

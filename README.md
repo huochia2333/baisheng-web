@@ -83,6 +83,35 @@ baisheng-web/
 - 超过 `1000` 行的大文件需要继续拆分，避免再积累结构债
 - `output/playwright` 用于保留有价值的截图和报告，不存放长期无用的临时控制台垃圾
 
+### `admin-orders` 模块分层（2026-04-22）
+
+- `admin-orders-client.tsx`：仅负责页面编排、翻译文案接线和主要组件组合
+- `use-admin-orders-view-model.ts`：只负责拼装派生数据与组合子 hook，不再直接堆积所有 CRUD 逻辑
+- `use-admin-orders-route-state.ts`、`use-admin-order-selection.ts`、`use-admin-order-create-dialog.ts`、`use-admin-order-edit-dialog.ts`、`use-admin-order-delete-actions.ts`：分别承接路由筛选、选中订单、创建、编辑和删除流程
+- `admin-orders-client-config.ts`：放置 orders 视图配置、过滤器比较和表单字段联动规则
+- `admin-orders-copy.ts`、`admin-orders-display.ts`、`admin-orders-form.ts`、`admin-orders-details.ts`、`admin-orders-errors.ts`、`admin-orders-permissions.ts`：分别承接文案映射、显示格式化、表单解析、详情展开、错误映射和权限判断
+- `admin-orders-form-dialog.tsx`、`admin-orders-details-dialog.tsx`、`admin-orders-dialog-ui.tsx`：拆出订单表单弹窗、详情弹窗以及弹窗共享 UI
+- `admin-orders-utils.ts`：只保留 barrel re-export，不再承载实际业务实现
+
+### `admin-tasks` 模块分层（2026-04-22）
+
+- `admin-tasks-client.tsx`：只负责工作台编排，不再直接承载筛选、分页、创建、分配和删除逻辑
+- `use-admin-tasks-view-model.ts`：聚合任务页的路由状态、创建弹窗、分配弹窗和删除动作
+- `use-admin-tasks-route-state.ts`、`use-admin-task-create-dialog.ts`、`use-admin-task-assignment-dialog.ts`、`use-admin-task-delete-action.ts`：分别承接路由筛选与分页、创建任务、任务分配和删除流程
+- `admin-tasks-sections.tsx`：拆出头部指标、筛选区、列表区和无权限态
+- `admin-tasks-dialogs.tsx`：拆出创建任务弹窗和分配弹窗
+- `admin-tasks-view-model-shared.ts`：集中放置任务页共享类型、筛选比较和输入样式常量
+
+### `team-management` 模块分层（2026-04-22）
+
+- `team-management-client.tsx`：只负责页面编排和条件渲染
+- `use-team-management-view-model.ts`：只负责组装派生状态、搜索输入和草稿输入，不再直接堆积所有副作用
+- `use-team-management-actions.ts`、`team-management-view-model-shared.ts`：分别承接团队 CRUD/刷新动作，以及团队页共享状态结构与数据快照转换
+- `team-management-state-sections.tsx`、`team-management-summary-sections.tsx`、`team-management-roster-sections.tsx`：分别承接页头与空态、概览与详情、成员/候选/客户区块
+- `team-management-sections.tsx`：只保留 barrel re-export
+- `team-management-ui.tsx`：保留卡片、搜索框、标签和小型展示组件
+- `team-management-display.ts`、`team-management-utils.ts`、`team-management-section-styles.ts`：继续负责文案映射、搜索过滤和共享输入样式，不再混入页面状态
+
 ## 本地开发
 
 1. 安装依赖
