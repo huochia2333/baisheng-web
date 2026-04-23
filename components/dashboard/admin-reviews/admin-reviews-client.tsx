@@ -1,6 +1,6 @@
 "use client";
 
-import { FileBadge2, ImageIcon, ShieldAlert } from "lucide-react";
+import { ClipboardList, FileBadge2, ImageIcon, ShieldAlert } from "lucide-react";
 import { useTranslations } from "next-intl";
 
 import type { AdminReviewsPageData } from "@/lib/admin-reviews";
@@ -13,21 +13,26 @@ import {
   PrivacyReviewList,
   ReviewSummaryCard,
 } from "./admin-reviews-ui";
+import { TaskReviewList } from "./task-review-list";
 import { useAdminReviewsPage } from "./use-admin-reviews-page";
 
 const reviewTabIconMap = {
   media: ImageIcon,
   privacy: FileBadge2,
+  task: ClipboardList,
 } as const;
 
 export function AdminReviewsClient({ initialData }: { initialData: AdminReviewsPageData }) {
   const t = useTranslations("Reviews");
   const {
     activeTab,
+    assetBusyKey,
     busyRows,
     closePreviewDialog,
     handleMediaReview,
+    handleOpenTaskReviewAsset,
     handlePrivacyReview,
+    handleTaskReview,
     hasPermission,
     mediaRows,
     pageFeedback,
@@ -36,6 +41,7 @@ export function AdminReviewsClient({ initialData }: { initialData: AdminReviewsP
     reviewTabs,
     setActiveTab,
     setPreviewAsset,
+    taskRows,
   } = useAdminReviewsPage(initialData);
 
   return (
@@ -55,7 +61,7 @@ export function AdminReviewsClient({ initialData }: { initialData: AdminReviewsP
             </h2>
           </div>
 
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
             <ReviewSummaryCard
               accent="blue"
               count={privacyRows.length}
@@ -67,6 +73,12 @@ export function AdminReviewsClient({ initialData }: { initialData: AdminReviewsP
               count={mediaRows.length}
               icon={<ImageIcon className="size-5" />}
               label={t("summary.media")}
+            />
+            <ReviewSummaryCard
+              accent="blue"
+              count={taskRows.length}
+              icon={<ClipboardList className="size-5" />}
+              label={t("summary.task")}
             />
           </div>
         </div>
@@ -121,14 +133,28 @@ export function AdminReviewsClient({ initialData }: { initialData: AdminReviewsP
                 onAction={handlePrivacyReview}
                 rows={privacyRows}
               />
-            ) : (
+            ) : null}
+
+            {activeTab === "media" ? (
               <MediaReviewList
                 busyRows={busyRows}
                 onAction={handleMediaReview}
                 onPreviewOpen={setPreviewAsset}
                 rows={mediaRows}
               />
-            )}
+            ) : null}
+
+            {activeTab === "task" ? (
+              <TaskReviewList
+                assetBusyKey={assetBusyKey}
+                busyRows={busyRows}
+                onAction={handleTaskReview}
+                onOpenAsset={(submissionId, asset) =>
+                  void handleOpenTaskReviewAsset(submissionId, asset)
+                }
+                rows={taskRows}
+              />
+            ) : null}
           </div>
         </section>
       )}

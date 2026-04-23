@@ -9,15 +9,23 @@ import {
   type AdminReviewsPageData,
   approveMediaReview,
   approvePrivacyReview,
+  approveTaskReview,
   rejectMediaReview,
   rejectPrivacyReview,
+  rejectTaskReview,
   type PendingMediaReviewWithPreview,
   type PendingPrivacyReviewRow,
 } from "@/lib/admin-reviews";
+import {
+  getTaskReviewSubmissionAssetSignedUrl,
+  type PendingTaskReviewWithAssets,
+  type TaskReviewSubmissionAsset,
+} from "@/lib/task-reviews";
 import { getBrowserSupabaseClient } from "@/lib/supabase";
 import {
   createDashboardSharedCopy,
   toErrorMessage,
+  type DashboardSharedCopy,
   type NoticeTone,
 } from "../dashboard-shared-ui";
 import { useWorkspaceSyncEffect } from "../workspace-session-provider";
@@ -37,13 +45,16 @@ export function useAdminReviewsPage(initialData: AdminReviewsPageData) {
   const [pageFeedback, setPageFeedback] = useState<PageFeedback>(null);
   const [privacyRows, setPrivacyRows] = useState<PendingPrivacyReviewRow[]>(initialData.privacyRows);
   const [mediaRows, setMediaRows] = useState<PendingMediaReviewWithPreview[]>(initialData.mediaRows);
+  const [taskRows, setTaskRows] = useState<PendingTaskReviewWithAssets[]>(initialData.taskRows);
   const [busyRows, setBusyRows] = useState<Record<string, BusyAction>>({});
+  const [assetBusyKey, setAssetBusyKey] = useState<string | null>(null);
   const [previewAsset, setPreviewAsset] = useState<PendingMediaReviewWithPreview | null>(null);
 
   const applyPageData = useCallback((pageData: AdminReviewsPageData) => {
     setHasPermission(pageData.hasPermission);
     setPrivacyRows(pageData.privacyRows);
     setMediaRows(pageData.mediaRows);
+    setTaskRows(pageData.taskRows);
   }, []);
 
   useEffect(() => {
@@ -198,6 +209,105 @@ export function useAdminReviewsPage(initialData: AdminReviewsPageData) {
     [busyRows, setRowBusyState, sharedCopy, supabase, t],
   );
 
+  const handleTaskReview = useCallback(
+    async (row: PendingTaskReviewWithAssets, action: BusyAction) => {
+      if (!supabase) {
+        return;
+      }
+
+      const rowKey = `task:${row.task_id}`;
+      const actionLabel =
+        action === "approve" ? t("actions.approve") : t("actions.reject");
+
+      if (busyRows[rowKey]) {
+        return;
+      }
+
+      if (
+        typeof window !== "undefined"
+        && !window.confirm(t("confirm.task", { action: actionLabel }))
+      ) {
+        return;
+      }
+
+      let rejectReason: string | null = null;
+
+      if (action === "reject" && typeof window !== "undefined") {
+        const input = window.prompt(t("confirm.taskRejectReasonPrompt"), "");
+
+        if (input === null) {
+          return;
+        }
+
+        rejectReason = input;
+      }
+
+      setRowBusyState(rowKey, action);
+      setPageFeedback(null);
+
+      try {
+        if (action === "approve") {
+          await approveTaskReview(supabase, row.task_id);
+        } else {
+          await rejectTaskReview(supabase, {
+            taskId: row.task_id,
+            reason: rejectReason,
+          });
+        }
+
+        setTaskRows((current) => current.filter((item) => item.task_id !== row.task_id));
+        setPageFeedback({
+          tone: "success",
+          message:
+            action === "approve"
+              ? t("feedback.taskApproved")
+              : t("feedback.taskRejected"),
+        });
+      } catch (error) {
+        setPageFeedback({
+          tone: "error",
+          message: toTaskReviewAdminErrorMessage(error, t, sharedCopy),
+        });
+      } finally {
+        setRowBusyState(rowKey, null);
+      }
+    },
+    [busyRows, setRowBusyState, sharedCopy, supabase, t],
+  );
+
+  const handleOpenTaskReviewAsset = useCallback(
+    async (submissionId: string, asset: TaskReviewSubmissionAsset) => {
+      if (!supabase) {
+        return;
+      }
+
+      const nextBusyKey = `${submissionId}:${asset.id}`;
+
+      if (assetBusyKey === nextBusyKey) {
+        return;
+      }
+
+      setAssetBusyKey(nextBusyKey);
+      setPageFeedback(null);
+
+      try {
+        const signedUrl = await getTaskReviewSubmissionAssetSignedUrl(supabase, asset);
+
+        if (typeof window !== "undefined") {
+          window.open(signedUrl, "_blank", "noopener,noreferrer");
+        }
+      } catch (error) {
+        setPageFeedback({
+          tone: "error",
+          message: toErrorMessage(error, sharedCopy),
+        });
+      } finally {
+        setAssetBusyKey((current) => (current === nextBusyKey ? null : current));
+      }
+    },
+    [assetBusyKey, sharedCopy, supabase],
+  );
+
   const closePreviewDialog = useCallback((open: boolean) => {
     if (open) {
       return;
@@ -218,16 +328,24 @@ export function useAdminReviewsPage(initialData: AdminReviewsPageData) {
         label: t("tabs.media"),
         count: mediaRows.length,
       },
+      {
+        key: "task" as const,
+        label: t("tabs.task"),
+        count: taskRows.length,
+      },
     ],
-    [mediaRows.length, privacyRows.length, t],
+    [mediaRows.length, privacyRows.length, taskRows.length, t],
   );
 
   return {
     activeTab,
+    assetBusyKey,
     busyRows,
     closePreviewDialog,
     handleMediaReview,
+    handleOpenTaskReviewAsset,
     handlePrivacyReview,
+    handleTaskReview,
     hasPermission,
     mediaRows,
     pageFeedback,
@@ -237,5 +355,44 @@ export function useAdminReviewsPage(initialData: AdminReviewsPageData) {
     setActiveTab,
     setPreviewAsset,
     supabase,
+    taskRows,
   };
+}
+
+function toTaskReviewAdminErrorMessage(
+  error: unknown,
+  t: ReturnType<typeof useTranslations>,
+  sharedCopy: DashboardSharedCopy,
+) {
+  const baseMessage = toErrorMessage(error, sharedCopy);
+
+  if (baseMessage.includes("only administrator can approve task review")) {
+    return t("errors.noTaskReviewPermission");
+  }
+
+  if (baseMessage.includes("only administrator can reject task review")) {
+    return t("errors.noTaskReviewPermission");
+  }
+
+  if (baseMessage.includes("task is not in reviewing status")) {
+    return t("errors.taskNotReviewing");
+  }
+
+  if (baseMessage.includes("task review submission not found")) {
+    return t("errors.taskSubmissionMissing");
+  }
+
+  if (baseMessage.includes("task current submission is missing")) {
+    return t("errors.taskSubmissionMissing");
+  }
+
+  if (baseMessage.includes("task review submission is not pending")) {
+    return t("errors.taskSubmissionMissing");
+  }
+
+  if (baseMessage.includes("task not found")) {
+    return t("errors.taskMissing");
+  }
+
+  return baseMessage;
 }

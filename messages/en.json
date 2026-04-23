@@ -629,15 +629,17 @@
     },
     "summary": {
       "privacy": "Pending Privacy Reviews",
-      "media": "Pending Media Reviews"
+      "media": "Pending Media Reviews",
+      "task": "Pending Task Reviews"
     },
     "states": {
       "noPermissionTitle": "No Review Access",
-      "noPermissionDescription": "The current account is not an administrator and cannot access privacy or media review queues."
+      "noPermissionDescription": "The current account is not an administrator and cannot access privacy, media, or task review queues."
     },
     "tabs": {
       "privacy": "Privacy Review",
-      "media": "Media Review"
+      "media": "Media Review",
+      "task": "Task Review"
     },
     "actions": {
       "approve": "Approve",
@@ -645,13 +647,23 @@
     },
     "confirm": {
       "privacy": "Are you sure you want to {action} this privacy review?",
-      "media": "Are you sure you want to {action} this media review?"
+      "media": "Are you sure you want to {action} this media review?",
+      "task": "Are you sure you want to {action} this task submission?",
+      "taskRejectReasonPrompt": "Enter a rejection reason for the task submitter. Leave blank if no reason is needed."
     },
     "feedback": {
       "privacyApproved": "Privacy information approved.",
       "privacyRejected": "Privacy information rejected.",
       "mediaApproved": "Media approved.",
-      "mediaRejected": "Media rejected."
+      "mediaRejected": "Media rejected.",
+      "taskApproved": "Task review approved. The task is now completed.",
+      "taskRejected": "Task review rejected. The task owner can resubmit it."
+    },
+    "errors": {
+      "noTaskReviewPermission": "The current account cannot review this task submission.",
+      "taskNotReviewing": "This task is no longer waiting for review.",
+      "taskSubmissionMissing": "The current task submission is missing. Refresh and try again.",
+      "taskMissing": "The task no longer exists. Refresh the list and try again."
     }
   },
   "ReviewsUI": {
@@ -690,6 +702,20 @@
         "email": "Email",
         "actions": "Actions"
       }
+    },
+    "task": {
+      "emptyTitle": "Task Review Queue Is Empty",
+      "emptyDescription": "There are no task submissions waiting for review right now. New submissions will appear here after teammates submit their work.",
+      "roundBadge": "Round {round}",
+      "assigneeLabel": "Submitter",
+      "emailLabel": "Submitter Email",
+      "scopeLabel": "Task Scope",
+      "typeLabel": "Task Type",
+      "commissionLabel": "Task Commission",
+      "submittedAtLabel": "Submitted At",
+      "submissionNoteLabel": "Submission Note",
+      "assetsLabel": "Submission Files",
+      "assetsEmpty": "No submission files were attached."
     }
   },
   "ExchangeRates": {
@@ -880,6 +906,18 @@
       "title": "Commission Board",
       "description": "Review all commission records, settlement progress, and beneficiary breakdowns in one place."
     },
+    "boards": {
+      "normal": {
+        "title": "Normal Commission",
+        "description": "Review standard commission records from orders, referrals, and manual adjustments.",
+        "meta": "{count} records"
+      },
+      "task": {
+        "title": "Task Commission",
+        "description": "Review reward commission records created automatically after task approvals.",
+        "meta": "{count} records"
+      }
+    },
     "summary": {
       "recordCount": "Commission Records",
       "totalAmount": "Total Commission",
@@ -942,6 +980,47 @@
         "amountSnapshot": "Amount Snapshot",
         "commissionSettlement": "Commission & Settlement",
         "timestamps": "Timestamps"
+      }
+    },
+    "taskSection": {
+      "title": "Task Commission Records",
+      "description": "Approved and completed tasks automatically create commission records here for administrator reconciliation.",
+      "summary": {
+        "recordCount": "Task Commission Records",
+        "totalAmount": "Total Task Commission",
+        "pendingAmount": "Pending Task Commission",
+        "paidAmount": "Paid Task Commission"
+      },
+      "emptyTitle": "No Task Commission Records",
+      "emptyDescription": "There are no commission records generated from approved tasks yet.",
+      "table": {
+        "columns": {
+          "task": "Task",
+          "beneficiary": "Beneficiary",
+          "approvedBy": "Approved By",
+          "commission": "Commission",
+          "time": "Time"
+        }
+      }
+    },
+    "salesmanTaskSection": {
+      "title": "My Task Commissions",
+      "description": "This section lists the task commission records earned by the current account after task reviews are approved.",
+      "summary": {
+        "totalAmount": "Total Task Commission",
+        "pendingAmount": "Pending Task Commission",
+        "paidAmount": "Paid Task Commission"
+      },
+      "emptyTitle": "No Task Commissions Yet",
+      "emptyDescription": "This account does not have any commission records from approved tasks yet.",
+      "table": {
+        "columns": {
+          "task": "Task",
+          "typeScope": "Type & Scope",
+          "amount": "Amount",
+          "settlement": "Settlement",
+          "time": "Time"
+        }
       }
     },
     "shared": {
@@ -1052,6 +1131,8 @@
       "status": {
         "toBeAccepted": "To Be Accepted",
         "accepted": "In Progress",
+        "reviewing": "Under Review",
+        "rejected": "Rejected",
         "completed": "Completed"
       },
       "scope": {
@@ -1061,7 +1142,8 @@
       "fallback": {
         "unnamedTeam": "Unnamed Team",
         "noTaskIntro": "No task description yet.",
-        "noRecord": "No record yet"
+        "noRecord": "No record yet",
+        "unknownTaskType": "Unknown Task Type"
       },
       "attachmentCount": "{count} attachment(s)",
       "moreAttachments": "{count} more attachment(s)",
@@ -1069,6 +1151,8 @@
         "admin": {
           "taskNameBlank": "The task name cannot be empty.",
           "teamRequired": "A team task must be linked to a specific team.",
+          "taskTypeRequired": "Please choose a valid task type.",
+          "commissionAmountInvalid": "The commission amount must be a valid number and cannot be below 0.",
           "authExpired": "Your session has expired. Sign in again and retry.",
           "taskNotFound": "The task no longer exists. Refresh the task list and try again.",
           "duplicateAttachmentPath": "An attachment path conflict was detected. Upload the file again.",
@@ -1084,6 +1168,17 @@
           "alreadyAccepted": "This task was just accepted by someone else. Refresh to see the latest status.",
           "cannotComplete": "You cannot complete this task right now.",
           "notAccepted": "This task cannot be marked as completed yet.",
+          "cannotCreateReviewSubmission": "You cannot create a review submission for this task right now.",
+          "cannotSubmitReview": "You cannot submit this task for review right now.",
+          "reviewAssetsRequired": "Upload at least one submission file before sending the task for review.",
+          "reviewSubmissionMissing": "The review submission draft is missing. Reopen the dialog and try again.",
+          "reviewSubmissionInvalid": "The current review submission draft is no longer valid. Reopen the dialog and try again.",
+          "reviewFilesRequired": "Please choose at least one submission file.",
+          "reviewAttachmentCountExceeded": "Too many submission files were selected. Upload at most 10 files.",
+          "reviewAttachmentEmpty": "An empty submission file was detected. Each file must be larger than 0 bytes.",
+          "reviewAttachmentTooLarge": "At least one submission file is too large. Each file must stay within 20 MB.",
+          "reviewAttachmentTotalTooLarge": "The submission files are too large altogether. Keep the total within 100 MB.",
+          "reviewAttachmentTypeNotAllowed": "An unsupported submission file type was detected. Upload common document, image, media, or archive formats.",
           "inactive": "This account is not active yet and cannot process tasks."
         }
       }
@@ -1110,8 +1205,9 @@
         "total": "Total Tasks",
         "pending": "To Be Accepted",
         "accepted": "In Progress",
-        "completed": "Completed",
-        "teamScoped": "Team Tasks"
+        "reviewing": "Under Review",
+        "rejected": "Rejected",
+        "completed": "Completed"
       },
       "states": {
         "noPermissionTitle": "No Access to Task Dispatch",
@@ -1141,6 +1237,11 @@
         "scopeLabel": "Assignment Scope",
         "teamLabel": "Target Team",
         "teamPlaceholder": "Select a team",
+        "taskTypeLabel": "Task Type",
+        "taskTypePlaceholder": "Select a task type",
+        "commissionAmountLabel": "Commission Amount",
+        "commissionAmountPlaceholder": "For example: 80",
+        "taskTypeHint": "The task type controls how the task is categorized and how related commissions are displayed. More types will be added later.",
         "taskIntroLabel": "Task Details",
         "taskIntroPlaceholder": "Add the background, goals, execution requirements, and any notes for this task.",
         "attachmentsLabel": "Attachments",
@@ -1166,16 +1267,23 @@
         "reassign": "Adjust Assignment",
         "delete": "Delete",
         "assignmentLabel": "Current Assignment",
+        "taskTypeLabel": "Task Type",
+        "commissionAmountLabel": "Task Commission",
         "creatorLabel": "Creator",
         "assigneeLabel": "Assignee",
         "createdAtLabel": "Created At",
         "acceptedAtLabel": "Accepted At",
+        "submittedAtLabel": "Submitted At",
+        "reviewedAtLabel": "Reviewed At",
         "completedAtLabel": "Completed At",
+        "reviewRejectReasonLabel": "Reject Reason",
         "attachmentsOverview": "Attachment Overview",
         "viewOnlyNotice": "This task is currently view-only."
       },
       "validation": {
         "taskNameRequired": "Please enter a task name first.",
+        "taskTypeRequired": "Please choose a task type.",
+        "commissionAmountRequired": "Please enter a commission amount greater than 0.",
         "teamRequiredForCreate": "Please choose a target team.",
         "teamRequiredForAssignment": "Please choose a team first."
       }
@@ -1184,17 +1292,21 @@
       "loading": "loading",
       "feedback": {
         "accepted": "Task accepted. You can start working on it now.",
+        "reviewSubmitted": "Task submitted for review.",
+        "reviewResubmitted": "Task resubmitted for review.",
         "completed": "Task completed."
       },
       "header": {
         "badge": "My Tasks",
         "title": "Task Center",
-        "description": "Review the tasks you can participate in, track what you are currently handling, and update progress as soon as work is complete."
+        "description": "Review the tasks you can participate in, track what you are currently handling, and submit your completed work for review."
       },
       "summary": {
         "all": "Visible Tasks",
         "available": "To Be Accepted",
         "inProgress": "In Progress",
+        "reviewing": "Under Review",
+        "rejected": "Rejected",
         "completed": "Completed"
       },
       "states": {
@@ -1210,6 +1322,8 @@
         "focusAll": "All Tasks",
         "focusAvailable": "To Be Accepted",
         "focusInProgress": "In Progress",
+        "focusReviewing": "Under Review",
+        "focusRejected": "Rejected",
         "focusCompleted": "Completed",
         "scopeLabel": "Task Type",
         "scopeAll": "All Types"
@@ -1220,15 +1334,39 @@
       },
       "card": {
         "taskScopeLabel": "Task Scope",
+        "taskTypeLabel": "Task Type",
+        "commissionAmountLabel": "Task Commission",
         "createdAtLabel": "Published At",
         "acceptedAtLabel": "Started At",
+        "submittedAtLabel": "Submitted At",
+        "reviewedAtLabel": "Reviewed At",
         "completedAtLabel": "Completed At",
         "attachmentsTitle": "Task Attachments",
         "accept": "Accept Task",
+        "submitReview": "Submit for Review",
+        "resubmit": "Resubmit for Review",
         "complete": "Mark as Completed",
         "takenByOthers": "This task is already being handled by another teammate.",
+        "reviewingByMe": "Your submission is waiting for administrator review.",
+        "reviewingByOthers": "Another teammate has already submitted this task for review.",
+        "rejectedByOthers": "This task was rejected for another teammate and is waiting for their resubmission.",
+        "reviewRejectReasonLabel": "Reject Reason",
         "completedByMe": "You have completed this task.",
         "completedGeneric": "This task has been completed."
+      },
+      "submitDialog": {
+        "title": "Submit Task Review",
+        "description": "Upload the completion files for \"{taskName}\". After submission, the task will move into the administrator review queue.",
+        "cancel": "Cancel",
+        "submit": "Submit for Review",
+        "resubmit": "Resubmit for Review",
+        "rejectReasonLabel": "Previous Reject Reason",
+        "noteLabel": "Submission Note",
+        "notePlaceholder": "Add a short note for the reviewer, such as what was delivered or any points worth checking.",
+        "filesLabel": "Submission Files",
+        "filesCta": "Choose files to upload",
+        "filesHint": "You can upload up to {maxFiles} files. Each file must stay within {maxPerFile}, and the total must stay within {maxTotal}.",
+        "filesEmpty": "No submission files selected yet."
       }
     }
   },

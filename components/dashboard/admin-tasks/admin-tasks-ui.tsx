@@ -20,17 +20,20 @@ import type {
 } from "@/lib/admin-tasks";
 
 import { Button } from "@/components/ui/button";
+import { useLocale } from "@/components/i18n/locale-provider";
 import {
   formatDateTime,
   formatFileSize,
 } from "@/components/dashboard/dashboard-shared-ui";
 import {
+  formatTaskCommissionMoney,
   getTaskAssignmentLabel,
   getTaskAttachmentCountLabel,
   getTaskIntroText,
   getTaskMoreAttachmentsLabel,
   getTaskScopeLabel,
   getTaskStatusMeta,
+  getTaskTypeLabel,
   resolveTaskActorLabel,
 } from "@/components/dashboard/tasks/tasks-display";
 import { canManageTask } from "./admin-tasks-utils";
@@ -53,6 +56,7 @@ export function TaskCard({
 }) {
   const t = useTranslations("Tasks.admin.card");
   const sharedT = useTranslations("Tasks.shared");
+  const { locale } = useLocale();
   const manageable = canManageTask(task);
 
   return (
@@ -63,6 +67,12 @@ export function TaskCard({
             <div className="flex flex-wrap items-center gap-2">
               <TaskStatusPill status={task.status} />
               <TaskScopePill scope={task.scope} />
+              <DataPill accent="blue">
+                {getTaskTypeLabel(task.task_type_label, task.task_type_code, sharedT)}
+              </DataPill>
+              <DataPill accent="gold">
+                {formatTaskCommissionMoney(task.commission_amount_rmb, locale)}
+              </DataPill>
               {task.attachments.length > 0 ? (
                 <DataPill accent="blue">
                   <Paperclip className="size-3.5" />
@@ -115,6 +125,14 @@ export function TaskCard({
             value={getTaskAssignmentLabel(task.scope, task.team?.team_name, sharedT)}
           />
           <InfoTile
+            label={t("taskTypeLabel")}
+            value={getTaskTypeLabel(task.task_type_label, task.task_type_code, sharedT)}
+          />
+          <InfoTile
+            label={t("commissionAmountLabel")}
+            value={formatTaskCommissionMoney(task.commission_amount_rmb, locale)}
+          />
+          <InfoTile
             label={t("creatorLabel")}
             value={resolveTaskActorLabel(task.creator, task.created_by_user_id, sharedT)}
           />
@@ -124,8 +142,17 @@ export function TaskCard({
           />
           <InfoTile label={t("createdAtLabel")} value={formatDateTime(task.created_at)} />
           <InfoTile label={t("acceptedAtLabel")} value={formatDateTime(task.accepted_at)} />
+          <InfoTile label={t("submittedAtLabel")} value={formatDateTime(task.submitted_at)} />
+          <InfoTile label={t("reviewedAtLabel")} value={formatDateTime(task.reviewed_at)} />
           <InfoTile label={t("completedAtLabel")} value={formatDateTime(task.completed_at)} />
         </div>
+
+        {task.review_reject_reason ? (
+          <div className="rounded-[22px] border border-[#f1d1d1] bg-[#fff6f6] p-4">
+            <p className="text-sm font-semibold text-[#b13d3d]">{t("reviewRejectReasonLabel")}</p>
+            <p className="mt-2 text-sm leading-7 text-[#7b4f4f]">{task.review_reject_reason}</p>
+          </div>
+        ) : null}
 
         {task.attachments.length > 0 ? (
           <div className="rounded-[22px] border border-[#e6ebef] bg-[#f8fbfc] p-4">
@@ -239,6 +266,8 @@ export function TaskStatusPill({ status }: { status: TaskStatus }) {
         "inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold",
         mapping.accent === "gold" ? "bg-[#fbf1d9] text-[#9a6a07]" : "",
         mapping.accent === "blue" ? "bg-[#e4edf3] text-[#486782]" : "",
+        mapping.accent === "orange" ? "bg-[#fdebd2] text-[#a76516]" : "",
+        mapping.accent === "rose" ? "bg-[#fae8e8] text-[#b13d3d]" : "",
         mapping.accent === "green" ? "bg-[#e7f3ea] text-[#4c7259]" : "",
       ].join(" ")}
     >

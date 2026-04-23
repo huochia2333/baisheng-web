@@ -17,8 +17,9 @@ export type AdminTasksStats = {
   total: number;
   pending: number;
   accepted: number;
+  reviewing: number;
+  rejected: number;
   completed: number;
-  teamScoped: number;
 };
 
 export type AdminTasksPagination = DashboardPaginationSlice<AdminTaskRow>;

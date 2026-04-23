@@ -3,6 +3,10 @@ import type { SupabaseClient, User } from "@supabase/supabase-js";
 import { getOrderUserOptions, type OrderUserOption } from "./admin-orders";
 import { withRequestTimeout } from "./request-timeout";
 import {
+  getTaskCommissions,
+  type TaskCommissionRow,
+} from "./task-commissions";
+import {
   getCurrentSessionContext,
   type AppRole,
   type UserStatus,
@@ -40,6 +44,7 @@ export type AdminCommissionViewerContext = {
 export type AdminCommissionPageData = {
   hasPermission: boolean;
   commissions: AdminCommissionRow[];
+  taskCommissions: TaskCommissionRow[];
 };
 
 export type AdminCommissionActor = {
@@ -137,12 +142,19 @@ export async function getAdminCommissionPageData(
     return {
       hasPermission: false,
       commissions: [],
+      taskCommissions: [],
     };
   }
 
+  const [commissions, taskCommissions] = await Promise.all([
+    getAdminCommissions(supabase),
+    getTaskCommissions(supabase),
+  ]);
+
   return {
     hasPermission: true,
-    commissions: await getAdminCommissions(supabase),
+    commissions,
+    taskCommissions,
   };
 }
 

@@ -16,6 +16,7 @@ import {
   type AdminTaskRow,
   type AdminTasksPageData,
   type TaskScope,
+  type TaskTypeOption,
 } from "@/lib/admin-tasks";
 
 import { Button } from "@/components/ui/button";
@@ -59,13 +60,16 @@ export function CreateTaskDialog({
   onOpenChange,
   onRemoveFile,
   onScopeChange,
+  onTaskTypeChange,
   onSubmit,
+  onCommissionAmountChange,
   onTaskIntroChange,
   onTaskNameChange,
   onTeamChange,
   open,
   pending,
   teamOptions,
+  taskTypeOptions,
 }: {
   feedback: PageFeedback;
   formState: CreateTaskFormState;
@@ -73,13 +77,16 @@ export function CreateTaskDialog({
   onOpenChange: (open: boolean) => void;
   onRemoveFile: (index: number) => void;
   onScopeChange: (scope: TaskScope) => void;
+  onTaskTypeChange: (taskTypeCode: string) => void;
   onSubmit: () => void;
+  onCommissionAmountChange: (value: string) => void;
   onTaskIntroChange: (value: string) => void;
   onTaskNameChange: (value: string) => void;
   onTeamChange: (teamId: string) => void;
   open: boolean;
   pending: boolean;
   teamOptions: TeamOptions;
+  taskTypeOptions: TaskTypeOption[];
 }) {
   const t = useTranslations("Tasks.admin");
   const sharedT = useTranslations("Tasks.shared");
@@ -142,6 +149,43 @@ export function CreateTaskDialog({
             </select>
           </FormField>
         </div>
+
+        <div className="grid gap-5 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
+          <FormField label={t("createDialog.taskTypeLabel")}>
+            <select
+              className={taskSelectClassName}
+              onChange={(event) => onTaskTypeChange(event.target.value)}
+              value={formState.taskTypeCode}
+            >
+              <option value="">{t("createDialog.taskTypePlaceholder")}</option>
+              {taskTypeOptions.map((taskType) => (
+                <option key={taskType.code} value={taskType.code}>
+                  {taskType.displayName}
+                </option>
+              ))}
+            </select>
+          </FormField>
+
+          <FormField label={t("createDialog.commissionAmountLabel")}>
+            <input
+              className={taskInputClassName}
+              inputMode="decimal"
+              min="0"
+              onChange={(event) => onCommissionAmountChange(event.target.value)}
+              placeholder={t("createDialog.commissionAmountPlaceholder")}
+              step="0.01"
+              type="number"
+              value={formState.commissionAmount}
+            />
+          </FormField>
+        </div>
+
+        {formState.taskTypeCode ? (
+          <p className="text-sm leading-7 text-[#6f7b85]">
+            {taskTypeOptions.find((taskType) => taskType.code === formState.taskTypeCode)?.description
+              ?? t("createDialog.taskTypeHint")}
+          </p>
+        ) : null}
 
         {formState.scope === "team" ? (
           <FormField label={t("createDialog.teamLabel")}>

@@ -17,6 +17,8 @@ import { DashboardPaginationControls } from "@/components/dashboard/dashboard-pa
 import { EmptyState, PageBanner, formatDateTime, mapUserStatus, normalizeSearchText, type NoticeTone } from "@/components/dashboard/dashboard-shared-ui";
 import { useWorkspaceSyncEffect } from "@/components/dashboard/workspace-session-provider";
 
+import { AdminTaskCommissionSection } from "./admin-task-commission-section";
+import { CommissionBoardSwitch } from "./commission-board-switch";
 import { formatCommissionMoney, formatNullableCommissionMoney, getCommissionCategoryLabel, getCommissionOrderStatusLabel, getCommissionRoleLabel, getCommissionSettlementStatusLabel, toCommissionErrorMessage } from "./commission-display";
 
 type PageFeedback = { tone: NoticeTone; message: string } | null;
@@ -24,6 +26,7 @@ type SettlementFilter = "all" | CommissionSettlementStatus;
 type CategoryFilter = "all" | CommissionCategory;
 type CommissionFilters = { searchText: string; beneficiaryUserId: string; orderNumber: string; settlementStatus: SettlementFilter; category: CategoryFilter };
 type BeneficiarySummaryRow = { userId: string; label: string; name: string | null; email: string | null; role: AppRole | null; status: UserStatus | null; recordCount: number; totalAmount: number; pendingAmount: number; paidAmount: number; lastCreatedAt: string | null };
+type CommissionBoard = "normal" | "task";
 
 const EMPTY_FILTERS: CommissionFilters = { searchText: "", beneficiaryUserId: "", orderNumber: "", settlementStatus: "all", category: "all" };
 
@@ -55,12 +58,15 @@ export function AdminCommissionClient({
   const [pageFeedback, setPageFeedback] = useState<PageFeedback>(null);
   const [hasPermission, setHasPermission] = useState(initialData.hasPermission);
   const [commissions, setCommissions] = useState<AdminCommissionRow[]>(initialData.commissions);
+  const [taskCommissions, setTaskCommissions] = useState(initialData.taskCommissions);
+  const [activeBoard, setActiveBoard] = useState<CommissionBoard>("normal");
   const [filters, setFilters] = useState<CommissionFilters>(EMPTY_FILTERS);
   const deferredSearchText = useDeferredValue(filters.searchText);
 
   const applyPageData = useCallback((pageData: AdminCommissionPageData) => {
     setHasPermission(pageData.hasPermission);
     setCommissions(pageData.commissions);
+    setTaskCommissions(pageData.taskCommissions);
   }, []);
 
   const refreshCommissionBoard = useCallback(async ({ isMounted }: { isMounted: () => boolean }) => {
@@ -100,6 +106,22 @@ export function AdminCommissionClient({
     pendingAmount: filteredCommissions.filter((item) => item.settlementStatus === "pending").reduce((sum, item) => sum + item.commissionAmountRmb, 0),
     paidAmount: filteredCommissions.filter((item) => item.settlementStatus === "paid").reduce((sum, item) => sum + item.commissionAmountRmb, 0),
   }), [filteredCommissions]);
+  const boardOptions = useMemo(() => [
+    {
+      key: "normal" as const,
+      title: t("boards.normal.title"),
+      description: t("boards.normal.description"),
+      meta: t("boards.normal.meta", { count: commissions.length }),
+      icon: <WalletCards className="size-4" />,
+    },
+    {
+      key: "task" as const,
+      title: t("boards.task.title"),
+      description: t("boards.task.description"),
+      meta: t("boards.task.meta", { count: taskCommissions.length }),
+      icon: <Coins className="size-4" />,
+    },
+  ], [commissions.length, taskCommissions.length, t]);
   const hasActiveFilters = Boolean(filters.searchText || filters.beneficiaryUserId || filters.orderNumber || filters.settlementStatus !== "all" || filters.category !== "all");
   const handleFilterChange = useCallback(<Key extends keyof CommissionFilters>(key: Key, value: CommissionFilters[Key]) => setFilters((current) => ({ ...current, [key]: value })), []);
   const resetFilters = useCallback(() => setFilters(EMPTY_FILTERS), []);
@@ -134,291 +156,303 @@ export function AdminCommissionClient({
         </section>
       ) : (
         <>
-          <section className="rounded-[28px] border border-white/85 bg-white/72 p-6 shadow-[0_18px_45px_rgba(96,113,128,0.06)] xl:p-8">
-            <div className="flex flex-col gap-5">
-              <div className="flex flex-col gap-3 xl:flex-row xl:items-end xl:justify-between">
-                <div>
-                  <h3 className="text-2xl font-semibold tracking-tight text-[#22313a]">
-                    {t("filters.title")}
-                  </h3>
-                  <p className="mt-2 text-sm leading-7 text-[#67727b]">
-                    {t("filters.description", {
-                      beneficiaries: beneficiarySummaries.length,
-                      records: filteredCommissions.length,
-                    })}
-                  </p>
-                </div>
-                <Button
-                  className="rounded-full border border-[#d8dde2] bg-white text-[#486782] hover:bg-[#eef3f6]"
-                  onClick={resetFilters}
-                  type="button"
-                  variant="outline"
-                >
-                  <RefreshCcw className="size-4" />
-                  {t("filters.reset")}
-                </Button>
-              </div>
-              <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
-                <SearchField
-                  label={t("filters.keywordLabel")}
-                  onChange={(value) => handleFilterChange("searchText", value)}
-                  placeholder={t("filters.keywordPlaceholder")}
-                  value={filters.searchText}
-                />
-                <SelectField
-                  label={t("filters.beneficiaryLabel")}
-                  onChange={(value) => handleFilterChange("beneficiaryUserId", value)}
-                  value={filters.beneficiaryUserId}
-                >
-                  <option value="">{t("filters.allBeneficiaries")}</option>
-                  {beneficiaryOptions.map((beneficiary) => (
-                    <option key={beneficiary.userId} value={beneficiary.userId}>
-                      {beneficiary.label}
-                    </option>
-                  ))}
-                </SelectField>
-                <SearchField
-                  label={t("filters.orderNumberLabel")}
-                  onChange={(value) => handleFilterChange("orderNumber", value)}
-                  placeholder={t("filters.orderNumberPlaceholder")}
-                  value={filters.orderNumber}
-                />
-                <SelectField
-                  label={t("filters.settlementStatusLabel")}
-                  onChange={(value) => handleFilterChange("settlementStatus", value as SettlementFilter)}
-                  value={filters.settlementStatus}
-                >
-                  {settlementOptions.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </SelectField>
-                <SelectField
-                  label={t("filters.categoryLabel")}
-                  onChange={(value) => handleFilterChange("category", value as CategoryFilter)}
-                  value={filters.category}
-                >
-                  {categoryOptions.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </SelectField>
-              </div>
-              {hasActiveFilters ? (
-                <div className="flex flex-wrap gap-2 text-sm text-[#66717a]">
-                  <ActiveFilterChip
-                    active={Boolean(filters.beneficiaryUserId)}
-                    label={
-                      filters.beneficiaryUserId
-                        ? `${t("chips.beneficiaryPrefix")}${
-                            beneficiaryOptions.find((item) => item.userId === filters.beneficiaryUserId)?.label ?? t("chips.selected")
-                          }`
-                        : ""
-                    }
-                  />
-                  <ActiveFilterChip
-                    active={Boolean(filters.orderNumber)}
-                    label={filters.orderNumber ? `${t("chips.orderNumberPrefix")}${filters.orderNumber}` : ""}
-                  />
-                  <ActiveFilterChip
-                    active={filters.settlementStatus !== "all"}
-                    label={
-                      filters.settlementStatus !== "all"
-                        ? `${t("chips.settlementPrefix")}${
-                            settlementOptions.find((item) => item.value === filters.settlementStatus)?.label ?? filters.settlementStatus
-                          }`
-                        : ""
-                    }
-                  />
-                  <ActiveFilterChip
-                    active={filters.category !== "all"}
-                    label={
-                      filters.category !== "all"
-                        ? `${t("chips.categoryPrefix")}${
-                            categoryOptions.find((item) => item.value === filters.category)?.label ?? filters.category
-                          }`
-                        : ""
-                    }
-                  />
-                </div>
-              ) : null}
-            </div>
-          </section>
+          <CommissionBoardSwitch
+            onChange={setActiveBoard}
+            options={boardOptions}
+            value={activeBoard}
+          />
 
-          <section className="rounded-[28px] border border-white/85 bg-white/72 p-6 shadow-[0_18px_45px_rgba(96,113,128,0.06)] xl:p-8">
-            <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-              <div>
-                <h3 className="text-2xl font-semibold tracking-tight text-[#22313a]">
-                  {t("beneficiaries.title")}
-                </h3>
-                <p className="mt-2 text-sm leading-7 text-[#67727b]">
-                  {t("beneficiaries.description")}
-                </p>
-              </div>
-            </div>
-            {beneficiarySummaries.length === 0 ? (
-              <div className="mt-6">
-                <EmptyState
-                  description={t("beneficiaries.emptyDescription")}
-                  icon={<UsersRound className="size-6" />}
-                  title={t("beneficiaries.emptyTitle")}
-                />
-              </div>
-            ) : (
-              <div className="mt-6 overflow-x-auto">
-                <table className="min-w-full divide-y divide-[#e6e2db] text-sm">
-                  <thead>
-                    <tr className="text-left text-xs font-semibold tracking-[0.16em] text-[#8b959c] uppercase">
-                      <th className="px-4 py-3">{t("beneficiaries.columns.beneficiary")}</th>
-                      <th className="px-4 py-3">{t("beneficiaries.columns.roleStatus")}</th>
-                      <th className="px-4 py-3">{t("beneficiaries.columns.recordCount")}</th>
-                      <th className="px-4 py-3">{t("beneficiaries.columns.totalAmount")}</th>
-                      <th className="px-4 py-3">{t("beneficiaries.columns.pendingAmount")}</th>
-                      <th className="px-4 py-3">{t("beneficiaries.columns.paidAmount")}</th>
-                      <th className="px-4 py-3">{t("beneficiaries.columns.latestRecord")}</th>
-                      <th className="px-4 py-3 text-right">{t("beneficiaries.columns.actions")}</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-[#efebe5]">
-                    {beneficiarySummaries.map((beneficiary) => {
-                      const beneficiaryStatus = mapUserStatus(beneficiary.status, locale);
-                      return (
-                        <tr key={beneficiary.userId} className="bg-white/50 transition-colors hover:bg-[#f7f7f5]">
-                          <td className="px-4 py-4">
-                            <div className="font-medium text-[#22313a]">{beneficiary.label}</div>
-                            {beneficiary.email ? <div className="mt-1 text-xs text-[#79848d]">{beneficiary.email}</div> : null}
-                          </td>
-                          <td className="px-4 py-4">
-                            <div className="flex flex-wrap gap-2">
-                              <InlineChip tone="blue">{getCommissionRoleLabel(beneficiary.role, t)}</InlineChip>
-                              <InlineChip tone={beneficiaryStatus.accent === "success" ? "green" : "gold"}>
-                                {beneficiaryStatus.label}
-                              </InlineChip>
-                            </div>
-                          </td>
-                          <td className="px-4 py-4 text-[#22313a]">{beneficiary.recordCount}</td>
-                          <td className="px-4 py-4 text-[#22313a]">{formatCommissionMoney(beneficiary.totalAmount, locale)}</td>
-                          <td className="px-4 py-4 text-[#9a6a07]">{formatCommissionMoney(beneficiary.pendingAmount, locale)}</td>
-                          <td className="px-4 py-4 text-[#4c7259]">{formatCommissionMoney(beneficiary.paidAmount, locale)}</td>
-                          <td className="px-4 py-4 text-[#66727b]">{formatDateTime(beneficiary.lastCreatedAt, locale)}</td>
-                          <td className="px-4 py-4 text-right">
-                            <Button
-                              className="rounded-full bg-[#486782] text-white hover:bg-[#3e5f79]"
-                              onClick={() => drillDownToBeneficiary(beneficiary.userId)}
-                              type="button"
-                            >
-                              {t("beneficiaries.actions.viewAll")}
-                            </Button>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </section>
+          {activeBoard === "normal" ? (
+            <>
+              <section className="rounded-[28px] border border-white/85 bg-white/72 p-6 shadow-[0_18px_45px_rgba(96,113,128,0.06)] xl:p-8">
+                <div className="flex flex-col gap-5">
+                  <div className="flex flex-col gap-3 xl:flex-row xl:items-end xl:justify-between">
+                    <div>
+                      <h3 className="text-2xl font-semibold tracking-tight text-[#22313a]">
+                        {t("filters.title")}
+                      </h3>
+                      <p className="mt-2 text-sm leading-7 text-[#67727b]">
+                        {t("filters.description", {
+                          beneficiaries: beneficiarySummaries.length,
+                          records: filteredCommissions.length,
+                        })}
+                      </p>
+                    </div>
+                    <Button
+                      className="rounded-full border border-[#d8dde2] bg-white text-[#486782] hover:bg-[#eef3f6]"
+                      onClick={resetFilters}
+                      type="button"
+                      variant="outline"
+                    >
+                      <RefreshCcw className="size-4" />
+                      {t("filters.reset")}
+                    </Button>
+                  </div>
+                  <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
+                    <SearchField
+                      label={t("filters.keywordLabel")}
+                      onChange={(value) => handleFilterChange("searchText", value)}
+                      placeholder={t("filters.keywordPlaceholder")}
+                      value={filters.searchText}
+                    />
+                    <SelectField
+                      label={t("filters.beneficiaryLabel")}
+                      onChange={(value) => handleFilterChange("beneficiaryUserId", value)}
+                      value={filters.beneficiaryUserId}
+                    >
+                      <option value="">{t("filters.allBeneficiaries")}</option>
+                      {beneficiaryOptions.map((beneficiary) => (
+                        <option key={beneficiary.userId} value={beneficiary.userId}>
+                          {beneficiary.label}
+                        </option>
+                      ))}
+                    </SelectField>
+                    <SearchField
+                      label={t("filters.orderNumberLabel")}
+                      onChange={(value) => handleFilterChange("orderNumber", value)}
+                      placeholder={t("filters.orderNumberPlaceholder")}
+                      value={filters.orderNumber}
+                    />
+                    <SelectField
+                      label={t("filters.settlementStatusLabel")}
+                      onChange={(value) => handleFilterChange("settlementStatus", value as SettlementFilter)}
+                      value={filters.settlementStatus}
+                    >
+                      {settlementOptions.map((option) => (
+                        <option key={option.value} value={option.value}>
+                          {option.label}
+                        </option>
+                      ))}
+                    </SelectField>
+                    <SelectField
+                      label={t("filters.categoryLabel")}
+                      onChange={(value) => handleFilterChange("category", value as CategoryFilter)}
+                      value={filters.category}
+                    >
+                      {categoryOptions.map((option) => (
+                        <option key={option.value} value={option.value}>
+                          {option.label}
+                        </option>
+                      ))}
+                    </SelectField>
+                  </div>
+                  {hasActiveFilters ? (
+                    <div className="flex flex-wrap gap-2 text-sm text-[#66717a]">
+                      <ActiveFilterChip
+                        active={Boolean(filters.beneficiaryUserId)}
+                        label={
+                          filters.beneficiaryUserId
+                            ? `${t("chips.beneficiaryPrefix")}${
+                                beneficiaryOptions.find((item) => item.userId === filters.beneficiaryUserId)?.label ?? t("chips.selected")
+                              }`
+                            : ""
+                        }
+                      />
+                      <ActiveFilterChip
+                        active={Boolean(filters.orderNumber)}
+                        label={filters.orderNumber ? `${t("chips.orderNumberPrefix")}${filters.orderNumber}` : ""}
+                      />
+                      <ActiveFilterChip
+                        active={filters.settlementStatus !== "all"}
+                        label={
+                          filters.settlementStatus !== "all"
+                            ? `${t("chips.settlementPrefix")}${
+                                settlementOptions.find((item) => item.value === filters.settlementStatus)?.label ?? filters.settlementStatus
+                              }`
+                            : ""
+                        }
+                      />
+                      <ActiveFilterChip
+                        active={filters.category !== "all"}
+                        label={
+                          filters.category !== "all"
+                            ? `${t("chips.categoryPrefix")}${
+                                categoryOptions.find((item) => item.value === filters.category)?.label ?? filters.category
+                              }`
+                            : ""
+                        }
+                      />
+                    </div>
+                  ) : null}
+                </div>
+              </section>
 
-          <section className="rounded-[28px] border border-white/85 bg-white/72 p-6 shadow-[0_18px_45px_rgba(96,113,128,0.06)] xl:p-8">
-            <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-              <div>
-                <h3 className="text-2xl font-semibold tracking-tight text-[#22313a]">
-                  {t("table.title")}
-                </h3>
-                <p className="mt-2 text-sm leading-7 text-[#67727b]">
-                  {t("table.description")}
-                </p>
-              </div>
-            </div>
-            {filteredCommissions.length === 0 ? (
-              <div className="mt-6">
-                <EmptyState
-                  description={t("table.emptyDescription")}
-                  icon={<Search className="size-6" />}
-                  title={t("table.emptyTitle")}
-                />
-              </div>
-            ) : (
-              <div className="mt-6 overflow-x-auto">
-                <table className="min-w-full divide-y divide-[#e6e2db] text-sm">
-                  <thead>
-                    <tr className="text-left text-xs font-semibold tracking-[0.16em] text-[#8b959c] uppercase">
-                      <th className="px-4 py-3">{t("table.columns.orderStatus")}</th>
-                      <th className="px-4 py-3">{t("table.columns.beneficiary")}</th>
-                      <th className="px-4 py-3">{t("table.columns.category")}</th>
-                      <th className="px-4 py-3">{t("table.columns.source")}</th>
-                      <th className="px-4 py-3">{t("table.columns.amountSnapshot")}</th>
-                      <th className="px-4 py-3">{t("table.columns.commissionSettlement")}</th>
-                      <th className="px-4 py-3">{t("table.columns.timestamps")}</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-[#efebe5]">
-                    {commissionsPagination.items.map((commission) => {
-                      const beneficiaryStatus = mapUserStatus(commission.beneficiary.status, locale);
-                      return (
-                        <tr key={commission.id} className="align-top transition-colors hover:bg-[#f7f7f5]">
-                          <td className="px-4 py-4">
-                            <button
-                              className="text-left text-sm font-semibold text-[#486782] transition-colors hover:text-[#36546d]"
-                              onClick={() => focusOrderNumber(commission.orderNumber)}
-                              type="button"
-                            >
-                              {commission.orderNumber}
-                            </button>
-                            <div className="mt-2 flex flex-wrap gap-2">
-                              <InlineChip tone="blue">{getCommissionOrderStatusLabel(commission.orderStatus, t)}</InlineChip>
-                              {commission.isOrderDeleted ? <InlineChip tone="gold">{t("shared.deletedOrder")}</InlineChip> : null}
-                            </div>
-                          </td>
-                          <td className="px-4 py-4">
-                            <div className="font-medium text-[#22313a]">{commission.beneficiary.label}</div>
-                            <div className="mt-2 flex flex-wrap gap-2">
-                              <InlineChip tone="blue">{getCommissionRoleLabel(commission.beneficiary.role, t)}</InlineChip>
-                              <InlineChip tone={beneficiaryStatus.accent === "success" ? "green" : "gold"}>{beneficiaryStatus.label}</InlineChip>
-                            </div>
-                          </td>
-                          <td className="px-4 py-4 font-medium text-[#22313a]">{getCommissionCategoryLabel(commission.category, t)}</td>
-                          <td className="px-4 py-4">
-                            <DetailLine label={t("shared.fields.customer")} value={commission.sourceCustomer?.label ?? t("shared.fallback.none")} />
-                            <DetailLine label={t("shared.fields.salesman")} value={commission.sourceSalesman?.label ?? t("shared.fallback.none")} />
-                          </td>
-                          <td className="px-4 py-4">
-                            <DetailLine label={t("shared.fields.orderAmount")} value={formatCommissionMoney(commission.orderAmountRmb, locale)} />
-                            <DetailLine label={t("shared.fields.costAmount")} value={formatNullableCommissionMoney(commission.costAmountRmb, locale, t)} />
-                            <DetailLine label={t("shared.fields.serviceFee")} value={formatNullableCommissionMoney(commission.serviceFeeAmountRmb, locale, t)} />
-                          </td>
-                          <td className="px-4 py-4">
-                            <div className="font-semibold text-[#22313a]">{formatCommissionMoney(commission.commissionAmountRmb, locale)}</div>
-                            <div className="mt-2">
-                              <InlineChip tone={getSettlementTone(commission.settlementStatus)}>{getCommissionSettlementStatusLabel(commission.settlementStatus, t)}</InlineChip>
-                            </div>
-                            {commission.settlementNote ? <p className="mt-2 max-w-xs text-xs leading-6 text-[#79848d]">{t("shared.note", { note: commission.settlementNote })}</p> : null}
-                          </td>
-                          <td className="px-4 py-4">
-                            <DetailLine label={t("shared.fields.createdAt")} value={formatDateTime(commission.createdAt, locale)} />
-                            <DetailLine label={t("shared.fields.settledAt")} value={formatDateTime(commission.settledAt, locale)} />
-                          </td>
+              <section className="rounded-[28px] border border-white/85 bg-white/72 p-6 shadow-[0_18px_45px_rgba(96,113,128,0.06)] xl:p-8">
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+                  <div>
+                    <h3 className="text-2xl font-semibold tracking-tight text-[#22313a]">
+                      {t("beneficiaries.title")}
+                    </h3>
+                    <p className="mt-2 text-sm leading-7 text-[#67727b]">
+                      {t("beneficiaries.description")}
+                    </p>
+                  </div>
+                </div>
+                {beneficiarySummaries.length === 0 ? (
+                  <div className="mt-6">
+                    <EmptyState
+                      description={t("beneficiaries.emptyDescription")}
+                      icon={<UsersRound className="size-6" />}
+                      title={t("beneficiaries.emptyTitle")}
+                    />
+                  </div>
+                ) : (
+                  <div className="mt-6 overflow-x-auto">
+                    <table className="min-w-full divide-y divide-[#e6e2db] text-sm">
+                      <thead>
+                        <tr className="text-left text-xs font-semibold tracking-[0.16em] text-[#8b959c] uppercase">
+                          <th className="px-4 py-3">{t("beneficiaries.columns.beneficiary")}</th>
+                          <th className="px-4 py-3">{t("beneficiaries.columns.roleStatus")}</th>
+                          <th className="px-4 py-3">{t("beneficiaries.columns.recordCount")}</th>
+                          <th className="px-4 py-3">{t("beneficiaries.columns.totalAmount")}</th>
+                          <th className="px-4 py-3">{t("beneficiaries.columns.pendingAmount")}</th>
+                          <th className="px-4 py-3">{t("beneficiaries.columns.paidAmount")}</th>
+                          <th className="px-4 py-3">{t("beneficiaries.columns.latestRecord")}</th>
+                          <th className="px-4 py-3 text-right">{t("beneficiaries.columns.actions")}</th>
                         </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-                <DashboardPaginationControls
-                  endIndex={commissionsPagination.endIndex}
-                  hasNextPage={commissionsPagination.hasNextPage}
-                  hasPreviousPage={commissionsPagination.hasPreviousPage}
-                  onNextPage={commissionsPagination.goToNextPage}
-                  onPreviousPage={commissionsPagination.goToPreviousPage}
-                  page={commissionsPagination.page}
-                  pageCount={commissionsPagination.pageCount}
-                  startIndex={commissionsPagination.startIndex}
-                  totalItems={commissionsPagination.totalItems}
-                />
-              </div>
-            )}
-          </section>
+                      </thead>
+                      <tbody className="divide-y divide-[#efebe5]">
+                        {beneficiarySummaries.map((beneficiary) => {
+                          const beneficiaryStatus = mapUserStatus(beneficiary.status, locale);
+                          return (
+                            <tr key={beneficiary.userId} className="bg-white/50 transition-colors hover:bg-[#f7f7f5]">
+                              <td className="px-4 py-4">
+                                <div className="font-medium text-[#22313a]">{beneficiary.label}</div>
+                                {beneficiary.email ? <div className="mt-1 text-xs text-[#79848d]">{beneficiary.email}</div> : null}
+                              </td>
+                              <td className="px-4 py-4">
+                                <div className="flex flex-wrap gap-2">
+                                  <InlineChip tone="blue">{getCommissionRoleLabel(beneficiary.role, t)}</InlineChip>
+                                  <InlineChip tone={beneficiaryStatus.accent === "success" ? "green" : "gold"}>
+                                    {beneficiaryStatus.label}
+                                  </InlineChip>
+                                </div>
+                              </td>
+                              <td className="px-4 py-4 text-[#22313a]">{beneficiary.recordCount}</td>
+                              <td className="px-4 py-4 text-[#22313a]">{formatCommissionMoney(beneficiary.totalAmount, locale)}</td>
+                              <td className="px-4 py-4 text-[#9a6a07]">{formatCommissionMoney(beneficiary.pendingAmount, locale)}</td>
+                              <td className="px-4 py-4 text-[#4c7259]">{formatCommissionMoney(beneficiary.paidAmount, locale)}</td>
+                              <td className="px-4 py-4 text-[#66727b]">{formatDateTime(beneficiary.lastCreatedAt, locale)}</td>
+                              <td className="px-4 py-4 text-right">
+                                <Button
+                                  className="rounded-full bg-[#486782] text-white hover:bg-[#3e5f79]"
+                                  onClick={() => drillDownToBeneficiary(beneficiary.userId)}
+                                  type="button"
+                                >
+                                  {t("beneficiaries.actions.viewAll")}
+                                </Button>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </section>
+
+              <section className="rounded-[28px] border border-white/85 bg-white/72 p-6 shadow-[0_18px_45px_rgba(96,113,128,0.06)] xl:p-8">
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+                  <div>
+                    <h3 className="text-2xl font-semibold tracking-tight text-[#22313a]">
+                      {t("table.title")}
+                    </h3>
+                    <p className="mt-2 text-sm leading-7 text-[#67727b]">
+                      {t("table.description")}
+                    </p>
+                  </div>
+                </div>
+                {filteredCommissions.length === 0 ? (
+                  <div className="mt-6">
+                    <EmptyState
+                      description={t("table.emptyDescription")}
+                      icon={<Search className="size-6" />}
+                      title={t("table.emptyTitle")}
+                    />
+                  </div>
+                ) : (
+                  <div className="mt-6 overflow-x-auto">
+                    <table className="min-w-full divide-y divide-[#e6e2db] text-sm">
+                      <thead>
+                        <tr className="text-left text-xs font-semibold tracking-[0.16em] text-[#8b959c] uppercase">
+                          <th className="px-4 py-3">{t("table.columns.orderStatus")}</th>
+                          <th className="px-4 py-3">{t("table.columns.beneficiary")}</th>
+                          <th className="px-4 py-3">{t("table.columns.category")}</th>
+                          <th className="px-4 py-3">{t("table.columns.source")}</th>
+                          <th className="px-4 py-3">{t("table.columns.amountSnapshot")}</th>
+                          <th className="px-4 py-3">{t("table.columns.commissionSettlement")}</th>
+                          <th className="px-4 py-3">{t("table.columns.timestamps")}</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-[#efebe5]">
+                        {commissionsPagination.items.map((commission) => {
+                          const beneficiaryStatus = mapUserStatus(commission.beneficiary.status, locale);
+                          return (
+                            <tr key={commission.id} className="align-top transition-colors hover:bg-[#f7f7f5]">
+                              <td className="px-4 py-4">
+                                <button
+                                  className="text-left text-sm font-semibold text-[#486782] transition-colors hover:text-[#36546d]"
+                                  onClick={() => focusOrderNumber(commission.orderNumber)}
+                                  type="button"
+                                >
+                                  {commission.orderNumber}
+                                </button>
+                                <div className="mt-2 flex flex-wrap gap-2">
+                                  <InlineChip tone="blue">{getCommissionOrderStatusLabel(commission.orderStatus, t)}</InlineChip>
+                                  {commission.isOrderDeleted ? <InlineChip tone="gold">{t("shared.deletedOrder")}</InlineChip> : null}
+                                </div>
+                              </td>
+                              <td className="px-4 py-4">
+                                <div className="font-medium text-[#22313a]">{commission.beneficiary.label}</div>
+                                <div className="mt-2 flex flex-wrap gap-2">
+                                  <InlineChip tone="blue">{getCommissionRoleLabel(commission.beneficiary.role, t)}</InlineChip>
+                                  <InlineChip tone={beneficiaryStatus.accent === "success" ? "green" : "gold"}>{beneficiaryStatus.label}</InlineChip>
+                                </div>
+                              </td>
+                              <td className="px-4 py-4 font-medium text-[#22313a]">{getCommissionCategoryLabel(commission.category, t)}</td>
+                              <td className="px-4 py-4">
+                                <DetailLine label={t("shared.fields.customer")} value={commission.sourceCustomer?.label ?? t("shared.fallback.none")} />
+                                <DetailLine label={t("shared.fields.salesman")} value={commission.sourceSalesman?.label ?? t("shared.fallback.none")} />
+                              </td>
+                              <td className="px-4 py-4">
+                                <DetailLine label={t("shared.fields.orderAmount")} value={formatCommissionMoney(commission.orderAmountRmb, locale)} />
+                                <DetailLine label={t("shared.fields.costAmount")} value={formatNullableCommissionMoney(commission.costAmountRmb, locale, t)} />
+                                <DetailLine label={t("shared.fields.serviceFee")} value={formatNullableCommissionMoney(commission.serviceFeeAmountRmb, locale, t)} />
+                              </td>
+                              <td className="px-4 py-4">
+                                <div className="font-semibold text-[#22313a]">{formatCommissionMoney(commission.commissionAmountRmb, locale)}</div>
+                                <div className="mt-2">
+                                  <InlineChip tone={getSettlementTone(commission.settlementStatus)}>{getCommissionSettlementStatusLabel(commission.settlementStatus, t)}</InlineChip>
+                                </div>
+                                {commission.settlementNote ? <p className="mt-2 max-w-xs text-xs leading-6 text-[#79848d]">{t("shared.note", { note: commission.settlementNote })}</p> : null}
+                              </td>
+                              <td className="px-4 py-4">
+                                <DetailLine label={t("shared.fields.createdAt")} value={formatDateTime(commission.createdAt, locale)} />
+                                <DetailLine label={t("shared.fields.settledAt")} value={formatDateTime(commission.settledAt, locale)} />
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                    <DashboardPaginationControls
+                      endIndex={commissionsPagination.endIndex}
+                      hasNextPage={commissionsPagination.hasNextPage}
+                      hasPreviousPage={commissionsPagination.hasPreviousPage}
+                      onNextPage={commissionsPagination.goToNextPage}
+                      onPreviousPage={commissionsPagination.goToPreviousPage}
+                      page={commissionsPagination.page}
+                      pageCount={commissionsPagination.pageCount}
+                      startIndex={commissionsPagination.startIndex}
+                      totalItems={commissionsPagination.totalItems}
+                    />
+                  </div>
+                )}
+              </section>
+            </>
+          ) : (
+            <AdminTaskCommissionSection rows={taskCommissions} />
+          )}
         </>
       )}
     </section>

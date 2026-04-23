@@ -279,7 +279,7 @@ function getSectionNamespaces(
   }
 
   if (section === "commission" && config.pageVariants.commission) {
-    namespaces.push("Commission");
+    namespaces.push("Commission", "Tasks.shared");
   }
 
   if (section === "exchange-rates" && config.pageVariants.exchangeRates) {
@@ -297,7 +297,7 @@ function getSectionNamespaces(
   }
 
   if (section === "reviews" && config.pageVariants.reviews) {
-    namespaces.push("Reviews", "ReviewsUI", "DashboardShared");
+    namespaces.push("Reviews", "ReviewsUI", "DashboardShared", "Tasks.shared");
   }
 
   if (section === "referrals" && config.pageVariants.referrals) {

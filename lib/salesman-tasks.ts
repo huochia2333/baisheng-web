@@ -6,6 +6,7 @@ import type {
   AdminTaskMainRow,
   TaskScope,
   TaskStatus,
+  TaskTypeOption,
 } from "./admin-tasks";
 import { getVisibleTeamOverviews, type TeamOverview } from "./team-management";
 import { getCurrentSessionContext, type AppRole, type UserStatus } from "./user-self-service";
@@ -15,7 +16,7 @@ import {
 } from "./dashboard-pagination";
 
 const TASK_SELECT =
-  "id,task_name,task_intro,created_by_user_id,accepted_by_user_id,scope,team_id,status,created_at,accepted_at,completed_at";
+  "id,task_name,task_intro,task_type_code,commission_amount_rmb,created_by_user_id,accepted_by_user_id,scope,team_id,status,created_at,accepted_at,submitted_at,reviewed_at,reviewed_by_user_id,review_reject_reason,completed_at";
 const TASK_ATTACHMENT_SELECT =
   "id,task_id,task_attachment_storage_path,file_size_bytes,original_name,bucket_name,mime_type,uploaded_by_user_id,created_at";
 
@@ -42,6 +43,8 @@ export type SalesmanTaskFocusFilter =
   | "all"
   | "available"
   | "in_progress"
+  | "reviewing"
+  | "rejected"
   | "completed";
 
 export type SalesmanTaskScopeFilter = "all" | TaskScope;
@@ -61,6 +64,8 @@ type TaskMainRecord = {
   id: string;
   task_name: string | null;
   task_intro: string | null;
+  task_type_code: string | null;
+  commission_amount_rmb: number | string | null;
   created_by_user_id: string | null;
   accepted_by_user_id: string | null;
   scope: TaskScope | null;
@@ -68,6 +73,10 @@ type TaskMainRecord = {
   status: TaskStatus | null;
   created_at: string | null;
   accepted_at: string | null;
+  submitted_at: string | null;
+  reviewed_at: string | null;
+  reviewed_by_user_id: string | null;
+  review_reject_reason: string | null;
   completed_at: string | null;
 };
 
@@ -81,6 +90,15 @@ type TaskAttachmentRecord = {
   mime_type: string | null;
   uploaded_by_user_id: string | null;
   created_at: string | null;
+};
+
+type TaskTypeCatalogRecord = {
+  code: string | null;
+  display_name: string | null;
+  description: string | null;
+  default_commission_amount_rmb: number | string | null;
+  is_active: boolean | null;
+  sort_order: number | string | null;
 };
 
 export async function getCurrentSalesmanTaskViewerContext(
@@ -189,8 +207,13 @@ export async function getVisibleSalesmanTasks(
   }
 
   const taskIds = tasks.map((task) => task.id);
-  const attachments = await getVisibleTaskAttachments(supabase, taskIds);
+  const taskTypeCodes = Array.from(new Set(tasks.map((task) => task.task_type_code)));
+  const [attachments, taskTypes] = await Promise.all([
+    getVisibleTaskAttachments(supabase, taskIds),
+    getTaskTypesByCodes(supabase, taskTypeCodes),
+  ]);
   const attachmentByTaskId = new Map<string, AdminTaskAttachment[]>();
+  const taskTypeByCode = new Map(taskTypes.map((taskType) => [taskType.code, taskType]));
 
   attachments.forEach((attachment) => {
     const bucket = attachmentByTaskId.get(attachment.task_id);
@@ -205,6 +228,8 @@ export async function getVisibleSalesmanTasks(
 
   return tasks.map((task) => ({
     ...task,
+    task_type_label:
+      taskTypeByCode.get(task.task_type_code)?.displayName ?? task.task_type_label,
     attachments: attachmentByTaskId.get(task.id) ?? [],
   }));
 }
@@ -285,7 +310,11 @@ function normalizePositiveInteger(value: string | null | undefined, fallback: nu
 }
 
 function normalizeSalesmanTaskFocusFilter(value: unknown): SalesmanTaskFocusFilter {
-  return value === "available" || value === "in_progress" || value === "completed"
+  return value === "available"
+    || value === "in_progress"
+    || value === "reviewing"
+    || value === "rejected"
+    || value === "completed"
     ? value
     : "all";
 }
@@ -316,6 +345,31 @@ async function getVisibleTaskAttachments(
     .filter((item): item is AdminTaskAttachment => item !== null);
 }
 
+async function getTaskTypesByCodes(
+  supabase: SupabaseClient,
+  codes: string[],
+): Promise<TaskTypeOption[]> {
+  if (codes.length === 0) {
+    return [];
+  }
+
+  const { data, error } = await withRequestTimeout(
+    supabase
+      .from("task_type_catalog")
+      .select("code,display_name,description,default_commission_amount_rmb,is_active,sort_order")
+      .in("code", codes)
+      .returns<TaskTypeCatalogRecord[]>(),
+  );
+
+  if (error) {
+    throw error;
+  }
+
+  return (data ?? [])
+    .map((item) => normalizeTaskTypeOption(item))
+    .filter((item): item is TaskTypeOption => item !== null);
+}
+
 function normalizeTaskMainRecord(value: unknown): AdminTaskMainRow | null {
   if (typeof value !== "object" || value === null) {
     return null;
@@ -323,12 +377,14 @@ function normalizeTaskMainRecord(value: unknown): AdminTaskMainRow | null {
 
   const id = "id" in value ? normalizeOptionalString(value.id) : null;
   const taskName = "task_name" in value ? normalizeOptionalString(value.task_name) : null;
+  const taskTypeCode =
+    "task_type_code" in value ? normalizeOptionalString(value.task_type_code) : null;
   const createdByUserId =
     "created_by_user_id" in value ? normalizeOptionalString(value.created_by_user_id) : null;
   const scope = "scope" in value ? normalizeTaskScope(value.scope) : null;
   const status = "status" in value ? normalizeTaskStatus(value.status) : null;
 
-  if (!id || !taskName || !createdByUserId || !scope || !status) {
+  if (!id || !taskName || !taskTypeCode || !createdByUserId || !scope || !status) {
     return null;
   }
 
@@ -336,6 +392,12 @@ function normalizeTaskMainRecord(value: unknown): AdminTaskMainRow | null {
     id,
     task_name: taskName,
     task_intro: "task_intro" in value ? normalizeOptionalString(value.task_intro) : null,
+    task_type_code: taskTypeCode,
+    task_type_label: null,
+    commission_amount_rmb:
+      "commission_amount_rmb" in value
+        ? normalizeNumericValue(value.commission_amount_rmb) ?? 0
+        : 0,
     created_by_user_id: createdByUserId,
     accepted_by_user_id:
       "accepted_by_user_id" in value ? normalizeOptionalString(value.accepted_by_user_id) : null,
@@ -344,6 +406,16 @@ function normalizeTaskMainRecord(value: unknown): AdminTaskMainRow | null {
     status,
     created_at: "created_at" in value ? normalizeOptionalString(value.created_at) : null,
     accepted_at: "accepted_at" in value ? normalizeOptionalString(value.accepted_at) : null,
+    submitted_at: "submitted_at" in value ? normalizeOptionalString(value.submitted_at) : null,
+    reviewed_at: "reviewed_at" in value ? normalizeOptionalString(value.reviewed_at) : null,
+    reviewed_by_user_id:
+      "reviewed_by_user_id" in value
+        ? normalizeOptionalString(value.reviewed_by_user_id)
+        : null,
+    review_reject_reason:
+      "review_reject_reason" in value
+        ? normalizeOptionalString(value.review_reject_reason)
+        : null,
     completed_at: "completed_at" in value ? normalizeOptionalString(value.completed_at) : null,
   };
 }
@@ -383,6 +455,31 @@ function normalizeTaskAttachment(value: unknown): AdminTaskAttachment | null {
   };
 }
 
+function normalizeTaskTypeOption(value: unknown): TaskTypeOption | null {
+  if (typeof value !== "object" || value === null) {
+    return null;
+  }
+
+  const code = "code" in value ? normalizeOptionalString(value.code) : null;
+  const displayName = "display_name" in value ? normalizeOptionalString(value.display_name) : null;
+
+  if (!code || !displayName) {
+    return null;
+  }
+
+  return {
+    code,
+    displayName,
+    description: "description" in value ? normalizeOptionalString(value.description) : null,
+    defaultCommissionAmountRmb:
+      "default_commission_amount_rmb" in value
+        ? normalizeNumericValue(value.default_commission_amount_rmb) ?? 0
+        : 0,
+    isActive: "is_active" in value ? value.is_active === true : false,
+    sortOrder: "sort_order" in value ? normalizeInteger(value.sort_order) : 100,
+  };
+}
+
 function normalizeOptionalString(value: unknown) {
   if (typeof value !== "string") {
     return null;
@@ -405,6 +502,19 @@ function normalizeInteger(value: unknown) {
   return 0;
 }
 
+function normalizeNumericValue(value: unknown) {
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return value;
+  }
+
+  if (typeof value === "string") {
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : null;
+  }
+
+  return null;
+}
+
 function normalizeTaskScope(value: unknown): TaskScope | null {
   if (value === "public" || value === "team") {
     return value;
@@ -414,7 +524,13 @@ function normalizeTaskScope(value: unknown): TaskScope | null {
 }
 
 function normalizeTaskStatus(value: unknown): TaskStatus | null {
-  if (value === "to_be_accepted" || value === "accepted" || value === "completed") {
+  if (
+    value === "to_be_accepted"
+    || value === "accepted"
+    || value === "reviewing"
+    || value === "rejected"
+    || value === "completed"
+  ) {
     return value;
   }
 

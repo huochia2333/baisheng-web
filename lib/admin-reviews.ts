@@ -10,6 +10,12 @@ import {
   type UserMediaAssetRow,
   type UserPrivacyRequestRow,
 } from "./user-self-service";
+import {
+  approveTaskReview as approveTaskReviewAction,
+  getPendingTaskReviews as getPendingTaskReviewsData,
+  rejectTaskReview as rejectTaskReviewAction,
+  type PendingTaskReviewWithAssets,
+} from "./task-reviews";
 
 const SIGNED_URL_TTL_SECONDS = 60 * 60;
 const SIGNED_URL_CONCURRENCY = 4;
@@ -51,6 +57,7 @@ export type AdminReviewsPageData = {
   hasPermission: boolean;
   privacyRows: PendingPrivacyReviewRow[];
   mediaRows: PendingMediaReviewWithPreview[];
+  taskRows: PendingTaskReviewWithAssets[];
 };
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -154,18 +161,21 @@ export async function getAdminReviewsPageData(
       hasPermission: false,
       privacyRows: [],
       mediaRows: [],
+      taskRows: [],
     };
   }
 
-  const [privacyRows, mediaRows] = await Promise.all([
+  const [privacyRows, mediaRows, taskRows] = await Promise.all([
     getPendingPrivacyReviews(supabase),
     getPendingMediaReviews(supabase),
+    getPendingTaskReviewsData(supabase),
   ]);
 
   return {
     hasPermission: true,
     privacyRows,
     mediaRows,
+    taskRows,
   };
 }
 
@@ -308,4 +318,21 @@ export async function rejectMediaReview(
   }
 
   return parseRpcRow(data, "deny_user_media_asset", isUserMediaAssetRow);
+}
+
+export async function approveTaskReview(
+  supabase: SupabaseClient,
+  taskId: string,
+) {
+  return approveTaskReviewAction(supabase, taskId);
+}
+
+export async function rejectTaskReview(
+  supabase: SupabaseClient,
+  options: {
+    taskId: string;
+    reason?: string | null;
+  },
+) {
+  return rejectTaskReviewAction(supabase, options);
 }

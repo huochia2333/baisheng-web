@@ -8,8 +8,9 @@ import {
   Plus,
   RefreshCw,
   ShieldAlert,
+  Upload,
   UserRound,
-  UsersRound,
+  XCircle,
 } from "lucide-react";
 
 import {
@@ -93,7 +94,7 @@ export function AdminTasksHeroSection({
         </div>
       </div>
 
-      <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-5">
+      <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-6">
         <DashboardMetricCard
           accent="blue"
           icon={<ClipboardList className="size-5" />}
@@ -113,16 +114,22 @@ export function AdminTasksHeroSection({
           value={stats.accepted}
         />
         <DashboardMetricCard
+          accent="gold"
+          icon={<Upload className="size-5" />}
+          label={t("summary.reviewing")}
+          value={stats.reviewing}
+        />
+        <DashboardMetricCard
+          accent="blue"
+          icon={<XCircle className="size-5" />}
+          label={t("summary.rejected")}
+          value={stats.rejected}
+        />
+        <DashboardMetricCard
           accent="green"
           icon={<CheckCheck className="size-5" />}
           label={t("summary.completed")}
           value={stats.completed}
-        />
-        <DashboardMetricCard
-          accent="blue"
-          icon={<UsersRound className="size-5" />}
-          label={t("summary.teamScoped")}
-          value={stats.teamScoped}
         />
       </div>
     </section>
@@ -177,6 +184,8 @@ export function AdminTasksFiltersSection({
           <option value="all">{t("filters.statusAll")}</option>
           <option value="to_be_accepted">{sharedT("status.toBeAccepted")}</option>
           <option value="accepted">{sharedT("status.accepted")}</option>
+          <option value="reviewing">{sharedT("status.reviewing")}</option>
+          <option value="rejected">{sharedT("status.rejected")}</option>
           <option value="completed">{sharedT("status.completed")}</option>
         </FilterField>
 

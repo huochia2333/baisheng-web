@@ -48,6 +48,7 @@ export function useAdminTasksViewModel({
     onPageFeedback: handlePageFeedback,
     refreshTaskBoard: routeState.refreshTaskBoard,
     supabase,
+    taskTypeOptions: routeState.taskTypeOptions,
     viewerId: routeState.viewerId,
   });
   const assignmentDialog = useAdminTaskAssignmentDialog({

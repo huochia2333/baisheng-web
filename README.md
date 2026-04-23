@@ -102,6 +102,31 @@ baisheng-web/
 - `admin-tasks-sections.tsx`：拆出头部指标、筛选区、列表区和无权限态
 - `admin-tasks-dialogs.tsx`：拆出创建任务弹窗和分配弹窗
 - `admin-tasks-view-model-shared.ts`：集中放置任务页共享类型、筛选比较和输入样式常量
+- 任务状态目前覆盖 `to_be_accepted -> accepted -> reviewing -> rejected/completed`，其中管理员发布附件仍记录在 `task_sub`，执行人提交审核成果则单独进入 `task_review_submissions` / `task_review_submission_assets`
+- 任务主表同时写入 `task_type_code` 与 `commission_amount_rmb`，当前内置 `video_shoot` 类型，后续可以继续扩展更多任务类型
+- 任务审核通过后会同步写入 `task_commission_record`，任务佣金与订单佣金并行展示，但不复用订单佣金表结构
+
+### `salesman-tasks` 模块分层（2026-04-22）
+
+- `salesman-tasks-client.tsx`：只负责任务中心编排、指标展示和组件组装
+- `use-salesman-tasks-page.ts`：负责路由筛选、分页、接取任务、上传成果、提交审核和附件打开动作
+- `salesman-tasks-ui.tsx`：只保留任务卡片、搜索框和筛选器展示
+- `salesman-task-submit-dialog.tsx`：单独承接“提交审核 / 重新提交审核”弹窗与文件选择流程
+
+### `admin-reviews` 模块分层（2026-04-22）
+
+- `admin-reviews-client.tsx`：只负责审核工作台编排、tab 切换和组件组装
+- `use-admin-reviews-page.ts`：负责隐私审核、媒体审核、任务审核和提审附件打开动作
+- `admin-reviews-ui.tsx`：保留隐私/媒体审核列表、媒体预览弹窗和共享摘要卡
+- `task-review-list.tsx`：单独承接任务审核列表，避免把任务提审展示继续堆进现有审核 UI 文件
+
+### `commission` 模块分层（2026-04-23）
+
+- `admin-commission-client.tsx`：继续负责管理员佣金页编排，当前总行数 475，仍控制在可维护范围内
+- `salesman-commission-client.tsx`：负责个人佣金页编排与权限态切换
+- `commission-board-switch.tsx`：统一承接“普通佣金 / 任务佣金”两个小板切换，避免把板块切换逻辑分散到多个页面
+- `admin-task-commission-section.tsx`、`salesman-task-commission-section.tsx`：拆出任务佣金展示区，避免把任务佣金直接堆进原有订单佣金表格
+- `lib/task-commissions.ts`：集中处理任务佣金查询、任务类型名称、团队名称和受益人映射
 
 ### `team-management` 模块分层（2026-04-22）
 

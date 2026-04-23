@@ -48,6 +48,7 @@ export function useAdminTasksRouteState({
   const viewerId = initialData.viewerId;
   const tasks = initialData.tasks;
   const teamOptions = initialData.teamOptions;
+  const taskTypeOptions = initialData.taskTypeOptions;
   const canView = initialData.canView;
 
   const routeStateKey = useMemo(
@@ -140,8 +141,9 @@ export function useAdminTasksRouteState({
       total: tasks.length,
       pending: tasks.filter((task) => task.status === "to_be_accepted").length,
       accepted: tasks.filter((task) => task.status === "accepted").length,
+      reviewing: tasks.filter((task) => task.status === "reviewing").length,
+      rejected: tasks.filter((task) => task.status === "rejected").length,
       completed: tasks.filter((task) => task.status === "completed").length,
-      teamScoped: tasks.filter((task) => task.scope === "team").length,
     }),
     [tasks],
   );
@@ -169,6 +171,8 @@ export function useAdminTasksRouteState({
       const searchableText = [
         task.task_name,
         task.task_intro,
+        task.task_type_label,
+        task.review_reject_reason,
         resolveTaskActorLabel(task.creator, task.created_by_user_id, sharedT),
         task.creator?.email,
         resolveTaskActorLabel(task.accepted_by, task.accepted_by_user_id, sharedT),
@@ -288,6 +292,7 @@ export function useAdminTasksRouteState({
     tasks,
     tasksPagination,
     teamOptions,
+    taskTypeOptions,
     updateFilter,
     viewerId,
   };

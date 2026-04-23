@@ -16,9 +16,12 @@ import { DashboardPaginationControls } from "@/components/dashboard/dashboard-pa
 import { EmptyState, PageBanner, formatDateTime, type NoticeTone } from "@/components/dashboard/dashboard-shared-ui";
 import { useWorkspaceSyncEffect } from "@/components/dashboard/workspace-session-provider";
 
+import { CommissionBoardSwitch } from "./commission-board-switch";
 import { formatCommissionMoney, getCommissionCategoryLabel, getCommissionOrderStatusLabel, getCommissionOriginText, getCommissionSettlementStatusLabel, toCommissionErrorMessage } from "./commission-display";
+import { SalesmanTaskCommissionSection } from "./salesman-task-commission-section";
 
 type PageFeedback = { tone: NoticeTone; message: string } | null;
+type CommissionBoard = "normal" | "task";
 
 export function SalesmanCommissionClient({
   initialData,
@@ -31,10 +34,13 @@ export function SalesmanCommissionClient({
   const [pageFeedback, setPageFeedback] = useState<PageFeedback>(null);
   const [hasPermission, setHasPermission] = useState(initialData.hasPermission);
   const [commissions, setCommissions] = useState<AdminCommissionRow[]>(initialData.commissions);
+  const [taskCommissions, setTaskCommissions] = useState(initialData.taskCommissions);
+  const [activeBoard, setActiveBoard] = useState<CommissionBoard>("normal");
 
   const applyPageData = useCallback((pageData: SalesmanCommissionPageData) => {
     setHasPermission(pageData.hasPermission);
     setCommissions(pageData.commissions);
+    setTaskCommissions(pageData.taskCommissions);
   }, []);
 
   const refreshCommissionBoard = useCallback(async ({ isMounted }: { isMounted: () => boolean }) => {
@@ -59,6 +65,22 @@ export function SalesmanCommissionClient({
     pendingAmount: commissions.filter((commission) => commission.settlementStatus === "pending").reduce((sum, commission) => sum + commission.commissionAmountRmb, 0),
     paidAmount: commissions.filter((commission) => commission.settlementStatus === "paid").reduce((sum, commission) => sum + commission.commissionAmountRmb, 0),
   }), [commissions]);
+  const boardOptions = useMemo(() => [
+    {
+      key: "normal" as const,
+      title: t("boards.normal.title"),
+      description: t("boards.normal.description"),
+      meta: t("boards.normal.meta", { count: commissions.length }),
+      icon: <WalletCards className="size-4" />,
+    },
+    {
+      key: "task" as const,
+      title: t("boards.task.title"),
+      description: t("boards.task.description"),
+      meta: t("boards.task.meta", { count: taskCommissions.length }),
+      icon: <Coins className="size-4" />,
+    },
+  ], [commissions.length, taskCommissions.length, t]);
 
   return (
     <section className="mx-auto flex w-full max-w-[1320px] flex-col gap-8">
@@ -77,72 +99,86 @@ export function SalesmanCommissionClient({
           </div>
         </div>
       </section>
-      {!hasPermission ? <section className="rounded-[28px] border border-white/85 bg-white/72 p-6 shadow-[0_18px_45px_rgba(96,113,128,0.06)] xl:p-8"><EmptyState description={t("salesman.states.noPermissionDescription")} icon={<ShieldAlert className="size-6" />} title={t("salesman.states.noPermissionTitle")} /></section> : commissions.length === 0 ? <section className="rounded-[28px] border border-white/85 bg-white/72 p-6 shadow-[0_18px_45px_rgba(96,113,128,0.06)] xl:p-8"><EmptyState description={t("salesman.states.emptyDescription")} icon={<ReceiptText className="size-6" />} title={t("salesman.states.emptyTitle")} /></section> : (
-        <section className="rounded-[28px] border border-white/85 bg-white/72 p-6 shadow-[0_18px_45px_rgba(96,113,128,0.06)] xl:p-8">
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-            <div>
-              <h3 className="text-2xl font-semibold tracking-tight text-[#22313a]">{t("salesman.table.title")}</h3>
-              <p className="mt-2 text-sm leading-7 text-[#67727b]">{t("salesman.table.description")}</p>
-            </div>
-          </div>
-          <div className="mt-6 overflow-x-auto">
-            <table className="min-w-full divide-y divide-[#e6e2db] text-sm">
-              <thead>
-                <tr className="text-left text-xs font-semibold tracking-[0.16em] text-[#8b959c] uppercase">
-                  <th className="px-4 py-3">{t("salesman.table.columns.origin")}</th>
-                  <th className="px-4 py-3">{t("salesman.table.columns.orderCustomer")}</th>
-                  <th className="px-4 py-3">{t("salesman.table.columns.category")}</th>
-                  <th className="px-4 py-3">{t("salesman.table.columns.amount")}</th>
-                  <th className="px-4 py-3">{t("salesman.table.columns.settlement")}</th>
-                  <th className="px-4 py-3">{t("salesman.table.columns.time")}</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-[#efebe5]">
-                {commissionsPagination.items.map((commission) => (
-                  <tr key={commission.id} className="align-top transition-colors hover:bg-[#f7f7f5]">
-                    <td className="px-4 py-4">
-                      <div className="max-w-sm text-sm leading-7 text-[#22313a]">{getCommissionOriginText(commission, t)}</div>
-                      {commission.settlementNote ? <p className="mt-2 max-w-sm text-xs leading-6 text-[#79848d]">{t("shared.note", { note: commission.settlementNote })}</p> : null}
-                    </td>
-                    <td className="px-4 py-4">
-                      <DetailLine label={t("shared.fields.orderNumber")} value={commission.orderNumber} />
-                      <DetailLine label={t("shared.fields.customer")} value={commission.sourceCustomer?.label ?? t("shared.fallback.none")} />
-                    </td>
-                    <td className="px-4 py-4">
-                      <div className="font-medium text-[#22313a]">{getCommissionCategoryLabel(commission.category, t)}</div>
-                      <div className="mt-2 flex flex-wrap gap-2">
-                        <InlineChip tone="blue">{getCommissionOrderStatusLabel(commission.orderStatus, t)}</InlineChip>
-                        {commission.isOrderDeleted ? <InlineChip tone="gold">{t("shared.deletedOrder")}</InlineChip> : null}
-                      </div>
-                    </td>
-                    <td className="px-4 py-4">
-                      <div className="font-semibold text-[#22313a]">{formatCommissionMoney(commission.commissionAmountRmb, locale)}</div>
-                      <div className="mt-2 text-xs leading-6 text-[#79848d]">{t("salesman.table.amountHint", { amount: formatCommissionMoney(commission.orderAmountRmb, locale) })}</div>
-                    </td>
-                    <td className="px-4 py-4">
-                      <InlineChip tone={getSettlementTone(commission.settlementStatus)}>{getCommissionSettlementStatusLabel(commission.settlementStatus, t)}</InlineChip>
-                    </td>
-                    <td className="px-4 py-4">
-                      <DetailLine label={t("shared.fields.createdAt")} value={formatDateTime(commission.createdAt, locale)} />
-                      <DetailLine label={t("shared.fields.settledAt")} value={formatDateTime(commission.settledAt, locale)} />
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-            <DashboardPaginationControls
-              endIndex={commissionsPagination.endIndex}
-              hasNextPage={commissionsPagination.hasNextPage}
-              hasPreviousPage={commissionsPagination.hasPreviousPage}
-              onNextPage={commissionsPagination.goToNextPage}
-              onPreviousPage={commissionsPagination.goToPreviousPage}
-              page={commissionsPagination.page}
-              pageCount={commissionsPagination.pageCount}
-              startIndex={commissionsPagination.startIndex}
-              totalItems={commissionsPagination.totalItems}
-            />
-          </div>
-        </section>
+      {!hasPermission ? <section className="rounded-[28px] border border-white/85 bg-white/72 p-6 shadow-[0_18px_45px_rgba(96,113,128,0.06)] xl:p-8"><EmptyState description={t("salesman.states.noPermissionDescription")} icon={<ShieldAlert className="size-6" />} title={t("salesman.states.noPermissionTitle")} /></section> : (
+        <>
+          <CommissionBoardSwitch
+            onChange={setActiveBoard}
+            options={boardOptions}
+            value={activeBoard}
+          />
+
+          {activeBoard === "normal" ? (
+            commissions.length === 0 ? <section className="rounded-[28px] border border-white/85 bg-white/72 p-6 shadow-[0_18px_45px_rgba(96,113,128,0.06)] xl:p-8"><EmptyState description={t("salesman.states.emptyDescription")} icon={<ReceiptText className="size-6" />} title={t("salesman.states.emptyTitle")} /></section> : (
+              <section className="rounded-[28px] border border-white/85 bg-white/72 p-6 shadow-[0_18px_45px_rgba(96,113,128,0.06)] xl:p-8">
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+                  <div>
+                    <h3 className="text-2xl font-semibold tracking-tight text-[#22313a]">{t("salesman.table.title")}</h3>
+                    <p className="mt-2 text-sm leading-7 text-[#67727b]">{t("salesman.table.description")}</p>
+                  </div>
+                </div>
+                <div className="mt-6 overflow-x-auto">
+                  <table className="min-w-full divide-y divide-[#e6e2db] text-sm">
+                    <thead>
+                      <tr className="text-left text-xs font-semibold tracking-[0.16em] text-[#8b959c] uppercase">
+                        <th className="px-4 py-3">{t("salesman.table.columns.origin")}</th>
+                        <th className="px-4 py-3">{t("salesman.table.columns.orderCustomer")}</th>
+                        <th className="px-4 py-3">{t("salesman.table.columns.category")}</th>
+                        <th className="px-4 py-3">{t("salesman.table.columns.amount")}</th>
+                        <th className="px-4 py-3">{t("salesman.table.columns.settlement")}</th>
+                        <th className="px-4 py-3">{t("salesman.table.columns.time")}</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-[#efebe5]">
+                      {commissionsPagination.items.map((commission) => (
+                        <tr key={commission.id} className="align-top transition-colors hover:bg-[#f7f7f5]">
+                          <td className="px-4 py-4">
+                            <div className="max-w-sm text-sm leading-7 text-[#22313a]">{getCommissionOriginText(commission, t)}</div>
+                            {commission.settlementNote ? <p className="mt-2 max-w-sm text-xs leading-6 text-[#79848d]">{t("shared.note", { note: commission.settlementNote })}</p> : null}
+                          </td>
+                          <td className="px-4 py-4">
+                            <DetailLine label={t("shared.fields.orderNumber")} value={commission.orderNumber} />
+                            <DetailLine label={t("shared.fields.customer")} value={commission.sourceCustomer?.label ?? t("shared.fallback.none")} />
+                          </td>
+                          <td className="px-4 py-4">
+                            <div className="font-medium text-[#22313a]">{getCommissionCategoryLabel(commission.category, t)}</div>
+                            <div className="mt-2 flex flex-wrap gap-2">
+                              <InlineChip tone="blue">{getCommissionOrderStatusLabel(commission.orderStatus, t)}</InlineChip>
+                              {commission.isOrderDeleted ? <InlineChip tone="gold">{t("shared.deletedOrder")}</InlineChip> : null}
+                            </div>
+                          </td>
+                          <td className="px-4 py-4">
+                            <div className="font-semibold text-[#22313a]">{formatCommissionMoney(commission.commissionAmountRmb, locale)}</div>
+                            <div className="mt-2 text-xs leading-6 text-[#79848d]">{t("salesman.table.amountHint", { amount: formatCommissionMoney(commission.orderAmountRmb, locale) })}</div>
+                          </td>
+                          <td className="px-4 py-4">
+                            <InlineChip tone={getSettlementTone(commission.settlementStatus)}>{getCommissionSettlementStatusLabel(commission.settlementStatus, t)}</InlineChip>
+                          </td>
+                          <td className="px-4 py-4">
+                            <DetailLine label={t("shared.fields.createdAt")} value={formatDateTime(commission.createdAt, locale)} />
+                            <DetailLine label={t("shared.fields.settledAt")} value={formatDateTime(commission.settledAt, locale)} />
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                  <DashboardPaginationControls
+                    endIndex={commissionsPagination.endIndex}
+                    hasNextPage={commissionsPagination.hasNextPage}
+                    hasPreviousPage={commissionsPagination.hasPreviousPage}
+                    onNextPage={commissionsPagination.goToNextPage}
+                    onPreviousPage={commissionsPagination.goToPreviousPage}
+                    page={commissionsPagination.page}
+                    pageCount={commissionsPagination.pageCount}
+                    startIndex={commissionsPagination.startIndex}
+                    totalItems={commissionsPagination.totalItems}
+                  />
+                </div>
+              </section>
+            )
+          ) : (
+            <SalesmanTaskCommissionSection rows={taskCommissions} />
+          )}
+        </>
       )}
     </section>
   );

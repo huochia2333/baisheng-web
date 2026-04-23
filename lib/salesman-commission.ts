@@ -5,6 +5,10 @@ import {
   type AdminCommissionRow,
 } from "./admin-commission";
 import {
+  getTaskCommissions,
+  type TaskCommissionRow,
+} from "./task-commissions";
+import {
   getCurrentSessionContext,
   type AppRole,
   type UserStatus,
@@ -19,6 +23,7 @@ export type SalesmanCommissionViewerContext = {
 export type SalesmanCommissionPageData = {
   hasPermission: boolean;
   commissions: AdminCommissionRow[];
+  taskCommissions: TaskCommissionRow[];
 };
 
 export async function getCurrentSalesmanCommissionViewerContext(
@@ -53,12 +58,21 @@ export async function getSalesmanCommissionPageData(
     return {
       hasPermission: false,
       commissions: [],
+      taskCommissions: [],
     };
   }
 
+  const [commissions, taskCommissions] = await Promise.all([
+    getVisibleSalesmanCommissions(supabase, viewer),
+    getTaskCommissions(supabase, {
+      beneficiaryUserId: viewer.user.id,
+    }),
+  ]);
+
   return {
     hasPermission: true,
-    commissions: await getVisibleSalesmanCommissions(supabase, viewer),
+    commissions,
+    taskCommissions,
   };
 }
 

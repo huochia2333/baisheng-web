@@ -13,7 +13,7 @@ import {
 } from "./dashboard-pagination";
 
 const ADMIN_TASK_SELECT =
-  "id,task_name,task_intro,created_by_user_id,accepted_by_user_id,scope,team_id,status,created_at,accepted_at,completed_at";
+  "id,task_name,task_intro,task_type_code,commission_amount_rmb,created_by_user_id,accepted_by_user_id,scope,team_id,status,created_at,accepted_at,submitted_at,reviewed_at,reviewed_by_user_id,review_reject_reason,completed_at";
 const TASK_ATTACHMENT_BUCKET = "task-attachments";
 export const ADMIN_TASK_ATTACHMENT_MAX_FILES = 10;
 export const ADMIN_TASK_ATTACHMENT_MAX_FILE_SIZE_BYTES = 20 * 1024 * 1024;
@@ -69,7 +69,12 @@ const ADMIN_TASK_ATTACHMENT_ALLOWED_EXTENSIONS = new Set([
 ]);
 
 export type TaskScope = "public" | "team";
-export type TaskStatus = "to_be_accepted" | "accepted" | "completed";
+export type TaskStatus =
+  | "to_be_accepted"
+  | "accepted"
+  | "reviewing"
+  | "rejected"
+  | "completed";
 export type AdminTaskStatusFilter = "all" | TaskStatus;
 export type AdminTaskScopeFilter = "all" | TaskScope;
 
@@ -91,6 +96,15 @@ export type TaskTeamSummary = {
   team_name: string | null;
 };
 
+export type TaskTypeOption = {
+  code: string;
+  displayName: string;
+  description: string | null;
+  defaultCommissionAmountRmb: number;
+  isActive: boolean;
+  sortOrder: number;
+};
+
 export type AdminTaskAttachment = {
   id: string;
   task_id: string;
@@ -107,6 +121,9 @@ export type AdminTaskMainRow = {
   id: string;
   task_name: string;
   task_intro: string | null;
+  task_type_code: string;
+  task_type_label: string | null;
+  commission_amount_rmb: number;
   created_by_user_id: string;
   accepted_by_user_id: string | null;
   scope: TaskScope;
@@ -114,6 +131,10 @@ export type AdminTaskMainRow = {
   status: TaskStatus;
   created_at: string | null;
   accepted_at: string | null;
+  submitted_at: string | null;
+  reviewed_at: string | null;
+  reviewed_by_user_id: string | null;
+  review_reject_reason: string | null;
   completed_at: string | null;
 };
 
@@ -131,6 +152,7 @@ export type AdminTasksPageData = {
   canView: boolean;
   tasks: AdminTaskRow[];
   teamOptions: TeamOverview[];
+  taskTypeOptions: TaskTypeOption[];
 };
 
 export type AdminTasksFilters = {
@@ -148,6 +170,8 @@ export type AdminTasksSearchParams = {
 export type CreateAdminTaskInput = {
   taskName: string;
   taskIntro?: string | null;
+  taskTypeCode: string;
+  commissionAmountRmb: number;
   createdByUserId: string;
   scope: TaskScope;
   teamId?: string | null;
@@ -163,6 +187,8 @@ type TaskMainRecord = {
   id: string;
   task_name: string | null;
   task_intro: string | null;
+  task_type_code: string | null;
+  commission_amount_rmb: number | string | null;
   created_by_user_id: string | null;
   accepted_by_user_id: string | null;
   scope: TaskScope | null;
@@ -170,6 +196,10 @@ type TaskMainRecord = {
   status: TaskStatus | null;
   created_at: string | null;
   accepted_at: string | null;
+  submitted_at: string | null;
+  reviewed_at: string | null;
+  reviewed_by_user_id: string | null;
+  review_reject_reason: string | null;
   completed_at: string | null;
 };
 
@@ -195,6 +225,15 @@ type UserProfileRecord = {
 type TeamProfileRecord = {
   id: string | null;
   team_name: string | null;
+};
+
+type TaskTypeCatalogRecord = {
+  code: string | null;
+  display_name: string | null;
+  description: string | null;
+  default_commission_amount_rmb: number | string | null;
+  is_active: boolean | null;
+  sort_order: number | string | null;
 };
 
 export async function getCurrentTaskViewerContext(
@@ -263,9 +302,10 @@ export async function getAdminTasksPageData(
     });
   }
 
-  const [tasks, teamOptions] = await Promise.all([
+  const [tasks, teamOptions, taskTypeOptions] = await Promise.all([
     getAdminTasks(supabase),
     getVisibleTeamOverviews(supabase),
+    getVisibleTaskTypeOptions(supabase),
   ]);
 
   return {
@@ -275,6 +315,7 @@ export async function getAdminTasksPageData(
     canView: true,
     tasks,
     teamOptions,
+    taskTypeOptions,
   };
 }
 
@@ -321,11 +362,13 @@ export async function getAdminTasks(
         .filter((value): value is string => Boolean(value)),
     ),
   );
+  const taskTypeCodes = Array.from(new Set(taskRows.map((task) => task.task_type_code)));
 
-  const [attachments, profiles, teams] = await Promise.all([
+  const [attachments, profiles, teams, taskTypes] = await Promise.all([
     getTaskAttachmentsByTaskIds(supabase, taskIds),
     getTaskProfilesByUserIds(supabase, userIds),
     getTaskTeamsByIds(supabase, teamIds),
+    getTaskTypesByCodes(supabase, taskTypeCodes),
   ]);
 
   const attachmentsByTaskId = new Map<string, AdminTaskAttachment[]>();
@@ -341,9 +384,12 @@ export async function getAdminTasks(
 
   const profileByUserId = new Map(profiles.map((profile) => [profile.user_id, profile]));
   const teamById = new Map(teams.map((team) => [team.id, team]));
+  const taskTypeByCode = new Map(taskTypes.map((taskType) => [taskType.code, taskType]));
 
   return taskRows.map((task) => ({
     ...task,
+    task_type_label:
+      taskTypeByCode.get(task.task_type_code)?.displayName ?? task.task_type_label,
     creator: profileByUserId.get(task.created_by_user_id) ?? null,
     accepted_by: task.accepted_by_user_id
       ? profileByUserId.get(task.accepted_by_user_id) ?? null
@@ -360,6 +406,8 @@ export async function createAdminTask(
   const payload = {
     task_name: input.taskName.trim(),
     task_intro: normalizeNullableString(input.taskIntro),
+    task_type_code: input.taskTypeCode,
+    commission_amount_rmb: input.commissionAmountRmb,
     created_by_user_id: input.createdByUserId,
     scope: input.scope,
     team_id: input.scope === "team" ? input.teamId ?? null : null,
@@ -549,6 +597,7 @@ function createEmptyAdminTasksPageData(options: {
     canView: canViewAdminTaskBoard(options.viewerRole, options.viewerStatus),
     tasks: [],
     teamOptions: [],
+    taskTypeOptions: [],
   };
 }
 
@@ -571,7 +620,11 @@ function normalizeAdminTaskScopeFilter(value: unknown): AdminTaskScopeFilter {
 }
 
 function normalizeAdminTaskStatusFilter(value: unknown): AdminTaskStatusFilter {
-  return value === "to_be_accepted" || value === "accepted" || value === "completed"
+  return value === "to_be_accepted"
+    || value === "accepted"
+    || value === "reviewing"
+    || value === "rejected"
+    || value === "completed"
     ? value
     : "all";
 }
@@ -652,6 +705,53 @@ async function getTaskTeamsByIds(
   return (data ?? [])
     .map((item) => normalizeTaskTeam(item))
     .filter((item): item is TaskTeamSummary => item !== null);
+}
+
+async function getVisibleTaskTypeOptions(
+  supabase: SupabaseClient,
+): Promise<TaskTypeOption[]> {
+  const { data, error } = await withRequestTimeout(
+    supabase
+      .from("task_type_catalog")
+      .select("code,display_name,description,default_commission_amount_rmb,is_active,sort_order")
+      .eq("is_active", true)
+      .order("sort_order", { ascending: true })
+      .order("display_name", { ascending: true })
+      .returns<TaskTypeCatalogRecord[]>(),
+  );
+
+  if (error) {
+    throw error;
+  }
+
+  return (data ?? [])
+    .map((item) => normalizeTaskTypeOption(item))
+    .filter((item): item is TaskTypeOption => item !== null);
+}
+
+async function getTaskTypesByCodes(
+  supabase: SupabaseClient,
+  codes: string[],
+): Promise<TaskTypeOption[]> {
+  if (codes.length === 0) {
+    return [];
+  }
+
+  const { data, error } = await withRequestTimeout(
+    supabase
+      .from("task_type_catalog")
+      .select("code,display_name,description,default_commission_amount_rmb,is_active,sort_order")
+      .in("code", codes)
+      .returns<TaskTypeCatalogRecord[]>(),
+  );
+
+  if (error) {
+    throw error;
+  }
+
+  return (data ?? [])
+    .map((item) => normalizeTaskTypeOption(item))
+    .filter((item): item is TaskTypeOption => item !== null);
 }
 
 async function removeStoredTaskAttachments(
@@ -790,12 +890,14 @@ function normalizeTaskMainRecord(value: unknown): AdminTaskMainRow | null {
 
   const id = "id" in value ? normalizeNullableString(value.id) : null;
   const taskName = "task_name" in value ? normalizeNullableString(value.task_name) : null;
+  const taskTypeCode =
+    "task_type_code" in value ? normalizeNullableString(value.task_type_code) : null;
   const createdByUserId =
     "created_by_user_id" in value ? normalizeNullableString(value.created_by_user_id) : null;
   const scope = "scope" in value ? normalizeTaskScope(value.scope) : null;
   const status = "status" in value ? normalizeTaskStatus(value.status) : null;
 
-  if (!id || !taskName || !createdByUserId || !scope || !status) {
+  if (!id || !taskName || !taskTypeCode || !createdByUserId || !scope || !status) {
     return null;
   }
 
@@ -803,6 +905,12 @@ function normalizeTaskMainRecord(value: unknown): AdminTaskMainRow | null {
     id,
     task_name: taskName,
     task_intro: "task_intro" in value ? normalizeNullableString(value.task_intro) : null,
+    task_type_code: taskTypeCode,
+    task_type_label: null,
+    commission_amount_rmb:
+      "commission_amount_rmb" in value
+        ? normalizeNumericValue(value.commission_amount_rmb) ?? 0
+        : 0,
     created_by_user_id: createdByUserId,
     accepted_by_user_id:
       "accepted_by_user_id" in value ? normalizeNullableString(value.accepted_by_user_id) : null,
@@ -811,6 +919,16 @@ function normalizeTaskMainRecord(value: unknown): AdminTaskMainRow | null {
     status,
     created_at: "created_at" in value ? normalizeNullableString(value.created_at) : null,
     accepted_at: "accepted_at" in value ? normalizeNullableString(value.accepted_at) : null,
+    submitted_at: "submitted_at" in value ? normalizeNullableString(value.submitted_at) : null,
+    reviewed_at: "reviewed_at" in value ? normalizeNullableString(value.reviewed_at) : null,
+    reviewed_by_user_id:
+      "reviewed_by_user_id" in value
+        ? normalizeNullableString(value.reviewed_by_user_id)
+        : null,
+    review_reject_reason:
+      "review_reject_reason" in value
+        ? normalizeNullableString(value.review_reject_reason)
+        : null,
     completed_at: "completed_at" in value ? normalizeNullableString(value.completed_at) : null,
   };
 }
@@ -887,6 +1005,31 @@ function normalizeTaskTeam(value: unknown): TaskTeamSummary | null {
   };
 }
 
+function normalizeTaskTypeOption(value: unknown): TaskTypeOption | null {
+  if (typeof value !== "object" || value === null) {
+    return null;
+  }
+
+  const code = "code" in value ? normalizeNullableString(value.code) : null;
+  const displayName = "display_name" in value ? normalizeNullableString(value.display_name) : null;
+
+  if (!code || !displayName) {
+    return null;
+  }
+
+  return {
+    code,
+    displayName,
+    description: "description" in value ? normalizeNullableString(value.description) : null,
+    defaultCommissionAmountRmb:
+      "default_commission_amount_rmb" in value
+        ? normalizeNumericValue(value.default_commission_amount_rmb) ?? 0
+        : 0,
+    isActive: "is_active" in value ? value.is_active === true : false,
+    sortOrder: "sort_order" in value ? normalizeInteger(value.sort_order) : 100,
+  };
+}
+
 function normalizeNullableString(value: unknown) {
   if (typeof value !== "string") {
     return null;
@@ -909,6 +1052,19 @@ function normalizeInteger(value: unknown) {
   return 0;
 }
 
+function normalizeNumericValue(value: unknown) {
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return value;
+  }
+
+  if (typeof value === "string") {
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : null;
+  }
+
+  return null;
+}
+
 function normalizeTaskScope(value: unknown): TaskScope | null {
   if (value === "public" || value === "team") {
     return value;
@@ -918,7 +1074,13 @@ function normalizeTaskScope(value: unknown): TaskScope | null {
 }
 
 function normalizeTaskStatus(value: unknown): TaskStatus | null {
-  if (value === "to_be_accepted" || value === "accepted" || value === "completed") {
+  if (
+    value === "to_be_accepted"
+    || value === "accepted"
+    || value === "reviewing"
+    || value === "rejected"
+    || value === "completed"
+  ) {
     return value;
   }
 

@@ -1,5 +1,6 @@
 import type { SalesmanTaskRow } from "@/lib/salesman-tasks";
 import type { TaskScope, TaskStatus } from "@/lib/admin-tasks";
+import type { Locale } from "@/lib/locale";
 
 import { toErrorMessage } from "@/components/dashboard/dashboard-shared-ui";
 
@@ -8,6 +9,8 @@ export type TranslateFn = (key: string, values?: TranslationValues) => string;
 
 type TaskDraftLike = {
   taskName: string;
+  taskTypeCode: string;
+  commissionAmount: string;
   scope: TaskScope;
   teamId: string;
 };
@@ -27,6 +30,14 @@ export function getTaskStatusMeta(
 
   if (status === "accepted") {
     return { label: t("status.accepted"), accent: "blue" as const };
+  }
+
+  if (status === "reviewing") {
+    return { label: t("status.reviewing"), accent: "orange" as const };
+  }
+
+  if (status === "rejected") {
+    return { label: t("status.rejected"), accent: "rose" as const };
   }
 
   return { label: t("status.completed"), accent: "green" as const };
@@ -51,6 +62,23 @@ export function getTaskIntroText(
   t: TranslateFn,
 ) {
   return taskIntro?.trim() || t("fallback.noTaskIntro");
+}
+
+export function getTaskTypeLabel(
+  taskTypeLabel: string | null | undefined,
+  taskTypeCode: string | null | undefined,
+  t: TranslateFn,
+) {
+  return taskTypeLabel?.trim() || taskTypeCode?.trim() || t("fallback.unknownTaskType");
+}
+
+export function formatTaskCommissionMoney(value: number, locale: Locale) {
+  return new Intl.NumberFormat(locale === "zh" ? "zh-CN" : "en-US", {
+    style: "currency",
+    currency: "CNY",
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(value);
 }
 
 export function getTaskAttachmentCountLabel(count: number, t: TranslateFn) {
@@ -89,6 +117,16 @@ export function validateTaskDraft(
 ) {
   if (!formState.taskName.trim()) {
     return t("validation.taskNameRequired");
+  }
+
+  if (!formState.taskTypeCode.trim()) {
+    return t("validation.taskTypeRequired");
+  }
+
+  const commissionAmount = Number(formState.commissionAmount);
+
+  if (!Number.isFinite(commissionAmount) || commissionAmount <= 0) {
+    return t("validation.commissionAmountRequired");
   }
 
   if (formState.scope === "team" && !formState.teamId) {
@@ -134,6 +172,14 @@ export function toAdminTaskErrorMessage(error: unknown, t: TranslateFn) {
 
   if (baseMessage.includes("task_main_scope_team_check")) {
     return t("errors.admin.teamRequired");
+  }
+
+  if (baseMessage.includes("task_main_task_type_code_fkey")) {
+    return t("errors.admin.taskTypeRequired");
+  }
+
+  if (baseMessage.includes("task_main_commission_amount_nonnegative")) {
+    return t("errors.admin.commissionAmountInvalid");
   }
 
   if (baseMessage.includes("authenticated user is required")) {
@@ -192,6 +238,54 @@ export function toSalesmanTaskErrorMessage(error: unknown, t: TranslateFn) {
 
   if (baseMessage.includes("task is not in accepted status")) {
     return t("errors.salesman.notAccepted");
+  }
+
+  if (baseMessage.includes("current user cannot create task review submission")) {
+    return t("errors.salesman.cannotCreateReviewSubmission");
+  }
+
+  if (baseMessage.includes("current user cannot submit task review")) {
+    return t("errors.salesman.cannotSubmitReview");
+  }
+
+  if (baseMessage.includes("task review submission assets are required")) {
+    return t("errors.salesman.reviewAssetsRequired");
+  }
+
+  if (baseMessage.includes("task review submission not found")) {
+    return t("errors.salesman.reviewSubmissionMissing");
+  }
+
+  if (baseMessage.includes("task review submission is not draft")) {
+    return t("errors.salesman.reviewSubmissionInvalid");
+  }
+
+  if (baseMessage.includes("task review submission_files_required")) {
+    return t("errors.salesman.reviewFilesRequired");
+  }
+
+  if (baseMessage.includes("task_review_submission_files_required")) {
+    return t("errors.salesman.reviewFilesRequired");
+  }
+
+  if (baseMessage.includes("task_review_submission_attachments_count_exceeded")) {
+    return t("errors.salesman.reviewAttachmentCountExceeded");
+  }
+
+  if (baseMessage.includes("task_review_submission_attachment_empty")) {
+    return t("errors.salesman.reviewAttachmentEmpty");
+  }
+
+  if (baseMessage.includes("task_review_submission_attachment_too_large")) {
+    return t("errors.salesman.reviewAttachmentTooLarge");
+  }
+
+  if (baseMessage.includes("task_review_submission_attachments_total_too_large")) {
+    return t("errors.salesman.reviewAttachmentTotalTooLarge");
+  }
+
+  if (baseMessage.includes("task_review_submission_attachment_type_not_allowed")) {
+    return t("errors.salesman.reviewAttachmentTypeNotAllowed");
   }
 
   if (baseMessage.includes("current user is not active")) {

@@ -7,6 +7,7 @@ import { useTranslations } from "next-intl";
 import {
   createAdminTask,
   deleteAdminTask,
+  type TaskTypeOption,
   uploadAdminTaskAttachments,
   validateAdminTaskAttachments,
   type TaskScope,
@@ -20,6 +21,7 @@ import {
 
 import {
   createEmptyTaskForm,
+  formatTaskCommissionInput,
   type CreateTaskFormState,
 } from "./admin-tasks-utils";
 import { type PageFeedbackValue } from "./admin-tasks-view-model-shared";
@@ -29,12 +31,14 @@ export function useAdminTaskCreateDialog({
   onPageFeedback,
   refreshTaskBoard,
   supabase,
+  taskTypeOptions,
   viewerId,
 }: {
   canView: boolean;
   onPageFeedback: (feedback: PageFeedbackValue) => void;
   refreshTaskBoard: () => void;
   supabase: ReturnType<typeof getBrowserSupabaseClient>;
+  taskTypeOptions: TaskTypeOption[];
   viewerId: string | null;
 }) {
   const t = useTranslations("Tasks.admin");
@@ -45,7 +49,7 @@ export function useAdminTaskCreateDialog({
   );
   const [createPending, setCreatePending] = useState(false);
   const [createFormState, setCreateFormState] = useState<CreateTaskFormState>(
-    createEmptyTaskForm,
+    () => createEmptyTaskForm(taskTypeOptions),
   );
 
   const handleCreateDialogOpenChange = useCallback((open: boolean) => {
@@ -58,9 +62,9 @@ export function useAdminTaskCreateDialog({
 
   const openCreateDialog = useCallback(() => {
     setCreateDialogFeedback(null);
-    setCreateFormState(createEmptyTaskForm());
+    setCreateFormState(createEmptyTaskForm(taskTypeOptions));
     setCreateDialogOpen(true);
-  }, []);
+  }, [taskTypeOptions]);
 
   const updateCreateField = useCallback(
     <Key extends keyof CreateTaskFormState>(
@@ -82,6 +86,38 @@ export function useAdminTaskCreateDialog({
       teamId: scope === "team" ? current.teamId : "",
     }));
   }, []);
+
+  const handleCreateTaskTypeChange = useCallback(
+    (taskTypeCode: string) => {
+      setCreateFormState((current) => {
+        const currentType = taskTypeOptions.find(
+          (taskType) => taskType.code === current.taskTypeCode,
+        );
+        const nextType =
+          taskTypeOptions.find((taskType) => taskType.code === taskTypeCode) ?? null;
+        const currentDefault =
+          currentType !== undefined
+            ? formatTaskCommissionInput(currentType.defaultCommissionAmountRmb)
+            : "";
+        const nextDefault =
+          nextType !== null
+            ? formatTaskCommissionInput(nextType.defaultCommissionAmountRmb)
+            : "";
+        const shouldReplaceCommission =
+          current.commissionAmount.trim().length === 0
+          || current.commissionAmount === currentDefault;
+
+        return {
+          ...current,
+          taskTypeCode,
+          commissionAmount: shouldReplaceCommission
+            ? nextDefault
+            : current.commissionAmount,
+        };
+      });
+    },
+    [taskTypeOptions],
+  );
 
   const handleCreateFilesChange = useCallback((files: File[]) => {
     setCreateFormState((current) => ({
@@ -129,6 +165,8 @@ export function useAdminTaskCreateDialog({
       const createdTask = await createAdminTask(supabase, {
         taskName: createFormState.taskName,
         taskIntro: createFormState.taskIntro,
+        taskTypeCode: createFormState.taskTypeCode,
+        commissionAmountRmb: Number(createFormState.commissionAmount),
         createdByUserId: viewerId,
         scope: createFormState.scope,
         teamId: createFormState.scope === "team" ? createFormState.teamId : null,
@@ -156,7 +194,7 @@ export function useAdminTaskCreateDialog({
       }
 
       setCreateDialogOpen(false);
-      setCreateFormState(createEmptyTaskForm());
+      setCreateFormState(createEmptyTaskForm(taskTypeOptions));
       onPageFeedback({
         tone: "success",
         message:
@@ -173,7 +211,7 @@ export function useAdminTaskCreateDialog({
     } finally {
       setCreatePending(false);
     }
-  }, [canView, createFormState, createPending, onPageFeedback, refreshTaskBoard, sharedT, supabase, t, viewerId]);
+  }, [canView, createFormState, createPending, onPageFeedback, refreshTaskBoard, sharedT, supabase, t, taskTypeOptions, viewerId]);
 
   return {
     createDialogFeedback,
@@ -183,6 +221,7 @@ export function useAdminTaskCreateDialog({
     handleCreateDialogOpenChange,
     handleCreateFilesChange,
     handleCreateScopeChange,
+    handleCreateTaskTypeChange,
     handleCreateTask,
     openCreateDialog,
     removeCreateFile,

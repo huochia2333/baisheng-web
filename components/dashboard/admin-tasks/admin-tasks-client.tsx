@@ -86,13 +86,16 @@ export function AdminTasksClient({
         onOpenChange={viewModel.handleCreateDialogOpenChange}
         onRemoveFile={viewModel.removeCreateFile}
         onScopeChange={viewModel.handleCreateScopeChange}
+        onTaskTypeChange={viewModel.handleCreateTaskTypeChange}
         onSubmit={() => void viewModel.handleCreateTask()}
+        onCommissionAmountChange={(value) => viewModel.updateCreateField("commissionAmount", value)}
         onTaskIntroChange={(value) => viewModel.updateCreateField("taskIntro", value)}
         onTaskNameChange={(value) => viewModel.updateCreateField("taskName", value)}
         onTeamChange={(value) => viewModel.updateCreateField("teamId", value)}
         open={viewModel.createDialogOpen}
         pending={viewModel.createPending}
         teamOptions={viewModel.teamOptions}
+        taskTypeOptions={viewModel.taskTypeOptions}
       />
 
       <AssignmentDialog

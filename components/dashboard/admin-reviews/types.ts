@@ -1,3 +1,3 @@
-export type ReviewTab = "privacy" | "media";
+export type ReviewTab = "privacy" | "media" | "task";
 
 export type BusyAction = "approve" | "reject";
