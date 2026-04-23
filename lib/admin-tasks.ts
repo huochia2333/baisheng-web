@@ -177,6 +177,16 @@ export type CreateAdminTaskInput = {
   teamId?: string | null;
 };
 
+export type UpdateAdminTaskInput = {
+  taskId: string;
+  taskName: string;
+  taskIntro?: string | null;
+  taskTypeCode: string;
+  commissionAmountRmb: number;
+  scope: TaskScope;
+  teamId?: string | null;
+};
+
 export type UpdateAdminTaskAssignmentInput = {
   taskId: string;
   scope: TaskScope;
@@ -435,6 +445,63 @@ export async function createAdminTask(
   return task;
 }
 
+export async function updateAdminTask(
+  supabase: SupabaseClient,
+  input: UpdateAdminTaskInput,
+): Promise<{
+  commissionSyncFailed: boolean;
+  task: AdminTaskMainRow;
+}> {
+  const payload = {
+    task_name: input.taskName.trim(),
+    task_intro: normalizeNullableString(input.taskIntro),
+    task_type_code: input.taskTypeCode,
+    commission_amount_rmb: input.commissionAmountRmb,
+    scope: input.scope,
+    team_id: input.scope === "team" ? input.teamId ?? null : null,
+  };
+
+  const { data, error } = await withRequestTimeout(
+    supabase
+      .from("task_main")
+      .update(payload)
+      .eq("id", input.taskId)
+      .select(ADMIN_TASK_SELECT)
+      .single()
+      .returns<TaskMainRecord>(),
+  );
+
+  if (error) {
+    throw error;
+  }
+
+  const task = normalizeTaskMainRecord(data);
+
+  if (!task) {
+    throw new Error("任务更新成功，但返回数据不完整。");
+  }
+
+  if (task.status !== "completed") {
+    return {
+      commissionSyncFailed: false,
+      task,
+    };
+  }
+
+  try {
+    await syncTaskCommission(supabase, task.id);
+    return {
+      commissionSyncFailed: false,
+      task,
+    };
+  } catch {
+    return {
+      commissionSyncFailed: true,
+      task,
+    };
+  }
+}
+
 export async function updateAdminTaskAssignment(
   supabase: SupabaseClient,
   input: UpdateAdminTaskAssignmentInput,
@@ -463,6 +530,21 @@ export async function updateAdminTaskAssignment(
   }
 
   return task;
+}
+
+async function syncTaskCommission(
+  supabase: SupabaseClient,
+  taskId: string,
+) {
+  const { error } = await withRequestTimeout(
+    supabase.rpc("sync_task_commission", {
+      p_task_id: taskId,
+    }),
+  );
+
+  if (error) {
+    throw error;
+  }
 }
 
 export async function uploadAdminTaskAttachments(

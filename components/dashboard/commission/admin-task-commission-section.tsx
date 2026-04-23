@@ -20,6 +20,7 @@ import {
   EmptyState,
   formatDateTime,
 } from "@/components/dashboard/dashboard-shared-ui";
+import { Button } from "@/components/ui/button";
 import {
   getTaskScopeLabel,
   getTaskTypeLabel,
@@ -31,13 +32,18 @@ import {
 } from "./commission-display";
 
 export function AdminTaskCommissionSection({
+  onMarkAsPaid,
   rows,
+  settlingTaskCommissionId = null,
 }: {
+  onMarkAsPaid?: (row: TaskCommissionRow) => void;
   rows: TaskCommissionRow[];
+  settlingTaskCommissionId?: string | null;
 }) {
   const t = useTranslations("Commission");
   const sharedTaskT = useTranslations("Tasks.shared");
   const { locale } = useLocale();
+  const showActions = typeof onMarkAsPaid === "function";
 
   const summary = useMemo(
     () => ({
@@ -117,63 +123,99 @@ export function AdminTaskCommissionSection({
                 <th className="px-4 py-3">{t("taskSection.table.columns.approvedBy")}</th>
                 <th className="px-4 py-3">{t("taskSection.table.columns.commission")}</th>
                 <th className="px-4 py-3">{t("taskSection.table.columns.time")}</th>
+                {showActions ? (
+                  <th className="px-4 py-3 text-right">
+                    {t("taskSection.table.columns.actions")}
+                  </th>
+                ) : null}
               </tr>
             </thead>
             <tbody className="divide-y divide-[#efebe5]">
-              {rows.map((row) => (
-                <tr key={row.id} className="align-top transition-colors hover:bg-[#f7f7f5]">
-                  <td className="px-4 py-4">
-                    <div className="font-medium text-[#22313a]">{row.taskName}</div>
-                    <div className="mt-2 flex flex-wrap gap-2">
-                      <InlineChip tone="blue">
-                        {getTaskTypeLabel(row.taskTypeName, row.taskTypeCode, sharedTaskT)}
-                      </InlineChip>
-                      <InlineChip tone="blue">
-                        {row.taskScope === "team" && row.teamName
-                          ? `${getTaskScopeLabel(row.taskScope, sharedTaskT)} · ${row.teamName}`
-                          : getTaskScopeLabel(row.taskScope, sharedTaskT)}
-                      </InlineChip>
-                    </div>
-                  </td>
-                  <td className="px-4 py-4">
-                    <div className="font-medium text-[#22313a]">{row.beneficiary.label}</div>
-                    {row.beneficiary.email ? (
-                      <div className="mt-2 text-xs text-[#79848d]">{row.beneficiary.email}</div>
+              {rows.map((row) => {
+                const isSettling = settlingTaskCommissionId === row.id;
+
+                return (
+                  <tr
+                    key={row.id}
+                    className="align-top transition-colors hover:bg-[#f7f7f5]"
+                  >
+                    <td className="px-4 py-4">
+                      <div className="font-medium text-[#22313a]">{row.taskName}</div>
+                      <div className="mt-2 flex flex-wrap gap-2">
+                        <InlineChip tone="blue">
+                          {getTaskTypeLabel(row.taskTypeName, row.taskTypeCode, sharedTaskT)}
+                        </InlineChip>
+                        <InlineChip tone="blue">
+                          {row.taskScope === "team" && row.teamName
+                            ? `${getTaskScopeLabel(row.taskScope, sharedTaskT)} 路 ${row.teamName}`
+                            : getTaskScopeLabel(row.taskScope, sharedTaskT)}
+                        </InlineChip>
+                      </div>
+                    </td>
+                    <td className="px-4 py-4">
+                      <div className="font-medium text-[#22313a]">
+                        {row.beneficiary.label}
+                      </div>
+                      {row.beneficiary.email ? (
+                        <div className="mt-2 text-xs text-[#79848d]">
+                          {row.beneficiary.email}
+                        </div>
+                      ) : null}
+                    </td>
+                    <td className="px-4 py-4">
+                      <div className="inline-flex items-center gap-2 text-[#22313a]">
+                        <UserRound className="size-4 text-[#486782]" />
+                        <span>{row.approvedBy?.label ?? t("shared.fallback.none")}</span>
+                      </div>
+                    </td>
+                    <td className="px-4 py-4">
+                      <div className="font-semibold text-[#22313a]">
+                        {formatCommissionMoney(row.commissionAmountRmb, locale)}
+                      </div>
+                      <div className="mt-2">
+                        <InlineChip tone={getSettlementTone(row.settlementStatus)}>
+                          {getCommissionSettlementStatusLabel(row.settlementStatus, t)}
+                        </InlineChip>
+                      </div>
+                      {row.settlementNote ? (
+                        <p className="mt-2 max-w-xs text-xs leading-6 text-[#79848d]">
+                          {t("shared.note", { note: row.settlementNote })}
+                        </p>
+                      ) : null}
+                    </td>
+                    <td className="px-4 py-4">
+                      <DetailLine
+                        label={t("shared.fields.createdAt")}
+                        value={formatDateTime(row.createdAt, locale)}
+                      />
+                      <DetailLine
+                        label={t("shared.fields.settledAt")}
+                        value={formatDateTime(row.settledAt, locale)}
+                      />
+                    </td>
+                    {showActions ? (
+                      <td className="px-4 py-4 text-right">
+                        {row.settlementStatus === "pending" && onMarkAsPaid ? (
+                          <Button
+                            className="rounded-full bg-[#4c7259] text-white hover:bg-[#3f604a]"
+                            disabled={isSettling}
+                            onClick={() => onMarkAsPaid(row)}
+                            type="button"
+                          >
+                            {isSettling
+                              ? t("actions.markingPaid")
+                              : t("actions.markPaid")}
+                          </Button>
+                        ) : (
+                          <span className="text-xs text-[#8a949c]">
+                            {t("actions.noPendingAction")}
+                          </span>
+                        )}
+                      </td>
                     ) : null}
-                  </td>
-                  <td className="px-4 py-4">
-                    <div className="inline-flex items-center gap-2 text-[#22313a]">
-                      <UserRound className="size-4 text-[#486782]" />
-                      <span>{row.approvedBy?.label ?? t("shared.fallback.none")}</span>
-                    </div>
-                  </td>
-                  <td className="px-4 py-4">
-                    <div className="font-semibold text-[#22313a]">
-                      {formatCommissionMoney(row.commissionAmountRmb, locale)}
-                    </div>
-                    <div className="mt-2">
-                      <InlineChip tone={getSettlementTone(row.settlementStatus)}>
-                        {getCommissionSettlementStatusLabel(row.settlementStatus, t)}
-                      </InlineChip>
-                    </div>
-                    {row.settlementNote ? (
-                      <p className="mt-2 max-w-xs text-xs leading-6 text-[#79848d]">
-                        {t("shared.note", { note: row.settlementNote })}
-                      </p>
-                    ) : null}
-                  </td>
-                  <td className="px-4 py-4">
-                    <DetailLine
-                      label={t("shared.fields.createdAt")}
-                      value={formatDateTime(row.createdAt, locale)}
-                    />
-                    <DetailLine
-                      label={t("shared.fields.settledAt")}
-                      value={formatDateTime(row.settledAt, locale)}
-                    />
-                  </td>
-                </tr>
-              ))}
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>

@@ -45,7 +45,29 @@ export function createEmptyAssignmentForm(): AssignmentFormState {
   };
 }
 
-export function canManageTask(task: AdminTaskRow) {
+export function createTaskFormFromTask(task: AdminTaskRow): CreateTaskFormState {
+  return {
+    taskName: task.task_name,
+    taskIntro: task.task_intro ?? "",
+    taskTypeCode: task.task_type_code,
+    commissionAmount: formatTaskCommissionInput(task.commission_amount_rmb),
+    scope: task.scope,
+    teamId: task.team_id ?? "",
+    files: [],
+  };
+}
+
+export function canEditTask(task: AdminTaskRow) {
+  void task;
+  return true;
+}
+
+export function canDeleteTask(task: AdminTaskRow) {
+  void task;
+  return true;
+}
+
+export function canReassignTask(task: AdminTaskRow) {
   return task.status === "to_be_accepted";
 }
 

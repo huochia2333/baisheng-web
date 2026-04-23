@@ -11,8 +11,11 @@ import { PageBanner } from "@/components/dashboard/dashboard-shared-ui";
 
 import {
   AssignmentDialog,
-  CreateTaskDialog,
 } from "./admin-tasks-dialogs";
+import {
+  CreateTaskDialog,
+  EditTaskDialog,
+} from "./admin-task-form-dialog";
 import {
   AdminTasksFiltersSection,
   AdminTasksHeroSection,
@@ -46,6 +49,13 @@ export function AdminTasksClient({
         isRefreshing={viewModel.isRefreshing}
         onCreate={viewModel.openCreateDialog}
         onRefresh={viewModel.handleRefresh}
+        onToggleCompletedHistory={() =>
+          viewModel.updateFilter(
+            "status",
+            viewModel.filters.status === "completed" ? "all" : "completed",
+          )
+        }
+        showCompletedHistory={viewModel.filters.status === "completed"}
         stats={viewModel.stats}
       />
 
@@ -71,6 +81,7 @@ export function AdminTasksClient({
             deletePendingTaskId={viewModel.deletePendingTaskId}
             filteredCount={viewModel.filteredTasks.length}
             onDeleteTask={(task) => void viewModel.handleDeleteTask(task)}
+            onEditTask={viewModel.openEditDialog}
             onNextPage={viewModel.goToNextPage}
             onPreviousPage={viewModel.goToPreviousPage}
             onReassignTask={viewModel.openAssignmentDialog}
@@ -96,6 +107,24 @@ export function AdminTasksClient({
         pending={viewModel.createPending}
         teamOptions={viewModel.teamOptions}
         taskTypeOptions={viewModel.taskTypeOptions}
+      />
+
+      <EditTaskDialog
+        feedback={viewModel.editDialogFeedback}
+        formState={viewModel.editFormState}
+        onOpenChange={viewModel.handleEditDialogOpenChange}
+        onScopeChange={viewModel.handleEditScopeChange}
+        onSubmit={() => void viewModel.handleEditTask()}
+        onTaskTypeChange={viewModel.handleEditTaskTypeChange}
+        onCommissionAmountChange={(value) => viewModel.updateEditField("commissionAmount", value)}
+        onTaskIntroChange={(value) => viewModel.updateEditField("taskIntro", value)}
+        onTaskNameChange={(value) => viewModel.updateEditField("taskName", value)}
+        onTeamChange={(value) => viewModel.updateEditField("teamId", value)}
+        open={viewModel.editDialogOpen}
+        pending={viewModel.editPending}
+        selectedTask={viewModel.editingTask}
+        taskTypeOptions={viewModel.taskTypeOptions}
+        teamOptions={viewModel.teamOptions}
       />
 
       <AssignmentDialog

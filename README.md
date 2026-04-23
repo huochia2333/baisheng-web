@@ -37,7 +37,7 @@
 | `client` | `/client/my` | `my`、`orders`、`referrals`、`team` |
 | `manager` | `/manager/my` | `my`、`referrals`、`team` |
 | `operator` | `/operator/my` | `my`、`referrals`、`team` |
-| `finance` | `/finance/my` | `my`、`referrals`、`team`，部分佣金相关能力保留在过渡期 |
+| `finance` | `/finance/my` | `my`、`referrals`、`team`、`commission` |
 | `recruiter` | `/recruiter/my` | `my`、`referrals`，其余入口仍在逐步收口 |
 
 说明：
@@ -94,14 +94,17 @@ baisheng-web/
 - `admin-orders-form-dialog.tsx`、`admin-orders-details-dialog.tsx`、`admin-orders-dialog-ui.tsx`：拆出订单表单弹窗、详情弹窗以及弹窗共享 UI
 - `admin-orders-utils.ts`：只保留 barrel re-export，不再承载实际业务实现
 
-### `admin-tasks` 模块分层（2026-04-22）
+### `admin-tasks` 模块分层（2026-04-23）
 
-- `admin-tasks-client.tsx`：只负责工作台编排，不再直接承载筛选、分页、创建、分配和删除逻辑
-- `use-admin-tasks-view-model.ts`：聚合任务页的路由状态、创建弹窗、分配弹窗和删除动作
-- `use-admin-tasks-route-state.ts`、`use-admin-task-create-dialog.ts`、`use-admin-task-assignment-dialog.ts`、`use-admin-task-delete-action.ts`：分别承接路由筛选与分页、创建任务、任务分配和删除流程
+- `admin-tasks-client.tsx`：只负责工作台编排，不再直接承载筛选、分页、创建、编辑、分配和删除逻辑
+- `use-admin-tasks-view-model.ts`：聚合任务页的路由状态、创建/编辑弹窗、分配弹窗和删除动作
+- `use-admin-tasks-route-state.ts`、`use-admin-task-create-dialog.ts`、`use-admin-task-edit-dialog.ts`、`use-admin-task-assignment-dialog.ts`、`use-admin-task-delete-action.ts`：分别承接路由筛选与分页、创建任务、编辑任务、任务分配和删除流程
 - `admin-tasks-sections.tsx`：拆出头部指标、筛选区、列表区和无权限态
-- `admin-tasks-dialogs.tsx`：拆出创建任务弹窗和分配弹窗
+- `admin-task-form-dialog.tsx`：集中承接任务创建/编辑表单弹窗，避免把字段表单继续堆进 client 或 assignment dialog
+- `admin-task-form-sections.tsx`：拆出任务表单摘要卡、核心字段区和附件区，控制单文件长度并保持弹窗壳层纯粹
+- `admin-tasks-dialogs.tsx`：只保留任务分配弹窗
 - `admin-tasks-view-model-shared.ts`：集中放置任务页共享类型、筛选比较和输入样式常量
+- 任务操作权限已拆成“编辑 / 删除 / 调整归属”三类：已完成任务仅管理员可编辑/删除，任务开始后禁止再改归属；默认任务板只展示未完成任务，已完成任务统一收进“历史已完成任务”视图
 - 任务状态目前覆盖 `to_be_accepted -> accepted -> reviewing -> rejected/completed`，其中管理员发布附件仍记录在 `task_sub`，执行人提交审核成果则单独进入 `task_review_submissions` / `task_review_submission_assets`
 - 任务主表同时写入 `task_type_code` 与 `commission_amount_rmb`，当前内置 `video_shoot` 类型，后续可以继续扩展更多任务类型
 - 任务审核通过后会同步写入 `task_commission_record`，任务佣金与订单佣金并行展示，但不复用订单佣金表结构
@@ -122,10 +125,15 @@ baisheng-web/
 
 ### `commission` 模块分层（2026-04-23）
 
-- `admin-commission-client.tsx`：继续负责管理员佣金页编排，当前总行数 475，仍控制在可维护范围内
+- `admin-commission-client.tsx`：只负责佣金页编排、筛选状态、数据刷新和普通佣金 / 任务佣金板块切换，不再直接承载筛选区、受益人汇总区和佣金表格渲染
+- `admin-commission-filters-section.tsx`、`admin-commission-record-sections.tsx`：继续把筛选区、受益人汇总区和普通佣金明细表拆开，控制单文件长度并避免把待结算操作继续堆进 page/client 组件
+- `admin-commission-view-model.ts`：集中放置筛选类型、受益人汇总类型和普通佣金受益人聚合逻辑
+- `admin-commission-sections.tsx`：只保留佣金 section/barrel re-export，避免再把真实实现回堆进同一个文件
+- `use-managed-commission-settlement.ts`：集中承接普通佣金与任务佣金的“标记已结算”流程、确认提示和页面反馈
 - `salesman-commission-client.tsx`：负责个人佣金页编排与权限态切换
 - `commission-board-switch.tsx`：统一承接“普通佣金 / 任务佣金”两个小板切换，避免把板块切换逻辑分散到多个页面
-- `admin-task-commission-section.tsx`、`salesman-task-commission-section.tsx`：拆出任务佣金展示区，避免把任务佣金直接堆进原有订单佣金表格
+- `admin-task-commission-section.tsx`、`salesman-task-commission-section.tsx`：拆出任务佣金展示区，其中管理员 / 财务侧额外承接待结算任务佣金的手动结算按钮
+- `lib/commission-settlement.ts`：集中处理订单佣金与任务佣金的手动结算 RPC 调用
 - `lib/task-commissions.ts`：集中处理任务佣金查询、任务类型名称、团队名称和受益人映射
 
 ### `team-management` 模块分层（2026-04-22）

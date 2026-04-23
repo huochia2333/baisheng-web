@@ -904,17 +904,17 @@
     "header": {
       "badge": "Commission Workspace",
       "title": "Commission Board",
-      "description": "Review all commission records, settlement progress, and beneficiary breakdowns in one place."
+      "description": "Review all commission records, pending settlement amounts, and payout progress in one place. Administrators and finance users can manually mark approved commissions as paid."
     },
     "boards": {
       "normal": {
         "title": "Normal Commission",
-        "description": "Review standard commission records from orders, referrals, and manual adjustments.",
+        "description": "Review standard commission records from orders, referrals, and manual adjustments, then settle pending items after verification.",
         "meta": "{count} records"
       },
       "task": {
         "title": "Task Commission",
-        "description": "Review reward commission records created automatically after task approvals.",
+        "description": "Review reward commission records created after task approvals, then settle them manually after verification.",
         "meta": "{count} records"
       }
     },
@@ -979,12 +979,24 @@
         "source": "Source",
         "amountSnapshot": "Amount Snapshot",
         "commissionSettlement": "Commission & Settlement",
-        "timestamps": "Timestamps"
+        "timestamps": "Timestamps",
+        "actions": "Actions"
       }
+    },
+    "actions": {
+      "markPaid": "Mark Paid",
+      "markingPaid": "Marking...",
+      "noPendingAction": "No action",
+      "confirmMarkOrderPaid": "Mark the commission for order {orderNumber} as paid?",
+      "confirmMarkTaskPaid": "Mark the commission for task {taskName} as paid?"
+    },
+    "feedback": {
+      "orderMarkedPaid": "The commission for order {orderNumber} is now marked as paid.",
+      "taskMarkedPaid": "The commission for task {taskName} is now marked as paid."
     },
     "taskSection": {
       "title": "Task Commission Records",
-      "description": "Approved and completed tasks automatically create commission records here for administrator reconciliation.",
+      "description": "Approved and completed tasks enter pending settlement first. Administrators and finance users can mark them as paid after review.",
       "summary": {
         "recordCount": "Task Commission Records",
         "totalAmount": "Total Task Commission",
@@ -999,13 +1011,14 @@
           "beneficiary": "Beneficiary",
           "approvedBy": "Approved By",
           "commission": "Commission",
-          "time": "Time"
+          "time": "Time",
+          "actions": "Actions"
         }
       }
     },
     "salesmanTaskSection": {
       "title": "My Task Commissions",
-      "description": "This section lists the task commission records earned by the current account after task reviews are approved.",
+      "description": "This section lists task commission records earned by the current account after task reviews are approved, including whether they are still pending settlement.",
       "summary": {
         "totalAmount": "Total Task Commission",
         "pendingAmount": "Pending Task Commission",
@@ -1094,7 +1107,7 @@
       "header": {
         "badge": "My Commissions",
         "title": "Salesman Commission History",
-        "description": "Review your own commission totals, settlement progress, and the order sources behind each payout."
+        "description": "Review your own commission totals, pending settlement progress, and the order or task sources behind each payout."
       },
       "summary": {
         "totalAmount": "Total Commission",
@@ -1109,7 +1122,7 @@
       },
       "table": {
         "title": "Commission History",
-        "description": "Each record shows where the commission came from, which order generated it, and whether it has already been settled.",
+        "description": "Each record shows where the commission came from, which order generated it, and whether it is still pending or already settled.",
         "columns": {
           "origin": "Origin",
           "orderCustomer": "Order & Customer",
@@ -1155,6 +1168,7 @@
           "commissionAmountInvalid": "The commission amount must be a valid number and cannot be below 0.",
           "authExpired": "Your session has expired. Sign in again and retry.",
           "taskNotFound": "The task no longer exists. Refresh the task list and try again.",
+          "taskCompletedReadOnly": "Only administrators can edit or delete completed tasks.",
           "duplicateAttachmentPath": "An attachment path conflict was detected. Upload the file again.",
           "attachmentCountExceeded": "Too many attachments were selected. Upload at most 10 files.",
           "attachmentEmpty": "An empty file was detected. Attachments must be larger than 0 bytes.",
@@ -1188,21 +1202,26 @@
       "feedback": {
         "createdWithAttachments": "The task and attachments have been created.",
         "created": "The task has been created.",
+        "updated": "The task has been updated.",
+        "updatedWithCommissionSyncWarning": "The task was updated, but the linked commission snapshot did not fully refresh. Check the commission board again later.",
         "assignmentUpdated": "The task assignment has been updated.",
         "assignmentPublic": "The task is now visible to everyone.",
         "deletedWithAttachmentCleanupWarning": "The task was deleted, but attachment cleanup did not fully complete. Check storage again later.",
         "deleted": "The task has been deleted."
       },
       "confirmDelete": "Delete task \"{taskName}\"? Attached files will be removed as well.",
+      "confirmDeleteWithHistory": "Delete task \"{taskName}\"? Related review or commission records and attached files will be removed as well.",
       "header": {
         "badge": "Task Dispatch",
         "title": "Administrator Task Board",
         "description": "Review progress in one place, publish new tasks, and adjust collaboration scope before work begins.",
         "refresh": "Refresh Data",
+        "history": "Completed History",
+        "allTasks": "Back to Board",
         "create": "Create Task"
       },
       "summary": {
-        "total": "Total Tasks",
+        "total": "Open Tasks",
         "pending": "To Be Accepted",
         "accepted": "In Progress",
         "reviewing": "Under Review",
@@ -1219,7 +1238,7 @@
         "searchLabel": "Search Tasks",
         "searchPlaceholder": "Search by task name, creator, team, or assignee",
         "statusLabel": "Status",
-        "statusAll": "All Statuses",
+        "statusAll": "Open Tasks",
         "scopeLabel": "Scope",
         "scopeAll": "All Scopes",
         "teamLabel": "Team",
@@ -1251,6 +1270,17 @@
         "cancel": "Cancel",
         "submit": "Create Task"
       },
+      "editDialog": {
+        "title": "Edit Task",
+        "titleWithName": "Edit Task: {taskName}",
+        "description": "Update the published task details here. Once work has started, the assignment scope stays locked, but the task content can still be adjusted.",
+        "currentAssignment": "Current assignment: {assignmentLabel}",
+        "scopeLockedHint": "This task has already started, so its assignment scope can no longer be changed here.",
+        "attachmentsLocked": "Attachments stay unchanged in edit mode. If attachments need to change, recreate the task for now.",
+        "noAttachments": "This task currently has no attachments.",
+        "cancel": "Cancel",
+        "submit": "Save Changes"
+      },
       "assignmentDialog": {
         "title": "Adjust Task Assignment",
         "titleWithName": "Adjust Task Assignment: {taskName}",
@@ -1264,6 +1294,7 @@
         "submit": "Save Settings"
       },
       "card": {
+        "edit": "Edit",
         "reassign": "Adjust Assignment",
         "delete": "Delete",
         "assignmentLabel": "Current Assignment",
@@ -1278,6 +1309,8 @@
         "completedAtLabel": "Completed At",
         "reviewRejectReasonLabel": "Reject Reason",
         "attachmentsOverview": "Attachment Overview",
+        "completedLockedNotice": "Only administrators can edit or delete completed tasks.",
+        "assignmentLockedNotice": "This task has already started, so assignment changes are locked. Use Edit to update task content instead.",
         "viewOnlyNotice": "This task is currently view-only."
       },
       "validation": {
@@ -1299,10 +1332,12 @@
       "header": {
         "badge": "My Tasks",
         "title": "Task Center",
-        "description": "Review the tasks you can participate in, track what you are currently handling, and submit your completed work for review."
+        "description": "Review the tasks you can participate in, track what you are currently handling, and submit your completed work for review.",
+        "history": "Completed History",
+        "allTasks": "Back to Board"
       },
       "summary": {
-        "all": "Visible Tasks",
+        "all": "Open Tasks",
         "available": "To Be Accepted",
         "inProgress": "In Progress",
         "reviewing": "Under Review",
@@ -1319,7 +1354,7 @@
         "searchLabel": "Search Tasks",
         "searchPlaceholder": "Search task name, details, or task scope",
         "focusLabel": "View Range",
-        "focusAll": "All Tasks",
+        "focusAll": "Open Tasks",
         "focusAvailable": "To Be Accepted",
         "focusInProgress": "In Progress",
         "focusReviewing": "Under Review",

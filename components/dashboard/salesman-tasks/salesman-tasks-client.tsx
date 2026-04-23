@@ -1,6 +1,6 @@
 "use client";
 
-import { CheckCheck, CircleCheckBig, ClipboardList, Clock3, ShieldAlert, Upload, XCircle } from "lucide-react";
+import { CheckCheck, CircleCheckBig, ClipboardList, Clock3, History, ShieldAlert, Upload, XCircle } from "lucide-react";
 import { useTranslations } from "next-intl";
 
 import type {
@@ -9,6 +9,7 @@ import type {
   SalesmanTasksSearchParams,
   SalesmanTaskScopeFilter,
 } from "@/lib/salesman-tasks";
+import { Button } from "@/components/ui/button";
 import { DashboardMetricCard } from "@/components/dashboard/dashboard-metric-card";
 import { DashboardPaginationControls } from "@/components/dashboard/dashboard-pagination-controls";
 import { EmptyState, PageBanner } from "@/components/dashboard/dashboard-shared-ui";
@@ -48,6 +49,23 @@ export function SalesmanTasksClient({
               {t("header.title")}
             </h2>
             <p className="mt-3 text-[15px] leading-8 text-[#65717b]">{t("header.description")}</p>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-3">
+            <Button
+              className="h-11 rounded-full border border-[#d8e2e8] bg-white px-5 text-[#486782] hover:bg-[#eef3f6]"
+              disabled={!viewModel.canView}
+              onClick={() =>
+                viewModel.updateFilter(
+                  "focus",
+                  viewModel.filters.focus === "completed" ? "all" : "completed",
+                )
+              }
+              type="button"
+            >
+              <History className="size-4" />
+              {viewModel.filters.focus === "completed" ? t("header.allTasks") : t("header.history")}
+            </Button>
           </div>
         </div>
 

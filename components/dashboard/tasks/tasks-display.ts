@@ -190,6 +190,14 @@ export function toAdminTaskErrorMessage(error: unknown, t: TranslateFn) {
     return t("errors.admin.taskNotFound");
   }
 
+  if (baseMessage.includes("completed task cannot be edited")) {
+    return t("errors.admin.taskCompletedReadOnly");
+  }
+
+  if (baseMessage.includes("completed task cannot be deleted")) {
+    return t("errors.admin.taskCompletedReadOnly");
+  }
+
   if (baseMessage.includes("duplicate key value violates unique constraint")) {
     return t("errors.admin.duplicateAttachmentPath");
   }

@@ -5,6 +5,7 @@ import {
   CheckCheck,
   ClipboardList,
   Clock3,
+  History,
   Plus,
   RefreshCw,
   ShieldAlert,
@@ -47,12 +48,16 @@ export function AdminTasksHeroSection({
   isRefreshing,
   onCreate,
   onRefresh,
+  onToggleCompletedHistory,
+  showCompletedHistory,
   stats,
 }: {
   canView: boolean;
   isRefreshing: boolean;
   onCreate: () => void;
   onRefresh: () => void;
+  onToggleCompletedHistory: () => void;
+  showCompletedHistory: boolean;
   stats: AdminTasksStats;
 }) {
   const t = useTranslations("Tasks.admin");
@@ -81,6 +86,15 @@ export function AdminTasksHeroSection({
           >
             <RefreshCw className={["size-4", isRefreshing ? "animate-spin" : ""].join(" ")} />
             {t("header.refresh")}
+          </Button>
+          <Button
+            className="h-11 rounded-full border border-[#d8e2e8] bg-white px-5 text-[#486782] hover:bg-[#eef3f6]"
+            disabled={!canView}
+            onClick={onToggleCompletedHistory}
+            type="button"
+          >
+            <History className="size-4" />
+            {showCompletedHistory ? t("header.allTasks") : t("header.history")}
           </Button>
           <Button
             className="h-11 rounded-full bg-[#486782] px-5 text-white hover:bg-[#3e5f79]"
@@ -221,6 +235,7 @@ export function AdminTasksListSection({
   deletePendingTaskId,
   filteredCount,
   onDeleteTask,
+  onEditTask,
   onNextPage,
   onPreviousPage,
   onReassignTask,
@@ -230,6 +245,7 @@ export function AdminTasksListSection({
   deletePendingTaskId: string | null;
   filteredCount: number;
   onDeleteTask: (task: AdminTaskRow) => void;
+  onEditTask: (task: AdminTaskRow) => void;
   onNextPage: () => void;
   onPreviousPage: () => void;
   onReassignTask: (task: AdminTaskRow) => void;
@@ -261,6 +277,7 @@ export function AdminTasksListSection({
               deleteBusy={deletePendingTaskId === task.id}
               key={task.id}
               onDelete={() => onDeleteTask(task)}
+              onEdit={() => onEditTask(task)}
               onReassign={() => onReassignTask(task)}
               reassignBusy={assignmentPendingTaskId === task.id}
               task={task}

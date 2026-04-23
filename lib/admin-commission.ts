@@ -130,7 +130,10 @@ export function canViewAdminCommissionBoard(
   role: AppRole | null,
   status: UserStatus | null,
 ) {
-  return role === "administrator" && status === "active";
+  return (
+    status === "active" &&
+    (role === "administrator" || role === "finance")
+  );
 }
 
 export async function getAdminCommissionPageData(

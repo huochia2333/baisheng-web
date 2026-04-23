@@ -7,6 +7,7 @@ import {
   Globe2,
   LoaderCircle,
   Paperclip,
+  PencilLine,
   Search,
   Shuffle,
   Trash2,
@@ -36,7 +37,11 @@ import {
   getTaskTypeLabel,
   resolveTaskActorLabel,
 } from "@/components/dashboard/tasks/tasks-display";
-import { canManageTask } from "./admin-tasks-utils";
+import {
+  canDeleteTask,
+  canEditTask,
+  canReassignTask,
+} from "./admin-tasks-utils";
 
 const selectFieldClassName =
   "h-12 w-full rounded-[18px] border border-[#dfe5ea] bg-white px-4 text-sm text-[#23313a] outline-none transition focus:border-[#bfd2e1] focus:ring-4 focus:ring-[#bfd2e1]/30";
@@ -45,19 +50,23 @@ export function TaskCard({
   task,
   reassignBusy,
   deleteBusy,
+  onEdit,
   onReassign,
   onDelete,
 }: {
   task: AdminTaskRow;
   reassignBusy: boolean;
   deleteBusy: boolean;
+  onEdit: () => void;
   onReassign: () => void;
   onDelete: () => void;
 }) {
   const t = useTranslations("Tasks.admin.card");
   const sharedT = useTranslations("Tasks.shared");
   const { locale } = useLocale();
-  const manageable = canManageTask(task);
+  const canEdit = canEditTask(task);
+  const canDelete = canDeleteTask(task);
+  const canChangeAssignment = canReassignTask(task);
 
   return (
     <article className="rounded-[28px] border border-[#ebe7e1] bg-white p-6 shadow-[0_14px_30px_rgba(96,113,128,0.05)]">
@@ -92,7 +101,16 @@ export function TaskCard({
           <div className="flex shrink-0 flex-wrap gap-2">
             <Button
               className="h-10 rounded-full border border-[#d8e2e8] bg-white px-4 text-[#486782] hover:bg-[#eef3f6] disabled:cursor-not-allowed disabled:opacity-60"
-              disabled={!manageable || reassignBusy}
+              disabled={!canEdit}
+              onClick={onEdit}
+              type="button"
+            >
+              <PencilLine className="size-4" />
+              {t("edit")}
+            </Button>
+            <Button
+              className="h-10 rounded-full border border-[#d8e2e8] bg-white px-4 text-[#486782] hover:bg-[#eef3f6] disabled:cursor-not-allowed disabled:opacity-60"
+              disabled={!canChangeAssignment || reassignBusy}
               onClick={onReassign}
               type="button"
             >
@@ -105,7 +123,7 @@ export function TaskCard({
             </Button>
             <Button
               className="h-10 rounded-full border border-[#f1d1d1] bg-[#fff2f2] px-4 text-[#b13d3d] hover:bg-[#fce5e5] disabled:cursor-not-allowed disabled:opacity-60"
-              disabled={!manageable || deleteBusy}
+              disabled={!canDelete || deleteBusy}
               onClick={onDelete}
               type="button"
             >
@@ -176,8 +194,10 @@ export function TaskCard({
           </div>
         ) : null}
 
-        {!manageable ? (
-          <p className="text-xs leading-6 text-[#8a949c]">{t("viewOnlyNotice")}</p>
+        {!canEdit ? (
+          <p className="text-xs leading-6 text-[#8a949c]">{t("completedLockedNotice")}</p>
+        ) : !canChangeAssignment ? (
+          <p className="text-xs leading-6 text-[#8a949c]">{t("assignmentLockedNotice")}</p>
         ) : null}
       </div>
     </article>

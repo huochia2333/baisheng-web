@@ -140,6 +140,7 @@ const WORKSPACE_ROUTE_CONFIG_BY_SEGMENT = {
     initials: "FN",
     navItems: financeNavItems,
     pageVariants: {
+      commission: "admin",
       referrals: true,
       team: true,
     },

@@ -34,7 +34,11 @@ export function useAdminTaskDeleteAction({
       }
 
       if (typeof window !== "undefined") {
-        const confirmed = window.confirm(t("confirmDelete", { taskName: task.task_name }));
+        const confirmMessage =
+          task.status === "to_be_accepted"
+            ? t("confirmDelete", { taskName: task.task_name })
+            : t("confirmDeleteWithHistory", { taskName: task.task_name });
+        const confirmed = window.confirm(confirmMessage);
 
         if (!confirmed) {
           return;

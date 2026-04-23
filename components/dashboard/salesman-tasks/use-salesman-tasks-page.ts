@@ -84,6 +84,10 @@ export function useSalesmanTasksPage({
   const tasks = initialData.tasks;
   const teamOptions = initialData.teamOptions;
   const canView = initialData.canView;
+  const openTaskCount = useMemo(
+    () => tasks.filter((task) => task.status !== "completed").length,
+    [tasks],
+  );
 
   useEffect(() => {
     setFilters(initialView.filters);
@@ -147,7 +151,7 @@ export function useSalesmanTasksPage({
 
   const summary = useMemo(
     () => ({
-      all: tasks.length,
+      all: openTaskCount,
       available: tasks.filter((task) => task.status === "to_be_accepted").length,
       inProgress: tasks.filter(
         (task) => task.status === "accepted" && task.accepted_by_user_id === viewerId,
@@ -162,7 +166,7 @@ export function useSalesmanTasksPage({
         (task) => task.status === "completed" && task.accepted_by_user_id === viewerId,
       ).length,
     }),
-    [tasks, viewerId],
+    [openTaskCount, tasks, viewerId],
   );
 
   const teamNameById = useMemo(
@@ -174,6 +178,10 @@ export function useSalesmanTasksPage({
     const normalizedText = normalizeSearchText(deferredSearchText);
 
     return tasks.filter((task) => {
+      if (filters.focus === "all" && task.status === "completed") {
+        return false;
+      }
+
       if (filters.scope !== "all" && task.scope !== filters.scope) {
         return false;
       }

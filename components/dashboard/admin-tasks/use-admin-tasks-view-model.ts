@@ -15,6 +15,7 @@ import {
 import { useAdminTaskAssignmentDialog } from "./use-admin-task-assignment-dialog";
 import { useAdminTaskCreateDialog } from "./use-admin-task-create-dialog";
 import { useAdminTaskDeleteAction } from "./use-admin-task-delete-action";
+import { useAdminTaskEditDialog } from "./use-admin-task-edit-dialog";
 import { useAdminTasksRouteState } from "./use-admin-tasks-route-state";
 
 export function useAdminTasksViewModel({
@@ -57,6 +58,13 @@ export function useAdminTasksViewModel({
     supabase,
     tasks: routeState.tasks,
   });
+  const editDialog = useAdminTaskEditDialog({
+    onPageFeedback: handlePageFeedback,
+    refreshTaskBoard: routeState.refreshTaskBoard,
+    supabase,
+    taskTypeOptions: routeState.taskTypeOptions,
+    tasks: routeState.tasks,
+  });
   const deleteAction = useAdminTaskDeleteAction({
     onPageFeedback: handlePageFeedback,
     refreshTaskBoard: routeState.refreshTaskBoard,
@@ -67,6 +75,7 @@ export function useAdminTasksViewModel({
     ...assignmentDialog,
     ...createDialog,
     ...deleteAction,
+    ...editDialog,
     ...routeState,
     handleRefresh,
     pageFeedback,
