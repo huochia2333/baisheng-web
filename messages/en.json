@@ -1442,6 +1442,23 @@
         "assignmentLockedNotice": "This task has already started, so assignment changes are locked. Use Edit to update task content instead.",
         "viewOnlyNotice": "This task is currently view-only."
       },
+      "submissionMedia": {
+        "title": "Member Submission Media",
+        "description": "Shows approved image and video deliverables from the salesperson, with preview and original-file download.",
+        "count": "{count} media file(s)",
+        "loading": "Loading submitted media",
+        "empty": "This completed task has no previewable image or video deliverables yet.",
+        "preview": "Preview",
+        "download": "Download",
+        "previewTitle": "Submission Preview",
+        "image": "Image",
+        "video": "Video",
+        "round": "Submission round {round}",
+        "submittedAt": "Submitted at: {time}",
+        "loadFailed": "Submitted media could not be loaded. Refresh and try again.",
+        "openFailed": "The preview link could not be generated. Try again later.",
+        "downloadFailed": "The download link could not be generated. Try again later."
+      },
       "validation": {
         "taskNameRequired": "Please enter a task name first.",
         "taskTypeRequired": "Please choose a task type.",

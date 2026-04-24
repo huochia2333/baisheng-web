@@ -1442,6 +1442,23 @@
         "assignmentLockedNotice": "该任务已经开始处理，归属调整已锁定；如需修改任务内容，请使用编辑按钮。",
         "viewOnlyNotice": "该任务当前仅支持查看。"
       },
+      "submissionMedia": {
+        "title": "成员提交成果",
+        "description": "展示业务员已通过审核的图片和视频成果，可预览或下载原文件。",
+        "count": "{count} 个媒体文件",
+        "loading": "正在读取成员提交成果",
+        "empty": "当前已完成任务暂时没有可预览的图片或视频成果。",
+        "preview": "预览",
+        "download": "下载",
+        "previewTitle": "成果预览",
+        "image": "图片",
+        "video": "视频",
+        "round": "第 {round} 次提交",
+        "submittedAt": "提交时间：{time}",
+        "loadFailed": "成员提交成果读取失败，请刷新后重试。",
+        "openFailed": "成果预览地址生成失败，请稍后重试。",
+        "downloadFailed": "成果下载地址生成失败，请稍后重试。"
+      },
       "validation": {
         "taskNameRequired": "请先填写任务名称。",
         "taskTypeRequired": "请选择任务类型。",

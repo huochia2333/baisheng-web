@@ -118,7 +118,10 @@ baisheng-web/
 - `admin-task-form-sections.tsx`：拆出任务表单摘要卡、核心字段区和附件区，控制单文件长度并保持弹窗壳层纯粹
 - `admin-tasks-dialogs.tsx`：只保留任务分配弹窗
 - `admin-tasks-view-model-shared.ts`：集中放置任务页共享类型、筛选比较和输入样式常量
+- `admin-task-submission-media.tsx`、`use-admin-task-submission-media.ts`：单独承接历史已完成任务中的成员图片/视频成果读取、预览弹窗和下载动作
+- `lib/admin-task-submission-media.ts`：集中查询已完成任务的审核通过成果媒体，并为私有存储对象生成短期 signed URL
 - 任务操作权限已拆成“编辑 / 删除 / 调整归属”三类：已完成任务仅管理员可编辑/删除，任务开始后禁止再改归属；默认任务板只展示未完成任务，已完成任务统一收进“历史已完成任务”视图
+- 管理员在“历史已完成任务”视图中可直接查看业务员已通过审核的图片/视频成果，并按单个文件预览或下载原文件
 - 删除历史任务时会先读取关联的提审附件清单，再在任务删除后同步清理 `task-attachments` 和 `task-review-submissions` 两个存储桶中的对象，避免数据库级联删除后留下提审附件孤儿文件
 - 任务状态目前覆盖 `to_be_accepted -> accepted -> reviewing -> rejected/completed`，其中管理员发布附件仍记录在 `task_sub`，执行人提交审核成果则单独进入 `task_review_submissions` / `task_review_submission_assets`
 - 任务主表同时写入 `task_type_code` 与 `commission_amount_rmb`，当前内置 `video_shoot` 类型，后续可以继续扩展更多任务类型

@@ -19,6 +19,7 @@ import type {
   TaskScope,
   TaskStatus,
 } from "@/lib/admin-tasks";
+import type { AdminTaskSubmissionMedia } from "@/lib/admin-task-submission-media";
 
 import { Button } from "@/components/ui/button";
 import { useLocale } from "@/components/i18n/locale-provider";
@@ -42,6 +43,7 @@ import {
   canEditTask,
   canReassignTask,
 } from "./admin-tasks-utils";
+import { AdminTaskSubmissionMediaPanel } from "./admin-task-submission-media";
 
 const selectFieldClassName =
   "h-12 w-full rounded-[18px] border border-[#dfe5ea] bg-white px-4 text-sm text-[#23313a] outline-none transition focus:border-[#bfd2e1] focus:ring-4 focus:ring-[#bfd2e1]/30";
@@ -50,16 +52,26 @@ export function TaskCard({
   task,
   reassignBusy,
   deleteBusy,
+  submissionMedia,
+  submissionMediaBusyId,
+  submissionMediaLoading,
   onEdit,
   onReassign,
   onDelete,
+  onDownloadSubmissionMedia,
+  onPreviewSubmissionMedia,
 }: {
   task: AdminTaskRow;
   reassignBusy: boolean;
   deleteBusy: boolean;
+  submissionMedia: AdminTaskSubmissionMedia[];
+  submissionMediaBusyId: string | null;
+  submissionMediaLoading: boolean;
   onEdit: () => void;
   onReassign: () => void;
   onDelete: () => void;
+  onDownloadSubmissionMedia: (media: AdminTaskSubmissionMedia) => void;
+  onPreviewSubmissionMedia: (media: AdminTaskSubmissionMedia) => void;
 }) {
   const t = useTranslations("Tasks.admin.card");
   const sharedT = useTranslations("Tasks.shared");
@@ -192,6 +204,16 @@ export function TaskCard({
               ) : null}
             </div>
           </div>
+        ) : null}
+
+        {task.status === "completed" ? (
+          <AdminTaskSubmissionMediaPanel
+            busyMediaId={submissionMediaBusyId}
+            loading={submissionMediaLoading}
+            media={submissionMedia}
+            onDownload={onDownloadSubmissionMedia}
+            onPreview={onPreviewSubmissionMedia}
+          />
         ) : null}
 
         {!canEdit ? (

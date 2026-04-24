@@ -25,7 +25,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { DashboardMetricCard } from "@/components/dashboard/dashboard-metric-card";
 import { DashboardPaginationControls } from "@/components/dashboard/dashboard-pagination-controls";
-import { EmptyState } from "@/components/dashboard/dashboard-shared-ui";
+import { EmptyState, PageBanner } from "@/components/dashboard/dashboard-shared-ui";
 
 import {
   getTaskTeamName,
@@ -37,9 +37,13 @@ import {
   TaskCard,
 } from "./admin-tasks-ui";
 import {
+  AdminTaskSubmissionMediaPreviewDialog,
+} from "./admin-task-submission-media";
+import {
   type AdminTasksPagination,
   type AdminTasksStats,
 } from "./admin-tasks-view-model-shared";
+import { useAdminTaskSubmissionMedia } from "./use-admin-task-submission-media";
 
 type TeamOptions = AdminTasksPageData["teamOptions"];
 
@@ -252,6 +256,10 @@ export function AdminTasksListSection({
   tasksPagination: AdminTasksPagination;
 }) {
   const t = useTranslations("Tasks.admin");
+  const visibleCompletedTaskIds = tasksPagination.items
+    .filter((task) => task.status === "completed")
+    .map((task) => task.id);
+  const submissionMediaState = useAdminTaskSubmissionMedia(visibleCompletedTaskIds);
 
   return (
     <section className="space-y-4">
@@ -271,19 +279,34 @@ export function AdminTasksListSection({
           title={t("states.emptyTitle")}
         />
       ) : (
-        <div className="grid grid-cols-1 gap-5 xl:grid-cols-2">
-          {tasksPagination.items.map((task) => (
-            <TaskCard
-              deleteBusy={deletePendingTaskId === task.id}
-              key={task.id}
-              onDelete={() => onDeleteTask(task)}
-              onEdit={() => onEditTask(task)}
-              onReassign={() => onReassignTask(task)}
-              reassignBusy={assignmentPendingTaskId === task.id}
-              task={task}
-            />
-          ))}
-        </div>
+        <>
+          {submissionMediaState.errorMessage ? (
+            <PageBanner tone="error">{submissionMediaState.errorMessage}</PageBanner>
+          ) : null}
+
+          <div className="grid grid-cols-1 gap-5 xl:grid-cols-2">
+            {tasksPagination.items.map((task) => (
+              <TaskCard
+                deleteBusy={deletePendingTaskId === task.id}
+                key={task.id}
+                onDelete={() => onDeleteTask(task)}
+                onDownloadSubmissionMedia={(media) =>
+                  void submissionMediaState.downloadMedia(media)
+                }
+                onEdit={() => onEditTask(task)}
+                onPreviewSubmissionMedia={(media) =>
+                  void submissionMediaState.openPreview(media)
+                }
+                onReassign={() => onReassignTask(task)}
+                reassignBusy={assignmentPendingTaskId === task.id}
+                submissionMedia={submissionMediaState.mediaByTaskId.get(task.id) ?? []}
+                submissionMediaBusyId={submissionMediaState.busyMediaId}
+                submissionMediaLoading={submissionMediaState.loadingTaskIds.has(task.id)}
+                task={task}
+              />
+            ))}
+          </div>
+        </>
       )}
 
       <DashboardPaginationControls
@@ -296,6 +319,12 @@ export function AdminTasksListSection({
         pageCount={tasksPagination.pageCount}
         startIndex={tasksPagination.startIndex}
         totalItems={tasksPagination.totalItems}
+      />
+
+      <AdminTaskSubmissionMediaPreviewDialog
+        media={submissionMediaState.previewMedia}
+        onDownload={(media) => void submissionMediaState.downloadMedia(media)}
+        onOpenChange={submissionMediaState.closePreview}
       />
     </section>
   );
