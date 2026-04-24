@@ -1,6 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 import { withRequestTimeout } from "./request-timeout";
+import { exceedsUploadFileSizeLimit } from "./upload-file-size-limits";
 
 const TASK_REVIEW_BUCKET = "task-review-submissions";
 const TASK_REVIEW_ASSET_SELECT =
@@ -9,7 +10,6 @@ const PENDING_TASK_REVIEW_SELECT =
   "task_id,task_name,task_intro,task_type_code,task_type_name,commission_amount_rmb,scope,team_id,team_name,accepted_by_user_id,accepted_by_name,accepted_by_email,submission_id,submission_round,submission_note,submitted_at,asset_count";
 
 export const TASK_REVIEW_SUBMISSION_MAX_FILES = 10;
-export const TASK_REVIEW_SUBMISSION_MAX_FILE_SIZE_BYTES = 20 * 1024 * 1024;
 export const TASK_REVIEW_SUBMISSION_MAX_TOTAL_SIZE_BYTES = 100 * 1024 * 1024;
 
 const TASK_REVIEW_ALLOWED_MIME_PREFIXES = ["image/", "video/", "audio/", "text/"];
@@ -487,7 +487,7 @@ export function validateTaskReviewSubmissionFiles(files: File[]) {
       throw new Error("task_review_submission_attachment_empty");
     }
 
-    if (file.size > TASK_REVIEW_SUBMISSION_MAX_FILE_SIZE_BYTES) {
+    if (exceedsUploadFileSizeLimit(file)) {
       throw new Error("task_review_submission_attachment_too_large");
     }
 

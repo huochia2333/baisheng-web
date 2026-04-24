@@ -12,12 +12,12 @@ import {
   getDashboardQueryRange,
   MAX_DASHBOARD_QUERY_ROWS,
 } from "./dashboard-pagination";
+import { exceedsUploadFileSizeLimit } from "./upload-file-size-limits";
 
 const ADMIN_TASK_SELECT =
   "id,task_name,task_intro,task_type_code,commission_amount_rmb,created_by_user_id,accepted_by_user_id,scope,team_id,status,created_at,accepted_at,submitted_at,reviewed_at,reviewed_by_user_id,review_reject_reason,completed_at";
 const TASK_ATTACHMENT_BUCKET = "task-attachments";
 export const ADMIN_TASK_ATTACHMENT_MAX_FILES = 10;
-export const ADMIN_TASK_ATTACHMENT_MAX_FILE_SIZE_BYTES = 20 * 1024 * 1024;
 export const ADMIN_TASK_ATTACHMENT_MAX_TOTAL_SIZE_BYTES = 100 * 1024 * 1024;
 const ADMIN_TASK_ATTACHMENT_ALLOWED_MIME_PREFIXES = [
   "image/",
@@ -901,7 +901,7 @@ export function validateAdminTaskAttachments(files: File[]) {
       throw new Error("admin_task_attachment_empty");
     }
 
-    if (file.size > ADMIN_TASK_ATTACHMENT_MAX_FILE_SIZE_BYTES) {
+    if (exceedsUploadFileSizeLimit(file)) {
       throw new Error("admin_task_attachment_too_large");
     }
 

@@ -5,13 +5,17 @@ import { Paperclip } from "lucide-react";
 
 import {
   ADMIN_TASK_ATTACHMENT_MAX_FILES,
-  ADMIN_TASK_ATTACHMENT_MAX_FILE_SIZE_BYTES,
   ADMIN_TASK_ATTACHMENT_MAX_TOTAL_SIZE_BYTES,
   type AdminTaskRow,
   type AdminTasksPageData,
   type TaskScope,
   type TaskTypeOption,
 } from "@/lib/admin-tasks";
+import {
+  IMAGE_UPLOAD_MAX_SIZE_BYTES,
+  OTHER_UPLOAD_MAX_SIZE_BYTES,
+  VIDEO_UPLOAD_MAX_SIZE_BYTES,
+} from "@/lib/upload-file-size-limits";
 
 import { formatFileSize } from "@/components/dashboard/dashboard-shared-ui";
 import {
@@ -210,7 +214,9 @@ export function CreateTaskAttachmentsField({
           <span className="mt-2 text-xs leading-6 text-[#7b858d]">
             {t("createDialog.attachmentsHint", {
               maxFiles: ADMIN_TASK_ATTACHMENT_MAX_FILES,
-              maxPerFile: formatFileSize(ADMIN_TASK_ATTACHMENT_MAX_FILE_SIZE_BYTES),
+              imageMaxPerFile: formatFileSize(IMAGE_UPLOAD_MAX_SIZE_BYTES),
+              videoMaxPerFile: formatFileSize(VIDEO_UPLOAD_MAX_SIZE_BYTES),
+              otherMaxPerFile: formatFileSize(OTHER_UPLOAD_MAX_SIZE_BYTES),
               maxTotal: formatFileSize(ADMIN_TASK_ATTACHMENT_MAX_TOTAL_SIZE_BYTES),
             })}
           </span>

@@ -391,7 +391,7 @@
     "videosDeleted": "所选视频已删除。",
     "identityDescription": "提交后会进入审核流程，审核通过后会同步更新你的身份资料。",
     "passportDescription": "提交后会进入审核流程，审核通过后会同步更新你的通行资料。",
-    "mediaDescription": "上传后会进入待审核，审核通过后会展示在你的个人资料中。",
+    "mediaDescription": "上传后会进入待审核，审核通过后会展示在你的个人资料中。图片需小于 5 MB，视频需小于 30 MB。",
     "deletePhotos": "删除照片",
     "uploadPhotos": "上传照片",
     "deleteVideos": "删除视频",
@@ -1172,7 +1172,7 @@
           "duplicateAttachmentPath": "附件路径出现冲突，请重新上传一次。",
           "attachmentCountExceeded": "附件数量超出限制，请最多上传 10 个文件。",
           "attachmentEmpty": "检测到空文件，附件大小必须大于 0。",
-          "attachmentTooLarge": "存在超出限制的附件，单个文件不能超过 20 MB。",
+          "attachmentTooLarge": "存在超出限制的附件：图片需小于 5 MB，视频需小于 30 MB，其他文件不能超过 20 MB。",
           "attachmentTotalTooLarge": "附件总大小超出限制，请控制在 100 MB 以内。",
           "attachmentTypeNotAllowed": "存在不支持的附件类型，请上传常见文档、图片、音视频或压缩文件。",
           "storage": "任务附件处理失败，请稍后重试。"
@@ -1190,7 +1190,7 @@
           "reviewFilesRequired": "请先选择至少一个提交文件。",
           "reviewAttachmentCountExceeded": "提交文件数量超出限制，请最多上传 10 个文件。",
           "reviewAttachmentEmpty": "检测到空文件，提交文件大小必须大于 0。",
-          "reviewAttachmentTooLarge": "存在超出限制的提交文件，单个文件不能超过 20 MB。",
+          "reviewAttachmentTooLarge": "存在超出限制的提交文件：图片需小于 5 MB，视频需小于 30 MB，其他文件不能超过 20 MB。",
           "reviewAttachmentTotalTooLarge": "提交文件总大小超出限制，请控制在 100 MB 以内。",
           "reviewAttachmentTypeNotAllowed": "存在不支持的提交文件类型，请上传常见文档、图片、音视频或压缩文件。",
           "inactive": "当前账号未激活，暂时不能处理任务。"
@@ -1265,7 +1265,7 @@
         "taskIntroPlaceholder": "补充任务背景、目标、执行要求和注意事项。",
         "attachmentsLabel": "附件",
         "attachmentsCta": "点击选择附件，可一次上传多个文件",
-        "attachmentsHint": "文件会进入 task-attachments 存储桶，并记录到 task_sub 表。最多 {maxFiles} 个文件，单个不超过 {maxPerFile}，总计不超过 {maxTotal}。",
+        "attachmentsHint": "文件会进入 task-attachments 存储桶，并记录到 task_sub 表。最多 {maxFiles} 个文件，图片需小于 {imageMaxPerFile}，视频需小于 {videoMaxPerFile}，其他文件不超过 {otherMaxPerFile}，总计不超过 {maxTotal}。",
         "noAttachments": "暂未选择附件。当前版本支持先把任务与附件一起创建。",
         "cancel": "取消",
         "submit": "创建任务"
@@ -1400,7 +1400,7 @@
         "notePlaceholder": "补充本次提交完成了什么、管理员重点看什么，或其他需要说明的内容。",
         "filesLabel": "提交文件",
         "filesCta": "点击选择要上传的文件",
-        "filesHint": "最多上传 {maxFiles} 个文件，单个不超过 {maxPerFile}，总计不超过 {maxTotal}。",
+        "filesHint": "最多上传 {maxFiles} 个文件，图片需小于 {imageMaxPerFile}，视频需小于 {videoMaxPerFile}，其他文件不超过 {otherMaxPerFile}，总计不超过 {maxTotal}。",
         "filesEmpty": "暂未选择任何提交文件。"
       }
     }

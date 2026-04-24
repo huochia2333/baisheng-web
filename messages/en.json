@@ -391,7 +391,7 @@
     "videosDeleted": "Selected videos deleted.",
     "identityDescription": "After submission, the record will enter review and update your identity profile once approved.",
     "passportDescription": "After submission, the record will enter review and update your travel profile once approved.",
-    "mediaDescription": "Uploads enter review first and appear in your profile after approval.",
+    "mediaDescription": "Uploads enter review first and appear in your profile after approval. Images must stay below 5 MB, and videos must stay below 30 MB.",
     "deletePhotos": "Delete Photos",
     "uploadPhotos": "Upload Photos",
     "deleteVideos": "Delete Videos",
@@ -1172,7 +1172,7 @@
           "duplicateAttachmentPath": "An attachment path conflict was detected. Upload the file again.",
           "attachmentCountExceeded": "Too many attachments were selected. Upload at most 10 files.",
           "attachmentEmpty": "An empty file was detected. Attachments must be larger than 0 bytes.",
-          "attachmentTooLarge": "At least one attachment is too large. Each file must stay within 20 MB.",
+          "attachmentTooLarge": "At least one attachment is too large. Images must stay below 5 MB, videos must stay below 30 MB, and other files must stay within 20 MB.",
           "attachmentTotalTooLarge": "The attachments are too large altogether. Keep the total within 100 MB.",
           "attachmentTypeNotAllowed": "An unsupported attachment type was detected. Upload common document, image, media, or archive formats.",
           "storage": "Task attachment processing failed. Please try again later."
@@ -1190,7 +1190,7 @@
           "reviewFilesRequired": "Please choose at least one submission file.",
           "reviewAttachmentCountExceeded": "Too many submission files were selected. Upload at most 10 files.",
           "reviewAttachmentEmpty": "An empty submission file was detected. Each file must be larger than 0 bytes.",
-          "reviewAttachmentTooLarge": "At least one submission file is too large. Each file must stay within 20 MB.",
+          "reviewAttachmentTooLarge": "At least one submission file is too large. Images must stay below 5 MB, videos must stay below 30 MB, and other files must stay within 20 MB.",
           "reviewAttachmentTotalTooLarge": "The submission files are too large altogether. Keep the total within 100 MB.",
           "reviewAttachmentTypeNotAllowed": "An unsupported submission file type was detected. Upload common document, image, media, or archive formats.",
           "inactive": "This account is not active yet and cannot process tasks."
@@ -1265,7 +1265,7 @@
         "taskIntroPlaceholder": "Add the background, goals, execution requirements, and any notes for this task.",
         "attachmentsLabel": "Attachments",
         "attachmentsCta": "Click to choose attachments. You can upload multiple files at once.",
-        "attachmentsHint": "Files will be stored in the task-attachments bucket and recorded in the task_sub table. Limit: {maxFiles} files, {maxPerFile} per file, {maxTotal} total.",
+        "attachmentsHint": "Files will be stored in the task-attachments bucket and recorded in the task_sub table. Limit: {maxFiles} files, images below {imageMaxPerFile}, videos below {videoMaxPerFile}, other files within {otherMaxPerFile}, and {maxTotal} total.",
         "noAttachments": "No attachments selected yet. You can create the task with attachments in one step.",
         "cancel": "Cancel",
         "submit": "Create Task"
@@ -1400,7 +1400,7 @@
         "notePlaceholder": "Add a short note for the reviewer, such as what was delivered or any points worth checking.",
         "filesLabel": "Submission Files",
         "filesCta": "Choose files to upload",
-        "filesHint": "You can upload up to {maxFiles} files. Each file must stay within {maxPerFile}, and the total must stay within {maxTotal}.",
+        "filesHint": "You can upload up to {maxFiles} files. Images must stay below {imageMaxPerFile}, videos must stay below {videoMaxPerFile}, other files must stay within {otherMaxPerFile}, and the total must stay within {maxTotal}.",
         "filesEmpty": "No submission files selected yet."
       }
     }

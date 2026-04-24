@@ -7,9 +7,13 @@ import { LoaderCircle, Paperclip, Trash2, Upload } from "lucide-react";
 
 import {
   TASK_REVIEW_SUBMISSION_MAX_FILES,
-  TASK_REVIEW_SUBMISSION_MAX_FILE_SIZE_BYTES,
   TASK_REVIEW_SUBMISSION_MAX_TOTAL_SIZE_BYTES,
 } from "@/lib/task-reviews";
+import {
+  IMAGE_UPLOAD_MAX_SIZE_BYTES,
+  OTHER_UPLOAD_MAX_SIZE_BYTES,
+  VIDEO_UPLOAD_MAX_SIZE_BYTES,
+} from "@/lib/upload-file-size-limits";
 import { Button } from "@/components/ui/button";
 import {
   formatFileSize,
@@ -137,7 +141,9 @@ export function SalesmanTaskSubmitDialog({
               <p className="mt-2 text-xs leading-6 text-[#6f7b85]">
                 {t("filesHint", {
                   maxFiles: TASK_REVIEW_SUBMISSION_MAX_FILES,
-                  maxPerFile: formatFileSize(TASK_REVIEW_SUBMISSION_MAX_FILE_SIZE_BYTES),
+                  imageMaxPerFile: formatFileSize(IMAGE_UPLOAD_MAX_SIZE_BYTES),
+                  videoMaxPerFile: formatFileSize(VIDEO_UPLOAD_MAX_SIZE_BYTES),
+                  otherMaxPerFile: formatFileSize(OTHER_UPLOAD_MAX_SIZE_BYTES),
                   maxTotal: formatFileSize(TASK_REVIEW_SUBMISSION_MAX_TOTAL_SIZE_BYTES),
                 })}
               </p>
