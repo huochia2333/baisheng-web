@@ -1350,12 +1350,8 @@
         "create": "新建任务"
       },
       "summary": {
-        "total": "未完成任务",
-        "pending": "待领取",
         "accepted": "进行中",
-        "reviewing": "审核中",
-        "rejected": "未通过",
-        "completed": "已完成"
+        "reviewing": "审核中"
       },
       "states": {
         "noPermissionTitle": "没有访问权限",
@@ -1366,8 +1362,6 @@
       "filters": {
         "searchLabel": "搜索任务",
         "searchPlaceholder": "搜索任务名、创建人、团队或领取人",
-        "statusLabel": "状态",
-        "statusAll": "未完成任务",
         "scopeLabel": "范围",
         "scopeAll": "全部范围",
         "teamLabel": "团队",
@@ -1439,7 +1433,6 @@
         "reviewRejectReasonLabel": "拒绝原因",
         "attachmentsOverview": "附件概览",
         "completedLockedNotice": "仅管理员可以编辑或删除已完成任务。",
-        "assignmentLockedNotice": "该任务已经开始处理，归属调整已锁定；如需修改任务内容，请使用编辑按钮。",
         "viewOnlyNotice": "该任务当前仅支持查看。"
       },
       "submissionMedia": {

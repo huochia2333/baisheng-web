@@ -218,8 +218,6 @@ export function TaskCard({
 
         {!canEdit ? (
           <p className="text-xs leading-6 text-[#8a949c]">{t("completedLockedNotice")}</p>
-        ) : !canChangeAssignment ? (
-          <p className="text-xs leading-6 text-[#8a949c]">{t("assignmentLockedNotice")}</p>
         ) : null}
       </div>
     </article>

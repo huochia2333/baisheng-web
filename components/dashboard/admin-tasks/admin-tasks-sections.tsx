@@ -2,22 +2,18 @@
 
 import { useTranslations } from "next-intl";
 import {
-  CheckCheck,
   ClipboardList,
-  Clock3,
   History,
   Plus,
   RefreshCw,
   ShieldAlert,
   Upload,
   UserRound,
-  XCircle,
 } from "lucide-react";
 
 import {
   type AdminTaskRow,
   type AdminTaskScopeFilter,
-  type AdminTaskStatusFilter,
   type AdminTasksFilters,
   type AdminTasksPageData,
 } from "@/lib/admin-tasks";
@@ -112,19 +108,7 @@ export function AdminTasksHeroSection({
         </div>
       </div>
 
-      <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-6">
-        <DashboardMetricCard
-          accent="blue"
-          icon={<ClipboardList className="size-5" />}
-          label={t("summary.total")}
-          value={stats.total}
-        />
-        <DashboardMetricCard
-          accent="gold"
-          icon={<Clock3 className="size-5" />}
-          label={t("summary.pending")}
-          value={stats.pending}
-        />
+      <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2">
         <DashboardMetricCard
           accent="blue"
           icon={<UserRound className="size-5" />}
@@ -136,18 +120,6 @@ export function AdminTasksHeroSection({
           icon={<Upload className="size-5" />}
           label={t("summary.reviewing")}
           value={stats.reviewing}
-        />
-        <DashboardMetricCard
-          accent="blue"
-          icon={<XCircle className="size-5" />}
-          label={t("summary.rejected")}
-          value={stats.rejected}
-        />
-        <DashboardMetricCard
-          accent="green"
-          icon={<CheckCheck className="size-5" />}
-          label={t("summary.completed")}
-          value={stats.completed}
         />
       </div>
     </section>
@@ -170,14 +142,12 @@ export function AdminTasksFiltersSection({
   filters,
   onScopeChange,
   onSearchTextChange,
-  onStatusChange,
   onTeamChange,
   teamOptions,
 }: {
   filters: AdminTasksFilters;
   onScopeChange: (value: AdminTaskScopeFilter) => void;
   onSearchTextChange: (value: string) => void;
-  onStatusChange: (value: AdminTaskStatusFilter) => void;
   onTeamChange: (value: string) => void;
   teamOptions: TeamOptions;
 }) {
@@ -186,26 +156,13 @@ export function AdminTasksFiltersSection({
 
   return (
     <section className="rounded-[26px] border border-white/85 bg-white/80 p-5 shadow-[0_14px_32px_rgba(96,113,128,0.06)] sm:p-6">
-      <div className="grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1.3fr)_repeat(3,minmax(0,0.55fr))]">
+      <div className="grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1.3fr)_repeat(2,minmax(0,0.55fr))]">
         <SearchField
           label={t("filters.searchLabel")}
           onChange={onSearchTextChange}
           placeholder={t("filters.searchPlaceholder")}
           value={filters.searchText}
         />
-
-        <FilterField
-          label={t("filters.statusLabel")}
-          onChange={(value) => onStatusChange(value as AdminTaskStatusFilter)}
-          value={filters.status}
-        >
-          <option value="all">{t("filters.statusAll")}</option>
-          <option value="to_be_accepted">{sharedT("status.toBeAccepted")}</option>
-          <option value="accepted">{sharedT("status.accepted")}</option>
-          <option value="reviewing">{sharedT("status.reviewing")}</option>
-          <option value="rejected">{sharedT("status.rejected")}</option>
-          <option value="completed">{sharedT("status.completed")}</option>
-        </FilterField>
 
         <FilterField
           label={t("filters.scopeLabel")}

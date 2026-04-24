@@ -1350,12 +1350,8 @@
         "create": "Create Task"
       },
       "summary": {
-        "total": "Open Tasks",
-        "pending": "To Be Accepted",
         "accepted": "In Progress",
-        "reviewing": "Under Review",
-        "rejected": "Rejected",
-        "completed": "Completed"
+        "reviewing": "Under Review"
       },
       "states": {
         "noPermissionTitle": "No Access to Task Dispatch",
@@ -1366,8 +1362,6 @@
       "filters": {
         "searchLabel": "Search Tasks",
         "searchPlaceholder": "Search by task name, creator, team, or assignee",
-        "statusLabel": "Status",
-        "statusAll": "Open Tasks",
         "scopeLabel": "Scope",
         "scopeAll": "All Scopes",
         "teamLabel": "Team",
@@ -1439,7 +1433,6 @@
         "reviewRejectReasonLabel": "Reject Reason",
         "attachmentsOverview": "Attachment Overview",
         "completedLockedNotice": "Only administrators can edit or delete completed tasks.",
-        "assignmentLockedNotice": "This task has already started, so assignment changes are locked. Use Edit to update task content instead.",
         "viewOnlyNotice": "This task is currently view-only."
       },
       "submissionMedia": {

@@ -2,7 +2,6 @@
 
 import {
   type AdminTaskScopeFilter,
-  type AdminTaskStatusFilter,
   type AdminTasksPageData,
   type AdminTasksSearchParams,
 } from "@/lib/admin-tasks";
@@ -69,9 +68,6 @@ export function AdminTasksClient({
               viewModel.updateFilter("scope", value as AdminTaskScopeFilter)
             }
             onSearchTextChange={(value) => viewModel.updateFilter("searchText", value)}
-            onStatusChange={(value) =>
-              viewModel.updateFilter("status", value as AdminTaskStatusFilter)
-            }
             onTeamChange={(value) => viewModel.updateFilter("teamId", value)}
             teamOptions={viewModel.teamOptions}
           />

@@ -77,11 +77,6 @@ export function useAdminTasksRouteState({
   const filters = usingStaleDraft ? initialView.filters : draftState.filters;
   const page = usingStaleDraft ? initialView.page : draftState.page;
   const deferredSearchText = useDeferredValue(filters.searchText);
-  const openTaskCount = useMemo(
-    () => tasks.filter((task) => task.status !== "completed").length,
-    [tasks],
-  );
-
   const refreshTaskBoard = useCallback(() => {
     startRefreshTransition(() => {
       router.refresh();
@@ -142,14 +137,10 @@ export function useAdminTasksRouteState({
 
   const stats = useMemo<AdminTasksStats>(
     () => ({
-      total: openTaskCount,
-      pending: tasks.filter((task) => task.status === "to_be_accepted").length,
       accepted: tasks.filter((task) => task.status === "accepted").length,
       reviewing: tasks.filter((task) => task.status === "reviewing").length,
-      rejected: tasks.filter((task) => task.status === "rejected").length,
-      completed: tasks.filter((task) => task.status === "completed").length,
     }),
-    [openTaskCount, tasks],
+    [tasks],
   );
 
   const filteredTasks = useMemo(() => {

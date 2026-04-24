@@ -14,12 +14,8 @@ export type PageFeedbackValue = {
 export type PageFeedback = PageFeedbackValue | null;
 
 export type AdminTasksStats = {
-  total: number;
-  pending: number;
   accepted: number;
   reviewing: number;
-  rejected: number;
-  completed: number;
 };
 
 export type AdminTasksPagination = DashboardPaginationSlice<AdminTaskRow>;
