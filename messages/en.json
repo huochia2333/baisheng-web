@@ -1206,11 +1206,11 @@
         "updatedWithCommissionSyncWarning": "The task was updated, but the linked commission snapshot did not fully refresh. Check the commission board again later.",
         "assignmentUpdated": "The task assignment has been updated.",
         "assignmentPublic": "The task is now visible to everyone.",
-        "deletedWithAttachmentCleanupWarning": "The task was deleted, but attachment cleanup did not fully complete. Check storage again later.",
+        "deletedWithAttachmentCleanupWarning": "The task was deleted, but task or review attachment cleanup did not fully complete. Check storage again later.",
         "deleted": "The task has been deleted."
       },
       "confirmDelete": "Delete task \"{taskName}\"? Attached files will be removed as well.",
-      "confirmDeleteWithHistory": "Delete task \"{taskName}\"? Related review or commission records and attached files will be removed as well.",
+      "confirmDeleteWithHistory": "Delete task \"{taskName}\"? Related review or commission records, task files, and review submission files will be removed as well.",
       "header": {
         "badge": "Task Dispatch",
         "title": "Administrator Task Board",

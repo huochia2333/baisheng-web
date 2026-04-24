@@ -1206,11 +1206,11 @@
         "updatedWithCommissionSyncWarning": "任务已更新，但关联佣金快照未完全同步，请稍后检查佣金中心。",
         "assignmentUpdated": "任务归属已更新。",
         "assignmentPublic": "任务已更新为面向全员。",
-        "deletedWithAttachmentCleanupWarning": "任务已删除，但附件清理未完全成功，请稍后检查存储桶。",
+        "deletedWithAttachmentCleanupWarning": "任务已删除，但任务附件或提审附件的清理未完全成功，请稍后检查存储桶。",
         "deleted": "任务已删除。"
       },
       "confirmDelete": "确认删除任务“{taskName}”吗？任务附件也会一起清理。",
-      "confirmDeleteWithHistory": "确认删除任务“{taskName}”吗？关联的提审/佣金记录及任务附件也会一起清理。",
+      "confirmDeleteWithHistory": "确认删除任务“{taskName}”吗？关联的提审/佣金记录、任务附件和提审附件也会一起清理。",
       "header": {
         "badge": "平台任务调度",
         "title": "管理员任务板",

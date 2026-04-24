@@ -50,8 +50,8 @@ export function useAdminTaskDeleteAction({
       try {
         const result = await deleteAdminTask(supabase, task);
         onPageFeedback({
-          tone: result.attachmentCleanupFailed ? "info" : "success",
-          message: result.attachmentCleanupFailed
+          tone: result.storageCleanupFailed ? "info" : "success",
+          message: result.storageCleanupFailed
             ? t("feedback.deletedWithAttachmentCleanupWarning")
             : t("feedback.deleted"),
         });

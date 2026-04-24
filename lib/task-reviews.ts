@@ -121,6 +121,10 @@ type TaskReviewSubmissionAssetRecord = {
   created_at: string | null;
 };
 
+type TaskReviewSubmissionIdRecord = {
+  id: string | null;
+};
+
 type PendingTaskReviewRecord = {
   task_id: string | null;
   task_name: string | null;
@@ -364,6 +368,43 @@ export async function removeStoredTaskReviewSubmissionAssets(
       throw error;
     }
   }
+}
+
+export async function getTaskReviewSubmissionAssetsForTask(
+  supabase: SupabaseClient,
+  taskId: string,
+) {
+  const normalizedTaskId = normalizeOptionalString(taskId);
+
+  if (!normalizedTaskId) {
+    return [];
+  }
+
+  const { data, error } = await withRequestTimeout(
+    supabase
+      .from("task_review_submissions")
+      .select("id")
+      .eq("task_id", normalizedTaskId)
+      .returns<TaskReviewSubmissionIdRecord[]>(),
+  );
+
+  if (error) {
+    throw error;
+  }
+
+  const submissionIds = Array.from(
+    new Set(
+      (data ?? [])
+        .map((row) => normalizeOptionalString(row.id))
+        .filter((submissionId): submissionId is string => submissionId !== null),
+    ),
+  );
+
+  if (submissionIds.length === 0) {
+    return [];
+  }
+
+  return getTaskReviewSubmissionAssets(supabase, submissionIds);
 }
 
 export async function getPendingTaskReviews(

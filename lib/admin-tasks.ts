@@ -1,6 +1,7 @@
 import type { SupabaseClient, User } from "@supabase/supabase-js";
 
 import { withRequestTimeout } from "./request-timeout";
+import { prepareDeletedTaskStorageCleanup } from "./task-storage-cleanup";
 import { getVisibleTeamOverviews, type TeamOverview } from "./team-management";
 import {
   getCurrentSessionContext,
@@ -647,6 +648,14 @@ export async function deleteAdminTask(
   supabase: SupabaseClient,
   task: Pick<AdminTaskRow, "id" | "attachments">,
 ) {
+  const runDeletedTaskStorageCleanup = await prepareDeletedTaskStorageCleanup(
+    supabase,
+    {
+      taskId: task.id,
+      taskAttachments: task.attachments,
+    },
+  );
+
   const { error } = await withRequestTimeout(
     supabase.from("task_main").delete().eq("id", task.id),
   );
@@ -655,16 +664,11 @@ export async function deleteAdminTask(
     throw error;
   }
 
-  try {
-    await removeStoredTaskAttachments(supabase, task.attachments);
-    return {
-      attachmentCleanupFailed: false,
-    };
-  } catch {
-    return {
-      attachmentCleanupFailed: true,
-    };
-  }
+  const storageCleanupFailed = await runDeletedTaskStorageCleanup();
+
+  return {
+    storageCleanupFailed,
+  };
 }
 
 function createEmptyAdminTasksPageData(options: {
