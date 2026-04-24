@@ -24,6 +24,7 @@ import {
   LazyDashboardImagePreview,
   LazyDashboardVideoPreview,
 } from "@/components/dashboard/dashboard-media-preview";
+import { LegalFooterLinks } from "@/components/legal/legal-footer-links";
 import {
   EmptyState,
   formatFileSize,
@@ -359,18 +360,8 @@ export function DashboardSharedMyClient({
         </section>
 
         <footer className="flex flex-col gap-4 border-t border-[#e4e2de] px-1 pt-8 text-xs text-[#8a949b] sm:flex-row sm:items-center sm:justify-between">
-            <p>{copy.copyright}</p>
-          <div className="flex items-center gap-6">
-            <a className="transition-colors hover:text-[#486782]" href="#">
-              {copy.privacy}
-            </a>
-            <a className="transition-colors hover:text-[#486782]" href="#">
-              {copy.terms}
-            </a>
-            <a className="transition-colors hover:text-[#486782]" href="#">
-              {copy.help}
-            </a>
-          </div>
+          <p>{copy.copyright}</p>
+          <LegalFooterLinks className="gap-6" copy={copy} />
         </footer>
       </section>
 

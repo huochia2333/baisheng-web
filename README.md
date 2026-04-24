@@ -18,7 +18,7 @@
 
 项目已经从早期按角色散落的静态目录，收口到统一的动态工作台结构：
 
-- `app/(auth)`：认证页，包含 `/`、`/login`、`/register`、`/forgot-password`
+- `app/(auth)`：公开页与认证页，包含 `/`、`/login`、`/register`、`/forgot-password`、`/privacy`、`/terms`
 - `app/(workspace)/[workspace]/my`：各角色共享“我的”页面入口
 - `app/(workspace)/[workspace]/[section]`：按角色动态装配订单、推荐树、团队、佣金、汇率、任务、审核等页面
 - `app/forbidden.tsx`：统一承接越权访问时的访问错误页
@@ -55,6 +55,7 @@ baisheng-web/
 │  └─ (workspace)/
 ├─ components/
 │  ├─ auth/
+│  ├─ legal/
 │  └─ dashboard/
 │     ├─ admin-orders/
 │     ├─ admin-reviews/
@@ -81,8 +82,17 @@ baisheng-web/
 说明：
 
 - `components/dashboard` 已按功能拆分；根目录只保留工作台壳层和共享 UI
+- `components/legal` 承接公开法律页和隐私/条款页脚链接，避免把 legal 展示继续堆进认证或“我的”核心文件
 - 超过 `1000` 行的大文件需要继续拆分，避免再积累结构债
 - `output/playwright` 用于保留有价值的截图和报告，不存放长期无用的临时控制台垃圾
+
+## 公开法律页面（2026-04-24）
+
+- 新增 `/privacy` 隐私政策页与 `/terms` 服务条款页，位于 `app/(auth)/privacy` 和 `app/(auth)/terms`
+- 页面内容使用 `messages/zh.json`、`messages/en.json` 下的 `Legal` 命名空间维护，支持中英文切换
+- 登录/注册页底部、注册勾选说明，以及各角色“我的”页页脚已接入真实隐私政策与服务条款链接
+- 正文为可上线模板草案，正式对外作为法律文本前仍建议由业务负责人或法律顾问复核
+- 最近验证：`npm run lint`、`npx tsc --noEmit`、`npm run build` 通过；Playwright 已覆盖未登录访问、注册/登录页链接、中英切换，以及管理员登录后“我的”页页脚链接
 
 ## 上传限制（2026-04-24）
 

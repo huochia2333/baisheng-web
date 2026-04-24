@@ -7,7 +7,11 @@
 @source "./(auth)/login";
 @source "./(auth)/register";
 @source "./(auth)/forgot-password";
+@source "./(auth)/privacy";
+@source "./(auth)/terms";
 @source "../components/auth";
+@source "../components/i18n";
+@source "../components/legal";
 
 @layer utilities {
   .auth-grid-dots {

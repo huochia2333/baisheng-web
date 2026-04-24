@@ -35,6 +35,135 @@
     "help": "Help Center",
     "secureAccess": "Secure Access"
   },
+  "Legal": {
+    "common": {
+      "backHome": "Back to Main Entry",
+      "lastUpdatedLabel": "Last updated",
+      "draftNotice": "This policy page is a practical template draft for the Baisheng Management System. It should be reviewed by the business owner or legal counsel before being treated as final legal advice.",
+      "nav": {
+        "privacy": "Privacy Policy",
+        "terms": "Terms of Service"
+      }
+    },
+    "privacy": {
+      "metadataTitle": "Privacy Policy",
+      "eyebrow": "Privacy Policy",
+      "title": "Privacy Policy",
+      "description": "This policy explains how Baisheng Management System handles account, identity, media and workspace data during registration, sign-in, review and role-based work.",
+      "lastUpdated": "2026-04-24",
+      "sections": [
+        {
+          "title": "Information We Collect",
+          "items": [
+            "When you register or sign in, we may process your name, phone number, email address, password authentication record, invitation code, role, city and basic profile status.",
+            "When you complete identity or profile workflows, we may process ID card numbers, passport numbers, personal photos, personal videos, review status and the audit records needed to operate those workflows.",
+            "When you use the workspace, we may process role, team, referral, order, task, review and commission data that is necessary to display the pages available to your account."
+          ]
+        },
+        {
+          "title": "How We Use Information",
+          "items": [
+            "We use account data to create and protect your account, maintain sessions, recover access, route you to the correct workspace and prevent unauthorized access to role-restricted pages.",
+            "We use identity and media data to support verification, review queues, profile display and the operational decisions made by authorized reviewers.",
+            "We use operational records to keep order, task, referral, team, exchange-rate, commission and review workflows traceable inside the system."
+          ]
+        },
+        {
+          "title": "Access and Sharing",
+          "items": [
+            "Your information is visible only to the roles and team members who need it for account management, verification, review, order processing or related business operations.",
+            "We do not sell personal information. Data may be processed through the cloud services and infrastructure that support authentication, storage, database access and application delivery.",
+            "If access is required by law, security investigation or dispute handling, we may provide the minimum information necessary to satisfy that requirement."
+          ]
+        },
+        {
+          "title": "Storage and Security",
+          "items": [
+            "The system uses session checks, role-based routing and server-side access checks to reduce unauthorized access to workspace data.",
+            "Identity and media submissions are stored only for system workflows such as review, display and later correction. Retention should follow the business retention rules confirmed by the operator.",
+            "No web system can guarantee absolute security, but we use reasonable technical and operational controls to protect account and workflow data."
+          ]
+        },
+        {
+          "title": "Your Choices",
+          "items": [
+            "You can update available profile fields in the system, change your password through the account flow and switch the interface language between Chinese and English.",
+            "For identity, media or account records that cannot be edited directly, contact the system administrator to request correction, review or deletion according to business rules.",
+            "If you stop using the system, contact the administrator for account handling. Some operational records may need to be retained for audit, order or compliance purposes."
+          ]
+        },
+        {
+          "title": "Updates and Contact",
+          "items": [
+            "We may update this policy when the product, data workflows, legal requirements or business operations change.",
+            "Questions about this policy, account data or privacy requests should be sent to the system administrator through the normal business support channel."
+          ]
+        }
+      ]
+    },
+    "terms": {
+      "metadataTitle": "Terms of Service",
+      "eyebrow": "Terms of Service",
+      "title": "Terms of Service",
+      "description": "These terms describe the basic rules for accessing and using the Baisheng Management System, including accounts, role permissions, submitted materials and operational workflows.",
+      "lastUpdated": "2026-04-24",
+      "sections": [
+        {
+          "title": "Service Scope",
+          "items": [
+            "Baisheng Management System provides role-based web workspaces for registration, sign-in, profile management, review workflows, orders, tasks, referrals, teams, exchange rates and commission-related operations.",
+            "The features available to you depend on your assigned role, team relationship, account status and the business modules enabled for that role.",
+            "The system may change, expand or remove features as business operations evolve."
+          ]
+        },
+        {
+          "title": "Accounts and Access",
+          "items": [
+            "Registration may require a valid invitation code. You are responsible for providing accurate account information and keeping your password confidential.",
+            "You may only access the pages and records made available to your role. Attempting to bypass permissions, impersonate another user or inspect data outside your assigned scope is prohibited.",
+            "If you suspect unauthorized access, password exposure or incorrect role assignment, contact the system administrator promptly."
+          ]
+        },
+        {
+          "title": "User Responsibilities",
+          "items": [
+            "You must use the system for legitimate business purposes and follow the operating rules set by the system owner.",
+            "You must not upload false, illegal, infringing, harmful or irrelevant materials, including identity documents, photos, videos, task attachments or order information.",
+            "You must not interfere with system stability, attempt unauthorized scraping, abuse invitations, submit misleading review requests or disrupt other users' work."
+          ]
+        },
+        {
+          "title": "Submitted Materials and Reviews",
+          "items": [
+            "Identity information, media files, task deliverables and other submitted materials may be reviewed by authorized personnel before they are accepted or displayed.",
+            "A review decision may approve, reject or require correction of submitted materials. The system may keep review records to maintain workflow traceability.",
+            "You are responsible for ensuring that submitted materials are accurate, authorized and suitable for the relevant business workflow."
+          ]
+        },
+        {
+          "title": "Availability and Changes",
+          "items": [
+            "We work to keep the service available, but access may be interrupted by maintenance, cloud service issues, network conditions, security events or product changes.",
+            "The operator may modify workflows, permissions, data fields, review rules or visual pages when needed for security, compliance or business operations.",
+            "Important changes should be communicated through the normal business support or administration channel when practical."
+          ]
+        },
+        {
+          "title": "Suspension and Termination",
+          "items": [
+            "Access may be limited, suspended or terminated if an account violates these terms, creates security risk, submits misleading materials or is no longer authorized for the business role.",
+            "After access ends, some records may remain in the system when needed for order tracking, audit, dispute handling, security or compliance."
+          ]
+        },
+        {
+          "title": "Contact",
+          "items": [
+            "Questions about these terms, account status, permissions or submitted materials should be directed to the system administrator through the normal business support channel."
+          ]
+        }
+      ]
+    }
+  },
   "LoginPage": {
     "title": "Login",
     "asideTitle": "Make Every Collaboration Traceable",

@@ -2,6 +2,7 @@
 
 import { startTransition, useState } from "react";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   ArrowRight,
@@ -19,6 +20,7 @@ import {
   getDefaultSignedInPathForRole,
   getRoleFromAuthClaims,
 } from "@/lib/auth-session-client";
+import { PRIVACY_POLICY_PATH, TERMS_OF_SERVICE_PATH } from "@/lib/legal-routes";
 import { getBrowserSupabaseClient } from "@/lib/supabase";
 import { useSupabaseAuthSync } from "@/lib/use-supabase-auth-sync";
 
@@ -218,19 +220,21 @@ export function RegisterForm() {
         </span>
         <span>
           {t("termsPrefix")}{" "}
-          <a
+          <Link
             className="font-medium text-[#486782] transition-colors hover:text-[#36536a]"
-            href="#"
+            href={TERMS_OF_SERVICE_PATH}
+            onClick={(event) => event.stopPropagation()}
           >
             {t("terms")}
-          </a>{" "}
+          </Link>{" "}
           {t("and")}{" "}
-          <a
+          <Link
             className="font-medium text-[#486782] transition-colors hover:text-[#36536a]"
-            href="#"
+            href={PRIVACY_POLICY_PATH}
+            onClick={(event) => event.stopPropagation()}
           >
             {t("privacy")}
-          </a>
+          </Link>
         </span>
       </label>
 

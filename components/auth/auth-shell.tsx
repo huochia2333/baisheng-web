@@ -5,6 +5,7 @@ import Link from "next/link";
 import { GalleryVerticalEnd, ShieldCheck, Sparkles } from "lucide-react";
 
 import { LanguageToggle } from "@/components/i18n/language-toggle";
+import { LegalFooterLinks } from "@/components/legal/legal-footer-links";
 import type { AuthShellCopy } from "@/lib/auth-shell-content";
 import { cn } from "@/lib/utils";
 
@@ -177,17 +178,10 @@ export function AuthShell({
 
               <div className="mt-auto flex flex-col gap-4 pt-12 text-xs text-[#97a0a8] sm:flex-row sm:items-center sm:justify-between">
                 <p>{copy.copyright}</p>
-                <div className="flex items-center justify-center gap-5 sm:justify-end">
-                  <a className="transition-colors hover:text-[#486782]" href="#">
-                    {copy.privacy}
-                  </a>
-                  <a className="transition-colors hover:text-[#486782]" href="#">
-                    {copy.terms}
-                  </a>
-                  <a className="transition-colors hover:text-[#486782]" href="#">
-                    {copy.help}
-                  </a>
-                </div>
+                <LegalFooterLinks
+                  className="justify-center sm:justify-end"
+                  copy={copy}
+                />
               </div>
             </div>
           </section>
