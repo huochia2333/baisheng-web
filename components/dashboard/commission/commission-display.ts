@@ -8,7 +8,10 @@ import type {
 import type { Locale } from "@/lib/locale";
 import type { AppRole } from "@/lib/user-self-service";
 
-import { toErrorMessage } from "@/components/dashboard/dashboard-shared-ui";
+import {
+  getRawErrorMessage,
+  toErrorMessage,
+} from "@/components/dashboard/dashboard-shared-ui";
 
 type TranslationValues = Record<string, string | number>;
 type TranslateFn = (key: string, values?: TranslationValues) => string;
@@ -164,11 +167,16 @@ export function toCommissionErrorMessage(
   t: TranslateFn,
   scope: "admin" | "salesman",
 ) {
+  const rawMessage = getRawErrorMessage(error);
   const baseMessage = toErrorMessage(error);
 
   if (
-    baseMessage.includes("current user cannot") ||
-    baseMessage.includes("row-level security")
+    rawMessage.includes("current user cannot") ||
+    rawMessage.includes("row-level security") ||
+    rawMessage.includes("permission denied") ||
+    rawMessage.includes("not authorized") ||
+    rawMessage.includes("unauthorized") ||
+    rawMessage.includes("forbidden")
   ) {
     return scope === "admin"
       ? t("shared.errors.noAdminAccess")

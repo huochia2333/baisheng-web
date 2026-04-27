@@ -103,6 +103,12 @@ baisheng-web/
 - 前端分层保持独立：`lib/announcements.ts` 负责公告查询和 mutation，`lib/dashboard-home.ts` 负责首页轻量数据，`components/dashboard/dashboard-home/*` 与 `components/dashboard/announcements/*` 分别承接首页和公告管理 UI
 - 本次没有把公告逻辑塞进已经超过 600 行的 `user-self-service.ts` 或 `dashboard-shared-my` 页面文件
 
+## 界面文案约束（2026-04-27）
+
+- `messages/zh.json` 和 `messages/en.json` 中的用户可见文案禁止暴露数据库表名、字段名、主键、同步请求、云端登录态等实现细节，应改为面向业务结果的表达
+- `components/dashboard/dashboard-shared-ui.tsx` 作为共享错误提示入口，需要把明显的数据库、存储、网络和服务端技术错误收敛成通用可读提示；具体模块如订单、任务、团队、汇率可再基于原始错误补充更细的业务映射
+- 2026-04-27 补充：国际化文案不仅要避开数据库和接口词，还要继续清理 `JSON`、`task_sub`、`task-attachments`、`salesman` 角色码、`active` 状态码、`快照同步` 等工程术语，统一改成用户能直接理解的日常表达
+
 ## 上传限制（2026-04-24）
 
 - Web 端上传尺寸已统一收紧：个人照片、任务附件、提审附件中的图片需小于 `5 MB`，视频需小于 `30 MB`，其余文件维持 `20 MB` 单文件上限，总体积限制仍按各模块原有规则执行

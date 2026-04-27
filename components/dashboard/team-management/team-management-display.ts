@@ -5,7 +5,10 @@ import type {
 } from "@/lib/team-management";
 import type { AppRole } from "@/lib/user-self-service";
 
-import { toErrorMessage } from "@/components/dashboard/dashboard-shared-ui";
+import {
+  getRawErrorMessage,
+  toErrorMessage,
+} from "@/components/dashboard/dashboard-shared-ui";
 
 type TranslationValues = Record<string, string | number>;
 export type TeamTranslateFn = (key: string, values?: TranslationValues) => string;
@@ -98,48 +101,49 @@ export function toTeamManagementErrorMessage(
   error: unknown,
   t: TeamTranslateFn,
 ) {
+  const rawMessage = getRawErrorMessage(error);
   const baseMessage = toErrorMessage(error);
 
   if (
-    baseMessage.includes("team profile save did not return team id") ||
-    baseMessage.includes("团队资料保存后没有返回团队 ID")
+    rawMessage.includes("team profile save did not return team id") ||
+    rawMessage.includes("团队资料保存后没有返回团队 ID")
   ) {
     return t("errors.missingTeamId");
   }
 
-  if (baseMessage.includes("team profile does not exist")) {
+  if (rawMessage.includes("team profile does not exist")) {
     return t("errors.teamProfileMissing");
   }
 
-  if (baseMessage.includes("team name is required")) {
+  if (rawMessage.includes("team name is required")) {
     return t("errors.teamNameRequired");
   }
 
-  if (baseMessage.includes("team not found or not visible")) {
+  if (rawMessage.includes("team not found or not visible")) {
     return t("errors.teamNotVisible");
   }
 
-  if (baseMessage.includes("current user cannot add this salesman to team")) {
+  if (rawMessage.includes("current user cannot add this salesman to team")) {
     return t("errors.salesmanNotAssignable");
   }
 
-  if (baseMessage.includes("current user cannot assign this manager to team")) {
+  if (rawMessage.includes("current user cannot assign this manager to team")) {
     return t("errors.managerNotAssignable");
   }
 
-  if (baseMessage.includes("current user cannot manage team")) {
+  if (rawMessage.includes("current user cannot manage team")) {
     return t("errors.cannotManageTeam");
   }
 
-  if (baseMessage.includes("current user cannot manage team members")) {
+  if (rawMessage.includes("current user cannot manage team members")) {
     return t("errors.cannotManageMembers");
   }
 
-  if (baseMessage.includes("current user cannot delete team")) {
+  if (rawMessage.includes("current user cannot delete team")) {
     return t("errors.cannotDeleteTeam");
   }
 
-  if (baseMessage.includes("team not found")) {
+  if (rawMessage.includes("team not found")) {
     return t("errors.teamNotFound");
   }
 

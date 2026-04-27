@@ -24,6 +24,7 @@ import {
 import { getBrowserSupabaseClient } from "@/lib/supabase";
 import {
   createDashboardSharedCopy,
+  getRawErrorMessage,
   toErrorMessage,
   type DashboardSharedCopy,
   type NoticeTone,
@@ -364,33 +365,34 @@ function toTaskReviewAdminErrorMessage(
   t: ReturnType<typeof useTranslations>,
   sharedCopy: DashboardSharedCopy,
 ) {
+  const rawMessage = getRawErrorMessage(error);
   const baseMessage = toErrorMessage(error, sharedCopy);
 
-  if (baseMessage.includes("only administrator can approve task review")) {
+  if (rawMessage.includes("only administrator can approve task review")) {
     return t("errors.noTaskReviewPermission");
   }
 
-  if (baseMessage.includes("only administrator can reject task review")) {
+  if (rawMessage.includes("only administrator can reject task review")) {
     return t("errors.noTaskReviewPermission");
   }
 
-  if (baseMessage.includes("task is not in reviewing status")) {
+  if (rawMessage.includes("task is not in reviewing status")) {
     return t("errors.taskNotReviewing");
   }
 
-  if (baseMessage.includes("task review submission not found")) {
+  if (rawMessage.includes("task review submission not found")) {
     return t("errors.taskSubmissionMissing");
   }
 
-  if (baseMessage.includes("task current submission is missing")) {
+  if (rawMessage.includes("task current submission is missing")) {
     return t("errors.taskSubmissionMissing");
   }
 
-  if (baseMessage.includes("task review submission is not pending")) {
+  if (rawMessage.includes("task review submission is not pending")) {
     return t("errors.taskSubmissionMissing");
   }
 
-  if (baseMessage.includes("task not found")) {
+  if (rawMessage.includes("task not found")) {
     return t("errors.taskMissing");
   }
 

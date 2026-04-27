@@ -30,6 +30,7 @@ import {
   createDashboardSharedCopy,
   EmptyState,
   formatDateTime,
+  getRawErrorMessage,
   mapUserStatus,
   PageBanner,
   toErrorMessage,
@@ -689,10 +690,7 @@ function toReferralErrorMessage(
   copy: ReferralsCopy,
   sharedCopy: DashboardSharedCopy,
 ) {
-  const rawMessage =
-    typeof error === "object" && error !== null && "message" in error
-      ? String(error.message)
-      : "";
+  const rawMessage = getRawErrorMessage(error);
   const baseMessage = toErrorMessage(error, sharedCopy);
 
   if (

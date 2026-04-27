@@ -2,7 +2,10 @@ import type { SalesmanTaskRow } from "@/lib/salesman-tasks";
 import type { TaskScope, TaskStatus } from "@/lib/admin-tasks";
 import type { Locale } from "@/lib/locale";
 
-import { toErrorMessage } from "@/components/dashboard/dashboard-shared-ui";
+import {
+  getRawErrorMessage,
+  toErrorMessage,
+} from "@/components/dashboard/dashboard-shared-ui";
 
 type TranslationValues = Record<string, string | number>;
 export type TranslateFn = (key: string, values?: TranslationValues) => string;
@@ -164,65 +167,66 @@ export function resolveSalesmanTaskTargetLabel(
 }
 
 export function toAdminTaskErrorMessage(error: unknown, t: TranslateFn) {
+  const rawMessage = getRawErrorMessage(error);
   const baseMessage = toErrorMessage(error);
 
-  if (baseMessage.includes("task_main_task_name_not_blank")) {
+  if (rawMessage.includes("task_main_task_name_not_blank")) {
     return t("errors.admin.taskNameBlank");
   }
 
-  if (baseMessage.includes("task_main_scope_team_check")) {
+  if (rawMessage.includes("task_main_scope_team_check")) {
     return t("errors.admin.teamRequired");
   }
 
-  if (baseMessage.includes("task_main_task_type_code_fkey")) {
+  if (rawMessage.includes("task_main_task_type_code_fkey")) {
     return t("errors.admin.taskTypeRequired");
   }
 
-  if (baseMessage.includes("task_main_commission_amount_nonnegative")) {
+  if (rawMessage.includes("task_main_commission_amount_nonnegative")) {
     return t("errors.admin.commissionAmountInvalid");
   }
 
-  if (baseMessage.includes("authenticated user is required")) {
+  if (rawMessage.includes("authenticated user is required")) {
     return t("errors.admin.authExpired");
   }
 
-  if (baseMessage.includes("task not found")) {
+  if (rawMessage.includes("task not found")) {
     return t("errors.admin.taskNotFound");
   }
 
-  if (baseMessage.includes("completed task cannot be edited")) {
+  if (rawMessage.includes("completed task cannot be edited")) {
     return t("errors.admin.taskCompletedReadOnly");
   }
 
-  if (baseMessage.includes("completed task cannot be deleted")) {
+  if (rawMessage.includes("completed task cannot be deleted")) {
     return t("errors.admin.taskCompletedReadOnly");
   }
 
-  if (baseMessage.includes("duplicate key value violates unique constraint")) {
+  if (rawMessage.includes("duplicate key value violates unique constraint")) {
     return t("errors.admin.duplicateAttachmentPath");
   }
 
-  if (baseMessage.includes("admin_task_attachments_count_exceeded")) {
+  if (rawMessage.includes("admin_task_attachments_count_exceeded")) {
     return t("errors.admin.attachmentCountExceeded");
   }
 
-  if (baseMessage.includes("admin_task_attachment_empty")) {
+  if (rawMessage.includes("admin_task_attachment_empty")) {
     return t("errors.admin.attachmentEmpty");
   }
 
-  if (baseMessage.includes("admin_task_attachment_too_large")) {
+  if (rawMessage.includes("admin_task_attachment_too_large")) {
     return t("errors.admin.attachmentTooLarge");
   }
 
-  if (baseMessage.includes("admin_task_attachments_total_too_large")) {
+  if (rawMessage.includes("admin_task_attachments_total_too_large")) {
     return t("errors.admin.attachmentTotalTooLarge");
   }
 
-  if (baseMessage.includes("admin_task_attachment_type_not_allowed")) {
+  if (rawMessage.includes("admin_task_attachment_type_not_allowed")) {
     return t("errors.admin.attachmentTypeNotAllowed");
   }
 
-  if (baseMessage.includes("storage")) {
+  if (rawMessage.includes("storage")) {
     return t("errors.admin.storage");
   }
 
@@ -230,73 +234,74 @@ export function toAdminTaskErrorMessage(error: unknown, t: TranslateFn) {
 }
 
 export function toSalesmanTaskErrorMessage(error: unknown, t: TranslateFn) {
+  const rawMessage = getRawErrorMessage(error);
   const baseMessage = toErrorMessage(error);
 
-  if (baseMessage.includes("current user cannot accept this task")) {
+  if (rawMessage.includes("current user cannot accept this task")) {
     return t("errors.salesman.cannotAccept");
   }
 
-  if (baseMessage.includes("task is not available for acceptance")) {
+  if (rawMessage.includes("task is not available for acceptance")) {
     return t("errors.salesman.alreadyAccepted");
   }
 
-  if (baseMessage.includes("current user cannot complete this task")) {
+  if (rawMessage.includes("current user cannot complete this task")) {
     return t("errors.salesman.cannotComplete");
   }
 
-  if (baseMessage.includes("task is not in accepted status")) {
+  if (rawMessage.includes("task is not in accepted status")) {
     return t("errors.salesman.notAccepted");
   }
 
-  if (baseMessage.includes("current user cannot create task review submission")) {
+  if (rawMessage.includes("current user cannot create task review submission")) {
     return t("errors.salesman.cannotCreateReviewSubmission");
   }
 
-  if (baseMessage.includes("current user cannot submit task review")) {
+  if (rawMessage.includes("current user cannot submit task review")) {
     return t("errors.salesman.cannotSubmitReview");
   }
 
-  if (baseMessage.includes("task review submission assets are required")) {
+  if (rawMessage.includes("task review submission assets are required")) {
     return t("errors.salesman.reviewAssetsRequired");
   }
 
-  if (baseMessage.includes("task review submission not found")) {
+  if (rawMessage.includes("task review submission not found")) {
     return t("errors.salesman.reviewSubmissionMissing");
   }
 
-  if (baseMessage.includes("task review submission is not draft")) {
+  if (rawMessage.includes("task review submission is not draft")) {
     return t("errors.salesman.reviewSubmissionInvalid");
   }
 
-  if (baseMessage.includes("task review submission_files_required")) {
+  if (rawMessage.includes("task review submission_files_required")) {
     return t("errors.salesman.reviewFilesRequired");
   }
 
-  if (baseMessage.includes("task_review_submission_files_required")) {
+  if (rawMessage.includes("task_review_submission_files_required")) {
     return t("errors.salesman.reviewFilesRequired");
   }
 
-  if (baseMessage.includes("task_review_submission_attachments_count_exceeded")) {
+  if (rawMessage.includes("task_review_submission_attachments_count_exceeded")) {
     return t("errors.salesman.reviewAttachmentCountExceeded");
   }
 
-  if (baseMessage.includes("task_review_submission_attachment_empty")) {
+  if (rawMessage.includes("task_review_submission_attachment_empty")) {
     return t("errors.salesman.reviewAttachmentEmpty");
   }
 
-  if (baseMessage.includes("task_review_submission_attachment_too_large")) {
+  if (rawMessage.includes("task_review_submission_attachment_too_large")) {
     return t("errors.salesman.reviewAttachmentTooLarge");
   }
 
-  if (baseMessage.includes("task_review_submission_attachments_total_too_large")) {
+  if (rawMessage.includes("task_review_submission_attachments_total_too_large")) {
     return t("errors.salesman.reviewAttachmentTotalTooLarge");
   }
 
-  if (baseMessage.includes("task_review_submission_attachment_type_not_allowed")) {
+  if (rawMessage.includes("task_review_submission_attachment_type_not_allowed")) {
     return t("errors.salesman.reviewAttachmentTypeNotAllowed");
   }
 
-  if (baseMessage.includes("current user is not active")) {
+  if (rawMessage.includes("current user is not active")) {
     return t("errors.salesman.inactive");
   }
 

@@ -1,4 +1,5 @@
 import {
+  getRawErrorMessage,
   type DashboardSharedCopy,
   toErrorMessage,
 } from "../dashboard-shared-ui";
@@ -10,37 +11,38 @@ export function toOrderErrorMessage(
   copy: OrdersUiCopy,
   sharedCopy: DashboardSharedCopy,
 ) {
+  const rawMessage = getRawErrorMessage(error);
   const baseMessage = toErrorMessage(error, sharedCopy);
 
-  if (baseMessage.includes("duplicate key value")) {
+  if (rawMessage.includes("duplicate key value")) {
     return copy.errors.duplicateOrderNumber;
   }
 
-  if (baseMessage.includes("violates foreign key constraint")) {
+  if (rawMessage.includes("violates foreign key constraint")) {
     return copy.errors.invalidForeignKeys;
   }
 
-  if (baseMessage.includes("current user cannot create this order")) {
+  if (rawMessage.includes("current user cannot create this order")) {
     return copy.errors.cannotCreate;
   }
 
-  if (baseMessage.includes("current user cannot update this order")) {
+  if (rawMessage.includes("current user cannot update this order")) {
     return copy.errors.cannotUpdate;
   }
 
-  if (baseMessage.includes("updated order scope is not allowed for current user")) {
+  if (rawMessage.includes("updated order scope is not allowed for current user")) {
     return copy.errors.updatedScopeNotAllowed;
   }
 
-  if (baseMessage.includes("current user cannot delete this order")) {
+  if (rawMessage.includes("current user cannot delete this order")) {
     return copy.errors.cannotDelete;
   }
 
-  if (baseMessage.includes("only active users can generate order numbers")) {
+  if (rawMessage.includes("only active users can generate order numbers")) {
     return copy.errors.inactiveOrderNumber;
   }
 
-  if (baseMessage.includes("order not found")) {
+  if (rawMessage.includes("order not found")) {
     return copy.errors.orderNotFound;
   }
 

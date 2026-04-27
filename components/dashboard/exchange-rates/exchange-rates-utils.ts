@@ -9,7 +9,10 @@ import {
   type Locale,
 } from "@/lib/locale";
 
-import { toErrorMessage } from "../dashboard-shared-ui";
+import {
+  getRawErrorMessage,
+  toErrorMessage,
+} from "../dashboard-shared-ui";
 
 export type ExchangeRateFormState = {
   dailyExchangeRate: string;
@@ -153,17 +156,18 @@ export function toExchangeRateErrorMessage(
   error: unknown,
   copy: ExchangeRateCopy,
 ) {
+  const rawMessage = getRawErrorMessage(error);
   const message = toErrorMessage(error);
 
-  if (message.includes("duplicate key")) {
+  if (rawMessage.includes("duplicate key")) {
     return copy.errors.duplicateKey;
   }
 
-  if (message.includes("exchange_rate_daily_exchange_rate_positive")) {
+  if (rawMessage.includes("exchange_rate_daily_exchange_rate_positive")) {
     return copy.errors.positiveRate;
   }
 
-  if (message.includes("row-level security")) {
+  if (rawMessage.includes("row-level security")) {
     return copy.errors.permission;
   }
 

@@ -63,23 +63,23 @@
         {
           "title": "我们如何使用信息",
           "items": [
-            "我们使用账号数据创建和保护账号、维护登录会话、找回访问权限、将你路由到正确工作台，并阻止越权访问角色受限页面。",
+            "我们使用账号数据创建和保护账号、保持你的登录状态、帮助你找回访问权限，并把你带到正确的工作台页面，避免误打开不该查看的内容。",
             "我们使用实名和媒体资料支持认证、审核队列、资料展示，以及授权审核人员作出的运营处理。",
-            "我们使用业务记录保持订单、任务、推荐、团队、汇率、佣金和审核流程在系统内可追踪。"
+            "我们保留必要的业务记录，让订单、任务、推荐、团队、汇率、佣金和审核流程在系统内都有据可查。"
           ]
         },
         {
           "title": "访问与共享",
           "items": [
             "你的信息仅向完成账号管理、实名认证、审核、订单处理或相关业务运营所必需的角色和团队成员展示。",
-            "我们不会出售个人信息。数据可能由支持身份认证、存储、数据库访问和应用交付的云服务与基础设施进行处理。",
+            "我们不会出售个人信息。数据可能由第三方云服务提供商进行安全存储和处理。",
             "如果法律要求、安全调查或争议处理需要访问，我们可能在必要范围内提供最少信息。"
           ]
         },
         {
           "title": "存储与安全",
           "items": [
-            "系统通过会话检查、角色化路由和服务端访问校验，降低工作台数据被未授权访问的风险。",
+            "系统会检查你的登录状态和可访问页面范围，尽量降低工作台数据被未授权人员查看的风险。",
             "实名和媒体提交资料仅用于审核、展示和后续更正等系统流程；具体保留期限应遵循运营方确认的业务留存规则。",
             "任何 Web 系统都无法承诺绝对安全，但我们会采用合理的技术和运营措施保护账号与流程数据。"
           ]
@@ -87,7 +87,7 @@
         {
           "title": "你的选择",
           "items": [
-            "你可以在系统内更新可编辑的个人资料字段，通过账号流程修改密码，并在中文和英文界面之间切换。",
+            "你可以在系统内更新可编辑的个人资料信息，通过账号流程修改密码，并在中文和英文界面之间切换。",
             "对于无法直接编辑的实名、媒体或账号记录，请联系系统管理员，按业务规则申请更正、复核或删除。",
             "如果你停止使用系统，请联系管理员处理账号；部分业务记录可能因审计、订单、争议或合规目的需要继续保留。"
           ]
@@ -105,14 +105,14 @@
       "metadataTitle": "服务条款",
       "eyebrow": "服务条款",
       "title": "服务条款",
-      "description": "本条款说明访问和使用柏盛管理系统的基本规则，包括账号、角色权限、提交资料和业务工作流。",
+    "description": "本条款说明访问和使用柏盛管理系统的基本规则，包括账号、角色权限、提交资料和业务流程。",
       "lastUpdated": "2026-04-24",
       "sections": [
         {
           "title": "服务范围",
           "items": [
             "柏盛管理系统提供角色化 Web 工作台，用于注册、登录、个人资料管理、审核流程、订单、任务、推荐、团队、汇率和佣金相关操作。",
-            "你可使用的功能取决于系统分配给你的角色、团队关系、账号状态，以及该角色已启用的业务模块。",
+      "你可使用的功能取决于系统分配给你的角色、团队关系、账号状态，以及当前为你开放的功能。",
             "随着业务运营变化，系统可能调整、扩展或移除部分功能。"
           ]
         },
@@ -136,7 +136,7 @@
           "title": "提交资料与审核",
           "items": [
             "实名信息、媒体文件、任务成果和其他提交资料，可能需要由授权人员审核后才能被接受或展示。",
-            "审核结果可能为通过、拒绝或要求更正。系统可能保留审核记录，以维持工作流可追踪性。",
+      "审核结果可能为通过、拒绝或要求更正。系统可能保留审核记录，方便后续查询和核对。",
             "你应确保提交资料真实、已获授权，并适合对应业务流程。"
           ]
         },
@@ -144,7 +144,7 @@
           "title": "可用性与变更",
           "items": [
             "我们会努力保持服务可用，但维护、云服务问题、网络情况、安全事件或产品调整都可能导致访问中断。",
-            "出于安全、合规或业务运营需要，运营方可能修改工作流、权限、数据字段、审核规则或页面展示。",
+      "出于安全、合规或业务运营需要，运营方可能调整业务流程、可见范围、资料项目、审核规则或页面展示。",
             "在可行情况下，重要变更应通过常规业务支持或管理渠道告知。"
           ]
         },
@@ -336,37 +336,37 @@
   },
   "AdminSectionPlaceholder": {
     "viewMyPage": "返回首页",
-    "badge": "当前模块会继续按角色扩展对应能力"
+    "badge": "这个页面会根据不同身份继续补充可用内容"
   },
   "WorkspaceSections": {
     "fallbacks": {
       "admin": {
         "title": "管理工作台",
-        "description": "当前模块正在建设中。我们已经把管理工作台的导航结构搭好，后续可以在这个壳子上继续扩展具体内容。"
+        "description": "这个页面还在完善中。当前已准备好管理工作台入口，后续会继续补充具体内容。"
       },
       "client": {
         "title": "客户工作台",
-        "description": "当前模块正在建设中。我们已经把客户工作台的导航结构搭好，后续可以在这个壳子上继续扩展具体内容。"
+        "description": "这个页面还在完善中。当前已准备好客户工作台入口，后续会继续补充具体内容。"
       },
       "finance": {
         "title": "财务工作台",
-        "description": "当前模块正在建设中。我们已经把财务工作台的导航结构搭好，后续可以在这个壳子上继续扩展具体内容。"
+        "description": "这个页面还在完善中。当前已准备好财务工作台入口，后续会继续补充具体内容。"
       },
       "manager": {
         "title": "经理工作台",
-        "description": "当前模块正在建设中。我们已经把经理工作台的导航结构搭好，后续可以在这个壳子上继续扩展具体内容。"
+        "description": "这个页面还在完善中。当前已准备好经理工作台入口，后续会继续补充具体内容。"
       },
       "operator": {
         "title": "运营工作台",
-        "description": "当前模块正在建设中。我们已经把运营工作台的导航结构搭好，后续可以在这个壳子上继续扩展具体内容。"
+        "description": "这个页面还在完善中。当前已准备好运营工作台入口，后续会继续补充具体内容。"
       },
       "recruiter": {
         "title": "招聘工作台",
-        "description": "当前模块正在建设中。我们已经把招聘工作台的导航结构搭好，后续可以在这个壳子上继续扩展具体内容。"
+        "description": "这个页面还在完善中。当前已准备好招聘工作台入口，后续会继续补充具体内容。"
       },
       "salesman": {
         "title": "业务工作台",
-        "description": "当前模块正在建设中。我们已经把业务工作台的导航结构搭好，后续可以在这个壳子上继续扩展具体内容。"
+        "description": "这个页面还在完善中。当前已准备好业务工作台入口，后续会继续补充具体内容。"
       }
     },
     "announcements": {
@@ -379,7 +379,7 @@
     },
     "referrals": {
       "title": "推荐树",
-      "description": "这里会按当前角色展示可见的推荐关系，包括自己被谁推荐，以及自己推荐了谁。不同角色会在数据库权限范围内看到对应关系。"
+      "description": "这里会按当前角色展示可见的推荐关系，包括自己被谁推荐，以及自己推荐了谁。不同角色只能看到自己有权限查看的对应关系。"
     },
     "team": {
       "title": "团队管理",
@@ -391,7 +391,7 @@
     },
     "exchange-rates": {
       "title": "汇率管理",
-      "description": "这里将维护汇率来源、更新时间、历史曲线和人工校准记录，为订单和财务模块提供统一数据基础。"
+      "description": "这里会展示汇率来源、更新时间、历史变化和人工调整记录，为订单和财务页面提供统一参考。"
     },
     "tasks": {
       "title": "任务看板",
@@ -525,10 +525,10 @@
     }
   },
   "DashboardMy": {
-    "bundleUnavailable": "云端资料暂时不可用，请刷新页面后重试。",
-    "bundleSyncDescription": "当前页面依赖云端登录态和资料查询。刚从闲置状态恢复时，如果同步请求没有返回，现在会直接提示失败，你可以重新同步而不是一直停留在加载中。",
-    "bundleSyncTitle": "资料同步没有完成",
-    "retrySync": "重新同步资料",
+    "bundleUnavailable": "资料暂时不可用，请刷新页面后重试。",
+    "bundleSyncDescription": "当前页面需要加载你的登录信息和个人资料。如果长时间未操作后重新打开，加载可能会失败，你可以点击重新加载。",
+    "bundleSyncTitle": "资料加载未完成",
+    "retrySync": "重新加载资料",
     "editProfile": "编辑个人资料",
     "changePassword": "修改密码",
     "copyInviteCode": "复制邀请码",
@@ -567,7 +567,7 @@
     "videoEmptyDescription": "上传后会进入待审核，审核完成后会在这里展示全部视频。",
     "videoPendingDescription": "至少有一条个人视频正在等待审核。",
     "videoApprovedDescription": "个人视频已审核通过。",
-    "editProfileDescription": "注册完成后可以在这里补充城市信息，保存后会同步更新“我的”页展示。",
+    "editProfileDescription": "注册完成后可以在这里补充城市信息，保存后会同时更新“我的”页展示。",
     "cityLabel": "所在城市",
     "cityPlaceholder": "请填写所在城市",
     "saveCity": "保存城市"
@@ -605,8 +605,8 @@
     "videosUploaded": "个人视频已上传，当前状态为待审核。",
     "photosDeleted": "所选照片已删除。",
     "videosDeleted": "所选视频已删除。",
-    "identityDescription": "提交后会进入审核流程，审核通过后会同步更新你的身份资料。",
-    "passportDescription": "提交后会进入审核流程，审核通过后会同步更新你的通行资料。",
+    "identityDescription": "提交后会进入审核流程，审核通过后会更新你的身份资料。",
+    "passportDescription": "提交后会进入审核流程，审核通过后会更新你的通行资料。",
     "mediaDescription": "上传后会进入待审核，审核通过后会展示在你的个人资料中。图片需小于 5 MB，视频需小于 30 MB。",
     "deletePhotos": "删除照片",
     "uploadPhotos": "上传照片",
@@ -653,7 +653,7 @@
       "updateSuccess": "订单 {orderNumber} 已更新成功。",
       "deleteConfirm": "确定要软删除订单 {orderNumber} 吗？删除后将从列表中隐藏。",
       "deleteSuccess": "订单 {orderNumber} 已软删除。",
-      "forceDeleteConfirm": "确定要彻底删除订单 {orderNumber} 吗？此操作会直接从数据库抹除该订单，且无法恢复。",
+      "forceDeleteConfirm": "确定要彻底删除订单 {orderNumber} 吗？此操作会彻底删除该订单，且无法恢复。",
       "forceDeleteSuccess": "订单 {orderNumber} 已彻底删除。"
     },
     "summary": {
@@ -688,7 +688,7 @@
       "createdAt": "创建日期"
     },
     "dialogs": {
-      "editDescription": "编辑后会立即覆盖当前订单信息，并同步更新订单详情。",
+      "editDescription": "编辑后会立即覆盖当前订单信息，并更新订单详情。",
       "saveChanges": "保存修改",
       "editTitle": "编辑订单"
     }
@@ -755,8 +755,8 @@
       "transactionRate": "自动按当日汇率计算",
       "rmbAmount": "请输入人民币总计",
       "costAmount": "请输入内部成本，留空则不记录",
-      "purchaseDetails": "可填写 JSON，或按行输入，例如：\n商品名称: iPhone 16 Pro\n数量: 2\n收货城市: 上海",
-      "serviceDetails": "可填写 JSON，或按行输入，例如：\n服务日期: 2026-04-02\n服务地点: 上海浦东机场\n接待人数: 3"
+      "purchaseDetails": "可直接整段粘贴，也可按行输入，例如：\n商品名称: iPhone 16 Pro\n数量: 2\n收货城市: 上海",
+      "serviceDetails": "可直接整段粘贴，也可按行输入，例如：\n服务日期: 2026-04-02\n服务地点: 上海浦东机场\n接待人数: 3"
     },
     "hints": {
       "transactionRate": "自动 = 当日汇率 * 0.99",
@@ -775,29 +775,29 @@
       "selectPrompt": "请选择{label}。",
       "inputPrompt": "请填写{label}。",
       "invalidFormat": "{label}格式不正确。",
-      "invalidDetails": "{label}格式不正确，请填写 JSON，或按“字段: 内容”逐行输入。",
+      "invalidDetails": "{label}格式不正确，请直接整段粘贴，或按“项目: 内容”逐行输入。",
       "minZero": "{label}不能小于 0。"
     },
     "errors": {
       "duplicateOrderNumber": "订单编号生成冲突，请稍后重试。",
-      "invalidForeignKeys": "请选择有效的订单录入员、订单客户、订单类型，以及对应的采购/服务子表选项。",
+      "invalidForeignKeys": "请选择有效的订单录入员、订单客户、订单类型，以及对应的采购或服务信息选项。",
       "cannotCreate": "你没有创建该订单的权限。",
       "cannotUpdate": "你没有修改该订单的权限。",
       "updatedScopeNotAllowed": "更新后的订单范围超出了你的可操作范围。",
       "cannotDelete": "你没有删除该订单的权限。",
-      "inactiveOrderNumber": "只有 active 状态用户才能创建新订单编号。",
+      "inactiveOrderNumber": "只有已启用账号才能创建新订单编号。",
       "orderNotFound": "没有找到对应订单。"
     },
     "purchaseSection": {
       "title": "采购订单信息",
-      "createDescription": "当前订单类型为采购订单，请继续填写采购子表信息。订单明细支持 JSON，也支持每行一个“字段: 内容”。",
-      "editDescription": "当前订单类型为采购订单，可直接修改采购子表信息。订单明细支持 JSON，也支持每行一个“字段: 内容”。",
+      "createDescription": "当前订单类型为采购订单，请继续填写采购补充信息。订单明细支持整段粘贴，也支持每行输入一项“项目: 内容”。",
+      "editDescription": "当前订单类型为采购订单，可直接修改采购补充信息。订单明细支持整段粘贴，也支持每行输入一项“项目: 内容”。",
       "loading": "加载中"
     },
     "serviceSection": {
       "title": "服务订单信息",
-      "createDescription": "当前订单类型为服务订单，请继续填写服务子表信息。订单明细支持 JSON，也支持每行一个“字段: 内容”。",
-      "editDescription": "当前订单类型为服务订单，可直接修改服务子表信息。订单明细支持 JSON，也支持每行一个“字段: 内容”。",
+      "createDescription": "当前订单类型为服务订单，请继续填写服务补充信息。订单明细支持整段粘贴，也支持每行输入一项“项目: 内容”。",
+      "editDescription": "当前订单类型为服务订单，可直接修改服务补充信息。订单明细支持整段粘贴，也支持每行输入一项“项目: 内容”。",
       "loading": "加载中"
     },
     "details": {
@@ -942,7 +942,7 @@
     "header": {
       "badge": "汇率工作台",
       "title": "汇率中心",
-      "description": "统一查看当前生效汇率与完整历史记录，确保订单和财务模块引用同一份汇率基线。"
+      "description": "统一查看当前生效汇率与完整历史记录，让订单和财务页面看到同一份汇率参考值。"
     },
     "summary": {
       "pairs": "币种对数",
@@ -962,7 +962,7 @@
       "noViewDescription": "当前登录账号暂时没有查看汇率记录的权限。"
     },
     "latest": {
-      "eyebrow": "当前快照",
+      "eyebrow": "当前概览",
       "title": "最新汇率",
       "description": "每个币种对仅保留一条当前生效的汇率，并按最近更新时间排序。",
       "countSummary": "共 {count} 个币种对",
@@ -1016,12 +1016,12 @@
       },
       "create": {
         "title": "新增汇率",
-        "description": "保存后会立刻写入历史记录，并刷新对应币种对的最新汇率。",
+        "description": "保存后会立刻新增一条历史记录，并更新对应币种对的最新汇率。",
         "submit": "新增汇率"
       },
       "edit": {
         "title": "编辑汇率",
-        "description": "保存后会直接更新当前这条历史记录，并同步刷新同一币种对的最新汇率。",
+        "description": "保存后会更新这条历史记录，并同时更新同一币种对的最新汇率。",
         "submit": "保存修改"
       }
     },
@@ -1039,7 +1039,7 @@
       "greaterThanZero": "{label}\u5fc5\u987b\u5927\u4e8e 0\u3002"
     },
     "errors": {
-      "duplicateKey": "\u5f53\u524d\u6c47\u7387\u8bb0\u5f55\u4fdd\u5b58\u5931\u8d25\uff0c\u8bf7\u68c0\u67e5\u662f\u5426\u5b58\u5728\u91cd\u590d\u4e3b\u952e\u540e\u91cd\u8bd5\u3002",
+      "duplicateKey": "该汇率记录已存在，请检查后重试。",
       "positiveRate": "\u6c47\u7387\u503c\u5fc5\u987b\u5927\u4e8e 0\u3002",
       "permission": "\u5f53\u524d\u8d26\u53f7\u6ca1\u6709\u67e5\u770b\u6216\u64cd\u4f5c\u6c47\u7387\u6570\u636e\u7684\u6743\u9650\u3002"
     }
@@ -1059,7 +1059,7 @@
     },
     "states": {
       "noPermissionTitle": "暂无查看权限",
-      "noPermissionDescription": "当前账号不是 active 状态，暂时无法查看推荐树。",
+      "noPermissionDescription": "当前账号尚未启用，暂时无法查看推荐树。",
       "emptyTitle": "推荐树暂时为空",
       "emptyDescription": "当前可见范围内还没有推荐关系。后续一旦产生邀请注册记录，这里会自动展示。",
       "noMatchTitle": "没有匹配结果",
@@ -1193,7 +1193,7 @@
         "beneficiary": "受益人",
         "category": "佣金类型",
         "source": "来源",
-        "amountSnapshot": "金额快照",
+        "amountSnapshot": "记录金额",
         "commissionSettlement": "佣金与结算",
         "timestamps": "时间",
         "actions": "操作"
@@ -1409,7 +1409,7 @@
           "reviewAttachmentTooLarge": "存在超出限制的提交文件：图片需小于 5 MB，视频需小于 30 MB，其他文件不能超过 20 MB。",
           "reviewAttachmentTotalTooLarge": "提交文件总大小超出限制，请控制在 100 MB 以内。",
           "reviewAttachmentTypeNotAllowed": "存在不支持的提交文件类型，请上传常见文档、图片、音视频或压缩文件。",
-          "inactive": "当前账号未激活，暂时不能处理任务。"
+      "inactive": "当前账号尚未启用，暂时不能处理任务。"
         }
       }
     },
@@ -1419,10 +1419,10 @@
         "createdWithAttachments": "任务和附件已创建。",
         "created": "任务已创建。",
         "updated": "任务已更新。",
-        "updatedWithCommissionSyncWarning": "任务已更新，但关联佣金快照未完全同步，请稍后检查佣金中心。",
+      "updatedWithCommissionSyncWarning": "任务已更新，但相关佣金信息还没全部刷新，请稍后再去佣金中心查看。",
         "assignmentUpdated": "任务归属已更新。",
         "assignmentPublic": "任务已更新为面向全员。",
-        "deletedWithAttachmentCleanupWarning": "任务已删除，但任务附件或提审附件的清理未完全成功，请稍后检查存储桶。",
+      "deletedWithAttachmentCleanupWarning": "任务已删除，但部分任务附件或提审附件还没清理完成，请稍后再查看。",
         "deleted": "任务已删除。"
       },
       "confirmDelete": "确认删除任务“{taskName}”吗？任务附件也会一起清理。",
@@ -1475,7 +1475,7 @@
         "taskIntroPlaceholder": "补充任务背景、目标、执行要求和注意事项。",
         "attachmentsLabel": "附件",
         "attachmentsCta": "点击选择附件，可一次上传多个文件",
-        "attachmentsHint": "文件会进入 task-attachments 存储桶，并记录到 task_sub 表。最多 {maxFiles} 个文件，图片需小于 {imageMaxPerFile}，视频需小于 {videoMaxPerFile}，其他文件不超过 {otherMaxPerFile}，总计不超过 {maxTotal}。",
+        "attachmentsHint": "文件会保存到任务附件区，并自动关联到当前任务。最多 {maxFiles} 个文件，图片需小于 {imageMaxPerFile}，视频需小于 {videoMaxPerFile}，其他文件不超过 {otherMaxPerFile}，总计不超过 {maxTotal}。",
         "noAttachments": "暂未选择附件。当前版本支持先把任务与附件一起创建。",
         "cancel": "取消",
         "submit": "创建任务"
@@ -1646,11 +1646,11 @@
       "manageableTeams": "可管理团队"
     },
     "descriptions": {
-      "manager": "经理可以管理自己的团队资料、成员和团队客户结构。面板会根据团队表、成员表与推荐关系自动汇总。",
+      "manager": "经理可以管理自己的团队资料、成员和团队客户结构。面板会根据当前团队信息和推荐关系自动汇总。",
       "administrator": "管理员可以查看全部团队，并直接创建团队、删除团队、调整团队成员，以及更换团队经理。",
       "salesman": "业务员可以查看当前可见团队结构，了解团队成员、客户沉淀和负责人的组织关系。",
-      "readOnly": "当前页面会按数据库权限展示可见团队的结构概览，方便运营和财务协同查看团队成员和客户沉淀。",
-      "fallback": "这里会把团队主表、成员表和客户推荐关系汇总成一个可直接查看的管理面板。"
+      "readOnly": "当前页面会按权限展示可见团队的结构概览，方便运营和财务协同查看团队成员和客户沉淀。",
+      "fallback": "这里会把团队信息、成员和客户推荐关系汇总成一个可直接查看的管理面板。"
     },
     "feedback": {
       "updated": "团队信息已更新。",
@@ -1660,7 +1660,7 @@
       "memberRemoved": "团队成员已移出。",
       "deleted": "团队已删除。"
     },
-    "confirmDelete": "确认删除团队“{teamName}”吗？此操作会移除团队记录及成员归属关系。",
+    "confirmDelete": "确认删除团队“{teamName}”吗？此操作会删除团队，并解除成员的团队归属。",
     "adminCreate": {
       "title": "创建团队",
       "description": "管理员可以直接新建团队，并在创建时指定经理。未被其他团队占用的经理会优先显示为可分配。",
@@ -1671,13 +1671,13 @@
     },
     "states": {
       "noPermissionTitle": "暂无查看权限",
-      "noPermissionDescription": "当前账号暂时没有团队面板访问权限。团队模块会根据角色和激活状态展示不同范围的数据。",
+      "noPermissionDescription": "当前账号暂时不能打开团队页面。这个页面会根据角色和账号状态显示不同范围的团队信息。",
       "noTeamDataTitle": "暂无团队数据",
       "noTeamDataDescription": "当前可见范围内还没有团队数据。等团队关系建立后，这里会自动汇总团队概览。"
     },
     "managerSetup": {
       "title": "创建你的团队面板",
-      "description": "数据库里团队由 `team_profiles` 作为主表、`team_profiles_data` 维护成员。你现在还没有团队记录，可以先创建团队名称，再继续添加业务员。",
+      "description": "你还没有创建团队。可以先创建团队名称，再继续添加业务员。",
       "teamNameLabel": "团队名称",
       "teamNamePlaceholder": "请输入团队名称",
       "button": "创建团队",
@@ -1712,26 +1712,26 @@
     },
     "insights": {
       "title": "团队画像",
-      "description": "这里按数据库里的推荐关系汇总团队客户，方便快速判断团队当前结构。",
+      "description": "这里按推荐关系汇总团队客户，方便快速判断团队当前结构。",
       "activeTitle": "{count} 名活跃业务员",
       "activeEmptyDescription": "当前团队还没有激活中的业务员，建议先补齐成员。",
       "activeReadyDescription": "当前团队已经形成基础成员结构，可以继续安排客户转化。",
       "vipTitle": "{count} 名 VIP 客户",
-      "vipEmptyDescription": "暂时还没有 VIP 客户。后续一旦团队客户完成 VIP 标记，这里会同步增长。",
-      "vipReadyDescription": "已有客户完成 VIP 标记，可以直接结合订单和佣金模块继续跟进。",
+      "vipEmptyDescription": "暂时还没有 VIP 客户。后续一旦团队客户成为 VIP，这里会自动增加。",
+      "vipReadyDescription": "已有客户成为 VIP，可以直接结合订单和佣金页面继续跟进。",
       "relationsTitle": "{count} 条客户关系",
       "relationsDescription": "当前选中团队下，共沉淀 {count} 条可见客户推荐关系。"
     },
     "members": {
       "title": "团队成员",
-      "description": "业务员成员来自 `team_profiles_data`，每个成员卡片上会同步展示直接客户数量。",
+      "description": "这里会展示团队内的业务员成员，每个成员卡片上也会显示直接客户数量。",
       "searchPlaceholder": "搜索成员姓名、邮箱或客户状态",
       "emptyTitle": "没有成员结果",
       "emptyDescription": "当前搜索条件下没有匹配到团队成员。"
     },
     "candidates": {
       "title": "可加入业务员",
-      "description": "候选列表来自 `salesman` 角色用户。已经归属其他团队的业务员会保留标记，不能重复加入。",
+      "description": "候选列表展示当前可加入团队的业务员。已经归属其他团队的业务员会保留提示，不能重复加入。",
       "searchPlaceholder": "搜索业务员姓名、邮箱或当前团队",
       "availableCount": "当前共有 {count} 位可直接加入的业务员候选。",
       "emptyTitle": "没有候选结果",
@@ -1741,7 +1741,7 @@
     },
     "clients": {
       "title": "团队客户",
-      "description": "团队客户根据业务员推荐关系拼出来，并同步展示 VIP 标记。",
+      "description": "这里会根据业务员的推荐关系整理团队客户，并显示 VIP 标识。",
       "searchPlaceholder": "搜索客户姓名、邮箱或推荐业务员",
       "emptyTitle": "没有客户结果",
       "emptyDescription": "当前搜索条件下没有匹配到团队客户。"
@@ -1785,10 +1785,10 @@
       }
     },
     "errors": {
-      "missingTeamId": "团队资料保存后没有返回团队 ID。",
+      "missingTeamId": "团队保存后没有返回结果，请稍后重试。",
       "teamProfileMissing": "请先创建团队，再继续添加成员。",
       "teamNameRequired": "请先填写团队名称。",
-      "teamNotVisible": "当前选中的团队不可见，已经尝试重新同步。",
+      "teamNotVisible": "当前选中的团队暂时无法查看，系统已尝试重新加载。",
       "salesmanNotAssignable": "这个业务员当前不能加入团队，可能已经归属其他团队。",
       "managerNotAssignable": "这个经理当前不能分配到该团队，可能已经负责其他团队。",
       "cannotManageTeam": "当前账号暂时不能管理团队资料。",
