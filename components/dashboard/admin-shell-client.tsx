@@ -8,8 +8,10 @@ import {
   ArrowLeftRight,
   ClipboardList,
   GitBranchPlus,
+  Home,
   LoaderCircle,
   LogOut,
+  Megaphone,
   ShoppingCart,
   ShieldCheck,
   UserRound,
@@ -39,8 +41,10 @@ type AdminShellLogoutButtonProps = {
 };
 
 const NAV_ICONS: Record<WorkspaceNavItem["segment"], LucideIcon> = {
+  announcements: Megaphone,
   commission: WalletCards,
   "exchange-rates": ArrowLeftRight,
+  home: Home,
   my: UserRound,
   orders: ShoppingCart,
   referrals: GitBranchPlus,

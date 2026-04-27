@@ -14,5 +14,5 @@ export default async function WorkspacePage({ params }: WorkspacePageProps) {
     notFound();
   }
 
-  redirect(`${config.basePath}/my`);
+  redirect(`${config.basePath}/home`);
 }

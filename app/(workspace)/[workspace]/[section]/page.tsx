@@ -7,6 +7,7 @@ import { getTranslations } from "next-intl/server";
 
 import { AdminSectionPlaceholder } from "@/components/dashboard/admin-section-placeholder";
 import { ScopedIntlProvider } from "@/components/i18n/scoped-intl-provider";
+import { getAdminAnnouncementsPageData } from "@/lib/announcements";
 import {
   getAdminOrdersPageData,
   parseAdminOrdersSearchParams,
@@ -39,6 +40,13 @@ const AdminCommissionClient = dynamic(
   () =>
     import("@/components/dashboard/commission/admin-commission-client").then(
       (mod) => mod.AdminCommissionClient,
+    ),
+);
+
+const AdminAnnouncementsClient = dynamic(
+  () =>
+    import("@/components/dashboard/announcements/announcements-client").then(
+      (mod) => mod.AdminAnnouncementsClient,
     ),
 );
 
@@ -152,6 +160,14 @@ export async function generateMetadata({
     };
   }
 
+  if (section === "announcements" && config.pageVariants.announcements) {
+    const t = await getTranslations("Announcements.metadata");
+
+    return {
+      title: t("title"),
+    };
+  }
+
   const sectionT = await getTranslations("WorkspaceSections");
   const fallbackT = await getTranslations(
     `WorkspaceSections.fallbacks.${config.routeSegment}`,
@@ -180,7 +196,11 @@ export default async function WorkspaceSectionPage({
   const namespaces = getSectionNamespaces(section, config);
   let content: ReactNode | null = null;
 
-  if (section === "orders" && config.pageVariants.orders) {
+  if (section === "announcements" && config.pageVariants.announcements) {
+    const supabase = await getServerSupabaseClient();
+    const initialData = await getAdminAnnouncementsPageData(supabase);
+    content = <AdminAnnouncementsClient initialData={initialData} />;
+  } else if (section === "orders" && config.pageVariants.orders) {
     const supabase = await getServerSupabaseClient();
     const orderSearchParams = parseAdminOrdersSearchParams(resolvedSearchParams);
     const initialData = await getAdminOrdersPageData(supabase, {
@@ -276,6 +296,10 @@ function getSectionNamespaces(
 
   if (section === "orders" && config.pageVariants.orders) {
     namespaces.push("Orders", "OrdersUI", "DashboardPagination", "DashboardShared");
+  }
+
+  if (section === "announcements" && config.pageVariants.announcements) {
+    namespaces.push("Announcements", "DashboardShared");
   }
 
   if (section === "commission" && config.pageVariants.commission) {

@@ -19,8 +19,9 @@
 项目已经从早期按角色散落的静态目录，收口到统一的动态工作台结构：
 
 - `app/(auth)`：公开页与认证页，包含 `/`、`/login`、`/register`、`/forgot-password`、`/privacy`、`/terms`
-- `app/(workspace)/[workspace]/my`：各角色共享“我的”页面入口
-- `app/(workspace)/[workspace]/[section]`：按角色动态装配订单、推荐树、团队、佣金、汇率、任务、审核等页面
+- `app/(workspace)/[workspace]/home`：各角色登录后的默认首页，展示北京时间问候和当前角色可见公告
+- `app/(workspace)/[workspace]/my`：各角色共享“我的”个人资料页面入口
+- `app/(workspace)/[workspace]/[section]`：按角色动态装配公告管理、订单、推荐树、团队、佣金、汇率、任务、审核等页面
 - `app/forbidden.tsx`：统一承接越权访问时的访问错误页
 - `proxy.ts`：会话同步、登录保护、工作台访问前置校验
 - `lib/workspace-config.ts`：角色导航、页面变体和工作台配置中心
@@ -32,17 +33,17 @@
 
 | 角色 | 默认入口 | 当前重点模块 |
 | --- | --- | --- |
-| `administrator` | `/admin/my` | `my`、`orders`、`referrals`、`team`、`commission`、`exchange-rates`、`tasks`、`reviews` |
-| `salesman` | `/salesman/my` | `my`、`orders`、`referrals`、`team`、`commission`、`exchange-rates`、`tasks` |
-| `client` | `/client/my` | `my`、`orders`、`referrals`、`team` |
-| `manager` | `/manager/my` | `my`、`referrals`、`team` |
-| `operator` | `/operator/my` | `my`、`referrals`、`team` |
-| `finance` | `/finance/my` | `my`、`referrals`、`team`、`commission` |
-| `recruiter` | `/recruiter/my` | `my`、`referrals`，其余入口仍在逐步收口 |
+| `administrator` | `/admin/home` | `home`、`announcements`、`my`、`orders`、`referrals`、`team`、`commission`、`exchange-rates`、`tasks`、`reviews` |
+| `salesman` | `/salesman/home` | `home`、`my`、`orders`、`referrals`、`team`、`commission`、`exchange-rates`、`tasks` |
+| `client` | `/client/home` | `home`、`my`、`orders`、`referrals`、`team` |
+| `manager` | `/manager/home` | `home`、`my`、`referrals`、`team` |
+| `operator` | `/operator/home` | `home`、`my`、`referrals`、`team` |
+| `finance` | `/finance/home` | `home`、`my`、`referrals`、`team`、`commission` |
+| `recruiter` | `/recruiter/home` | `home`、`my`、`referrals`，其余入口仍在逐步收口 |
 
 说明：
 
-- `/[role]` 会自动重定向到对应的 `/[role]/my`
+- `/[role]` 会自动重定向到对应的 `/[role]/home`
 - 越权访问不会再改写到其他工作台，而是直接展示访问错误页
 - 部分低频角色的业务页仍处于过渡或占位阶段，主线开发以 `administrator`、`salesman`、`client` 为主
 
@@ -93,6 +94,14 @@ baisheng-web/
 - 登录/注册页底部、注册勾选说明，以及各角色“我的”页页脚已接入真实隐私政策与服务条款链接
 - 正文为可上线模板草案，正式对外作为法律文本前仍建议由业务负责人或法律顾问复核
 - 最近验证：`npm run lint`、`npx tsc --noEmit`、`npm run build` 通过；Playwright 已覆盖未登录访问、注册/登录页链接、中英切换，以及管理员登录后“我的”页页脚链接
+
+## 首页与公告（2026-04-27）
+
+- 所有角色登录后的默认入口调整为 `/{role}/home`，首页展示北京时间分段问候和当前账号可见的最新公告
+- 公告数据由 `public.announcements` 承接，发布对象分为 `client`、`internal`、`all`；其中 `internal` 包含管理员、运营、经理、招聘员、业务员和财务等非客户角色
+- 管理员侧新增 `/admin/announcements`，支持创建草稿、编辑、发布和下线公告；其他角色只在首页读取已发布且命中发布对象的公告
+- 前端分层保持独立：`lib/announcements.ts` 负责公告查询和 mutation，`lib/dashboard-home.ts` 负责首页轻量数据，`components/dashboard/dashboard-home/*` 与 `components/dashboard/announcements/*` 分别承接首页和公告管理 UI
+- 本次没有把公告逻辑塞进已经超过 600 行的 `user-self-service.ts` 或 `dashboard-shared-my` 页面文件
 
 ## 上传限制（2026-04-24）
 

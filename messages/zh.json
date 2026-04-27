@@ -265,7 +265,9 @@
     "logout": "退出登录",
     "serviceUnavailable": "当前服务暂时不可用，请稍后再试。",
     "nav": {
+      "home": "首页",
       "my": "我的",
+      "announcements": "公告管理",
       "orders": "订单",
       "referrals": "推荐树",
       "team": "团队",
@@ -333,7 +335,7 @@
     "salesman": "加载中"
   },
   "AdminSectionPlaceholder": {
-    "viewMyPage": "查看我的页面",
+    "viewMyPage": "返回首页",
     "badge": "当前模块会继续按角色扩展对应能力"
   },
   "WorkspaceSections": {
@@ -367,6 +369,10 @@
         "description": "当前模块正在建设中。我们已经把业务工作台的导航结构搭好，后续可以在这个壳子上继续扩展具体内容。"
       }
     },
+    "announcements": {
+      "title": "公告管理",
+      "description": "这里集中维护面向客户、内部成员或全员的系统公告。"
+    },
     "orders": {
       "title": "订单管理",
       "description": "这里将承接订单的查看、筛选、状态流转和异常处理，后续会继续按管理员、业务员、财务和客户角色拆分视图。"
@@ -395,6 +401,84 @@
       "title": "审核中心",
       "description": "这里将处理资料审核、实名认证、风险复核和审批流。后续运营、经理与客户角色也可以从这里派生不同的审核视图。"
     }
+  },
+  "DashboardHome": {
+    "title": "欢迎回来，{name}",
+    "subtitle": "这里汇总当前工作台的最新公告和关键提醒，便于你先了解系统内的重要消息。",
+    "unnamedUser": "同事",
+    "greeting": {
+      "morning": "早上好",
+      "noon": "中午好",
+      "afternoon": "下午好",
+      "evening": "晚上好"
+    },
+    "announcements": {
+      "title": "公告栏",
+      "description": "仅展示当前账号可见且已经发布的最新公告。",
+      "emptyTitle": "暂无公告",
+      "emptyDescription": "管理员发布公告后，会在这里展示最新内容。"
+    }
+  },
+  "Announcements": {
+    "metadata": {
+      "title": "公告管理"
+    },
+    "audience": {
+      "client": "客户角色",
+      "internal": "内部角色",
+      "all": "所有角色"
+    },
+    "status": {
+      "draft": "草稿",
+      "published": "已发布",
+      "offline": "已下线"
+    },
+    "header": {
+      "title": "公告管理",
+      "description": "管理员可以集中创建、编辑、发布和下线公告，并按发布对象控制客户、内部成员或所有角色的可见范围。",
+      "create": "新建公告"
+    },
+    "filters": {
+      "statusLabel": "状态",
+      "audienceLabel": "发布对象",
+      "allStatuses": "全部状态",
+      "allAudiences": "全部对象"
+    },
+    "list": {
+      "emptyTitle": "没有匹配的公告",
+      "emptyDescription": "调整筛选条件，或新建一条公告后再发布。",
+      "publishedAt": "发布时间",
+      "updatedAt": "更新时间",
+      "createdAt": "创建时间",
+      "edit": "编辑",
+      "publish": "发布",
+      "offline": "下线"
+    },
+    "dialog": {
+      "createTitle": "新建公告",
+      "createDescription": "先保存为草稿，确认内容后再从列表中发布。",
+      "editTitle": "编辑公告",
+      "editDescription": "修改公告内容或发布对象后，将影响后续可见范围。",
+      "titleLabel": "公告标题",
+      "titlePlaceholder": "请输入公告标题",
+      "audienceLabel": "发布对象",
+      "contentLabel": "公告内容",
+      "contentPlaceholder": "请输入公告正文",
+      "cancel": "取消",
+      "createSubmit": "保存草稿",
+      "editSubmit": "保存修改"
+    },
+    "feedback": {
+      "missingTitle": "请填写公告标题。",
+      "missingContent": "请填写公告内容。",
+      "createSuccess": "公告草稿已创建。",
+      "updateSuccess": "公告已更新。",
+      "publishSuccess": "公告已发布。",
+      "offlineSuccess": "公告已下线。",
+      "unknownError": "公告操作失败，请稍后再试。"
+    },
+    "noPermissionTitle": "无法管理公告",
+    "noPermissionDescription": "当前账号没有公告管理权限。"
   },
   "DashboardShared": {
     "loading": "加载中",

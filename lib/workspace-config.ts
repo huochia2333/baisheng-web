@@ -19,9 +19,11 @@ export type WorkspaceRouteSegment = (typeof workspaceRouteSegments)[number];
 
 export type WorkspaceLoadingTitleKey = WorkspaceRouteSegment;
 
-export type WorkspaceNavSegment = "my" | WorkspaceSectionKey;
+export type WorkspaceNavSegment = "home" | "my" | WorkspaceSectionKey;
 
 export type WorkspaceNavLabelKey =
+  | "announcements"
+  | "home"
   | "my"
   | "orders"
   | "referrals"
@@ -42,6 +44,7 @@ export type WorkspaceNavItem = {
 };
 
 export type WorkspacePageVariants = {
+  announcements?: true;
   commission?: WorkspaceCommissionPageMode;
   exchangeRates?: WorkspaceExchangeRatesMode;
   orders?: WorkspaceOrdersPageMode;
@@ -61,12 +64,14 @@ export type WorkspaceRouteConfig = {
 };
 
 const managerNavItems = [
+  { segment: "home", labelKey: "home" },
   { segment: "my", labelKey: "my" },
   { segment: "referrals", labelKey: "referrals" },
   { segment: "team", labelKey: "team" },
 ] as const satisfies readonly WorkspaceNavItem[];
 
 const staffReadNavItems = [
+  { segment: "home", labelKey: "home" },
   { segment: "my", labelKey: "my" },
   { segment: "referrals", labelKey: "referrals" },
   { segment: "team", labelKey: "team" },
@@ -78,12 +83,14 @@ const financeNavItems = [
 ] as const satisfies readonly WorkspaceNavItem[];
 
 const clientNavItems = [
+  { segment: "home", labelKey: "home" },
   { segment: "my", labelKey: "my" },
   { segment: "orders", labelKey: "orders" },
   { segment: "referrals", labelKey: "referrals" },
 ] as const satisfies readonly WorkspaceNavItem[];
 
 const recruiterNavItems = [
+  { segment: "home", labelKey: "home" },
   { segment: "my", labelKey: "my" },
   { segment: "referrals", labelKey: "referrals" },
   { segment: "commission", labelKey: "commission" },
@@ -91,6 +98,7 @@ const recruiterNavItems = [
 ] as const satisfies readonly WorkspaceNavItem[];
 
 const sharedNavItems = [
+  { segment: "home", labelKey: "home" },
   { segment: "my", labelKey: "my" },
   { segment: "orders", labelKey: "orders" },
   { segment: "referrals", labelKey: "referrals" },
@@ -101,7 +109,9 @@ const sharedNavItems = [
 ] as const satisfies readonly WorkspaceNavItem[];
 
 const adminNavItems = [
-  ...sharedNavItems,
+  { segment: "home", labelKey: "home" },
+  { segment: "announcements", labelKey: "announcements" },
+  ...sharedNavItems.filter((item) => item.segment !== "home"),
   { segment: "reviews", labelKey: "reviews" },
 ] as const satisfies readonly WorkspaceNavItem[];
 
@@ -112,6 +122,7 @@ const WORKSPACE_ROUTE_CONFIG_BY_SEGMENT = {
     initials: "AD",
     navItems: adminNavItems,
     pageVariants: {
+      announcements: true,
       commission: "admin",
       exchangeRates: "manage",
       orders: "admin",
@@ -244,11 +255,11 @@ export function getWorkspaceNavHref(
       ? WORKSPACE_ROUTE_CONFIG_BY_SEGMENT[configOrSegment]
       : configOrSegment;
 
-  return segment === "my" ? `${config.basePath}/my` : `${config.basePath}/${segment}`;
+  return `${config.basePath}/${segment}`;
 }
 
 export function getWorkspaceHomeHref(
   configOrSegment: WorkspaceRouteConfig | WorkspaceRouteSegment,
 ) {
-  return getWorkspaceNavHref(configOrSegment, "my");
+  return getWorkspaceNavHref(configOrSegment, "home");
 }

@@ -92,7 +92,7 @@ export function WorkspaceSessionProvider({
           const desiredBasePath = getDefaultWorkspaceBasePath(role);
 
           if (currentBasePath !== desiredBasePath) {
-            const suffix = pathname.slice(currentBasePath.length) || "/my";
+            const suffix = pathname.slice(currentBasePath.length) || "/home";
             router.replace(`${desiredBasePath}${suffix}`);
             return;
           }

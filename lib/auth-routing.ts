@@ -75,5 +75,5 @@ export function getWorkspaceBasePath(pathname: string): WorkspaceBasePath | null
 }
 
 export function getDefaultSignedInPathForRole(role: AppRole | null) {
-  return `${getDefaultWorkspaceBasePath(role)}/my`;
+  return `${getDefaultWorkspaceBasePath(role)}/home`;
 }

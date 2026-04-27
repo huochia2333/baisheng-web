@@ -1,0 +1,61 @@
+import type {
+  AnnouncementAudience,
+  AnnouncementRow,
+  AnnouncementStatus,
+} from "@/lib/announcements";
+
+export type AnnouncementFormState = {
+  audience: AnnouncementAudience;
+  content: string;
+  title: string;
+};
+
+export const announcementAudienceValues: readonly AnnouncementAudience[] = [
+  "client",
+  "internal",
+  "all",
+];
+
+export const announcementStatusValues: readonly AnnouncementStatus[] = [
+  "draft",
+  "published",
+  "offline",
+];
+
+export function createEmptyAnnouncementForm(): AnnouncementFormState {
+  return {
+    audience: "all",
+    content: "",
+    title: "",
+  };
+}
+
+export function createAnnouncementFormFromRow(
+  row: AnnouncementRow,
+): AnnouncementFormState {
+  return {
+    audience: row.audience,
+    content: row.content,
+    title: row.title,
+  };
+}
+
+export function formatAnnouncementDate(value: string | null, locale: string) {
+  if (!value) {
+    return "";
+  }
+
+  return new Intl.DateTimeFormat(locale, {
+    dateStyle: "medium",
+    timeStyle: "short",
+    timeZone: "Asia/Shanghai",
+  }).format(new Date(value));
+}
+
+export function toAnnouncementErrorMessage(error: unknown, fallback: string) {
+  if (error instanceof Error && error.message.trim()) {
+    return error.message;
+  }
+
+  return fallback;
+}

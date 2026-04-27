@@ -265,7 +265,9 @@
     "logout": "Sign Out",
     "serviceUnavailable": "The service is temporarily unavailable. Please try again later.",
     "nav": {
+      "home": "Home",
       "my": "My Profile",
+      "announcements": "Announcements",
       "orders": "Orders",
       "referrals": "Referral Tree",
       "team": "Team",
@@ -333,7 +335,7 @@
     "salesman": "loading"
   },
   "AdminSectionPlaceholder": {
-    "viewMyPage": "Open My Page",
+    "viewMyPage": "Back to Home",
     "badge": "This module will continue to grow with role-specific capabilities."
   },
   "WorkspaceSections": {
@@ -367,6 +369,10 @@
         "description": "This module is still under construction. The sales workspace navigation is already in place, and detailed capability can continue to grow on top of this shell."
       }
     },
+    "announcements": {
+      "title": "Announcement Management",
+      "description": "Maintain system announcements for clients, internal members, or every role."
+    },
     "orders": {
       "title": "Order Management",
       "description": "This area will handle order browsing, filtering, status flow, and exception handling. It will later be split into role-specific views for administrators, sales, finance, and clients."
@@ -395,6 +401,84 @@
       "title": "Review Center",
       "description": "This section will handle document review, identity verification, risk checks, and approval flows. It can later branch into role-specific review views for operators, managers, and clients."
     }
+  },
+  "DashboardHome": {
+    "title": "Welcome back, {name}",
+    "subtitle": "Review the latest workspace announcements and key notices before moving into daily work.",
+    "unnamedUser": "teammate",
+    "greeting": {
+      "morning": "Good morning",
+      "noon": "Good noon",
+      "afternoon": "Good afternoon",
+      "evening": "Good evening"
+    },
+    "announcements": {
+      "title": "Announcements",
+      "description": "Only published announcements visible to this account are shown here.",
+      "emptyTitle": "No announcements",
+      "emptyDescription": "New published announcements will appear here."
+    }
+  },
+  "Announcements": {
+    "metadata": {
+      "title": "Announcement Management"
+    },
+    "audience": {
+      "client": "Client roles",
+      "internal": "Internal roles",
+      "all": "All roles"
+    },
+    "status": {
+      "draft": "Draft",
+      "published": "Published",
+      "offline": "Offline"
+    },
+    "header": {
+      "title": "Announcement Management",
+      "description": "Administrators can create, edit, publish, and take down announcements while controlling whether clients, internal members, or every role can see them.",
+      "create": "New Announcement"
+    },
+    "filters": {
+      "statusLabel": "Status",
+      "audienceLabel": "Audience",
+      "allStatuses": "All statuses",
+      "allAudiences": "All audiences"
+    },
+    "list": {
+      "emptyTitle": "No matching announcements",
+      "emptyDescription": "Adjust the filters or create and publish a new announcement.",
+      "publishedAt": "Published",
+      "updatedAt": "Updated",
+      "createdAt": "Created",
+      "edit": "Edit",
+      "publish": "Publish",
+      "offline": "Take Offline"
+    },
+    "dialog": {
+      "createTitle": "New Announcement",
+      "createDescription": "Save the announcement as a draft first, then publish it from the list after review.",
+      "editTitle": "Edit Announcement",
+      "editDescription": "Changes to content or audience affect who can see this announcement next.",
+      "titleLabel": "Title",
+      "titlePlaceholder": "Enter announcement title",
+      "audienceLabel": "Audience",
+      "contentLabel": "Content",
+      "contentPlaceholder": "Enter announcement content",
+      "cancel": "Cancel",
+      "createSubmit": "Save Draft",
+      "editSubmit": "Save Changes"
+    },
+    "feedback": {
+      "missingTitle": "Enter an announcement title.",
+      "missingContent": "Enter announcement content.",
+      "createSuccess": "Announcement draft created.",
+      "updateSuccess": "Announcement updated.",
+      "publishSuccess": "Announcement published.",
+      "offlineSuccess": "Announcement taken offline.",
+      "unknownError": "Announcement action failed. Please try again later."
+    },
+    "noPermissionTitle": "Cannot manage announcements",
+    "noPermissionDescription": "The current account does not have announcement management permission."
   },
   "DashboardShared": {
     "loading": "loading",
