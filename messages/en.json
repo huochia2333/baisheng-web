@@ -452,7 +452,8 @@
       "createdAt": "Created",
       "edit": "Edit",
       "publish": "Publish",
-      "offline": "Take Offline"
+      "offline": "Take Offline",
+      "delete": "Delete"
     },
     "dialog": {
       "createTitle": "New Announcement",
@@ -475,6 +476,8 @@
       "updateSuccess": "Announcement updated.",
       "publishSuccess": "Announcement published.",
       "offlineSuccess": "Announcement taken offline.",
+      "deleteSuccess": "Announcement deleted.",
+      "deleteConfirm": "Delete announcement \"{title}\"? This cannot be undone.",
       "unknownError": "Announcement action failed. Please try again later."
     },
     "noPermissionTitle": "Cannot manage announcements",

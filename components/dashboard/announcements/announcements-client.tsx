@@ -69,13 +69,14 @@ export function AdminAnnouncementsClient({
           statusFilter={viewModel.statusFilter}
         />
         <AnnouncementsListSection
-          actionPendingId={viewModel.actionPendingId}
           announcements={viewModel.filteredAnnouncements}
           copy={copy.list}
           locale={locale}
+          onDelete={viewModel.handleDelete}
           onEdit={viewModel.openEditDialog}
           onOffline={viewModel.handleTakeOffline}
           onPublish={viewModel.handlePublish}
+          pendingAction={viewModel.pendingAction}
         />
       </section>
 
@@ -127,6 +128,8 @@ function createAnnouncementsCopy(t: Translator) {
     },
     feedback: {
       createSuccess: t("feedback.createSuccess"),
+      deleteConfirm: (title: string) => t("feedback.deleteConfirm", { title }),
+      deleteSuccess: t("feedback.deleteSuccess"),
       missingContent: t("feedback.missingContent"),
       missingTitle: t("feedback.missingTitle"),
       offlineSuccess: t("feedback.offlineSuccess"),
@@ -150,6 +153,7 @@ function createAnnouncementsCopy(t: Translator) {
     list: {
       audienceOptions,
       createdAt: t("list.createdAt"),
+      delete: t("list.delete"),
       edit: t("list.edit"),
       emptyDescription: t("list.emptyDescription"),
       emptyTitle: t("list.emptyTitle"),

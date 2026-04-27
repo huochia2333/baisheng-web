@@ -157,6 +157,30 @@ export async function updateAnnouncement(
   return data;
 }
 
+export async function deleteAnnouncement(
+  supabase: SupabaseClient,
+  announcementId: string,
+) {
+  const { data, error } = await withRequestTimeout(
+    supabase
+      .from("announcements")
+      .delete()
+      .eq("id", announcementId)
+      .select("id")
+      .maybeSingle<{ id: string }>(),
+  );
+
+  if (error) {
+    throw error;
+  }
+
+  if (!data) {
+    throw new Error("Announcement was not found.");
+  }
+
+  return data;
+}
+
 export async function publishAnnouncement(
   supabase: SupabaseClient,
   announcementId: string,

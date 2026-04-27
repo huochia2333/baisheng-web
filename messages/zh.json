@@ -452,7 +452,8 @@
       "createdAt": "创建时间",
       "edit": "编辑",
       "publish": "发布",
-      "offline": "下线"
+      "offline": "下线",
+      "delete": "删除"
     },
     "dialog": {
       "createTitle": "新建公告",
@@ -475,6 +476,8 @@
       "updateSuccess": "公告已更新。",
       "publishSuccess": "公告已发布。",
       "offlineSuccess": "公告已下线。",
+      "deleteSuccess": "公告已删除。",
+      "deleteConfirm": "确认删除公告“{title}”？删除后无法恢复。",
       "unknownError": "公告操作失败，请稍后再试。"
     },
     "noPermissionTitle": "无法管理公告",

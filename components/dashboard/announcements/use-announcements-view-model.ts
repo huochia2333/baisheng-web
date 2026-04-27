@@ -5,6 +5,7 @@ import { useCallback, useMemo, useState } from "react";
 import { markBrowserCloudSyncActivity } from "@/lib/browser-sync-recovery";
 import {
   createAnnouncement,
+  deleteAnnouncement,
   getAdminAnnouncementsPageData,
   publishAnnouncement,
   sortAnnouncements,
@@ -27,10 +28,17 @@ import {
 } from "./announcements-display";
 
 type Feedback = { tone: NoticeTone; message: string } | null;
+type AnnouncementAction = "delete" | "offline" | "publish";
+type PendingAnnouncementAction = {
+  id: string;
+  type: AnnouncementAction;
+} | null;
 
 type UseAdminAnnouncementsViewModelOptions = {
   copy: {
     createSuccess: string;
+    deleteConfirm: (title: string) => string;
+    deleteSuccess: string;
     missingContent: string;
     missingTitle: string;
     offlineSuccess: string;
@@ -61,7 +69,8 @@ export function useAdminAnnouncementsViewModel({
     "all",
   );
   const [submitPending, setSubmitPending] = useState(false);
-  const [actionPendingId, setActionPendingId] = useState<string | null>(null);
+  const [pendingAction, setPendingAction] =
+    useState<PendingAnnouncementAction>(null);
 
   const applyPageData = useCallback((pageData: AdminAnnouncementsPageData) => {
     setHasPermission(pageData.hasPermission);
@@ -206,11 +215,11 @@ export function useAdminAnnouncementsViewModel({
 
   const handlePublish = useCallback(
     async (announcement: AnnouncementRow) => {
-      if (!supabase || actionPendingId) {
+      if (!supabase || pendingAction) {
         return;
       }
 
-      setActionPendingId(announcement.id);
+      setPendingAction({ id: announcement.id, type: "publish" });
       setPageFeedback(null);
 
       try {
@@ -234,19 +243,19 @@ export function useAdminAnnouncementsViewModel({
           message: toAnnouncementErrorMessage(error, copy.unknownError),
         });
       } finally {
-        setActionPendingId(null);
+        setPendingAction(null);
       }
     },
-    [actionPendingId, copy.publishSuccess, copy.unknownError, supabase],
+    [copy.publishSuccess, copy.unknownError, pendingAction, supabase],
   );
 
   const handleTakeOffline = useCallback(
     async (announcement: AnnouncementRow) => {
-      if (!supabase || actionPendingId) {
+      if (!supabase || pendingAction) {
         return;
       }
 
-      setActionPendingId(announcement.id);
+      setPendingAction({ id: announcement.id, type: "offline" });
       setPageFeedback(null);
 
       try {
@@ -270,14 +279,46 @@ export function useAdminAnnouncementsViewModel({
           message: toAnnouncementErrorMessage(error, copy.unknownError),
         });
       } finally {
-        setActionPendingId(null);
+        setPendingAction(null);
       }
     },
-    [actionPendingId, copy.offlineSuccess, copy.unknownError, supabase],
+    [copy.offlineSuccess, copy.unknownError, pendingAction, supabase],
+  );
+
+  const handleDelete = useCallback(
+    async (announcement: AnnouncementRow) => {
+      if (!supabase || pendingAction) {
+        return;
+      }
+
+      if (!window.confirm(copy.deleteConfirm(announcement.title))) {
+        return;
+      }
+
+      setPendingAction({ id: announcement.id, type: "delete" });
+      setPageFeedback(null);
+
+      try {
+        await deleteAnnouncement(supabase, announcement.id);
+
+        markBrowserCloudSyncActivity();
+        setAnnouncements((current) =>
+          current.filter((item) => item.id !== announcement.id),
+        );
+        setPageFeedback({ tone: "success", message: copy.deleteSuccess });
+      } catch (error) {
+        setPageFeedback({
+          tone: "error",
+          message: toAnnouncementErrorMessage(error, copy.unknownError),
+        });
+      } finally {
+        setPendingAction(null);
+      }
+    },
+    [copy, pendingAction, supabase],
   );
 
   return {
-    actionPendingId,
     audienceFilter,
     dialogFeedback,
     dialogOpen,
@@ -285,6 +326,7 @@ export function useAdminAnnouncementsViewModel({
     filteredAnnouncements,
     formState,
     hasPermission,
+    handleDelete,
     handleDialogOpenChange,
     handlePublish,
     handleSubmit,
@@ -292,6 +334,7 @@ export function useAdminAnnouncementsViewModel({
     openCreateDialog,
     openEditDialog,
     pageFeedback,
+    pendingAction,
     setAudienceFilter,
     setStatusFilter,
     statusFilter,

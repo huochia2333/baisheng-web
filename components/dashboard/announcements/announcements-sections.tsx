@@ -1,6 +1,13 @@
 "use client";
 
-import { Edit3, LoaderCircle, Megaphone, Radio, Search } from "lucide-react";
+import {
+  Edit3,
+  LoaderCircle,
+  Megaphone,
+  Radio,
+  Search,
+  Trash2,
+} from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import type {
@@ -41,11 +48,11 @@ type AnnouncementsFilterSectionProps = {
 };
 
 type AnnouncementsListSectionProps = {
-  actionPendingId: string | null;
   announcements: AnnouncementRow[];
   copy: {
     audienceOptions: Record<AnnouncementAudience, string>;
     createdAt: string;
+    delete: string;
     edit: string;
     emptyDescription: string;
     emptyTitle: string;
@@ -56,9 +63,14 @@ type AnnouncementsListSectionProps = {
     updatedAt: string;
   };
   locale: string;
+  onDelete: (announcement: AnnouncementRow) => void;
   onEdit: (announcement: AnnouncementRow) => void;
   onOffline: (announcement: AnnouncementRow) => void;
   onPublish: (announcement: AnnouncementRow) => void;
+  pendingAction: {
+    id: string;
+    type: "delete" | "offline" | "publish";
+  } | null;
 };
 
 const selectClassName =
@@ -148,13 +160,14 @@ export function AnnouncementsFilterSection({
 }
 
 export function AnnouncementsListSection({
-  actionPendingId,
   announcements,
   copy,
   locale,
+  onDelete,
   onEdit,
   onOffline,
   onPublish,
+  pendingAction,
 }: AnnouncementsListSectionProps) {
   return (
     <section className="rounded-[28px] border border-white/85 bg-white/72 p-5 shadow-[0_18px_45px_rgba(96,113,128,0.06)] sm:p-6 xl:p-8">
@@ -167,7 +180,13 @@ export function AnnouncementsListSection({
       ) : (
         <div className="space-y-4">
           {announcements.map((announcement) => {
-            const actionPending = actionPendingId === announcement.id;
+            const actionPending = pendingAction?.id === announcement.id;
+            const deletePending =
+              actionPending && pendingAction?.type === "delete";
+            const offlinePending =
+              actionPending && pendingAction?.type === "offline";
+            const publishPending =
+              actionPending && pendingAction?.type === "publish";
 
             return (
               <article
@@ -225,7 +244,7 @@ export function AnnouncementsListSection({
                         onClick={() => onOffline(announcement)}
                         variant="outline"
                       >
-                        {actionPending ? (
+                        {offlinePending ? (
                           <LoaderCircle className="size-4 animate-spin" />
                         ) : (
                           <Radio className="size-4" />
@@ -238,7 +257,7 @@ export function AnnouncementsListSection({
                         disabled={actionPending}
                         onClick={() => onPublish(announcement)}
                       >
-                        {actionPending ? (
+                        {publishPending ? (
                           <LoaderCircle className="size-4 animate-spin" />
                         ) : (
                           <Radio className="size-4" />
@@ -246,6 +265,19 @@ export function AnnouncementsListSection({
                         {copy.publish}
                       </Button>
                     )}
+                    <Button
+                      className="h-10 rounded-full border-[#e5c6c6] bg-white px-4 text-[#b64a4a] hover:bg-[#fff2f2]"
+                      disabled={actionPending}
+                      onClick={() => onDelete(announcement)}
+                      variant="outline"
+                    >
+                      {deletePending ? (
+                        <LoaderCircle className="size-4 animate-spin" />
+                      ) : (
+                        <Trash2 className="size-4" />
+                      )}
+                      {copy.delete}
+                    </Button>
                   </div>
                 </div>
               </article>
