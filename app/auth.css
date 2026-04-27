@@ -9,6 +9,7 @@
 @source "./(auth)/forgot-password";
 @source "./(auth)/privacy";
 @source "./(auth)/terms";
+@source "./(auth)/help";
 @source "../components/auth";
 @source "../components/i18n";
 @source "../components/legal";

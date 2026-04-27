@@ -46,6 +46,7 @@ export async function getLegalPageCopy(pageKey: LegalPageKey): Promise<LegalPage
     nav: {
       privacy: commonT("nav.privacy"),
       terms: commonT("nav.terms"),
+      help: commonT("nav.help"),
     },
     sections: content.sections,
     title: content.title,

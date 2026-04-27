@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ArrowLeft, GalleryVerticalEnd, ShieldCheck } from "lucide-react";
 
+import { ScopedIntlProvider } from "@/components/i18n/scoped-intl-provider";
 import { LanguageToggle } from "@/components/i18n/language-toggle";
 import type { LegalPageCopy } from "@/lib/legal-content";
 import { LEGAL_LINKS } from "@/lib/legal-routes";
@@ -36,7 +37,9 @@ export function LegalPage({ activePath, copy }: LegalPageProps) {
             </span>
           </Link>
 
-          <LanguageToggle />
+          <ScopedIntlProvider namespaces={["LanguageToggle"]}>
+            <LanguageToggle />
+          </ScopedIntlProvider>
         </header>
 
         <section className="grid gap-8 lg:grid-cols-[minmax(0,0.78fr)_minmax(0,1.22fr)]">

@@ -42,7 +42,8 @@
       "draftNotice": "This policy page is a practical template draft for the Baisheng Management System. It should be reviewed by the business owner or legal counsel before being treated as final legal advice.",
       "nav": {
         "privacy": "Privacy Policy",
-        "terms": "Terms of Service"
+        "terms": "Terms of Service",
+        "help": "Help Center"
       }
     },
     "privacy": {

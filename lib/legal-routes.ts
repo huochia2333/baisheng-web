@@ -1,5 +1,6 @@
 export const PRIVACY_POLICY_PATH = "/privacy";
 export const TERMS_OF_SERVICE_PATH = "/terms";
+export const HELP_CENTER_PATH = "/help";
 
 export const LEGAL_LINKS = [
   {
@@ -9,6 +10,10 @@ export const LEGAL_LINKS = [
   {
     key: "terms",
     href: TERMS_OF_SERVICE_PATH,
+  },
+  {
+    key: "help",
+    href: HELP_CENTER_PATH,
   },
 ] as const;
 

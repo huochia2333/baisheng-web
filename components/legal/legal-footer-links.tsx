@@ -1,6 +1,10 @@
 import Link from "next/link";
 
-import { PRIVACY_POLICY_PATH, TERMS_OF_SERVICE_PATH } from "@/lib/legal-routes";
+import {
+  HELP_CENTER_PATH,
+  PRIVACY_POLICY_PATH,
+  TERMS_OF_SERVICE_PATH,
+} from "@/lib/legal-routes";
 import { cn } from "@/lib/utils";
 
 type LegalFooterLinksCopy = {
@@ -33,9 +37,9 @@ export function LegalFooterLinks({
       <Link className={resolvedLinkClassName} href={TERMS_OF_SERVICE_PATH}>
         {copy.terms}
       </Link>
-      <a className={resolvedLinkClassName} href="#">
+      <Link className={resolvedLinkClassName} href={HELP_CENTER_PATH}>
         {copy.help}
-      </a>
+      </Link>
     </div>
   );
 }

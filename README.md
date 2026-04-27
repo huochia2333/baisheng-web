@@ -18,7 +18,7 @@
 
 项目已经从早期按角色散落的静态目录，收口到统一的动态工作台结构：
 
-- `app/(auth)`：公开页与认证页，包含 `/`、`/login`、`/register`、`/forgot-password`、`/privacy`、`/terms`
+- `app/(auth)`：公开页与认证页，包含 `/`、`/login`、`/register`、`/forgot-password`、`/privacy`、`/terms`、`/help`
 - `app/(workspace)/[workspace]/home`：各角色登录后的默认首页，展示北京时间问候和当前角色可见公告
 - `app/(workspace)/[workspace]/my`：各角色共享“我的”个人资料页面入口
 - `app/(workspace)/[workspace]/[section]`：按角色动态装配公告管理、订单、推荐树、团队、佣金、汇率、任务、审核等页面
@@ -89,9 +89,9 @@ baisheng-web/
 
 ## 公开法律页面（2026-04-24）
 
-- 新增 `/privacy` 隐私政策页与 `/terms` 服务条款页，位于 `app/(auth)/privacy` 和 `app/(auth)/terms`
+- 新增 `/privacy` 隐私政策页、`/terms` 服务条款页与 `/help` 帮助中心页，位于 `app/(auth)/privacy`、`app/(auth)/terms` 和 `app/(auth)/help`
 - 页面导航与返回文案仍使用 `messages/zh.json`、`messages/en.json` 下的 `Legal` 命名空间；正式法律正文集中维护在 `lib/legal-formal-content.ts`
-- 登录/注册页底部、注册勾选说明，以及各角色“我的”页页脚已接入真实隐私政策与服务条款链接
+- 登录/注册页底部、注册勾选说明，以及各角色“我的”页页脚已接入真实隐私政策、服务条款和帮助中心链接
 - 正文已改为更正式的公开法律文本，覆盖隐私政策中的信息处理主体、敏感个人信息、共享披露、保存安全和用户权利，以及服务条款中的账号权限、用户行为、提交审核、知识产权、责任限制和争议解决
 - 最近验证：`npm run lint`、`npx tsc --noEmit`、`npm run build` 通过；Playwright 已覆盖未登录访问、注册/登录页链接、中英切换，以及管理员登录后“我的”页页脚链接
 
