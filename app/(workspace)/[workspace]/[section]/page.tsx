@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import type { ReactNode } from "react";
 
 import dynamic from "next/dynamic";
-import { notFound } from "next/navigation";
+import { forbidden, notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 
 import { AdminSectionPlaceholder } from "@/components/dashboard/admin-section-placeholder";
@@ -30,6 +30,7 @@ import {
   type WorkspaceRouteConfig,
 } from "@/lib/workspace-config";
 import { getWorkspaceSectionKey } from "@/lib/workspace-sections";
+import type { WorkspaceSectionKey } from "@/lib/workspace-sections";
 
 type SectionPageProps = {
   params: Promise<{ section: string; workspace: string }>;
@@ -194,7 +195,12 @@ export default async function WorkspaceSectionPage({
   }
 
   const namespaces = getSectionNamespaces(section, config);
+  const sectionKey = getWorkspaceSectionKey(section);
   let content: ReactNode | null = null;
+
+  if (sectionKey && !isWorkspaceSectionEnabled(sectionKey, config)) {
+    forbidden();
+  }
 
   if (section === "announcements" && config.pageVariants.announcements) {
     const supabase = await getServerSupabaseClient();
@@ -270,7 +276,6 @@ export default async function WorkspaceSectionPage({
     const fallbackT = await getTranslations(
       `WorkspaceSections.fallbacks.${config.routeSegment}`,
     );
-    const sectionKey = getWorkspaceSectionKey(section);
     const title = sectionKey ? sectionT(`${sectionKey}.title`) : fallbackT("title");
     const description = sectionKey
       ? sectionT(`${sectionKey}.description`)
@@ -286,6 +291,30 @@ export default async function WorkspaceSectionPage({
   }
 
   return <ScopedIntlProvider namespaces={namespaces}>{content}</ScopedIntlProvider>;
+}
+
+function isWorkspaceSectionEnabled(
+  section: WorkspaceSectionKey,
+  config: WorkspaceRouteConfig,
+) {
+  switch (section) {
+    case "announcements":
+      return config.pageVariants.announcements === true;
+    case "commission":
+      return Boolean(config.pageVariants.commission);
+    case "exchange-rates":
+      return Boolean(config.pageVariants.exchangeRates);
+    case "orders":
+      return Boolean(config.pageVariants.orders);
+    case "referrals":
+      return config.pageVariants.referrals === true;
+    case "reviews":
+      return config.pageVariants.reviews === true;
+    case "tasks":
+      return Boolean(config.pageVariants.tasks);
+    case "team":
+      return config.pageVariants.team === true;
+  }
 }
 
 function getSectionNamespaces(

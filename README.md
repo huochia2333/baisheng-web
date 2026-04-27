@@ -35,17 +35,17 @@
 | --- | --- | --- |
 | `administrator` | `/admin/home` | `home`、`announcements`、`my`、`orders`、`referrals`、`team`、`commission`、`exchange-rates`、`tasks`、`reviews` |
 | `salesman` | `/salesman/home` | `home`、`my`、`orders`、`referrals`、`team`、`commission`、`exchange-rates`、`tasks` |
-| `client` | `/client/home` | `home`、`my`、`orders`、`referrals`、`team` |
+| `client` | `/client/home` | `home`、`my`、`orders`、`referrals` |
 | `manager` | `/manager/home` | `home`、`my`、`referrals`、`team` |
 | `operator` | `/operator/home` | `home`、`my`、`referrals`、`team` |
 | `finance` | `/finance/home` | `home`、`my`、`referrals`、`team`、`commission` |
-| `recruiter` | `/recruiter/home` | `home`、`my`、`referrals`，其余入口仍在逐步收口 |
+| `recruiter` | `/recruiter/home` | `home`、`my`、`referrals` |
 
 说明：
 
 - `/[role]` 会自动重定向到对应的 `/[role]/home`
 - 越权访问不会再改写到其他工作台，而是直接展示访问错误页
-- 部分低频角色的业务页仍处于过渡或占位阶段，主线开发以 `administrator`、`salesman`、`client` 为主
+- 角色导航只展示当前已启用模块；已知但未授权的同工作台模块会展示访问错误页，而不是继续显示占位入口
 
 ## 目录结构
 
@@ -84,15 +84,15 @@ baisheng-web/
 
 - `components/dashboard` 已按功能拆分；根目录只保留工作台壳层和共享 UI
 - `components/legal` 承接公开法律页和隐私/条款页脚链接，避免把 legal 展示继续堆进认证或“我的”核心文件
-- 超过 `1000` 行的大文件需要继续拆分，避免再积累结构债
+- 单文件超过 `400-600` 行，或出现 3 个以上独立职责时，需要优先拆成 `queries`、`mutations`、`view-model hook`、`dialog`、`section/table` 或 `display-utils`
 - `output/playwright` 用于保留有价值的截图和报告，不存放长期无用的临时控制台垃圾
 
 ## 公开法律页面（2026-04-24）
 
 - 新增 `/privacy` 隐私政策页与 `/terms` 服务条款页，位于 `app/(auth)/privacy` 和 `app/(auth)/terms`
-- 页面内容使用 `messages/zh.json`、`messages/en.json` 下的 `Legal` 命名空间维护，支持中英文切换
+- 页面导航与返回文案仍使用 `messages/zh.json`、`messages/en.json` 下的 `Legal` 命名空间；正式法律正文集中维护在 `lib/legal-formal-content.ts`
 - 登录/注册页底部、注册勾选说明，以及各角色“我的”页页脚已接入真实隐私政策与服务条款链接
-- 正文为可上线模板草案，正式对外作为法律文本前仍建议由业务负责人或法律顾问复核
+- 正文已改为更正式的公开法律文本，覆盖隐私政策中的信息处理主体、敏感个人信息、共享披露、保存安全和用户权利，以及服务条款中的账号权限、用户行为、提交审核、知识产权、责任限制和争议解决
 - 最近验证：`npm run lint`、`npx tsc --noEmit`、`npm run build` 通过；Playwright 已覆盖未登录访问、注册/登录页链接、中英切换，以及管理员登录后“我的”页页脚链接
 
 ## 首页与公告（2026-04-27）
@@ -106,6 +106,14 @@ baisheng-web/
 ## 上传限制（2026-04-24）
 
 - Web 端上传尺寸已统一收紧：个人照片、任务附件、提审附件中的图片需小于 `5 MB`，视频需小于 `30 MB`，其余文件维持 `20 MB` 单文件上限，总体积限制仍按各模块原有规则执行
+
+### `dashboard-shared-my` 模块分层（2026-04-27）
+
+- `dashboard-shared-my-client.tsx`：只保留“我的”页主结构编排、资料卡片区、媒体入口卡片、隐藏上传输入和弹窗挂载点，当前已控制在 400 行以内
+- `dashboard-shared-my-copy.ts`：集中承接 `DashboardMy` 翻译文案映射，避免在 client 组件里堆积大段 copy 对象
+- `dashboard-shared-my-dialogs.tsx`：单独承接身份证/护照/照片/视频弹窗和城市编辑弹窗，避免把多种弹窗状态和渲染细节继续塞回页面主体
+- `dashboard-shared-my-state-copy.ts`、`dashboard-shared-my-view-model.tsx`：分别承接“我的”页状态文案和资料/媒体展示派生值，让状态 hook 不再同时处理 copy 映射和视图模型组装
+- `use-dashboard-shared-my-state.tsx`：保留资料同步、账号动作、媒体动作和弹窗状态调度，当前已收敛到 600 行以内；后续若继续增加证件表单或媒体动作，应优先拆成更细的 action hooks
 
 ### `admin-orders` 模块分层（2026-04-22）
 
@@ -127,6 +135,8 @@ baisheng-web/
 - `admin-task-form-sections.tsx`：拆出任务表单摘要卡、核心字段区和附件区，控制单文件长度并保持弹窗壳层纯粹
 - `admin-tasks-dialogs.tsx`：只保留任务分配弹窗
 - `admin-tasks-view-model-shared.ts`：集中放置任务页共享类型、筛选比较和输入样式常量
+- `lib/admin-tasks.ts`：保留管理员任务页查询、创建、编辑、改派、删除和页面数据编排，当前已控制在 600 行以内
+- `lib/admin-tasks-types.ts`、`lib/admin-task-normalizers.ts`、`lib/admin-task-attachments.ts`：分别承接任务类型定义、数据库行归一化、附件上传/校验/读取，避免继续把类型、校验和存储逻辑堆在核心查询文件里
 - `admin-task-submission-media.tsx`、`use-admin-task-submission-media.ts`：单独承接历史已完成任务中的成员图片/视频成果读取、预览弹窗和下载动作
 - `lib/admin-task-submission-media.ts`：集中查询已完成任务的审核通过成果媒体，并为私有存储对象生成短期 signed URL
 - 管理员任务板头部指标只保留“进行中 / 审核中”两项，并移除状态筛选栏；任务卡片不再展示归属锁定说明文案

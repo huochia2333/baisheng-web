@@ -3,7 +3,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { useRouter } from "next/navigation";
-import { useTranslations } from "next-intl";
 import { LoaderCircle, Trash2, Upload } from "lucide-react";
 
 import { useLocale } from "@/components/i18n/locale-provider";
@@ -18,81 +17,27 @@ import {
 } from "@/lib/user-self-service";
 
 import {
-  createDashboardSharedCopy,
-  formatDateTime,
-  getMediaStatus,
-  getStatusLabel,
-  IdPreview,
-  mapUserStatus,
-  normalizeOptionalString,
-  PassportPreview,
   type MediaAssetKey,
   type NoticeTone,
-  type ReviewStatus,
   toErrorMessage,
-  VideoPreview,
 } from "../dashboard-shared-ui";
 import {
   useWorkspaceRecoverCloudSync,
   useWorkspaceSyncEffect,
 } from "../workspace-session-provider";
-import {
-  PhotoStackPreview,
-} from "../dashboard-shared-photo-stack-preview";
 import { Button } from "../../ui/button";
+import { useDashboardSharedMyStateCopy } from "./dashboard-shared-my-state-copy";
+import { createDashboardSharedMyViewModel } from "./dashboard-shared-my-view-model";
 
 export function useDashboardSharedMyState(initialData: CurrentUserBundle | null = null) {
   const router = useRouter();
   const { locale } = useLocale();
-  const t = useTranslations("DashboardMyState");
-  const sharedT = useTranslations("DashboardShared");
-  const sharedCopy = createDashboardSharedCopy(sharedT);
+  const { copy, sharedCopy } = useDashboardSharedMyStateCopy();
   const supabase = getBrowserSupabaseClient();
   const recoverWorkspaceCloudSync = useWorkspaceRecoverCloudSync();
   const photoInputRef = useRef<HTMLInputElement>(null);
   const videoInputRef = useRef<HTMLInputElement>(null);
   const hasLoadedInitialBundleRef = useRef(Boolean(initialData));
-  const copy = {
-    unnamedUser: t("unnamedUser"),
-    pendingCity: t("pendingCity"),
-    pendingValue: t("pendingValue"),
-    pendingReferralCode: t("pendingReferralCode"),
-    standardMembership: t("standardMembership"),
-    vipMembership: t("vipMembership"),
-    identityTitle: t("identityTitle"),
-    passportTitle: t("passportTitle"),
-    photosTitle: t("photosTitle"),
-    videosTitle: t("videosTitle"),
-    photoCountLabel: (count: number) => t("photoCountLabel", { count }),
-    uploadPhotosPrompt: t("uploadPhotosPrompt"),
-    phoneLabel: t("phoneLabel"),
-    emailLabel: t("emailLabel"),
-    passwordLabel: t("passwordLabel"),
-    passwordValue: t("passwordValue"),
-    inviteCodeLabel: t("inviteCodeLabel"),
-    accountStatusLabel: t("accountStatusLabel"),
-    lastLoginLabel: t("lastLoginLabel"),
-    missingEmailForReset: t("missingEmailForReset"),
-    resetSent: t("resetSent"),
-    missingInviteCode: t("missingInviteCode"),
-    inviteCopied: t("inviteCopied"),
-    inviteCopyFailed: t("inviteCopyFailed"),
-    profileSaved: t("profileSaved"),
-    cityUpdated: t("cityUpdated"),
-    identitySubmitted: t("identitySubmitted"),
-    passportSubmitted: t("passportSubmitted"),
-    photosUploaded: t("photosUploaded"),
-    videosUploaded: t("videosUploaded"),
-    photosDeleted: t("photosDeleted"),
-    videosDeleted: t("videosDeleted"),
-    identityDescription: t("identityDescription"),
-    passportDescription: t("passportDescription"),
-    mediaDescription: t("mediaDescription"),
-    deletePhotos: t("deletePhotos"),
-    uploadPhotos: t("uploadPhotos"),
-    deleteVideos: t("deleteVideos"),
-    uploadVideos: t("uploadVideos"),
-  };
 
   const [bundle, setBundle] = useState<CurrentUserBundle | null>(initialData);
   const [loading, setLoading] = useState(initialData === null);
@@ -238,7 +183,7 @@ export function useDashboardSharedMyState(initialData: CurrentUserBundle | null 
         setPageNotice({ tone: "success", message: pageMessage });
       }
     } catch (error) {
-        const message = toErrorMessage(error, sharedCopy);
+      const message = toErrorMessage(error, sharedCopy);
 
       if (activeDialog) {
         setDialogNotice({ tone: "error", message });
@@ -252,124 +197,32 @@ export function useDashboardSharedMyState(initialData: CurrentUserBundle | null 
     }
   };
 
-  const authUser = bundle?.authUser ?? null;
-  const mediaAssets: CurrentUserBundle["mediaAssets"] = bundle?.mediaAssets ?? [];
-  const privacyData = bundle?.privacyData ?? null;
-  const privacyRequests: CurrentUserBundle["privacyRequests"] = bundle?.privacyRequests ?? [];
-  const profile = bundle?.profile ?? null;
-  const vipMembership = bundle?.vipMembership ?? null;
-
-  const approvedIdentityValue = normalizeOptionalString(privacyData?.id_card) ?? "";
-  const approvedPassportValue = normalizeOptionalString(privacyData?.passport) ?? "";
-  const pendingIdentityRequest = privacyRequests.find(
-    (request) => request.status === "pending" && normalizeOptionalString(request.id_card_requests),
-  );
-  const pendingPassportRequest = privacyRequests.find(
-    (request) =>
-      request.status === "pending" && normalizeOptionalString(request.passport_requests),
-  );
-
-  const identityStatus: ReviewStatus = pendingIdentityRequest
-    ? "pending"
-    : approvedIdentityValue
-      ? "approved"
-      : "empty";
-  const passportStatus: ReviewStatus = pendingPassportRequest
-    ? "pending"
-    : approvedPassportValue
-      ? "approved"
-      : "empty";
-  const identityValue =
-    normalizeOptionalString(pendingIdentityRequest?.id_card_requests) ?? approvedIdentityValue;
-  const passportValue =
-    normalizeOptionalString(pendingPassportRequest?.passport_requests) ?? approvedPassportValue;
-
-  const photoAssets = mediaAssets.filter((asset) => asset.kind === "image");
-  const videoAssets = mediaAssets.filter((asset) => asset.kind === "video");
-  const photoStatus = getMediaStatus(photoAssets);
-  const videoStatus = getMediaStatus(videoAssets);
-  const verificationStatus: ReviewStatus =
-    identityStatus === "approved"
-      ? "approved"
-      : identityStatus === "pending"
-        ? "pending"
-        : "empty";
-  const certified = verificationStatus === "approved";
-
-  const displayName =
-    normalizeOptionalString(profile?.name) ??
-    normalizeOptionalString(authUser?.user_metadata?.name) ??
-    normalizeOptionalString(authUser?.email?.split("@")[0]) ??
-    copy.unnamedUser;
-  const displayCity =
-    normalizeOptionalString(profile?.city) ??
-    normalizeOptionalString(authUser?.user_metadata?.city) ??
-    copy.pendingCity;
-  const displayPhone =
-    normalizeOptionalString(profile?.phone) ??
-    normalizeOptionalString(authUser?.user_metadata?.phone) ??
-    normalizeOptionalString(authUser?.phone) ??
-    copy.pendingValue;
-  const displayEmail =
-    normalizeOptionalString(profile?.email) ??
-    normalizeOptionalString(authUser?.email) ??
-    copy.pendingValue;
-  const displayReferralCode =
-    normalizeOptionalString(profile?.referral_code) ?? copy.pendingReferralCode;
-  const displayLastLogin = formatDateTime(authUser?.last_sign_in_at, locale);
-  const displayStatus = mapUserStatus(profile?.status, sharedCopy);
-  const hasActiveVip =
-    vipMembership?.status === "active" &&
-    (!vipMembership.expires_at || new Date(vipMembership.expires_at).getTime() > Date.now());
-  const membershipLabel = hasActiveVip ? copy.vipMembership : copy.standardMembership;
-  const assets = [
-    {
-      key: "identity" as const,
-      title: copy.identityTitle,
-      status: getStatusLabel("identity", identityStatus, sharedCopy),
-      tone: identityStatus,
-      body: <IdPreview />,
-    },
-    {
-      key: "passport" as const,
-      title: copy.passportTitle,
-      status: getStatusLabel("passport", passportStatus, sharedCopy),
-      tone: passportStatus,
-      body: <PassportPreview />,
-    },
-    {
-      key: "photos" as const,
-      title: copy.photosTitle,
-      status: getStatusLabel("photos", photoStatus, sharedCopy),
-      tone: photoStatus,
-      body: (
-        <PhotoStackPreview
-          assets={photoAssets}
-          footerLabel={
-            photoAssets.length
-              ? copy.photoCountLabel(photoAssets.length)
-              : copy.uploadPhotosPrompt
-          }
-        />
-      ),
-    },
-    {
-      key: "videos" as const,
-      title: copy.videosTitle,
-      status: getStatusLabel("videos", videoStatus, sharedCopy),
-      tone: videoStatus,
-      body: <VideoPreview count={videoAssets.length} title={videoAssets[0]?.original_name} />,
-    },
-  ];
-
-  const profileStats = [
-    { label: copy.phoneLabel, value: displayPhone },
-    { label: copy.emailLabel, value: displayEmail },
-    { label: copy.passwordLabel, value: copy.passwordValue, mono: true },
-    { label: copy.inviteCodeLabel, value: displayReferralCode, mono: true },
-    { label: copy.accountStatusLabel, value: displayStatus.label, accent: displayStatus.accent },
-    { label: copy.lastLoginLabel, value: displayLastLogin },
-  ] as const;
+  const {
+    approvedIdentityValue,
+    approvedPassportValue,
+    assets,
+    authUser,
+    certified,
+    displayCity,
+    displayName,
+    identityStatus,
+    identityValue,
+    membershipLabel,
+    passportStatus,
+    passportValue,
+    photoAssets,
+    photoStatus,
+    profile,
+    profileStats,
+    verificationStatus,
+    videoAssets,
+    videoStatus,
+  } = createDashboardSharedMyViewModel({
+    bundle,
+    copy,
+    locale,
+    sharedCopy,
+  });
 
   const openDialog = (key: MediaAssetKey) => {
     setDialogNotice(null);
@@ -754,3 +607,5 @@ export function useDashboardSharedMyState(initialData: CurrentUserBundle | null 
     },
   };
 }
+
+export type DashboardSharedMyState = ReturnType<typeof useDashboardSharedMyState>;

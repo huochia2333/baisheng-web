@@ -93,8 +93,6 @@ const recruiterNavItems = [
   { segment: "home", labelKey: "home" },
   { segment: "my", labelKey: "my" },
   { segment: "referrals", labelKey: "referrals" },
-  { segment: "commission", labelKey: "commission" },
-  { segment: "tasks", labelKey: "tasks" },
 ] as const satisfies readonly WorkspaceNavItem[];
 
 const sharedNavItems = [
@@ -141,7 +139,6 @@ const WORKSPACE_ROUTE_CONFIG_BY_SEGMENT = {
     pageVariants: {
       orders: "client",
       referrals: true,
-      team: true,
     },
     routeSegment: "client",
   },

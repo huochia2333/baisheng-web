@@ -1,7 +1,9 @@
-import { getTranslations } from "next-intl/server";
+import { getLocale, getTranslations } from "next-intl/server";
 
 import { getAuthShellCopy } from "./auth-shell-content";
+import { FORMAL_LEGAL_CONTENT } from "./legal-formal-content";
 import type { LegalLinkKey } from "./legal-routes";
+import { normalizeLocale } from "./locale";
 
 export type LegalPageKey = "privacy" | "terms";
 
@@ -25,57 +27,37 @@ export type LegalPageCopy = {
 };
 
 export async function getLegalPageCopy(pageKey: LegalPageKey): Promise<LegalPageCopy> {
-  const [commonT, pageT, authShellCopy] = await Promise.all([
+  const [commonT, locale, authShellCopy] = await Promise.all([
     getTranslations("Legal.common"),
-    getTranslations(`Legal.${pageKey}`),
+    getLocale(),
     getAuthShellCopy(),
   ]);
+  const content = FORMAL_LEGAL_CONTENT[normalizeLocale(locale)][pageKey];
 
   return {
     backHome: commonT("backHome"),
     brandSubtitle: authShellCopy.brandSubtitle,
     brandTitle: authShellCopy.brandTitle,
-    description: pageT("description"),
-    draftNotice: commonT("draftNotice"),
-    eyebrow: pageT("eyebrow"),
-    lastUpdated: pageT("lastUpdated"),
+    description: content.description,
+    draftNotice: content.draftNotice,
+    eyebrow: content.title,
+    lastUpdated: content.lastUpdated,
     lastUpdatedLabel: commonT("lastUpdatedLabel"),
     nav: {
       privacy: commonT("nav.privacy"),
       terms: commonT("nav.terms"),
     },
-    sections: readLegalSections(pageT.raw("sections")),
-    title: pageT("title"),
+    sections: content.sections,
+    title: content.title,
   };
 }
 
-function readLegalSections(value: unknown): LegalSection[] {
-  if (!Array.isArray(value)) {
-    return [];
-  }
+export async function getLegalPageMetadata(pageKey: LegalPageKey) {
+  const locale = normalizeLocale(await getLocale());
+  const content = FORMAL_LEGAL_CONTENT[locale][pageKey];
 
-  return value.flatMap((entry) => {
-    if (!isRecord(entry) || typeof entry.title !== "string") {
-      return [];
-    }
-
-    const items = Array.isArray(entry.items)
-      ? entry.items.filter((item): item is string => typeof item === "string")
-      : [];
-
-    if (items.length === 0) {
-      return [];
-    }
-
-    return [
-      {
-        title: entry.title,
-        items,
-      },
-    ];
-  });
-}
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null;
+  return {
+    description: content.description,
+    title: content.metadataTitle,
+  };
 }
