@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useCallback, useDeferredValue, useMemo, useState } from "react";
 
@@ -19,7 +19,7 @@ import {
 import { getBrowserSupabaseClient } from "@/lib/supabase";
 import { useDashboardPagination } from "@/lib/use-dashboard-pagination";
 import { useLocale } from "@/components/i18n/locale-provider";
-import { DashboardMetricCard } from "@/components/dashboard/dashboard-metric-card";
+import { DashboardSectionHeader } from "@/components/dashboard/dashboard-section-header";
 import {
   EmptyState,
   PageBanner,
@@ -322,51 +322,47 @@ export function AdminCommissionClient({
       {pageFeedback ? (
         <PageBanner tone={pageFeedback.tone}>{pageFeedback.message}</PageBanner>
       ) : null}
-      <section className="rounded-[28px] border border-white/90 bg-[#f4f3f1]/92 p-6 shadow-[0_18px_45px_rgba(96,113,128,0.08)] xl:p-8">
-        <div className="flex flex-col gap-6">
-          <div className="max-w-3xl">
-            <span className="inline-flex rounded-full bg-[#e4edf3] px-3 py-1 text-xs font-semibold text-[#486782]">
-              {t("header.badge")}
-            </span>
-            <h2 className="mt-4 text-4xl font-bold tracking-tight text-[#1f2a32]">
-              {t("header.title")}
-            </h2>
-            <p className="mt-3 text-[15px] leading-8 text-[#65717b]">
-              {t("header.description")}
-            </p>
-          </div>
-          <div className="grid w-full grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
-            <DashboardMetricCard
-              accent="blue"
-              icon={<ReceiptText className="size-5" />}
-              label={t("summary.recordCount")}
-              labelClassName="min-h-10 leading-5"
-              value={summary.recordCount.toString()}
-            />
-            <DashboardMetricCard
-              accent="green"
-              icon={<WalletCards className="size-5" />}
-              label={t("summary.totalAmount")}
-              labelClassName="min-h-10 leading-5"
-              value={formatCommissionMoney(summary.totalAmount, locale)}
-            />
-            <DashboardMetricCard
-              accent="gold"
-              icon={<Coins className="size-5" />}
-              label={t("summary.pendingAmount")}
-              labelClassName="min-h-10 leading-5"
-              value={formatCommissionMoney(summary.pendingAmount, locale)}
-            />
-            <DashboardMetricCard
-              accent="blue"
-              icon={<BadgeDollarSign className="size-5" />}
-              label={t("summary.paidAmount")}
-              labelClassName="min-h-10 leading-5"
-              value={formatCommissionMoney(summary.paidAmount, locale)}
-            />
-          </div>
-        </div>
-      </section>
+      <DashboardSectionHeader
+        badge={t("header.badge")}
+        description={t("header.description")}
+        metrics={[
+          {
+            accent: "blue",
+            icon: <ReceiptText className="size-5" />,
+            key: "recordCount",
+            label: t("summary.recordCount"),
+            labelClassName: "sm:min-h-10 sm:leading-5",
+            value: summary.recordCount.toString(),
+          },
+          {
+            accent: "green",
+            icon: <WalletCards className="size-5" />,
+            key: "totalAmount",
+            label: t("summary.totalAmount"),
+            labelClassName: "sm:min-h-10 sm:leading-5",
+            value: formatCommissionMoney(summary.totalAmount, locale),
+          },
+          {
+            accent: "gold",
+            icon: <Coins className="size-5" />,
+            key: "pendingAmount",
+            label: t("summary.pendingAmount"),
+            labelClassName: "sm:min-h-10 sm:leading-5",
+            value: formatCommissionMoney(summary.pendingAmount, locale),
+          },
+          {
+            accent: "blue",
+            icon: <BadgeDollarSign className="size-5" />,
+            key: "paidAmount",
+            label: t("summary.paidAmount"),
+            labelClassName: "sm:min-h-10 sm:leading-5",
+            value: formatCommissionMoney(summary.paidAmount, locale),
+          },
+        ]}
+        metricsClassName="sm:grid-cols-2 xl:grid-cols-4"
+        metricsPlacement="below"
+        title={t("header.title")}
+      />
       {!hasPermission ? (
         <section className="rounded-[28px] border border-white/85 bg-white/72 p-6 shadow-[0_18px_45px_rgba(96,113,128,0.06)] xl:p-8">
           <EmptyState

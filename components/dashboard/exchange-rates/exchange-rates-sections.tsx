@@ -20,19 +20,26 @@ import type { ExchangeRateLatestRow, ExchangeRateRow } from "@/lib/exchange-rate
 import { normalizeCurrencyCode } from "@/lib/exchange-rates";
 
 import { Button } from "../../ui/button";
-import { DashboardDialog } from "../dashboard-dialog";
-import { DashboardMetricCard } from "../dashboard-metric-card";
 import { DashboardPaginationControls } from "../dashboard-pagination-controls";
+import { DashboardSectionHeader } from "../dashboard-section-header";
+import {
+  DashboardFilterField,
+  DashboardFilterPanel,
+  DashboardListHeader,
+  DashboardListSection,
+  DashboardSectionPanel,
+  DashboardTableFrame,
+  dashboardFilterInputClassName,
+} from "../dashboard-section-panel";
 import {
   EmptyState,
-  PageBanner,
   formatDateTime,
-  type NoticeTone,
 } from "../dashboard-shared-ui";
-import {
-  formatExchangeRateValue,
-  type ExchangeRateFormState,
-} from "./exchange-rates-utils";
+import { formatExchangeRateValue } from "./exchange-rates-utils";
+import { ExchangeRateFormDialog } from "./exchange-rates-form-dialog";
+import { LatestRateCard } from "./exchange-rates-latest-card";
+
+export { ExchangeRateFormDialog };
 
 type PaginationState = {
   endIndex: number;
@@ -82,20 +89,6 @@ type ExchangeRatesHistorySectionProps = {
   totalRates: number;
 };
 
-type ExchangeRateFormDialogProps = {
-  feedback?: { tone: NoticeTone; message: string } | null;
-  formState: ExchangeRateFormState;
-  mode: "create" | "edit";
-  open: boolean;
-  pending: boolean;
-  onFieldChange: <Key extends keyof ExchangeRateFormState>(
-    key: Key,
-    value: ExchangeRateFormState[Key],
-  ) => void;
-  onOpenChange: (open: boolean) => void;
-  onSubmit: () => void;
-};
-
 export const ExchangeRatesHeaderSection = memo(function ExchangeRatesHeaderSection({
   canManage,
   latestRowsCount,
@@ -107,59 +100,49 @@ export const ExchangeRatesHeaderSection = memo(function ExchangeRatesHeaderSecti
   const { locale } = useLocale();
 
   return (
-    <section className="rounded-[28px] border border-white/90 bg-[#f4f3f1]/92 p-6 shadow-[0_18px_45px_rgba(96,113,128,0.08)] xl:p-8">
-      <div className="flex flex-col gap-6 xl:flex-row xl:items-end xl:justify-between">
-        <div className="max-w-2xl">
-          <span className="inline-flex rounded-full bg-[#e4edf3] px-3 py-1 text-xs font-semibold text-[#486782]">
-            {t("header.badge")}
-          </span>
-          <h2 className="mt-4 text-4xl font-bold tracking-tight text-[#1f2a32]">
-            {t("header.title")}
-          </h2>
-          <p className="mt-3 text-[15px] leading-8 text-[#65717b]">
-            {t("header.description")}
-          </p>
-        </div>
-
-        <div className="flex flex-col gap-4 xl:items-end">
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-            <DashboardMetricCard
-              accent="blue"
-              icon={<ArrowLeftRight className="size-5" />}
-              label={t("summary.pairs")}
-              value={String(latestRowsCount)}
-            />
-            <DashboardMetricCard
-              accent="gold"
-              icon={<History className="size-5" />}
-              label={t("summary.history")}
-              value={String(ratesCount)}
-            />
-            <DashboardMetricCard
-              accent="green"
-              icon={<Clock3 className="size-5" />}
-              label={t("summary.latestUpdated")}
-              value={
-                latestUpdatedAt
-                  ? formatDateTime(latestUpdatedAt, locale)
-                  : t("summary.noRecord")
-              }
-            />
-          </div>
-
-          {canManage ? (
-            <Button
-              className="h-11 rounded-full bg-[#486782] px-5 text-white hover:bg-[#3e5f79]"
-              onClick={onCreate}
-              type="button"
-            >
-              <Plus className="size-4" />
-              {t("actions.create")}
-            </Button>
-          ) : null}
-        </div>
-      </div>
-    </section>
+    <DashboardSectionHeader
+      actions={
+        canManage ? (
+          <Button
+            className="h-11 rounded-full bg-[#486782] px-5 text-white hover:bg-[#3e5f79]"
+            onClick={onCreate}
+            type="button"
+          >
+            <Plus className="size-4" />
+            {t("actions.create")}
+          </Button>
+        ) : null
+      }
+      badge={t("header.badge")}
+      contentClassName="max-w-2xl"
+      description={t("header.description")}
+      metrics={[
+        {
+          accent: "blue",
+          icon: <ArrowLeftRight className="size-5" />,
+          key: "pairs",
+          label: t("summary.pairs"),
+          value: String(latestRowsCount),
+        },
+        {
+          accent: "gold",
+          icon: <History className="size-5" />,
+          key: "history",
+          label: t("summary.history"),
+          value: String(ratesCount),
+        },
+        {
+          accent: "green",
+          icon: <Clock3 className="size-5" />,
+          key: "latest",
+          label: t("summary.latestUpdated"),
+          value: latestUpdatedAt
+            ? formatDateTime(latestUpdatedAt, locale)
+            : t("summary.noRecord"),
+        },
+      ]}
+      title={t("header.title")}
+    />
   );
 });
 
@@ -171,28 +154,18 @@ export const ExchangeRatesLatestSection = memo(function ExchangeRatesLatestSecti
   totalRates,
 }: ExchangeRatesLatestSectionProps) {
   const t = useTranslations("ExchangeRates");
-  const { locale } = useLocale();
 
   return (
-    <section className="rounded-[28px] border border-white/85 bg-white/72 p-6 shadow-[0_18px_45px_rgba(96,113,128,0.06)] xl:p-8">
-      <div className="mb-6 flex flex-col gap-3 xl:flex-row xl:items-end xl:justify-between">
-        <div>
-          <p className="font-label text-[11px] tracking-[0.18em] text-[#7d8890] uppercase">
-            {t("latest.eyebrow")}
-          </p>
-          <h3 className="mt-2 text-2xl font-bold tracking-tight text-[#23313a]">
-            {t("latest.title")}
-          </h3>
-          <p className="mt-2 text-sm leading-7 text-[#6a757e]">
-            {t("latest.description")}
-          </p>
-        </div>
-
+    <DashboardListSection
+      actions={
         <div className="rounded-full bg-[#f5f7f8] px-4 py-2 text-sm text-[#52616d]">
           {t("latest.countSummary", { count: totalLatestRows })}
         </div>
-      </div>
-
+      }
+      description={t("latest.description")}
+      eyebrow={t("latest.eyebrow")}
+      title={t("latest.title")}
+    >
       {filteredRowsCount === 0 ? (
         <EmptyState
           description={
@@ -212,7 +185,6 @@ export const ExchangeRatesLatestSection = memo(function ExchangeRatesLatestSecti
                 count: row.historyCount,
               })}
               latestBadge={t("latest.card.latestBadge")}
-              locale={locale}
               row={row}
             />
           ))}
@@ -230,7 +202,7 @@ export const ExchangeRatesLatestSection = memo(function ExchangeRatesLatestSecti
         startIndex={pagination.startIndex}
         totalItems={pagination.totalItems}
       />
-    </section>
+    </DashboardListSection>
   );
 });
 
@@ -254,27 +226,30 @@ export const ExchangeRatesHistorySection = memo(function ExchangeRatesHistorySec
   const { locale } = useLocale();
 
   return (
-    <section className="rounded-[28px] border border-white/85 bg-white/72 p-4 shadow-[0_18px_45px_rgba(96,113,128,0.06)] sm:p-6 xl:p-8">
-      <div className="mb-5 grid gap-4 rounded-[24px] border border-[#ebe7e1] bg-[#fbfaf8] p-4 shadow-[0_10px_24px_rgba(96,113,128,0.04)] lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto]">
-        <FilterField label={t("filters.originalCurrencyLabel")}>
+    <DashboardSectionPanel className="p-4 sm:p-6 xl:p-8">
+      <DashboardFilterPanel
+        className="mb-5"
+        gridClassName="lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto]"
+      >
+        <DashboardFilterField label={t("filters.originalCurrencyLabel")}>
           <input
-            className={filterInputClassName}
+            className={dashboardFilterInputClassName}
             onChange={(event) => onOriginalCurrencyChange(event.target.value)}
             placeholder={t("filters.originalCurrencyPlaceholder")}
             type="text"
             value={filters.originalCurrency}
           />
-        </FilterField>
+        </DashboardFilterField>
 
-        <FilterField label={t("filters.targetCurrencyLabel")}>
+        <DashboardFilterField label={t("filters.targetCurrencyLabel")}>
           <input
-            className={filterInputClassName}
+            className={dashboardFilterInputClassName}
             onChange={(event) => onTargetCurrencyChange(event.target.value)}
             placeholder={t("filters.targetCurrencyPlaceholder")}
             type="text"
             value={filters.targetCurrency}
           />
-        </FilterField>
+        </DashboardFilterField>
 
         <div className="flex flex-col justify-end gap-3 lg:items-end">
           <p className="text-sm text-[#69747d]">
@@ -292,25 +267,21 @@ export const ExchangeRatesHistorySection = memo(function ExchangeRatesHistorySec
             {t("filters.clear")}
           </Button>
         </div>
-      </div>
+      </DashboardFilterPanel>
 
-      <div className="mb-5 flex items-center justify-between gap-3">
-        <div>
-          <p className="font-label text-[11px] tracking-[0.18em] text-[#7d8890] uppercase">
-            {t("history.eyebrow")}
-          </p>
-          <h3 className="mt-2 text-2xl font-bold tracking-tight text-[#23313a]">
-            {t("history.title")}
-          </h3>
-        </div>
-
-        <Link
-          className="inline-flex h-9 items-center justify-center rounded-full border border-[#e1ddd7] bg-white px-4 text-sm font-medium text-[#31404b] transition-colors hover:bg-[#f4f6f8]"
-          href={homeHref}
-        >
-          {t("history.backHome")}
-        </Link>
-      </div>
+      <DashboardListHeader
+        actions={
+          <Link
+            className="inline-flex h-9 items-center justify-center rounded-full border border-[#e1ddd7] bg-white px-4 text-sm font-medium text-[#31404b] transition-colors hover:bg-[#f4f6f8]"
+            href={homeHref}
+          >
+            {t("history.backHome")}
+          </Link>
+        }
+        className="mb-5"
+        eyebrow={t("history.eyebrow")}
+        title={t("history.title")}
+      />
 
       {filteredRowsCount === 0 ? (
         <EmptyState
@@ -323,8 +294,21 @@ export const ExchangeRatesHistorySection = memo(function ExchangeRatesHistorySec
           title={totalRates === 0 ? t("history.emptyTitle") : t("history.noMatchTitle")}
         />
       ) : (
-        <div className="overflow-hidden rounded-[24px] border border-[#ebe7e1] bg-white shadow-[0_10px_24px_rgba(96,113,128,0.06)]">
-          <div className="overflow-x-auto">
+        <DashboardTableFrame
+          footer={
+            <DashboardPaginationControls
+              endIndex={pagination.endIndex}
+              hasNextPage={pagination.hasNextPage}
+              hasPreviousPage={pagination.hasPreviousPage}
+              onNextPage={pagination.onNextPage}
+              onPreviousPage={pagination.onPreviousPage}
+              page={pagination.page}
+              pageCount={pagination.pageCount}
+              startIndex={pagination.startIndex}
+              totalItems={pagination.totalItems}
+            />
+          }
+        >
             <table className="min-w-[880px] w-full table-fixed border-collapse">
               <thead className="bg-[#f7f5f2]">
                 <tr className="border-b border-[#efebe5]">
@@ -392,204 +376,11 @@ export const ExchangeRatesHistorySection = memo(function ExchangeRatesHistorySec
                 })}
               </tbody>
             </table>
-          </div>
-
-          <div className="px-5 pb-5">
-            <DashboardPaginationControls
-              endIndex={pagination.endIndex}
-              hasNextPage={pagination.hasNextPage}
-              hasPreviousPage={pagination.hasPreviousPage}
-              onNextPage={pagination.onNextPage}
-              onPreviousPage={pagination.onPreviousPage}
-              page={pagination.page}
-              pageCount={pagination.pageCount}
-              startIndex={pagination.startIndex}
-              totalItems={pagination.totalItems}
-            />
-          </div>
-        </div>
+        </DashboardTableFrame>
       )}
-    </section>
+    </DashboardSectionPanel>
   );
 });
-
-export function ExchangeRateFormDialog({
-  feedback,
-  formState,
-  mode,
-  open,
-  pending,
-  onFieldChange,
-  onOpenChange,
-  onSubmit,
-}: ExchangeRateFormDialogProps) {
-  const t = useTranslations("ExchangeRates");
-
-  return (
-    <DashboardDialog
-      actions={
-        <>
-          <Button onClick={() => onOpenChange(false)} type="button" variant="outline">
-            {t("dialogs.cancel")}
-          </Button>
-          <Button
-            className="bg-[#486782] text-white hover:bg-[#3e5f79]"
-            disabled={pending}
-            onClick={onSubmit}
-            type="button"
-          >
-            {pending ? (
-              <LoaderCircle className="size-4 animate-spin" />
-            ) : mode === "create" ? (
-              <Plus className="size-4" />
-            ) : (
-              <PencilLine className="size-4" />
-            )}
-            {mode === "create"
-              ? t("dialogs.create.submit")
-              : t("dialogs.edit.submit")}
-          </Button>
-        </>
-      }
-      description={
-        mode === "create"
-          ? t("dialogs.create.description")
-          : t("dialogs.edit.description")
-      }
-      onOpenChange={onOpenChange}
-      open={open}
-      title={mode === "create" ? t("dialogs.create.title") : t("dialogs.edit.title")}
-    >
-      <div className="space-y-5">
-        {feedback ? <PageBanner tone={feedback.tone}>{feedback.message}</PageBanner> : null}
-
-        <div className="grid gap-5 md:grid-cols-2">
-          <ExchangeRateField label={t("dialogs.fields.originalCurrency")} required>
-            <input
-              className={fieldInputClassName}
-              disabled={pending}
-              onChange={(event) => onFieldChange("originalCurrency", event.target.value)}
-              placeholder={t("dialogs.placeholders.originalCurrency")}
-              type="text"
-              value={formState.originalCurrency}
-            />
-          </ExchangeRateField>
-
-          <ExchangeRateField label={t("dialogs.fields.targetCurrency")} required>
-            <input
-              className={fieldInputClassName}
-              disabled={pending}
-              onChange={(event) => onFieldChange("targetCurrency", event.target.value)}
-              placeholder={t("dialogs.placeholders.targetCurrency")}
-              type="text"
-              value={formState.targetCurrency}
-            />
-          </ExchangeRateField>
-
-          <ExchangeRateField label={t("dialogs.fields.dailyExchangeRate")} required>
-            <input
-              className={fieldInputClassName}
-              disabled={pending}
-              min="0"
-              onChange={(event) => onFieldChange("dailyExchangeRate", event.target.value)}
-              placeholder={t("dialogs.placeholders.dailyExchangeRate")}
-              step="0.000001"
-              type="number"
-              value={formState.dailyExchangeRate}
-            />
-          </ExchangeRateField>
-
-          <div className="rounded-[22px] border border-[#ebe7e1] bg-[#f8f6f3] px-4 py-4 text-sm leading-7 text-[#65717b]">
-            {t("dialogs.currencyHint")}
-          </div>
-        </div>
-      </div>
-    </DashboardDialog>
-  );
-}
-
-function LatestRateCard({
-  historyCountLabel,
-  latestBadge,
-  locale,
-  row,
-}: {
-  historyCountLabel: string;
-  latestBadge: string;
-  locale: "zh" | "en";
-  row: ExchangeRateLatestRow;
-}) {
-  const t = useTranslations("ExchangeRates");
-
-  return (
-    <article className="rounded-[24px] border border-[#e7e3dc] bg-[#fbfaf8] p-5 shadow-[0_10px_24px_rgba(96,113,128,0.05)]">
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <p className="font-label text-[11px] tracking-[0.18em] text-[#7d8890] uppercase">
-            {t("latest.card.eyebrow")}
-          </p>
-          <h4 className="mt-2 text-2xl font-bold tracking-tight text-[#23313a]">
-            {row.pairLabel}
-          </h4>
-        </div>
-        <span className="rounded-full bg-[#edf2f5] px-3 py-1 text-xs font-semibold text-[#486782]">
-          {latestBadge}
-        </span>
-      </div>
-
-      <div className="mt-6 rounded-[20px] bg-white px-5 py-4 shadow-[inset_0_0_0_1px_rgba(231,227,220,0.9)]">
-        <p className="text-sm text-[#6b7680]">{t("latest.card.currentRate")}</p>
-        <p className="mt-2 text-3xl font-bold tracking-tight text-[#1f2a32]">
-          {formatExchangeRateValue(
-            row.daily_exchange_rate,
-            locale,
-            t("summary.noRecord"),
-          )}
-        </p>
-      </div>
-
-      <div className="mt-4 flex items-center justify-between gap-4 text-sm text-[#6a757e]">
-        <span>{historyCountLabel}</span>
-        <span>{formatDateTime(row.created_at, locale)}</span>
-      </div>
-    </article>
-  );
-}
-
-function FilterField({
-  children,
-  label,
-}: {
-  children: ReactNode;
-  label: string;
-}) {
-  return (
-    <label className="flex flex-col gap-2">
-      <span className="text-sm font-medium text-[#52616d]">{label}</span>
-      {children}
-    </label>
-  );
-}
-
-function ExchangeRateField({
-  children,
-  label,
-  required = false,
-}: {
-  children: ReactNode;
-  label: string;
-  required?: boolean;
-}) {
-  return (
-    <label className="flex flex-col gap-2">
-      <span className="text-sm font-medium text-[#52616d]">
-        {label}
-        {required ? <span className="ml-1 text-[#c94d4d]">*</span> : null}
-      </span>
-      {children}
-    </label>
-  );
-}
 
 function HistoryHeaderCell({ children }: { children: ReactNode }) {
   return (
@@ -602,9 +393,3 @@ function HistoryHeaderCell({ children }: { children: ReactNode }) {
 function HistoryValueCell({ value }: { value: ReactNode }) {
   return <td className="px-5 py-4 text-sm text-[#31404b]">{value}</td>;
 }
-
-const filterInputClassName =
-  "h-12 w-full rounded-[18px] border border-[#e1ddd7] bg-white px-4 text-[15px] text-[#23313a] outline-none transition focus:border-[#bfd2e1] focus:ring-4 focus:ring-[#bfd2e1]/30";
-
-const fieldInputClassName =
-  "h-12 w-full rounded-[18px] border border-[#e1ddd7] bg-[#fbfaf8] px-4 text-[15px] text-[#23313a] outline-none transition focus:border-[#bfd2e1] focus:ring-4 focus:ring-[#bfd2e1]/30 disabled:cursor-not-allowed disabled:opacity-70";

@@ -67,22 +67,22 @@ export async function AdminShell({ children, config }: AdminShellProps) {
               />
             </aside>
 
-            <div className="flex min-h-screen flex-1 flex-col md:pl-[284px]">
+            <div className="flex min-h-screen min-w-0 flex-1 flex-col md:ml-[284px]">
               <header className="sticky top-0 z-10 border-b border-white/50 bg-[#faf9f7]/82 backdrop-blur">
-                <div className="mx-auto flex w-full max-w-[1600px] items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
+                <div className="mx-auto flex w-full max-w-[1600px] items-center justify-between px-3 py-3 sm:px-6 sm:py-4 lg:px-8">
                   <div className="min-w-0">
-                    <p className="font-label text-[11px] tracking-[0.2em] text-[#8e99a3] uppercase">
+                    <p className="font-label text-[10px] tracking-[0.16em] text-[#8e99a3] uppercase sm:text-[11px] sm:tracking-[0.2em]">
                       {workspace.workspaceLabel}
                     </p>
-                    <h1 className="truncate text-2xl font-bold tracking-tight text-[#486782] sm:text-3xl">
+                    <h1 className="truncate text-xl font-bold tracking-tight text-[#486782] sm:text-3xl">
                       {t("brandTitle")}
                     </h1>
                   </div>
 
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-2 sm:gap-3">
                     <LanguageToggle />
                     <button
-                      className="flex h-10 w-10 items-center justify-center rounded-full text-[#486782] transition-colors hover:bg-white"
+                      className="flex h-9 w-9 items-center justify-center rounded-full text-[#486782] transition-colors hover:bg-white sm:h-10 sm:w-10"
                       type="button"
                     >
                       <Bell className="size-[18px]" />
@@ -101,12 +101,12 @@ export async function AdminShell({ children, config }: AdminShellProps) {
                   </div>
                 </div>
 
-                <div className="overflow-x-auto px-4 pb-4 md:hidden">
+                <div className="overflow-x-auto px-3 pb-3 md:hidden">
                   <AdminShellNav items={workspace.navItems} mode="mobile" />
                 </div>
               </header>
 
-              <main className="flex-1 px-4 py-6 sm:px-6 lg:px-8">{children}</main>
+              <main className="flex-1 px-3 py-5 sm:px-6 sm:py-6 lg:px-8">{children}</main>
             </div>
           </div>
         </div>

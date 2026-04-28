@@ -10,8 +10,12 @@ import type {
   SalesmanTaskScopeFilter,
 } from "@/lib/salesman-tasks";
 import { Button } from "@/components/ui/button";
-import { DashboardMetricCard } from "@/components/dashboard/dashboard-metric-card";
 import { DashboardPaginationControls } from "@/components/dashboard/dashboard-pagination-controls";
+import { DashboardSectionHeader } from "@/components/dashboard/dashboard-section-header";
+import {
+  DashboardFilterPanel,
+  DashboardListSection,
+} from "@/components/dashboard/dashboard-section-panel";
 import { EmptyState, PageBanner } from "@/components/dashboard/dashboard-shared-ui";
 
 import { SalesmanTaskSubmitDialog } from "./salesman-task-submit-dialog";
@@ -39,75 +43,74 @@ export function SalesmanTasksClient({
         <PageBanner tone={viewModel.pageFeedback.tone}>{viewModel.pageFeedback.message}</PageBanner>
       ) : null}
 
-      <section className="rounded-[28px] border border-white/90 bg-[#f4f3f1]/92 p-6 shadow-[0_18px_45px_rgba(96,113,128,0.08)] xl:p-8">
-        <div className="flex flex-col gap-6 xl:flex-row xl:items-end xl:justify-between">
-          <div className="max-w-3xl">
-            <span className="inline-flex rounded-full bg-[#e6edf2] px-3 py-1 text-xs font-semibold text-[#486782]">
-              {t("header.badge")}
-            </span>
-            <h2 className="mt-4 text-4xl font-bold tracking-tight text-[#1f2a32]">
-              {t("header.title")}
-            </h2>
-            <p className="mt-3 text-[15px] leading-8 text-[#65717b]">{t("header.description")}</p>
-          </div>
-
-          <div className="flex flex-wrap items-center gap-3">
-            <Button
-              className="h-11 rounded-full border border-[#d8e2e8] bg-white px-5 text-[#486782] hover:bg-[#eef3f6]"
-              disabled={!viewModel.canView}
-              onClick={() =>
-                viewModel.updateFilter(
-                  "focus",
-                  viewModel.filters.focus === "completed" ? "all" : "completed",
-                )
-              }
-              type="button"
-            >
-              <History className="size-4" />
-              {viewModel.filters.focus === "completed" ? t("header.allTasks") : t("header.history")}
-            </Button>
-          </div>
-        </div>
-
-        <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-6">
-          <DashboardMetricCard
-            accent="blue"
-            icon={<ClipboardList className="size-5" />}
-            label={t("summary.all")}
-            value={viewModel.summary.all}
-          />
-          <DashboardMetricCard
-            accent="gold"
-            icon={<Clock3 className="size-5" />}
-            label={t("summary.available")}
-            value={viewModel.summary.available}
-          />
-          <DashboardMetricCard
-            accent="blue"
-            icon={<CircleCheckBig className="size-5" />}
-            label={t("summary.inProgress")}
-            value={viewModel.summary.inProgress}
-          />
-          <DashboardMetricCard
-            accent="gold"
-            icon={<Upload className="size-5" />}
-            label={t("summary.reviewing")}
-            value={viewModel.summary.reviewing}
-          />
-          <DashboardMetricCard
-            accent="blue"
-            icon={<XCircle className="size-5" />}
-            label={t("summary.rejected")}
-            value={viewModel.summary.rejected}
-          />
-          <DashboardMetricCard
-            accent="green"
-            icon={<CheckCheck className="size-5" />}
-            label={t("summary.completed")}
-            value={viewModel.summary.completed}
-          />
-        </div>
-      </section>
+      <DashboardSectionHeader
+        actions={
+          <Button
+            className="h-11 rounded-full border border-[#d8e2e8] bg-white px-5 text-[#486782] hover:bg-[#eef3f6]"
+            disabled={!viewModel.canView}
+            onClick={() =>
+              viewModel.updateFilter(
+                "focus",
+                viewModel.filters.focus === "completed" ? "all" : "completed",
+              )
+            }
+            type="button"
+          >
+            <History className="size-4" />
+            {viewModel.filters.focus === "completed" ? t("header.allTasks") : t("header.history")}
+          </Button>
+        }
+        badge={t("header.badge")}
+        badgeClassName="bg-[#e6edf2]"
+        description={t("header.description")}
+        metrics={[
+          {
+            accent: "blue",
+            icon: <ClipboardList className="size-5" />,
+            key: "all",
+            label: t("summary.all"),
+            value: viewModel.summary.all,
+          },
+          {
+            accent: "gold",
+            icon: <Clock3 className="size-5" />,
+            key: "available",
+            label: t("summary.available"),
+            value: viewModel.summary.available,
+          },
+          {
+            accent: "blue",
+            icon: <CircleCheckBig className="size-5" />,
+            key: "inProgress",
+            label: t("summary.inProgress"),
+            value: viewModel.summary.inProgress,
+          },
+          {
+            accent: "gold",
+            icon: <Upload className="size-5" />,
+            key: "reviewing",
+            label: t("summary.reviewing"),
+            value: viewModel.summary.reviewing,
+          },
+          {
+            accent: "blue",
+            icon: <XCircle className="size-5" />,
+            key: "rejected",
+            label: t("summary.rejected"),
+            value: viewModel.summary.rejected,
+          },
+          {
+            accent: "green",
+            icon: <CheckCheck className="size-5" />,
+            key: "completed",
+            label: t("summary.completed"),
+            value: viewModel.summary.completed,
+          },
+        ]}
+        metricsClassName="sm:grid-cols-2 xl:grid-cols-6"
+        metricsPlacement="below"
+        title={t("header.title")}
+      />
 
       {!viewModel.canView ? (
         <EmptyState
@@ -117,8 +120,10 @@ export function SalesmanTasksClient({
         />
       ) : (
         <>
-          <section className="rounded-[26px] border border-white/85 bg-white/80 p-5 shadow-[0_14px_32px_rgba(96,113,128,0.06)] sm:p-6">
-            <div className="grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1.2fr)_repeat(2,minmax(0,0.6fr))]">
+          <DashboardFilterPanel
+            gridClassName="grid-cols-1 xl:grid-cols-[minmax(0,1.2fr)_repeat(2,minmax(0,0.6fr))]"
+            variant="standalone"
+          >
               <SearchField
                 label={t("filters.searchLabel")}
                 onChange={(value) => viewModel.updateFilter("searchText", value)}
@@ -148,17 +153,13 @@ export function SalesmanTasksClient({
                 <option value="public">{sharedT("scope.public")}</option>
                 <option value="team">{sharedT("scope.team")}</option>
               </FilterField>
-            </div>
-          </section>
+          </DashboardFilterPanel>
 
-          <section className="space-y-4">
-            <div>
-              <h3 className="text-2xl font-bold tracking-tight text-[#23313a]">{t("list.title")}</h3>
-              <p className="mt-2 text-sm leading-7 text-[#6f7b85]">
-                {t("list.description", { count: viewModel.filteredTasks.length })}
-              </p>
-            </div>
-
+          <DashboardListSection
+            bodyClassName="space-y-4"
+            description={t("list.description", { count: viewModel.filteredTasks.length })}
+            title={t("list.title")}
+          >
             {viewModel.filteredTasks.length === 0 ? (
               <EmptyState
                 description={t("states.emptyDescription")}
@@ -194,7 +195,7 @@ export function SalesmanTasksClient({
               startIndex={viewModel.tasksPagination.startIndex}
               totalItems={viewModel.tasksPagination.totalItems}
             />
-          </section>
+          </DashboardListSection>
         </>
       )}
 

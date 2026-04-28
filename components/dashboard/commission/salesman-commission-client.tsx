@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useCallback, useMemo, useState } from "react";
 import type { ReactNode } from "react";
@@ -11,8 +11,12 @@ import { useDashboardPagination } from "@/lib/use-dashboard-pagination";
 import type { AdminCommissionRow, CommissionSettlementStatus } from "@/lib/admin-commission";
 import { cn } from "@/lib/utils";
 import { useLocale } from "@/components/i18n/locale-provider";
-import { DashboardMetricCard } from "@/components/dashboard/dashboard-metric-card";
 import { DashboardPaginationControls } from "@/components/dashboard/dashboard-pagination-controls";
+import { DashboardSectionHeader } from "@/components/dashboard/dashboard-section-header";
+import {
+  DashboardListSection,
+  DashboardTableFrame,
+} from "@/components/dashboard/dashboard-section-panel";
 import { EmptyState, PageBanner, formatDateTime, type NoticeTone } from "@/components/dashboard/dashboard-shared-ui";
 import { useWorkspaceSyncEffect } from "@/components/dashboard/workspace-session-provider";
 
@@ -85,20 +89,39 @@ export function SalesmanCommissionClient({
   return (
     <section className="mx-auto flex w-full max-w-[1320px] flex-col gap-8">
       {pageFeedback ? <PageBanner tone={pageFeedback.tone}>{pageFeedback.message}</PageBanner> : null}
-      <section className="rounded-[28px] border border-white/90 bg-[#f4f3f1]/92 p-6 shadow-[0_18px_45px_rgba(96,113,128,0.08)] xl:p-8">
-        <div className="flex flex-col gap-6">
-          <div className="max-w-3xl">
-            <span className="inline-flex rounded-full bg-[#e4edf3] px-3 py-1 text-xs font-semibold text-[#486782]">{t("salesman.header.badge")}</span>
-            <h2 className="mt-4 text-4xl font-bold tracking-tight text-[#1f2a32]">{t("salesman.header.title")}</h2>
-            <p className="mt-3 text-[15px] leading-8 text-[#65717b]">{t("salesman.header.description")}</p>
-          </div>
-          <div className="grid w-full grid-cols-1 gap-3 sm:grid-cols-3">
-            <DashboardMetricCard accent="blue" icon={<WalletCards className="size-5" />} label={t("salesman.summary.totalAmount")} labelClassName="min-h-10 leading-5" value={formatCommissionMoney(summary.totalAmount, locale)} />
-            <DashboardMetricCard accent="gold" icon={<Coins className="size-5" />} label={t("salesman.summary.pendingAmount")} labelClassName="min-h-10 leading-5" value={formatCommissionMoney(summary.pendingAmount, locale)} />
-            <DashboardMetricCard accent="green" icon={<BadgeDollarSign className="size-5" />} label={t("salesman.summary.paidAmount")} labelClassName="min-h-10 leading-5" value={formatCommissionMoney(summary.paidAmount, locale)} />
-          </div>
-        </div>
-      </section>
+      <DashboardSectionHeader
+        badge={t("salesman.header.badge")}
+        description={t("salesman.header.description")}
+        metrics={[
+          {
+            accent: "blue",
+            icon: <WalletCards className="size-5" />,
+            key: "totalAmount",
+            label: t("salesman.summary.totalAmount"),
+            labelClassName: "sm:min-h-10 sm:leading-5",
+            value: formatCommissionMoney(summary.totalAmount, locale),
+          },
+          {
+            accent: "gold",
+            icon: <Coins className="size-5" />,
+            key: "pendingAmount",
+            label: t("salesman.summary.pendingAmount"),
+            labelClassName: "sm:min-h-10 sm:leading-5",
+            value: formatCommissionMoney(summary.pendingAmount, locale),
+          },
+          {
+            accent: "green",
+            icon: <BadgeDollarSign className="size-5" />,
+            key: "paidAmount",
+            label: t("salesman.summary.paidAmount"),
+            labelClassName: "sm:min-h-10 sm:leading-5",
+            value: formatCommissionMoney(summary.paidAmount, locale),
+          },
+        ]}
+        metricsClassName="sm:grid-cols-3"
+        metricsPlacement="below"
+        title={t("salesman.header.title")}
+      />
       {!hasPermission ? <section className="rounded-[28px] border border-white/85 bg-white/72 p-6 shadow-[0_18px_45px_rgba(96,113,128,0.06)] xl:p-8"><EmptyState description={t("salesman.states.noPermissionDescription")} icon={<ShieldAlert className="size-6" />} title={t("salesman.states.noPermissionTitle")} /></section> : (
         <>
           <CommissionBoardSwitch
@@ -108,15 +131,26 @@ export function SalesmanCommissionClient({
           />
 
           {activeBoard === "normal" ? (
-            commissions.length === 0 ? <section className="rounded-[28px] border border-white/85 bg-white/72 p-6 shadow-[0_18px_45px_rgba(96,113,128,0.06)] xl:p-8"><EmptyState description={t("salesman.states.emptyDescription")} icon={<ReceiptText className="size-6" />} title={t("salesman.states.emptyTitle")} /></section> : (
-              <section className="rounded-[28px] border border-white/85 bg-white/72 p-6 shadow-[0_18px_45px_rgba(96,113,128,0.06)] xl:p-8">
-                <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-                  <div>
-                    <h3 className="text-2xl font-semibold tracking-tight text-[#22313a]">{t("salesman.table.title")}</h3>
-                    <p className="mt-2 text-sm leading-7 text-[#67727b]">{t("salesman.table.description")}</p>
-                  </div>
-                </div>
-                <div className="mt-6 overflow-x-auto">
+            commissions.length === 0 ? <DashboardListSection><EmptyState description={t("salesman.states.emptyDescription")} icon={<ReceiptText className="size-6" />} title={t("salesman.states.emptyTitle")} /></DashboardListSection> : (
+              <DashboardListSection
+                description={t("salesman.table.description")}
+                title={t("salesman.table.title")}
+              >
+                <DashboardTableFrame
+                  footer={
+                    <DashboardPaginationControls
+                      endIndex={commissionsPagination.endIndex}
+                      hasNextPage={commissionsPagination.hasNextPage}
+                      hasPreviousPage={commissionsPagination.hasPreviousPage}
+                      onNextPage={commissionsPagination.goToNextPage}
+                      onPreviousPage={commissionsPagination.goToPreviousPage}
+                      page={commissionsPagination.page}
+                      pageCount={commissionsPagination.pageCount}
+                      startIndex={commissionsPagination.startIndex}
+                      totalItems={commissionsPagination.totalItems}
+                    />
+                  }
+                >
                   <table className="min-w-full divide-y divide-[#e6e2db] text-sm">
                     <thead>
                       <tr className="text-left text-xs font-semibold tracking-[0.16em] text-[#8b959c] uppercase">
@@ -161,19 +195,8 @@ export function SalesmanCommissionClient({
                       ))}
                     </tbody>
                   </table>
-                  <DashboardPaginationControls
-                    endIndex={commissionsPagination.endIndex}
-                    hasNextPage={commissionsPagination.hasNextPage}
-                    hasPreviousPage={commissionsPagination.hasPreviousPage}
-                    onNextPage={commissionsPagination.goToNextPage}
-                    onPreviousPage={commissionsPagination.goToPreviousPage}
-                    page={commissionsPagination.page}
-                    pageCount={commissionsPagination.pageCount}
-                    startIndex={commissionsPagination.startIndex}
-                    totalItems={commissionsPagination.totalItems}
-                  />
-                </div>
-              </section>
+                </DashboardTableFrame>
+              </DashboardListSection>
             )
           ) : (
             <SalesmanTaskCommissionSection rows={taskCommissions} />

@@ -35,8 +35,8 @@ export function DashboardPaginationControls({
   }
 
   return (
-    <div className="mt-6 flex flex-col gap-3 border-t border-[#e7e3dc] pt-4 sm:flex-row sm:items-center sm:justify-between">
-      <p className="text-sm text-[#6d7780]">
+    <div className="mt-4 flex flex-col gap-3 border-t border-[#e7e3dc] pt-3 sm:mt-6 sm:flex-row sm:items-center sm:justify-between sm:pt-4">
+      <p className="text-xs text-[#6d7780] sm:text-sm">
         {t("range", {
           end: endIndex,
           start: startIndex,
@@ -44,9 +44,9 @@ export function DashboardPaginationControls({
         })}
       </p>
 
-      <div className="flex items-center gap-2">
+      <div className="flex items-center justify-between gap-2 sm:justify-start">
         <Button
-          className="h-10 rounded-full border-[#d4d8dc] bg-white px-4 text-[#486782] hover:bg-[#f2f4f6]"
+          className="h-9 rounded-full border-[#d4d8dc] bg-white px-3 text-xs text-[#486782] hover:bg-[#f2f4f6] sm:h-10 sm:px-4 sm:text-sm"
           disabled={!hasPreviousPage}
           onClick={onPreviousPage}
           type="button"
@@ -56,12 +56,12 @@ export function DashboardPaginationControls({
           {t("previous")}
         </Button>
 
-        <p className="min-w-[120px] text-center text-sm font-medium text-[#486782]">
+        <p className="min-w-[84px] text-center text-xs font-medium text-[#486782] sm:min-w-[120px] sm:text-sm">
           {t("page", { page, pageCount })}
         </p>
 
         <Button
-          className="h-10 rounded-full border-[#d4d8dc] bg-white px-4 text-[#486782] hover:bg-[#f2f4f6]"
+          className="h-9 rounded-full border-[#d4d8dc] bg-white px-3 text-xs text-[#486782] hover:bg-[#f2f4f6] sm:h-10 sm:px-4 sm:text-sm"
           disabled={!hasNextPage}
           onClick={onNextPage}
           type="button"

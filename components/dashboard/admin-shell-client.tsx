@@ -93,7 +93,7 @@ export function AdminShellNav({ items, mode }: AdminShellNavProps) {
 
   if (mode === "mobile") {
     return (
-      <div className="flex w-max gap-2">
+      <div className="flex w-max gap-1.5 sm:gap-2">
         {items.map((item) => {
           const Icon = NAV_ICONS[item.icon];
           const isActive = pathname === item.href;
@@ -109,7 +109,7 @@ export function AdminShellNav({ items, mode }: AdminShellNavProps) {
               onMouseEnter={() => prefetchRoute(item.href)}
               prefetch
               className={cn(
-                "inline-flex items-center gap-2 rounded-full px-4 py-2.5 text-sm whitespace-nowrap transition-colors",
+                "inline-flex items-center gap-1.5 rounded-full px-3 py-2 text-xs whitespace-nowrap transition-colors sm:gap-2 sm:px-4 sm:py-2.5 sm:text-sm",
                 isActive
                   ? "bg-[#486782] text-white shadow-[0_10px_20px_rgba(72,103,130,0.22)]"
                   : isPending

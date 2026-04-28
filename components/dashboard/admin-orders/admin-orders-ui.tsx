@@ -11,7 +11,6 @@ import {
   normalizeOptionalString,
 } from "../dashboard-shared-ui";
 import { DashboardCenteredLoadingState } from "../dashboard-centered-loading-state";
-import { DashboardMetricCard } from "../dashboard-metric-card";
 import {
   createOrdersUiCopy,
   getOrderTypeMetaFromCategory,
@@ -35,42 +34,6 @@ function OrdersLoadingState() {
   const t = useTranslations("OrdersUI");
 
   return <DashboardCenteredLoadingState message={t("loading")} />;
-}
-
-function OrderSummaryCard({
-  label,
-  count,
-  icon,
-  accent,
-}: {
-  label: string;
-  count: number;
-  icon: ReactNode;
-  accent: "blue" | "green" | "gold";
-}) {
-  return (
-    <DashboardMetricCard
-      accent={accent}
-      icon={icon}
-      label={label}
-      value={String(count)}
-    />
-  );
-}
-
-function FilterField({
-  label,
-  children,
-}: {
-  label: string;
-  children: ReactNode;
-}) {
-  return (
-    <label className="flex flex-col gap-2">
-      <span className="text-sm font-medium text-[#52616d]">{label}</span>
-      {children}
-    </label>
-  );
 }
 
 function OrderHeaderCell({ children }: { children: ReactNode }) {
@@ -167,18 +130,12 @@ function StatusTag({
   );
 }
 
-const filterInputClassName =
-  "h-12 w-full rounded-[18px] border border-[#e1ddd7] bg-white px-4 text-[15px] text-[#23313a] outline-none transition placeholder:text-[#98a2aa] focus:border-[#bfd2e1] focus:ring-4 focus:ring-[#bfd2e1]/30";
-
 export {
-  FilterField,
   OrderDetailsDialog,
   OrderFormDialog,
   OrderHeaderCell,
   OrdersLoadingState,
   OrderStatusChip,
-  OrderSummaryCard,
   OrderTypeChip,
   OrderValueCell,
-  filterInputClassName,
 };

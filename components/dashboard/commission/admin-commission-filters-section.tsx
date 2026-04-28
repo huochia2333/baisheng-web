@@ -5,6 +5,11 @@ import type { ReactNode } from "react";
 import { useTranslations } from "next-intl";
 import { RefreshCcw, Search } from "lucide-react";
 
+import {
+  DashboardFilterField,
+  DashboardListSection,
+  dashboardFilterInputClassName,
+} from "@/components/dashboard/dashboard-section-panel";
 import { Button } from "@/components/ui/button";
 
 import type {
@@ -42,20 +47,8 @@ export function CommissionFiltersSection({
   const t = useTranslations("Commission");
 
   return (
-    <section className="rounded-[28px] border border-white/85 bg-white/72 p-6 shadow-[0_18px_45px_rgba(96,113,128,0.06)] xl:p-8">
-      <div className="flex flex-col gap-5">
-        <div className="flex flex-col gap-3 xl:flex-row xl:items-end xl:justify-between">
-          <div>
-            <h3 className="text-2xl font-semibold tracking-tight text-[#22313a]">
-              {t("filters.title")}
-            </h3>
-            <p className="mt-2 text-sm leading-7 text-[#67727b]">
-              {t("filters.description", {
-                beneficiaries: beneficiaryCount,
-                records: recordCount,
-              })}
-            </p>
-          </div>
+    <DashboardListSection
+      actions={
           <Button
             className="rounded-full border border-[#d8dde2] bg-white text-[#486782] hover:bg-[#eef3f6]"
             onClick={onResetFilters}
@@ -65,7 +58,14 @@ export function CommissionFiltersSection({
             <RefreshCcw className="size-4" />
             {t("filters.reset")}
           </Button>
-        </div>
+      }
+      bodyClassName="space-y-5"
+      description={t("filters.description", {
+        beneficiaries: beneficiaryCount,
+        records: recordCount,
+      })}
+      title={t("filters.title")}
+    >
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
           <SearchField
             label={t("filters.keywordLabel")}
@@ -163,8 +163,7 @@ export function CommissionFiltersSection({
             />
           </div>
         ) : null}
-      </div>
-    </section>
+    </DashboardListSection>
   );
 }
 
@@ -180,10 +179,7 @@ function SearchField({
   value: string;
 }) {
   return (
-    <label className="block">
-      <span className="mb-2 block text-[11px] font-semibold tracking-[0.16em] text-[#88939b] uppercase">
-        {label}
-      </span>
+    <DashboardFilterField label={label}>
       <div className="flex items-center gap-3 rounded-[18px] border border-[#dfe5ea] bg-white px-4 shadow-[0_8px_18px_rgba(96,113,128,0.04)]">
         <Search className="size-4 text-[#7a8790]" />
         <input
@@ -194,7 +190,7 @@ function SearchField({
           value={value}
         />
       </div>
-    </label>
+    </DashboardFilterField>
   );
 }
 
@@ -210,18 +206,15 @@ function SelectField({
   value: string;
 }) {
   return (
-    <label className="block">
-      <span className="mb-2 block text-[11px] font-semibold tracking-[0.16em] text-[#88939b] uppercase">
-        {label}
-      </span>
+    <DashboardFilterField label={label}>
       <select
-        className="h-12 w-full rounded-[18px] border border-[#dfe5ea] bg-white px-4 text-sm text-[#23313a] outline-none transition focus:border-[#bfd2e1] focus:ring-4 focus:ring-[#bfd2e1]/30"
+        className={dashboardFilterInputClassName}
         onChange={(event) => onChange(event.target.value)}
         value={value}
       >
         {children}
       </select>
-    </label>
+    </DashboardFilterField>
   );
 }
 

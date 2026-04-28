@@ -10,6 +10,7 @@ import {
 
 import type { TeamClient, TeamMember, TeamSalesmanCandidate } from "@/lib/team-management";
 
+import { DashboardListSection } from "@/components/dashboard/dashboard-section-panel";
 import { EmptyState } from "@/components/dashboard/dashboard-shared-ui";
 
 import {
@@ -17,7 +18,6 @@ import {
   ClientCard,
   MemberCard,
   SearchField,
-  SectionHeader,
 } from "./team-management-ui";
 
 export function TeamMembersSection({
@@ -38,13 +38,12 @@ export function TeamMembersSection({
   const t = useTranslations("TeamManagement");
 
   return (
-    <section className="rounded-[28px] border border-white/85 bg-white/72 p-6 shadow-[0_18px_45px_rgba(96,113,128,0.06)] xl:p-8">
-      <SectionHeader
-        description={t("members.description")}
-        title={t("members.title")}
-      />
-
-      <div className="mt-5">
+    <DashboardListSection
+      bodyClassName="space-y-6"
+      description={t("members.description")}
+      title={t("members.title")}
+    >
+      <div>
         <SearchField
           onChange={onMemberSearchChange}
           placeholder={t("members.searchPlaceholder")}
@@ -52,7 +51,7 @@ export function TeamMembersSection({
         />
       </div>
 
-      <div className="mt-6 grid gap-4">
+      <div className="grid gap-4">
         {filteredMembers.length > 0 ? (
           filteredMembers.map((member) => (
             <MemberCard
@@ -71,7 +70,7 @@ export function TeamMembersSection({
           />
         )}
       </div>
-    </section>
+    </DashboardListSection>
   );
 }
 
@@ -95,13 +94,12 @@ export function TeamCandidatesSection({
   const t = useTranslations("TeamManagement");
 
   return canManageSelectedTeam ? (
-    <section className="rounded-[28px] border border-white/85 bg-white/72 p-6 shadow-[0_18px_45px_rgba(96,113,128,0.06)] xl:p-8">
-      <SectionHeader
-        description={t("candidates.description")}
-        title={t("candidates.title")}
-      />
-
-      <div className="mt-5">
+    <DashboardListSection
+      bodyClassName="space-y-6"
+      description={t("candidates.description")}
+      title={t("candidates.title")}
+    >
+      <div>
         <SearchField
           onChange={onCandidateSearchChange}
           placeholder={t("candidates.searchPlaceholder")}
@@ -109,11 +107,11 @@ export function TeamCandidatesSection({
         />
       </div>
 
-      <div className="mt-4 rounded-[22px] border border-[#d9e8dc] bg-[#edf5ef] px-4 py-3 text-sm text-[#42624b]">
+      <div className="rounded-[22px] border border-[#d9e8dc] bg-[#edf5ef] px-4 py-3 text-sm text-[#42624b]">
         {t("candidates.availableCount", { count: availableCandidateCount })}
       </div>
 
-      <div className="mt-6 space-y-3">
+      <div className="space-y-3">
         {filteredCandidates.length > 0 ? (
           filteredCandidates.map((candidate) => (
             <CandidateCard
@@ -131,15 +129,15 @@ export function TeamCandidatesSection({
           />
         )}
       </div>
-    </section>
+    </DashboardListSection>
   ) : (
-    <section className="rounded-[28px] border border-white/85 bg-white/72 p-6 shadow-[0_18px_45px_rgba(96,113,128,0.06)] xl:p-8">
+    <DashboardListSection>
       <EmptyState
         description={t("candidates.readOnlyDescription")}
         icon={<ShieldAlert className="size-6" />}
         title={t("candidates.readOnlyTitle")}
       />
-    </section>
+    </DashboardListSection>
   );
 }
 
@@ -155,13 +153,12 @@ export function TeamClientsSection({
   const t = useTranslations("TeamManagement");
 
   return (
-    <section className="rounded-[28px] border border-white/85 bg-white/72 p-6 shadow-[0_18px_45px_rgba(96,113,128,0.06)] xl:p-8">
-      <SectionHeader
-        description={t("clients.description")}
-        title={t("clients.title")}
-      />
-
-      <div className="mt-5">
+    <DashboardListSection
+      bodyClassName="space-y-6"
+      description={t("clients.description")}
+      title={t("clients.title")}
+    >
+      <div>
         <SearchField
           onChange={onClientSearchChange}
           placeholder={t("clients.searchPlaceholder")}
@@ -169,7 +166,7 @@ export function TeamClientsSection({
         />
       </div>
 
-      <div className="mt-6 grid gap-4 lg:grid-cols-2">
+      <div className="grid gap-4 lg:grid-cols-2">
         {filteredClients.length > 0 ? (
           filteredClients.map((client) => (
             <ClientCard
@@ -187,6 +184,6 @@ export function TeamClientsSection({
           </div>
         )}
       </div>
-    </section>
+    </DashboardListSection>
   );
 }

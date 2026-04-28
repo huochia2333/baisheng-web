@@ -9,16 +9,21 @@ import { useLocale } from "@/components/i18n/locale-provider";
 import { type AdminOrderRow } from "@/lib/admin-orders";
 
 import { Button } from "../../ui/button";
+import { DashboardSectionHeader } from "../dashboard-section-header";
+import {
+  DashboardFilterField,
+  DashboardFilterPanel,
+  DashboardSectionPanel,
+  DashboardTableFrame,
+  dashboardFilterInputClassName,
+} from "../dashboard-section-panel";
 import { DashboardPaginationControls } from "../dashboard-pagination-controls";
 import { EmptyState, formatDateTime } from "../dashboard-shared-ui";
 import {
-  FilterField,
   OrderHeaderCell,
   OrderStatusChip,
-  OrderSummaryCard,
   OrderTypeChip,
   OrderValueCell,
-  filterInputClassName,
 } from "./admin-orders-ui";
 import {
   formatMoneyValue,
@@ -95,61 +100,53 @@ export const OrdersHeaderSection = memo(function OrdersHeaderSection({
   const t = useTranslations("Orders");
 
   return (
-    <section className="rounded-[28px] border border-white/90 bg-[#f4f3f1]/92 p-6 shadow-[0_18px_45px_rgba(96,113,128,0.08)] xl:p-8">
-      <div className="flex flex-col gap-6 xl:flex-row xl:items-end xl:justify-between">
-        <div className="max-w-2xl">
-          <span className="inline-flex rounded-full bg-[#e4edf3] px-3 py-1 text-xs font-semibold text-[#486782]">
-            {badge}
-          </span>
-          <h2 className="mt-4 text-4xl font-bold tracking-tight text-[#1f2a32]">
-            {title}
-          </h2>
-          <p className="mt-3 text-[15px] leading-8 text-[#65717b]">
-            {description}
-          </p>
-        </div>
-
-        <div className="flex flex-col gap-4 xl:items-end">
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-            <OrderSummaryCard
-              accent="blue"
-              count={summary.total}
-              icon={<ReceiptText className="size-5" />}
-              label={t("summary.total")}
-            />
-            <OrderSummaryCard
-              accent="gold"
-              count={summary.pending}
-              icon={<ClipboardList className="size-5" />}
-              label={t("summary.pending")}
-            />
-            <OrderSummaryCard
-              accent="green"
-              count={summary.completed}
-              icon={<BadgeDollarSign className="size-5" />}
-              label={t("summary.completed")}
-            />
-          </div>
-
-          {canCreateOrders ? (
-            <>
-              <Button
-                className="h-11 rounded-full bg-[#486782] px-5 text-white hover:bg-[#3e5f79]"
-                disabled={!canOpenCreateDialog}
-                onClick={onCreate}
-                type="button"
-              >
-                <Plus className="size-4" />
-                {createTitle}
-              </Button>
-              {noCreateTargetHint && !canOpenCreateDialog ? (
-                <p className="text-sm text-[#69747d]">{noCreateTargetHint}</p>
-              ) : null}
-            </>
-          ) : null}
-        </div>
-      </div>
-    </section>
+    <DashboardSectionHeader
+      actions={
+        canCreateOrders ? (
+          <Button
+            className="h-11 rounded-full bg-[#486782] px-5 text-white hover:bg-[#3e5f79]"
+            disabled={!canOpenCreateDialog}
+            onClick={onCreate}
+            type="button"
+          >
+            <Plus className="size-4" />
+            {createTitle}
+          </Button>
+        ) : null
+      }
+      asideFooter={
+        noCreateTargetHint && !canOpenCreateDialog ? (
+          <p className="text-sm text-[#69747d]">{noCreateTargetHint}</p>
+        ) : null
+      }
+      badge={badge}
+      contentClassName="max-w-2xl"
+      description={description}
+      metrics={[
+        {
+          accent: "blue",
+          icon: <ReceiptText className="size-5" />,
+          key: "total",
+          label: t("summary.total"),
+          value: String(summary.total),
+        },
+        {
+          accent: "gold",
+          icon: <ClipboardList className="size-5" />,
+          key: "pending",
+          label: t("summary.pending"),
+          value: String(summary.pending),
+        },
+        {
+          accent: "green",
+          icon: <BadgeDollarSign className="size-5" />,
+          key: "completed",
+          label: t("summary.completed"),
+          value: String(summary.completed),
+        },
+      ]}
+      title={title}
+    />
   );
 });
 
@@ -182,48 +179,49 @@ export const OrdersTableSection = memo(function OrdersTableSection({
   );
 
   return (
-    <section className="rounded-[28px] border border-white/85 bg-white/72 p-4 shadow-[0_18px_45px_rgba(96,113,128,0.06)] sm:p-6 xl:p-8">
-      <div
-        className={`mb-5 grid gap-4 rounded-[24px] border border-[#ebe7e1] bg-[#fbfaf8] p-4 shadow-[0_10px_24px_rgba(96,113,128,0.04)] ${
+    <DashboardSectionPanel className="p-4 sm:p-6 xl:p-8">
+      <DashboardFilterPanel
+        className="mb-5"
+        gridClassName={
           showOrderEntryFilter && showOrderingFilter
             ? "lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_auto]"
             : showOrderingFilter
               ? "lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto]"
               : "lg:grid-cols-[minmax(0,1fr)_auto]"
-        }`}
+        }
       >
-        <FilterField label={t("filters.orderNumberLabel")}>
+        <DashboardFilterField label={t("filters.orderNumberLabel")}>
           <input
-            className={filterInputClassName}
+            className={dashboardFilterInputClassName}
             onChange={(event) => onOrderNumberChange(event.target.value)}
             placeholder={t("filters.orderNumberPlaceholder")}
             type="text"
             value={filters.orderNumber}
           />
-        </FilterField>
+        </DashboardFilterField>
 
         {showOrderEntryFilter ? (
-          <FilterField label={t("filters.orderEntryUserLabel")}>
+          <DashboardFilterField label={t("filters.orderEntryUserLabel")}>
             <input
-              className={filterInputClassName}
+              className={dashboardFilterInputClassName}
               onChange={(event) => onOrderEntryUserChange(event.target.value)}
               placeholder={t("filters.orderEntryUserPlaceholder")}
               type="text"
               value={filters.orderEntryUser}
             />
-          </FilterField>
+          </DashboardFilterField>
         ) : null}
 
         {showOrderingFilter ? (
-          <FilterField label={t("filters.orderingUserLabel")}>
+          <DashboardFilterField label={t("filters.orderingUserLabel")}>
             <input
-              className={filterInputClassName}
+              className={dashboardFilterInputClassName}
               onChange={(event) => onOrderingUserChange(event.target.value)}
               placeholder={t("filters.orderingUserPlaceholder")}
               type="text"
               value={filters.orderingUser}
             />
-          </FilterField>
+          </DashboardFilterField>
         ) : null}
 
         <div className="flex flex-col justify-end gap-3 lg:items-end">
@@ -242,7 +240,7 @@ export const OrdersTableSection = memo(function OrdersTableSection({
             {t("filters.clear")}
           </Button>
         </div>
-      </div>
+      </DashboardFilterPanel>
 
       {matchedOrdersCount === 0 ? (
         <EmptyState
@@ -251,8 +249,21 @@ export const OrdersTableSection = memo(function OrdersTableSection({
           title={t("states.noMatchTitle")}
         />
       ) : (
-        <div className="overflow-hidden rounded-[24px] border border-[#ebe7e1] bg-white shadow-[0_10px_24px_rgba(96,113,128,0.06)]">
-          <div className="overflow-x-auto">
+        <DashboardTableFrame
+          footer={
+            <DashboardPaginationControls
+              endIndex={pagination.endIndex}
+              hasNextPage={pagination.hasNextPage}
+              hasPreviousPage={pagination.hasPreviousPage}
+              onNextPage={pagination.onNextPage}
+              onPreviousPage={pagination.onPreviousPage}
+              page={pagination.page}
+              pageCount={pagination.pageCount}
+              startIndex={pagination.startIndex}
+              totalItems={pagination.totalItems}
+            />
+          }
+        >
             <table className="min-w-[960px] w-full table-fixed border-collapse">
               <thead className="bg-[#f7f5f2]">
                 <tr className="border-b border-[#efebe5]">
@@ -320,23 +331,8 @@ export const OrdersTableSection = memo(function OrdersTableSection({
                 ))}
               </tbody>
             </table>
-          </div>
-
-          <div className="px-5 pb-5">
-            <DashboardPaginationControls
-              endIndex={pagination.endIndex}
-              hasNextPage={pagination.hasNextPage}
-              hasPreviousPage={pagination.hasPreviousPage}
-              onNextPage={pagination.onNextPage}
-              onPreviousPage={pagination.onPreviousPage}
-              page={pagination.page}
-              pageCount={pagination.pageCount}
-              startIndex={pagination.startIndex}
-              totalItems={pagination.totalItems}
-            />
-          </div>
-        </div>
+        </DashboardTableFrame>
       )}
-    </section>
+    </DashboardSectionPanel>
   );
 });

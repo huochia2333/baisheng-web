@@ -12,6 +12,10 @@ import { useLocale } from "@/components/i18n/locale-provider";
 import { Button } from "@/components/ui/button";
 import { DashboardPaginationControls } from "@/components/dashboard/dashboard-pagination-controls";
 import {
+  DashboardListSection,
+  DashboardTableFrame,
+} from "@/components/dashboard/dashboard-section-panel";
+import {
   EmptyState,
   formatDateTime,
   mapUserStatus,
@@ -43,27 +47,18 @@ export function CommissionBeneficiarySummarySection({
   const { locale } = useLocale();
 
   return (
-    <section className="rounded-[28px] border border-white/85 bg-white/72 p-6 shadow-[0_18px_45px_rgba(96,113,128,0.06)] xl:p-8">
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <h3 className="text-2xl font-semibold tracking-tight text-[#22313a]">
-            {t("beneficiaries.title")}
-          </h3>
-          <p className="mt-2 text-sm leading-7 text-[#67727b]">
-            {t("beneficiaries.description")}
-          </p>
-        </div>
-      </div>
+    <DashboardListSection
+      description={t("beneficiaries.description")}
+      title={t("beneficiaries.title")}
+    >
       {rows.length === 0 ? (
-        <div className="mt-6">
-          <EmptyState
-            description={t("beneficiaries.emptyDescription")}
-            icon={<UsersRound className="size-6" />}
-            title={t("beneficiaries.emptyTitle")}
-          />
-        </div>
+        <EmptyState
+          description={t("beneficiaries.emptyDescription")}
+          icon={<UsersRound className="size-6" />}
+          title={t("beneficiaries.emptyTitle")}
+        />
       ) : (
-        <div className="mt-6 overflow-x-auto">
+        <DashboardTableFrame>
           <table className="min-w-full divide-y divide-[#e6e2db] text-sm">
             <thead>
               <tr className="text-left text-xs font-semibold tracking-[0.16em] text-[#8b959c] uppercase">
@@ -141,9 +136,9 @@ export function CommissionBeneficiarySummarySection({
               })}
             </tbody>
           </table>
-        </div>
+        </DashboardTableFrame>
       )}
-    </section>
+    </DashboardListSection>
   );
 }
 
@@ -164,27 +159,32 @@ export function AdminCommissionTableSection({
   const { locale } = useLocale();
 
   return (
-    <section className="rounded-[28px] border border-white/85 bg-white/72 p-6 shadow-[0_18px_45px_rgba(96,113,128,0.06)] xl:p-8">
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <h3 className="text-2xl font-semibold tracking-tight text-[#22313a]">
-            {t("table.title")}
-          </h3>
-          <p className="mt-2 text-sm leading-7 text-[#67727b]">
-            {t("table.description")}
-          </p>
-        </div>
-      </div>
+    <DashboardListSection
+      description={t("table.description")}
+      title={t("table.title")}
+    >
       {rows.length === 0 ? (
-        <div className="mt-6">
-          <EmptyState
-            description={t("table.emptyDescription")}
-            icon={<Search className="size-6" />}
-            title={t("table.emptyTitle")}
-          />
-        </div>
+        <EmptyState
+          description={t("table.emptyDescription")}
+          icon={<Search className="size-6" />}
+          title={t("table.emptyTitle")}
+        />
       ) : (
-        <div className="mt-6 overflow-x-auto">
+        <DashboardTableFrame
+          footer={
+            <DashboardPaginationControls
+              endIndex={pagination.endIndex}
+              hasNextPage={pagination.hasNextPage}
+              hasPreviousPage={pagination.hasPreviousPage}
+              onNextPage={pagination.goToNextPage}
+              onPreviousPage={pagination.goToPreviousPage}
+              page={pagination.page}
+              pageCount={pagination.pageCount}
+              startIndex={pagination.startIndex}
+              totalItems={pagination.totalItems}
+            />
+          }
+        >
           <table className="min-w-full divide-y divide-[#e6e2db] text-sm">
             <thead>
               <tr className="text-left text-xs font-semibold tracking-[0.16em] text-[#8b959c] uppercase">
@@ -335,20 +335,9 @@ export function AdminCommissionTableSection({
               })}
             </tbody>
           </table>
-          <DashboardPaginationControls
-            endIndex={pagination.endIndex}
-            hasNextPage={pagination.hasNextPage}
-            hasPreviousPage={pagination.hasPreviousPage}
-            onNextPage={pagination.goToNextPage}
-            onPreviousPage={pagination.goToPreviousPage}
-            page={pagination.page}
-            pageCount={pagination.pageCount}
-            startIndex={pagination.startIndex}
-            totalItems={pagination.totalItems}
-          />
-        </div>
+        </DashboardTableFrame>
       )}
-    </section>
+    </DashboardListSection>
   );
 }
 

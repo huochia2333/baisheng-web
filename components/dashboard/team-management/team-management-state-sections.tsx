@@ -17,7 +17,7 @@ import type { TeamManagerCandidate } from "@/lib/team-management";
 import type { AppRole } from "@/lib/user-self-service";
 
 import { Button } from "@/components/ui/button";
-import { DashboardMetricCard } from "@/components/dashboard/dashboard-metric-card";
+import { DashboardSectionHeader } from "@/components/dashboard/dashboard-section-header";
 import { EmptyState } from "@/components/dashboard/dashboard-shared-ui";
 
 import { SectionHeader } from "./team-management-ui";
@@ -47,69 +47,65 @@ export function TeamManagementHeroSection({
   const t = useTranslations("TeamManagement");
 
   return (
-    <section className="rounded-[28px] border border-white/90 bg-[#f4f3f1]/92 p-6 shadow-[0_18px_45px_rgba(96,113,128,0.08)] xl:p-8">
-      <div className="flex flex-col gap-6 xl:flex-row xl:items-end xl:justify-between">
-        <div className="max-w-3xl">
-          <span className="inline-flex rounded-full bg-[#e6edf2] px-3 py-1 text-xs font-semibold text-[#486782]">
-            {t("header.badge")}
-          </span>
-          <h2 className="mt-4 text-4xl font-bold tracking-tight text-[#1f2a32]">
-            {t("header.title")}
-          </h2>
-          <p className="mt-3 text-[15px] leading-8 text-[#65717b]">
-            {getTeamManagementDescription(viewerRole, t)}
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:min-w-[560px] xl:grid-cols-4">
-          <DashboardMetricCard
-            accent="blue"
-            icon={<Building2 className="size-5" />}
-            label={t("summary.visibleTeams")}
-            value={aggregateStats.teamCount}
-          />
-          <DashboardMetricCard
-            accent="green"
-            icon={<UsersRound className="size-5" />}
-            label={t("summary.teamMembers")}
-            value={aggregateStats.totalMembers}
-          />
-          <DashboardMetricCard
-            accent="gold"
-            icon={<BriefcaseBusiness className="size-5" />}
-            label={t("summary.teamClients")}
-            value={aggregateStats.totalClients}
-          />
-          <DashboardMetricCard
-            accent="blue"
-            icon={<Crown className="size-5" />}
-            label={t("summary.manageableTeams")}
-            value={aggregateStats.manageableTeams}
-          />
-        </div>
-      </div>
-
-      <div className="mt-6 flex flex-wrap gap-3">
-        <Button
-          className="h-11 rounded-full border-[#d4d8dc] bg-white px-5 text-[#486782] hover:bg-[#f2f4f6]"
-          disabled={busyKey !== null}
-          onClick={onRefresh}
-          variant="outline"
-        >
-          {busyKey === "refresh" ? (
-            <LoaderCircle className="size-4 animate-spin" />
-          ) : (
-            <RefreshCw className="size-4" />
-          )}
-          {t("header.refresh")}
-        </Button>
-        {canManageSelectedTeam ? (
-          <div className="inline-flex items-center rounded-full bg-[#eef5ef] px-4 py-2 text-sm text-[#4c7259]">
-            {t("header.manageableHint")}
-          </div>
-        ) : null}
-      </div>
-    </section>
+    <DashboardSectionHeader
+      actions={
+        <>
+          <Button
+            className="h-11 rounded-full border-[#d4d8dc] bg-white px-5 text-[#486782] hover:bg-[#f2f4f6]"
+            disabled={busyKey !== null}
+            onClick={onRefresh}
+            variant="outline"
+          >
+            {busyKey === "refresh" ? (
+              <LoaderCircle className="size-4 animate-spin" />
+            ) : (
+              <RefreshCw className="size-4" />
+            )}
+            {t("header.refresh")}
+          </Button>
+          {canManageSelectedTeam ? (
+            <div className="inline-flex items-center rounded-full bg-[#eef5ef] px-4 py-2 text-sm text-[#4c7259]">
+              {t("header.manageableHint")}
+            </div>
+          ) : null}
+        </>
+      }
+      badge={t("header.badge")}
+      badgeClassName="bg-[#e6edf2]"
+      description={getTeamManagementDescription(viewerRole, t)}
+      metrics={[
+        {
+          accent: "blue",
+          icon: <Building2 className="size-5" />,
+          key: "teams",
+          label: t("summary.visibleTeams"),
+          value: aggregateStats.teamCount,
+        },
+        {
+          accent: "green",
+          icon: <UsersRound className="size-5" />,
+          key: "members",
+          label: t("summary.teamMembers"),
+          value: aggregateStats.totalMembers,
+        },
+        {
+          accent: "gold",
+          icon: <BriefcaseBusiness className="size-5" />,
+          key: "clients",
+          label: t("summary.teamClients"),
+          value: aggregateStats.totalClients,
+        },
+        {
+          accent: "blue",
+          icon: <Crown className="size-5" />,
+          key: "manageable",
+          label: t("summary.manageableTeams"),
+          value: aggregateStats.manageableTeams,
+        },
+      ]}
+      metricsClassName="sm:grid-cols-2 xl:min-w-[560px] xl:grid-cols-4"
+      title={t("header.title")}
+    />
   );
 }
 

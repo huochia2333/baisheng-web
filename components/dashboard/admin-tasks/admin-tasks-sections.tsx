@@ -19,8 +19,12 @@ import {
 } from "@/lib/admin-tasks";
 
 import { Button } from "@/components/ui/button";
-import { DashboardMetricCard } from "@/components/dashboard/dashboard-metric-card";
 import { DashboardPaginationControls } from "@/components/dashboard/dashboard-pagination-controls";
+import { DashboardSectionHeader } from "@/components/dashboard/dashboard-section-header";
+import {
+  DashboardFilterPanel,
+  DashboardListSection,
+} from "@/components/dashboard/dashboard-section-panel";
 import { EmptyState, PageBanner } from "@/components/dashboard/dashboard-shared-ui";
 
 import {
@@ -63,21 +67,9 @@ export function AdminTasksHeroSection({
   const t = useTranslations("Tasks.admin");
 
   return (
-    <section className="rounded-[28px] border border-white/90 bg-[#f4f3f1]/92 p-6 shadow-[0_18px_45px_rgba(96,113,128,0.08)] xl:p-8">
-      <div className="flex flex-col gap-6 xl:flex-row xl:items-end xl:justify-between">
-        <div className="max-w-3xl">
-          <span className="inline-flex rounded-full bg-[#e6edf2] px-3 py-1 text-xs font-semibold text-[#486782]">
-            {t("header.badge")}
-          </span>
-          <h2 className="mt-4 text-4xl font-bold tracking-tight text-[#1f2a32]">
-            {t("header.title")}
-          </h2>
-          <p className="mt-3 text-[15px] leading-8 text-[#65717b]">
-            {t("header.description")}
-          </p>
-        </div>
-
-        <div className="flex flex-wrap items-center gap-3">
+    <DashboardSectionHeader
+      actions={
+        <>
           <Button
             className="h-11 rounded-full border border-[#d8e2e8] bg-white px-5 text-[#486782] hover:bg-[#eef3f6]"
             disabled={isRefreshing}
@@ -105,24 +97,31 @@ export function AdminTasksHeroSection({
             <Plus className="size-4" />
             {t("header.create")}
           </Button>
-        </div>
-      </div>
-
-      <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2">
-        <DashboardMetricCard
-          accent="blue"
-          icon={<UserRound className="size-5" />}
-          label={t("summary.accepted")}
-          value={stats.accepted}
-        />
-        <DashboardMetricCard
-          accent="gold"
-          icon={<Upload className="size-5" />}
-          label={t("summary.reviewing")}
-          value={stats.reviewing}
-        />
-      </div>
-    </section>
+        </>
+      }
+      badge={t("header.badge")}
+      badgeClassName="bg-[#e6edf2]"
+      description={t("header.description")}
+      metrics={[
+        {
+          accent: "blue",
+          icon: <UserRound className="size-5" />,
+          key: "accepted",
+          label: t("summary.accepted"),
+          value: stats.accepted,
+        },
+        {
+          accent: "gold",
+          icon: <Upload className="size-5" />,
+          key: "reviewing",
+          label: t("summary.reviewing"),
+          value: stats.reviewing,
+        },
+      ]}
+      metricsClassName="sm:grid-cols-2"
+      metricsPlacement="below"
+      title={t("header.title")}
+    />
   );
 }
 
@@ -155,8 +154,10 @@ export function AdminTasksFiltersSection({
   const sharedT = useTranslations("Tasks.shared");
 
   return (
-    <section className="rounded-[26px] border border-white/85 bg-white/80 p-5 shadow-[0_14px_32px_rgba(96,113,128,0.06)] sm:p-6">
-      <div className="grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1.3fr)_repeat(2,minmax(0,0.55fr))]">
+    <DashboardFilterPanel
+      gridClassName="grid-cols-1 xl:grid-cols-[minmax(0,1.3fr)_repeat(2,minmax(0,0.55fr))]"
+      variant="standalone"
+    >
         <SearchField
           label={t("filters.searchLabel")}
           onChange={onSearchTextChange}
@@ -186,8 +187,7 @@ export function AdminTasksFiltersSection({
             </option>
           ))}
         </FilterField>
-      </div>
-    </section>
+    </DashboardFilterPanel>
   );
 }
 
@@ -219,16 +219,11 @@ export function AdminTasksListSection({
   const submissionMediaState = useAdminTaskSubmissionMedia(visibleCompletedTaskIds);
 
   return (
-    <section className="space-y-4">
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <h3 className="text-2xl font-bold tracking-tight text-[#23313a]">{t("list.title")}</h3>
-          <p className="mt-2 text-sm leading-7 text-[#6f7b85]">
-            {t("list.description", { count: filteredCount })}
-          </p>
-        </div>
-      </div>
-
+    <DashboardListSection
+      bodyClassName="space-y-4"
+      description={t("list.description", { count: filteredCount })}
+      title={t("list.title")}
+    >
       {filteredCount === 0 ? (
         <EmptyState
           description={t("states.emptyDescription")}
@@ -283,6 +278,6 @@ export function AdminTasksListSection({
         onDownload={(media) => void submissionMediaState.downloadMedia(media)}
         onOpenChange={submissionMediaState.closePreview}
       />
-    </section>
+    </DashboardListSection>
   );
 }

@@ -29,46 +29,6 @@ function ReviewLoadingState() {
   );
 }
 
-function ReviewSummaryCard({
-  label,
-  count,
-  icon,
-  accent,
-}: {
-  label: string;
-  count: number;
-  icon: ReactNode;
-  accent: "blue" | "green";
-}) {
-  return (
-    <div
-      className={cn(
-        "min-w-[180px] rounded-[24px] border px-5 py-4 shadow-[0_10px_24px_rgba(96,113,128,0.06)]",
-        accent === "blue"
-          ? "border-[#d9e3eb] bg-[#f4f8fb]"
-          : "border-[#dce8df] bg-[#f2f7f3]",
-      )}
-    >
-      <div className="flex items-center gap-3">
-        <div
-          className={cn(
-            "flex h-11 w-11 items-center justify-center rounded-full text-white",
-            accent === "blue" ? "bg-[#486782]" : "bg-[#4c7259]",
-          )}
-        >
-          {icon}
-        </div>
-        <div>
-          <p className="font-label text-[11px] font-semibold tracking-[0.18em] text-[#7d8890] uppercase">
-            {label}
-          </p>
-          <p className="mt-1 text-2xl font-bold tracking-tight text-[#23313a]">{count}</p>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 function PrivacyReviewList({
   rows,
   busyRows,
@@ -507,5 +467,4 @@ export {
   MediaReviewList,
   PrivacyReviewList,
   ReviewLoadingState,
-  ReviewSummaryCard,
 };

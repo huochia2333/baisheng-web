@@ -6,12 +6,13 @@ import { useTranslations } from "next-intl";
 import type { AdminReviewsPageData } from "@/lib/admin-reviews";
 import { cn } from "@/lib/utils";
 
+import { DashboardSectionHeader } from "@/components/dashboard/dashboard-section-header";
+import { DashboardListSection } from "@/components/dashboard/dashboard-section-panel";
 import { EmptyState, PageBanner } from "@/components/dashboard/dashboard-shared-ui";
 import {
   MediaPreviewDialog,
   MediaReviewList,
   PrivacyReviewList,
-  ReviewSummaryCard,
 } from "./admin-reviews-ui";
 import { TaskReviewList } from "./task-review-list";
 import { useAdminReviewsPage } from "./use-admin-reviews-page";
@@ -50,39 +51,35 @@ export function AdminReviewsClient({ initialData }: { initialData: AdminReviewsP
         <PageBanner tone={pageFeedback.tone}>{pageFeedback.message}</PageBanner>
       ) : null}
 
-      <section className="rounded-[28px] border border-white/90 bg-[#f4f3f1]/92 p-6 shadow-[0_18px_45px_rgba(96,113,128,0.08)] xl:p-8">
-        <div className="flex flex-col gap-6 xl:flex-row xl:items-end xl:justify-between">
-          <div className="max-w-2xl">
-            <span className="inline-flex rounded-full bg-[#e4edf3] px-3 py-1 text-xs font-semibold text-[#486782]">
-              {t("header.badge")}
-            </span>
-            <h2 className="mt-4 text-4xl font-bold tracking-tight text-[#1f2a32]">
-              {t("header.title")}
-            </h2>
-          </div>
-
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
-            <ReviewSummaryCard
-              accent="blue"
-              count={privacyRows.length}
-              icon={<FileBadge2 className="size-5" />}
-              label={t("summary.privacy")}
-            />
-            <ReviewSummaryCard
-              accent="green"
-              count={mediaRows.length}
-              icon={<ImageIcon className="size-5" />}
-              label={t("summary.media")}
-            />
-            <ReviewSummaryCard
-              accent="blue"
-              count={taskRows.length}
-              icon={<ClipboardList className="size-5" />}
-              label={t("summary.task")}
-            />
-          </div>
-        </div>
-      </section>
+      <DashboardSectionHeader
+        badge={t("header.badge")}
+        contentClassName="max-w-2xl"
+        metrics={[
+          {
+            accent: "blue",
+            icon: <FileBadge2 className="size-5" />,
+            key: "privacy",
+            label: t("summary.privacy"),
+            value: privacyRows.length,
+          },
+          {
+            accent: "green",
+            icon: <ImageIcon className="size-5" />,
+            key: "media",
+            label: t("summary.media"),
+            value: mediaRows.length,
+          },
+          {
+            accent: "blue",
+            icon: <ClipboardList className="size-5" />,
+            key: "task",
+            label: t("summary.task"),
+            value: taskRows.length,
+          },
+        ]}
+        metricsClassName="sm:grid-cols-2 xl:grid-cols-3"
+        title={t("header.title")}
+      />
 
       {hasPermission === false ? (
         <section className="rounded-[28px] border border-white/85 bg-white/72 p-6 shadow-[0_18px_45px_rgba(96,113,128,0.06)] xl:p-8">
@@ -93,7 +90,7 @@ export function AdminReviewsClient({ initialData }: { initialData: AdminReviewsP
           />
         </section>
       ) : (
-        <section className="rounded-[28px] border border-white/85 bg-white/72 p-4 shadow-[0_18px_45px_rgba(96,113,128,0.06)] sm:p-6 xl:p-8">
+        <DashboardListSection className="p-4 sm:p-6 xl:p-8">
           <div className="flex flex-wrap gap-3 border-b border-[#e7e3dc] pb-5">
             {reviewTabs.map((tab) => {
               const Icon = reviewTabIconMap[tab.key];
@@ -156,7 +153,7 @@ export function AdminReviewsClient({ initialData }: { initialData: AdminReviewsP
               />
             ) : null}
           </div>
-        </section>
+        </DashboardListSection>
       )}
 
       <MediaPreviewDialog asset={previewAsset} onOpenChange={closePreviewDialog} />

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useMemo } from "react";
 
@@ -14,6 +14,10 @@ import type { TaskCommissionRow } from "@/lib/task-commissions";
 import { cn } from "@/lib/utils";
 import { useLocale } from "@/components/i18n/locale-provider";
 import { DashboardMetricCard } from "@/components/dashboard/dashboard-metric-card";
+import {
+  DashboardListSection,
+  DashboardTableFrame,
+} from "@/components/dashboard/dashboard-section-panel";
 import {
   EmptyState,
   formatDateTime,
@@ -51,51 +55,43 @@ export function SalesmanTaskCommissionSection({
   );
 
   return (
-    <section className="rounded-[28px] border border-white/85 bg-white/72 p-6 shadow-[0_18px_45px_rgba(96,113,128,0.06)] xl:p-8">
-      <div className="flex flex-col gap-6">
-        <div>
-          <h3 className="text-2xl font-semibold tracking-tight text-[#22313a]">
-            {t("salesmanTaskSection.title")}
-          </h3>
-          <p className="mt-2 text-sm leading-7 text-[#67727b]">
-            {t("salesmanTaskSection.description")}
-          </p>
-        </div>
+    <DashboardListSection
+      bodyClassName="space-y-6"
+      description={t("salesmanTaskSection.description")}
+      title={t("salesmanTaskSection.title")}
+    >
         <div className="grid w-full grid-cols-1 gap-3 sm:grid-cols-3">
           <DashboardMetricCard
             accent="blue"
             icon={<Coins className="size-5" />}
             label={t("salesmanTaskSection.summary.totalAmount")}
-            labelClassName="min-h-10 leading-5"
+            labelClassName="sm:min-h-10 sm:leading-5"
             value={formatCommissionMoney(summary.totalAmount, locale)}
           />
           <DashboardMetricCard
             accent="gold"
             icon={<ReceiptText className="size-5" />}
             label={t("salesmanTaskSection.summary.pendingAmount")}
-            labelClassName="min-h-10 leading-5"
+            labelClassName="sm:min-h-10 sm:leading-5"
             value={formatCommissionMoney(summary.pendingAmount, locale)}
           />
           <DashboardMetricCard
             accent="green"
             icon={<BadgeDollarSign className="size-5" />}
             label={t("salesmanTaskSection.summary.paidAmount")}
-            labelClassName="min-h-10 leading-5"
+            labelClassName="sm:min-h-10 sm:leading-5"
             value={formatCommissionMoney(summary.paidAmount, locale)}
           />
         </div>
-      </div>
 
       {rows.length === 0 ? (
-        <div className="mt-6">
-          <EmptyState
-            description={t("salesmanTaskSection.emptyDescription")}
-            icon={<Search className="size-6" />}
-            title={t("salesmanTaskSection.emptyTitle")}
-          />
-        </div>
+        <EmptyState
+          description={t("salesmanTaskSection.emptyDescription")}
+          icon={<Search className="size-6" />}
+          title={t("salesmanTaskSection.emptyTitle")}
+        />
       ) : (
-        <div className="mt-6 overflow-x-auto">
+        <DashboardTableFrame>
           <table className="min-w-full divide-y divide-[#e6e2db] text-sm">
             <thead>
               <tr className="text-left text-xs font-semibold tracking-[0.16em] text-[#8b959c] uppercase">
@@ -124,7 +120,7 @@ export function SalesmanTaskCommissionSection({
                     <div className="mt-2 flex flex-wrap gap-2">
                       <InlineChip tone="blue">
                         {row.taskScope === "team" && row.teamName
-                          ? `${getTaskScopeLabel(row.taskScope, sharedTaskT)} · ${row.teamName}`
+                          ? `${getTaskScopeLabel(row.taskScope, sharedTaskT)} 路 ${row.teamName}`
                           : getTaskScopeLabel(row.taskScope, sharedTaskT)}
                       </InlineChip>
                     </div>
@@ -153,9 +149,9 @@ export function SalesmanTaskCommissionSection({
               ))}
             </tbody>
           </table>
-        </div>
+        </DashboardTableFrame>
       )}
-    </section>
+    </DashboardListSection>
   );
 }
 

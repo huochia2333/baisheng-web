@@ -16,6 +16,13 @@ import type {
   AnnouncementStatus,
 } from "@/lib/announcements";
 
+import { DashboardSectionHeader } from "../dashboard-section-header";
+import {
+  DashboardFilterField,
+  DashboardFilterPanel,
+  DashboardListSection,
+  dashboardFilterInputClassName,
+} from "../dashboard-section-panel";
 import { EmptyState } from "../dashboard-shared-ui";
 import {
   announcementAudienceValues,
@@ -73,28 +80,13 @@ type AnnouncementsListSectionProps = {
   } | null;
 };
 
-const selectClassName =
-  "h-11 rounded-2xl border border-[#d8dee3] bg-white px-4 text-sm text-[#23313a] outline-none transition focus:border-[#86a5ba] focus:ring-4 focus:ring-[#dbe8f0]";
-
 export function AnnouncementsHeaderSection({
   copy,
   onCreate,
 }: AnnouncementsHeaderSectionProps) {
   return (
-    <section className="rounded-[28px] border border-white/90 bg-[#f4f3f1]/92 p-6 shadow-[0_18px_45px_rgba(96,113,128,0.08)] xl:p-8">
-      <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
-        <div>
-          <span className="inline-flex items-center gap-2 rounded-full bg-[#dff0e4] px-3 py-1 text-xs font-semibold text-[#487155]">
-            <Megaphone className="size-3.5" />
-            {copy.title}
-          </span>
-          <h2 className="mt-4 text-3xl font-bold tracking-tight text-[#1f2a32] sm:text-4xl">
-            {copy.title}
-          </h2>
-          <p className="mt-3 max-w-2xl text-sm leading-7 text-[#66727d]">
-            {copy.description}
-          </p>
-        </div>
+    <DashboardSectionHeader
+      actions={
         <Button
           className="h-12 rounded-full bg-[#486782] px-5 text-white hover:bg-[#3e5f79]"
           onClick={onCreate}
@@ -102,8 +94,15 @@ export function AnnouncementsHeaderSection({
           <Megaphone className="size-4" />
           {copy.create}
         </Button>
-      </div>
-    </section>
+      }
+      badge={copy.title}
+      badgeClassName="bg-[#dff0e4] text-[#487155]"
+      badgeIcon={<Megaphone className="size-3.5" />}
+      description={copy.description}
+      descriptionClassName="max-w-2xl text-sm leading-7"
+      title={copy.title}
+      titleClassName="text-3xl sm:text-4xl"
+    />
   );
 }
 
@@ -115,12 +114,10 @@ export function AnnouncementsFilterSection({
   statusFilter,
 }: AnnouncementsFilterSectionProps) {
   return (
-    <section className="rounded-[28px] border border-white/85 bg-white/72 p-5 shadow-[0_18px_45px_rgba(96,113,128,0.06)] sm:p-6">
-      <div className="grid gap-4 md:grid-cols-2">
-        <label className="grid gap-2 text-sm font-semibold text-[#31424e]">
-          {copy.statusLabel}
+    <DashboardFilterPanel gridClassName="md:grid-cols-2" variant="standalone">
+        <DashboardFilterField label={copy.statusLabel}>
           <select
-            className={selectClassName}
+            className={dashboardFilterInputClassName}
             onChange={(event) =>
               onStatusFilterChange(event.target.value as AnnouncementStatus | "all")
             }
@@ -133,12 +130,11 @@ export function AnnouncementsFilterSection({
               </option>
             ))}
           </select>
-        </label>
+        </DashboardFilterField>
 
-        <label className="grid gap-2 text-sm font-semibold text-[#31424e]">
-          {copy.audienceLabel}
+        <DashboardFilterField label={copy.audienceLabel}>
           <select
-            className={selectClassName}
+            className={dashboardFilterInputClassName}
             onChange={(event) =>
               onAudienceFilterChange(
                 event.target.value as AnnouncementAudience | "all",
@@ -153,9 +149,8 @@ export function AnnouncementsFilterSection({
               </option>
             ))}
           </select>
-        </label>
-      </div>
-    </section>
+        </DashboardFilterField>
+    </DashboardFilterPanel>
   );
 }
 
@@ -170,7 +165,7 @@ export function AnnouncementsListSection({
   pendingAction,
 }: AnnouncementsListSectionProps) {
   return (
-    <section className="rounded-[28px] border border-white/85 bg-white/72 p-5 shadow-[0_18px_45px_rgba(96,113,128,0.06)] sm:p-6 xl:p-8">
+    <DashboardListSection>
       {announcements.length === 0 ? (
         <EmptyState
           description={copy.emptyDescription}
@@ -285,7 +280,7 @@ export function AnnouncementsListSection({
           })}
         </div>
       )}
-    </section>
+    </DashboardListSection>
   );
 }
 
