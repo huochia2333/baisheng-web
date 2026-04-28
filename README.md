@@ -105,6 +105,7 @@ baisheng-web/
 - 公告数据由 `public.announcements` 承接，发布对象分为 `client`、`internal`、`all`；其中 `internal` 包含管理员、运营、经理、招聘员、业务员和财务等非客户角色
 - 管理员侧新增 `/admin/announcements`，支持创建草稿、编辑、发布、下线和删除公告；其他角色只在首页读取已发布且命中发布对象的公告
 - 前端分层保持独立：`lib/announcements.ts` 负责公告查询和 mutation，`lib/dashboard-home.ts` 负责首页轻量数据，`components/dashboard/dashboard-home/*` 与 `components/dashboard/announcements/*` 分别承接首页和公告管理 UI
+- 2026-04-28 补充：工作区顶部公告按钮的最近公告和未读状态由 `components/dashboard/admin-shell.tsx` 在服务端准备初始数据，再交给 `workspace-header-actions` 渲染；客户端 hook 只负责刷新、已读和弹窗交互，避免首屏再等待浏览器端补取公告状态
 - 本次没有把公告逻辑塞进已经超过 600 行的 `user-self-service.ts` 或 `dashboard-shared-my` 页面文件
 
 ## 界面文案约束（2026-04-27）

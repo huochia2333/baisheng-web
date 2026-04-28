@@ -15,6 +15,11 @@ import {
   getWorkspaceNavHref,
   type WorkspaceRouteConfig,
 } from "@/lib/workspace-config";
+import { getServerSupabaseClient } from "@/lib/supabase-server";
+import {
+  EMPTY_WORKSPACE_ANNOUNCEMENTS_STATE,
+  getWorkspaceAnnouncementsState,
+} from "@/lib/workspace-announcements";
 
 type WorkspaceConfig = {
   accountLabel: string;
@@ -34,7 +39,10 @@ type AdminShellProps = {
 };
 
 export async function AdminShell({ children, config }: AdminShellProps) {
-  const t = await getTranslations("DashboardShell");
+  const [t, initialAnnouncementsState] = await Promise.all([
+    getTranslations("DashboardShell"),
+    getInitialWorkspaceAnnouncementsState(),
+  ]);
   const workspace = getWorkspaceConfig(config, t);
 
   return (
@@ -84,6 +92,7 @@ export async function AdminShell({ children, config }: AdminShellProps) {
                     <LanguageToggle />
                     <WorkspaceHeaderActions
                       accountLabel={workspace.accountLabel}
+                      initialAnnouncementsState={initialAnnouncementsState}
                       initials={workspace.initials}
                       myHref={workspace.myHref}
                     />
@@ -102,6 +111,16 @@ export async function AdminShell({ children, config }: AdminShellProps) {
       </WorkspaceSessionProvider>
     </ScopedIntlProvider>
   );
+}
+
+async function getInitialWorkspaceAnnouncementsState() {
+  try {
+    const supabase = await getServerSupabaseClient();
+
+    return await getWorkspaceAnnouncementsState(supabase);
+  } catch {
+    return EMPTY_WORKSPACE_ANNOUNCEMENTS_STATE;
+  }
 }
 
 function getWorkspaceConfig(

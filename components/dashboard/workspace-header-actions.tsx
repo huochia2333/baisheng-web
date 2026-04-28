@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -20,30 +20,22 @@ import { useLocale } from "@/components/i18n/locale-provider";
 import { Button } from "@/components/ui/button";
 import type { AnnouncementRow } from "@/lib/announcements";
 import { getBrowserSupabaseClient } from "@/lib/supabase";
-import {
-  getWorkspaceAnnouncementsState,
-  markWorkspaceAnnouncementsRead,
-  type WorkspaceAnnouncementsState,
-} from "@/lib/workspace-announcements";
+import type { WorkspaceAnnouncementsState } from "@/lib/workspace-announcements";
 
 import { DashboardDialog } from "./dashboard-dialog";
 import { PageBanner } from "./dashboard-shared-ui";
+import { useWorkspaceHeaderAnnouncements } from "./use-workspace-header-announcements";
 
 type WorkspaceHeaderActionsProps = {
   accountLabel: string;
+  initialAnnouncementsState: WorkspaceAnnouncementsState;
   initials: string;
   myHref: string;
 };
 
-type DialogMode = "auto" | "manual";
-
-const EMPTY_ANNOUNCEMENTS_STATE: WorkspaceAnnouncementsState = {
-  announcements: [],
-  unreadAnnouncements: [],
-};
-
 export function WorkspaceHeaderActions({
   accountLabel,
+  initialAnnouncementsState,
   initials,
   myHref,
 }: WorkspaceHeaderActionsProps) {
@@ -51,21 +43,23 @@ export function WorkspaceHeaderActions({
   const { locale } = useLocale();
   const router = useRouter();
   const supabase = getBrowserSupabaseClient();
-  const autoOpenedRef = useRef(false);
   const menuRef = useRef<HTMLDivElement | null>(null);
 
-  const [announcementsState, setAnnouncementsState] =
-    useState<WorkspaceAnnouncementsState>(EMPTY_ANNOUNCEMENTS_STATE);
   const [accountMenuOpen, setAccountMenuOpen] = useState(false);
-  const [dialogMode, setDialogMode] = useState<DialogMode>("manual");
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
   const [logoutPending, setLogoutPending] = useState(false);
   const [menuErrorMessage, setMenuErrorMessage] = useState<string | null>(null);
-  const [markingRead, setMarkingRead] = useState(false);
+  const announcementsCopy = useMemo(
+    () => ({
+      loadError: t("announcements.loadError"),
+      readError: t("announcements.readError"),
+    }),
+    [t],
+  );
+  const announcements = useWorkspaceHeaderAnnouncements({
+    copy: announcementsCopy,
+    initialState: initialAnnouncementsState,
+  });
 
-  const unreadCount = announcementsState.unreadAnnouncements.length;
   const accountMenuItems = useMemo(
     () => [
       {
@@ -91,35 +85,6 @@ export function WorkspaceHeaderActions({
     ],
     [myHref, t],
   );
-
-  const refreshAnnouncements = useCallback(async () => {
-    if (!supabase) {
-      return;
-    }
-
-    setLoading(true);
-    setErrorMessage(null);
-
-    try {
-      const nextState = await getWorkspaceAnnouncementsState(supabase);
-
-      setAnnouncementsState(nextState);
-
-      if (!autoOpenedRef.current && nextState.unreadAnnouncements.length > 0) {
-        autoOpenedRef.current = true;
-        setDialogMode("auto");
-        setDialogOpen(true);
-      }
-    } catch {
-      setErrorMessage(t("announcements.loadError"));
-    } finally {
-      setLoading(false);
-    }
-  }, [supabase, t]);
-
-  useEffect(() => {
-    void refreshAnnouncements();
-  }, [refreshAnnouncements]);
 
   useEffect(() => {
     if (!accountMenuOpen) {
@@ -150,75 +115,6 @@ export function WorkspaceHeaderActions({
       document.removeEventListener("keydown", handleKeyDown);
     };
   }, [accountMenuOpen]);
-
-  const displayedAnnouncements = useMemo(() => {
-    if (
-      dialogMode === "auto" &&
-      announcementsState.unreadAnnouncements.length > 0
-    ) {
-      return announcementsState.unreadAnnouncements;
-    }
-
-    return announcementsState.announcements;
-  }, [
-    announcementsState.announcements,
-    announcementsState.unreadAnnouncements,
-    dialogMode,
-  ]);
-
-  const markUnreadAsRead = useCallback(async () => {
-    if (!supabase || announcementsState.unreadAnnouncements.length === 0) {
-      return;
-    }
-
-    setMarkingRead(true);
-
-    try {
-      await markWorkspaceAnnouncementsRead(
-        supabase,
-        announcementsState.unreadAnnouncements,
-      );
-      setAnnouncementsState((current) => ({
-        ...current,
-        unreadAnnouncements: [],
-      }));
-      setErrorMessage(null);
-    } catch {
-      setErrorMessage(t("announcements.readError"));
-    } finally {
-      setMarkingRead(false);
-    }
-  }, [announcementsState.unreadAnnouncements, supabase, t]);
-
-  const closeDialog = useCallback(
-    (open: boolean) => {
-      if (open) {
-        setDialogOpen(true);
-        return;
-      }
-
-      setDialogOpen(false);
-
-      if (announcementsState.unreadAnnouncements.length > 0) {
-        void markUnreadAsRead();
-      }
-    },
-    [announcementsState.unreadAnnouncements.length, markUnreadAsRead],
-  );
-
-  const openRecentAnnouncements = () => {
-    setDialogMode("manual");
-    setDialogOpen(true);
-
-    if (!loading) {
-      void refreshAnnouncements();
-    }
-  };
-
-  const acknowledgeAnnouncements = async () => {
-    await markUnreadAsRead();
-    setDialogOpen(false);
-  };
 
   const handleLogout = async () => {
     if (logoutPending) {
@@ -259,18 +155,18 @@ export function WorkspaceHeaderActions({
       <button
         aria-label={t("announcements.open")}
         className="relative flex h-9 w-9 items-center justify-center rounded-full text-[#486782] transition-colors hover:bg-white sm:h-10 sm:w-10"
-        disabled={loading}
-        onClick={openRecentAnnouncements}
+        disabled={announcements.loading}
+        onClick={announcements.openRecentAnnouncements}
         type="button"
       >
-        {loading ? (
+        {announcements.loading ? (
           <LoaderCircle className="size-[18px] animate-spin" />
         ) : (
           <Bell className="size-[18px]" />
         )}
-        {unreadCount > 0 ? (
+        {announcements.unreadCount > 0 ? (
           <span className="absolute right-1 top-1 flex min-h-4 min-w-4 items-center justify-center rounded-full bg-[#c43d3d] px-1 text-[10px] font-semibold leading-none text-white">
-            {unreadCount > 9 ? "9+" : unreadCount}
+            {announcements.unreadCount > 9 ? "9+" : announcements.unreadCount}
           </span>
         ) : null}
       </button>
@@ -349,13 +245,13 @@ export function WorkspaceHeaderActions({
 
       <DashboardDialog
         actions={
-          unreadCount > 0 ? (
+          announcements.unreadCount > 0 ? (
             <Button
               className="h-10 rounded-full bg-[#486782] px-5 text-white hover:bg-[#3e5f79]"
-              disabled={markingRead}
-              onClick={() => void acknowledgeAnnouncements()}
+              disabled={announcements.markingRead}
+              onClick={() => void announcements.acknowledgeAnnouncements()}
             >
-              {markingRead ? (
+              {announcements.markingRead ? (
                 <LoaderCircle className="size-4 animate-spin" />
               ) : null}
               {t("announcements.acknowledge")}
@@ -363,29 +259,29 @@ export function WorkspaceHeaderActions({
           ) : undefined
         }
         description={
-          dialogMode === "auto"
+          announcements.dialogMode === "auto"
             ? t("announcements.newDescription")
             : t("announcements.recentDescription")
         }
-        onOpenChange={closeDialog}
-        open={dialogOpen}
+        onOpenChange={announcements.closeDialog}
+        open={announcements.dialogOpen}
         title={
-          dialogMode === "auto"
+          announcements.dialogMode === "auto"
             ? t("announcements.newTitle")
             : t("announcements.recentTitle")
         }
       >
         <div className="space-y-4">
-          {errorMessage ? (
-            <PageBanner tone="error">{errorMessage}</PageBanner>
+          {announcements.errorMessage ? (
+            <PageBanner tone="error">{announcements.errorMessage}</PageBanner>
           ) : null}
 
-          {displayedAnnouncements.length === 0 ? (
+          {announcements.displayedAnnouncements.length === 0 ? (
             <div className="rounded-[24px] border border-[#e7e3dc] bg-white p-6 text-sm leading-7 text-[#66727d]">
               {t("announcements.empty")}
             </div>
           ) : (
-            displayedAnnouncements.map((announcement) => (
+            announcements.displayedAnnouncements.map((announcement) => (
               <WorkspaceAnnouncementCard
                 announcement={announcement}
                 key={announcement.id}

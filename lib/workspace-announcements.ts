@@ -15,6 +15,11 @@ export type WorkspaceAnnouncementsState = {
   unreadAnnouncements: AnnouncementRow[];
 };
 
+export const EMPTY_WORKSPACE_ANNOUNCEMENTS_STATE: WorkspaceAnnouncementsState = {
+  announcements: [],
+  unreadAnnouncements: [],
+};
+
 export async function getWorkspaceAnnouncementsState(
   supabase: SupabaseClient,
   limit = 5,
