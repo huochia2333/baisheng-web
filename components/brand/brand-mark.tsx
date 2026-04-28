@@ -7,26 +7,41 @@ export function BrandMark({
   className,
   imageClassName,
   priority = false,
+  size = 44,
 }: {
   alt?: string;
   className?: string;
   imageClassName?: string;
   priority?: boolean;
+  size?: number;
 }) {
   return (
     <span
-      className={cn(
-        "flex size-11 shrink-0 items-center justify-center rounded-2xl border border-white/70 bg-white/90 shadow-sm",
-        className,
-      )}
+      className={cn("shrink-0", className)}
+      style={{
+        alignItems: "center",
+        display: "inline-flex",
+        flexShrink: 0,
+        height: size,
+        justifyContent: "center",
+        overflow: "hidden",
+        width: size,
+      }}
     >
       <Image
         alt={alt}
-        className={cn("size-[82%] object-contain", imageClassName)}
-        height={300}
+        className={imageClassName}
+        height={size}
         priority={priority}
         src="/images/pt5-logo.png"
-        width={300}
+        style={{
+          display: "block",
+          height: "100%",
+          objectFit: "contain",
+          width: "100%",
+        }}
+        unoptimized
+        width={size}
       />
     </span>
   );

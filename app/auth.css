@@ -11,6 +11,7 @@
 @source "./(auth)/terms";
 @source "./(auth)/help";
 @source "../components/auth";
+@source "../components/brand";
 @source "../components/i18n";
 @source "../components/legal";
 

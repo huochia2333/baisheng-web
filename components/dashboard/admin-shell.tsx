@@ -58,7 +58,7 @@ export async function AdminShell({ children, config }: AdminShellProps) {
           <div className="relative flex min-h-screen">
             <aside className="fixed inset-y-4 left-4 z-20 hidden w-[252px] rounded-[28px] border border-white/80 bg-[#f4f3f1]/92 px-4 py-6 shadow-[0_18px_45px_rgba(96,113,128,0.12)] backdrop-blur md:flex md:flex-col">
               <div className="mb-10 flex items-center gap-3 px-3">
-                <BrandMark className="size-12 rounded-full border-[#e4e7e2] bg-white/95" priority />
+                <BrandMark priority size={48} />
                 <div>
                   <h2 className="text-sm font-bold tracking-wide text-[#415f76]">
                     {workspace.title}

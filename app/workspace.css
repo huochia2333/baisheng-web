@@ -8,5 +8,6 @@
 @source "./operator";
 @source "./recruiter";
 @source "./salesman";
+@source "../components/brand";
 @source "../components/dashboard";
 @source "../components/ui/button.tsx";
