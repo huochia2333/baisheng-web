@@ -792,9 +792,13 @@
       "dailyExchangeRate": "Enter the daily exchange rate",
       "transactionRate": "Calculated automatically from the daily exchange rate",
       "rmbAmount": "Enter the RMB total",
-      "costAmount": "Enter the internal cost, or leave blank",
-      "purchaseDetails": "Paste the details in one block or enter one item per line, for example:\nProduct: iPhone 16 Pro\nQuantity: 2\nDelivery city: Shanghai",
-      "serviceDetails": "Paste the details in one block or enter one item per line, for example:\nService date: 2026-04-02\nService location: Shanghai Pudong Airport\nGuests: 3"
+      "costAmount": "Enter the internal cost, or leave blank"
+    },
+    "detailPairs": {
+      "add": "Create Category",
+      "namePlaceholder": "Product Name",
+      "valuePlaceholder": "iPhone",
+      "remove": "Remove Category"
     },
     "hints": {
       "transactionRate": "Auto = Daily exchange rate * 0.99",
@@ -813,7 +817,7 @@
       "selectPrompt": "Please select {label}.",
       "inputPrompt": "Please enter {label}.",
       "invalidFormat": "{label} format is invalid.",
-      "invalidDetails": "{label} is invalid. Paste the details in one block or enter one \"item: value\" pair per line.",
+      "invalidDetails": "Complete both fields in every {label} row, or remove empty rows.",
       "minZero": "{label} cannot be less than 0."
     },
     "errors": {
@@ -828,14 +832,14 @@
     },
     "purchaseSection": {
       "title": "Purchase Order Details",
-      "createDescription": "This order type is a purchase order. Continue by filling in the purchase details. You can paste all details at once or enter one “item: value” pair per line.",
-      "editDescription": "This order type is a purchase order. You can update the purchase details directly. You can paste all details at once or enter one “item: value” pair per line.",
+      "createDescription": "This order type is a purchase order. Add detail rows, then enter the category name on the left and the matching content on the right.",
+      "editDescription": "This order type is a purchase order. Update detail rows by entering the category name on the left and the matching content on the right.",
       "loading": "loading"
     },
     "serviceSection": {
       "title": "Service Order Details",
-      "createDescription": "This order type is a service order. Continue by filling in the service details. You can paste all details at once or enter one “item: value” pair per line.",
-      "editDescription": "This order type is a service order. You can update the service details directly. You can paste all details at once or enter one “item: value” pair per line.",
+      "createDescription": "This order type is a service order. Add detail rows, then enter the category name on the left and the matching content on the right.",
+      "editDescription": "This order type is a service order. Update detail rows by entering the category name on the left and the matching content on the right.",
       "loading": "loading"
     },
     "details": {

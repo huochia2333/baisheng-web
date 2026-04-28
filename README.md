@@ -135,6 +135,7 @@ baisheng-web/
 - `admin-orders-client-config.ts`：放置 orders 视图配置、过滤器比较和表单字段联动规则
 - `admin-orders-copy.ts`、`admin-orders-display.ts`、`admin-orders-form.ts`、`admin-orders-details.ts`、`admin-orders-errors.ts`、`admin-orders-permissions.ts`：分别承接文案映射、显示格式化、表单解析、详情展开、错误映射和权限判断
 - `admin-orders-form-dialog.tsx`、`admin-orders-details-dialog.tsx`、`admin-orders-dialog-ui.tsx`：拆出订单表单弹窗、详情弹窗以及弹窗共享 UI
+- 2026-04-28 补充：订单采购/服务补充明细改为通过“创建类别”添加双输入行，左侧填写类别名称，右侧填写对应内容，不再要求用户手写“项目: 内容”格式
 - `admin-orders-utils.ts`：只保留 barrel re-export，不再承载实际业务实现
 
 ### `admin-tasks` 模块分层（2026-04-23）

@@ -358,7 +358,7 @@ function parseFlexibleOrderDetails(
       const key = line.slice(0, separatorIndex).trim();
       const rawValue = line.slice(separatorIndex + 1).trim();
 
-      if (!key) {
+      if (!key || !rawValue) {
         return null;
       }
 

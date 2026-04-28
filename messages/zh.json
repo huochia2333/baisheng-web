@@ -792,9 +792,13 @@
       "dailyExchangeRate": "请输入当日汇率",
       "transactionRate": "自动按当日汇率计算",
       "rmbAmount": "请输入人民币总计",
-      "costAmount": "请输入内部成本，留空则不记录",
-      "purchaseDetails": "可直接整段粘贴，也可按行输入，例如：\n商品名称: iPhone 16 Pro\n数量: 2\n收货城市: 上海",
-      "serviceDetails": "可直接整段粘贴，也可按行输入，例如：\n服务日期: 2026-04-02\n服务地点: 上海浦东机场\n接待人数: 3"
+      "costAmount": "请输入内部成本，留空则不记录"
+    },
+    "detailPairs": {
+      "add": "创建类别",
+      "namePlaceholder": "商品名称",
+      "valuePlaceholder": "iPhone",
+      "remove": "删除类别"
     },
     "hints": {
       "transactionRate": "自动 = 当日汇率 * 0.99",
@@ -813,7 +817,7 @@
       "selectPrompt": "请选择{label}。",
       "inputPrompt": "请填写{label}。",
       "invalidFormat": "{label}格式不正确。",
-      "invalidDetails": "{label}格式不正确，请直接整段粘贴，或按“项目: 内容”逐行输入。",
+      "invalidDetails": "{label}中有未填写完整的类别，请补全左侧名称和右侧内容，或删除空白类别。",
       "minZero": "{label}不能小于 0。"
     },
     "errors": {
@@ -828,14 +832,14 @@
     },
     "purchaseSection": {
       "title": "采购订单信息",
-      "createDescription": "当前订单类型为采购订单，请继续填写采购补充信息。订单明细支持整段粘贴，也支持每行输入一项“项目: 内容”。",
-      "editDescription": "当前订单类型为采购订单，可直接修改采购补充信息。订单明细支持整段粘贴，也支持每行输入一项“项目: 内容”。",
+      "createDescription": "当前订单类型为采购订单，请继续填写采购补充信息。点击“创建类别”添加一行，左侧填写类别名称，右侧填写对应内容。",
+      "editDescription": "当前订单类型为采购订单，可直接修改采购补充信息。点击“创建类别”添加一行，左侧填写类别名称，右侧填写对应内容。",
       "loading": "加载中"
     },
     "serviceSection": {
       "title": "服务订单信息",
-      "createDescription": "当前订单类型为服务订单，请继续填写服务补充信息。订单明细支持整段粘贴，也支持每行输入一项“项目: 内容”。",
-      "editDescription": "当前订单类型为服务订单，可直接修改服务补充信息。订单明细支持整段粘贴，也支持每行输入一项“项目: 内容”。",
+      "createDescription": "当前订单类型为服务订单，请继续填写服务补充信息。点击“创建类别”添加一行，左侧填写类别名称，右侧填写对应内容。",
+      "editDescription": "当前订单类型为服务订单，可直接修改服务补充信息。点击“创建类别”添加一行，左侧填写类别名称，右侧填写对应内容。",
       "loading": "加载中"
     },
     "details": {

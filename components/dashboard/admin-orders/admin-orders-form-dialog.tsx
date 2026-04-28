@@ -28,10 +28,10 @@ import {
 } from "./admin-orders-utils";
 import {
   fieldInputClassName,
-  fieldTextareaClassName,
   OrderField,
   OrderSupplementaryFormSection,
 } from "./admin-orders-dialog-ui";
+import { OrderDetailPairsInput } from "./admin-orders-detail-pairs-input";
 import { type PageFeedback } from "./admin-orders-view-model-shared";
 
 function getOrderStatusOptions(t: ReturnType<typeof useTranslations>) {
@@ -323,12 +323,15 @@ export function OrderFormDialog({
                 </div>
 
                 <OrderField label={t("fields.purchaseDetails")}>
-                  <textarea
-                    className={fieldTextareaClassName}
+                  <OrderDetailPairsInput
+                    copy={{
+                      addLabel: t("detailPairs.add"),
+                      namePlaceholder: t("detailPairs.namePlaceholder"),
+                      removeLabel: t("detailPairs.remove"),
+                      valuePlaceholder: t("detailPairs.valuePlaceholder"),
+                    }}
                     disabled={isFormBusy}
-                    onChange={(event) => onFieldChange("purchaseDetails", event.target.value)}
-                    placeholder={t("placeholders.purchaseDetails")}
-                    rows={6}
+                    onChange={(nextValue) => onFieldChange("purchaseDetails", nextValue)}
                     value={formState.purchaseDetails}
                   />
                 </OrderField>
@@ -387,12 +390,15 @@ export function OrderFormDialog({
                 </div>
 
                 <OrderField label={t("fields.serviceDetails")}>
-                  <textarea
-                    className={fieldTextareaClassName}
+                  <OrderDetailPairsInput
+                    copy={{
+                      addLabel: t("detailPairs.add"),
+                      namePlaceholder: t("detailPairs.namePlaceholder"),
+                      removeLabel: t("detailPairs.remove"),
+                      valuePlaceholder: t("detailPairs.valuePlaceholder"),
+                    }}
                     disabled={isFormBusy}
-                    onChange={(event) => onFieldChange("serviceDetails", event.target.value)}
-                    placeholder={t("placeholders.serviceDetails")}
-                    rows={6}
+                    onChange={(nextValue) => onFieldChange("serviceDetails", nextValue)}
                     value={formState.serviceDetails}
                   />
                 </OrderField>

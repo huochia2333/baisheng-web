@@ -73,6 +73,3 @@ export function OrderDetailCard({
 
 export const fieldInputClassName =
   "h-12 w-full rounded-[18px] border border-[#e1ddd7] bg-[#fbfaf8] px-4 text-[15px] text-[#23313a] outline-none transition focus:border-[#bfd2e1] focus:ring-4 focus:ring-[#bfd2e1]/30 disabled:cursor-not-allowed disabled:opacity-70";
-
-export const fieldTextareaClassName =
-  "w-full rounded-[18px] border border-[#e1ddd7] bg-[#fbfaf8] px-4 py-3 text-[15px] leading-7 text-[#23313a] outline-none transition focus:border-[#bfd2e1] focus:ring-4 focus:ring-[#bfd2e1]/30 disabled:cursor-not-allowed disabled:opacity-70";
