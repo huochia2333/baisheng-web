@@ -332,6 +332,13 @@
       "empty": "There are no announcements available right now.",
       "loadError": "Announcements could not be loaded. Please try again later.",
       "readError": "The read status could not be saved. Please try again later."
+    },
+    "accountMenu": {
+      "open": "Open Account Menu",
+      "personalCenter": "Personal Center",
+      "accountCenter": "Account Center",
+      "profileInfo": "Profile",
+      "accountVerification": "Account & Verification"
     }
   },
   "WorkspaceLoadingShell": {
@@ -585,7 +592,16 @@
     "cityPlaceholder": "Enter your city",
     "nameLabel": "Display Name",
     "namePlaceholder": "Enter your display name",
-    "saveProfile": "Save Profile"
+    "saveProfile": "Save Profile",
+    "sectionNavigationLabel": "Personal center navigation",
+    "personalCenterTitle": "Personal Center",
+    "personalCenterDescription": "A quick view of your identity, city, and common account actions.",
+    "accountCenterTitle": "Account Center",
+    "accountCenterDescription": "Review account status, sign-in details, invite code, and password access.",
+    "profileInfoTitle": "Profile",
+    "profileInfoDescription": "Maintain your display name, city, phone number, and email address.",
+    "accountVerificationTitle": "Account & Verification",
+    "accountVerificationDescription": "Manage identity information, travel details, profile photos, and profile videos."
   },
   "DashboardMyState": {
     "unnamedUser": "Unnamed User",

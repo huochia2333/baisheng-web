@@ -3,7 +3,17 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import Link from "next/link";
-import { Bell, LoaderCircle } from "lucide-react";
+import { useRouter } from "next/navigation";
+import {
+  Bell,
+  ChevronDown,
+  IdCard,
+  LayoutDashboard,
+  LoaderCircle,
+  LogOut,
+  Settings,
+  ShieldCheck,
+} from "lucide-react";
 import { useTranslations } from "next-intl";
 
 import { useLocale } from "@/components/i18n/locale-provider";
@@ -39,18 +49,48 @@ export function WorkspaceHeaderActions({
 }: WorkspaceHeaderActionsProps) {
   const t = useTranslations("DashboardShell");
   const { locale } = useLocale();
+  const router = useRouter();
   const supabase = getBrowserSupabaseClient();
   const autoOpenedRef = useRef(false);
+  const menuRef = useRef<HTMLDivElement | null>(null);
 
   const [announcementsState, setAnnouncementsState] =
     useState<WorkspaceAnnouncementsState>(EMPTY_ANNOUNCEMENTS_STATE);
+  const [accountMenuOpen, setAccountMenuOpen] = useState(false);
   const [dialogMode, setDialogMode] = useState<DialogMode>("manual");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [logoutPending, setLogoutPending] = useState(false);
+  const [menuErrorMessage, setMenuErrorMessage] = useState<string | null>(null);
   const [markingRead, setMarkingRead] = useState(false);
 
   const unreadCount = announcementsState.unreadAnnouncements.length;
+  const accountMenuItems = useMemo(
+    () => [
+      {
+        href: `${myHref}#personal-center`,
+        icon: LayoutDashboard,
+        label: t("accountMenu.personalCenter"),
+      },
+      {
+        href: `${myHref}#account-center`,
+        icon: Settings,
+        label: t("accountMenu.accountCenter"),
+      },
+      {
+        href: `${myHref}#profile-info`,
+        icon: IdCard,
+        label: t("accountMenu.profileInfo"),
+      },
+      {
+        href: `${myHref}#account-verification`,
+        icon: ShieldCheck,
+        label: t("accountMenu.accountVerification"),
+      },
+    ],
+    [myHref, t],
+  );
 
   const refreshAnnouncements = useCallback(async () => {
     if (!supabase) {
@@ -80,6 +120,36 @@ export function WorkspaceHeaderActions({
   useEffect(() => {
     void refreshAnnouncements();
   }, [refreshAnnouncements]);
+
+  useEffect(() => {
+    if (!accountMenuOpen) {
+      return;
+    }
+
+    const handlePointerDown = (event: PointerEvent) => {
+      if (
+        menuRef.current &&
+        event.target instanceof Node &&
+        !menuRef.current.contains(event.target)
+      ) {
+        setAccountMenuOpen(false);
+      }
+    };
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setAccountMenuOpen(false);
+      }
+    };
+
+    document.addEventListener("pointerdown", handlePointerDown);
+    document.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.removeEventListener("pointerdown", handlePointerDown);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [accountMenuOpen]);
 
   const displayedAnnouncements = useMemo(() => {
     if (
@@ -150,6 +220,40 @@ export function WorkspaceHeaderActions({
     setDialogOpen(false);
   };
 
+  const handleLogout = async () => {
+    if (logoutPending) {
+      return;
+    }
+
+    setMenuErrorMessage(null);
+
+    if (!supabase) {
+      setMenuErrorMessage(t("serviceUnavailable"));
+      return;
+    }
+
+    setLogoutPending(true);
+
+    try {
+      const { error } = await supabase.auth.signOut();
+
+      if (error) {
+        throw error;
+      }
+
+      if (typeof window !== "undefined") {
+        window.location.replace("/login");
+        return;
+      }
+
+      router.replace("/login");
+    } catch {
+      setMenuErrorMessage(t("serviceUnavailable"));
+    } finally {
+      setLogoutPending(false);
+    }
+  };
+
   return (
     <>
       <button
@@ -171,18 +275,77 @@ export function WorkspaceHeaderActions({
         ) : null}
       </button>
 
-      <Link
-        className="inline-flex items-center gap-3 rounded-full bg-[#f1efeb] p-1.5 transition-colors hover:bg-[#e8e5e0] sm:pr-4"
-        href={myHref}
-        prefetch
-      >
-        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#5b7890] text-xs font-semibold text-white">
-          {initials}
-        </div>
-        <span className="hidden text-sm font-medium text-[#486782] sm:inline">
-          {accountLabel}
-        </span>
-      </Link>
+      <div className="relative" ref={menuRef}>
+        <button
+          aria-expanded={accountMenuOpen}
+          aria-label={t("accountMenu.open")}
+          className="inline-flex items-center gap-3 rounded-full bg-[#f1efeb] p-1.5 transition-colors hover:bg-[#e8e5e0] sm:pr-3"
+          onClick={() => {
+            setAccountMenuOpen((current) => !current);
+            setMenuErrorMessage(null);
+          }}
+          type="button"
+        >
+          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#5b7890] text-xs font-semibold text-white">
+            {initials}
+          </div>
+          <span className="hidden text-sm font-medium text-[#486782] sm:inline">
+            {accountLabel}
+          </span>
+          <ChevronDown className="hidden size-4 text-[#6b7b87] sm:block" />
+        </button>
+
+        {accountMenuOpen ? (
+          <div className="absolute right-0 top-[calc(100%+0.75rem)] z-40 w-[240px] overflow-hidden rounded-[22px] border border-[#e5e1da] bg-white shadow-[0_24px_52px_rgba(72,86,98,0.18)]">
+            <div className="border-b border-[#eee9e1] px-4 py-3">
+              <p className="truncate text-sm font-semibold text-[#2d3a44]">
+                {accountLabel}
+              </p>
+            </div>
+
+            <div className="p-2">
+              {accountMenuItems.map((item) => {
+                const Icon = item.icon;
+
+                return (
+                  <Link
+                    className="flex items-center gap-3 rounded-[16px] px-3 py-2.5 text-sm font-medium text-[#405a70] transition-colors hover:bg-[#f3f5f6]"
+                    href={item.href}
+                    key={item.href}
+                    onClick={() => setAccountMenuOpen(false)}
+                    prefetch
+                  >
+                    <Icon className="size-4 text-[#6e7f8d]" />
+                    {item.label}
+                  </Link>
+                );
+              })}
+            </div>
+
+            {menuErrorMessage ? (
+              <p className="mx-3 mb-2 rounded-[14px] border border-[#f1d1d1] bg-[#fff2f2] px-3 py-2 text-xs leading-5 text-[#9f3535]">
+                {menuErrorMessage}
+              </p>
+            ) : null}
+
+            <div className="border-t border-[#eee9e1] p-2">
+              <button
+                className="flex w-full items-center gap-3 rounded-[16px] px-3 py-2.5 text-left text-sm font-semibold text-[#b13d3d] transition-colors hover:bg-[#fff4f4] disabled:cursor-not-allowed disabled:opacity-70"
+                disabled={logoutPending}
+                onClick={() => void handleLogout()}
+                type="button"
+              >
+                {logoutPending ? (
+                  <LoaderCircle className="size-4 animate-spin" />
+                ) : (
+                  <LogOut className="size-4" />
+                )}
+                {t("logout")}
+              </button>
+            </div>
+          </div>
+        ) : null}
+      </div>
 
       <DashboardDialog
         actions={

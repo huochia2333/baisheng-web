@@ -273,6 +273,13 @@ npm run supabase:admin -- summary
 - `output/playwright/reports` 用于保留结构化报告
 - `output/playwright/screenshots` 用于保留需要留档的截图
 
+## 工作区账号菜单与个人中心拆分
+
+- 右上角头像不再直接跳转页面，改为账号下拉菜单。
+- 账号菜单入口对应个人中心、账号中心、个人资料、账号与认证，并保留退出登录操作。
+- /{角色}/my 继续作为个人中心页面，页面内部按个人中心、账号中心、个人资料、账号与认证四个分区组织。
+- 页面分区渲染拆到 `components/dashboard/dashboard-shared-my/dashboard-shared-my-sections.tsx`，头像菜单继续放在工作区头部控件内。
+
 ## 工作区入口、公告与资料修改审批
 
 - 左侧工作区导航不再展示“我的”，但 /{角色}/my 页面继续保留；用户通过右上角头像进入自己的资料页。

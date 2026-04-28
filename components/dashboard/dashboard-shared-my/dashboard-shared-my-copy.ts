@@ -7,6 +7,15 @@ export type DashboardMyCopy = {
   bundleSyncDescription: string;
   bundleSyncTitle: string;
   retrySync: string;
+  sectionNavigationLabel: string;
+  personalCenterTitle: string;
+  personalCenterDescription: string;
+  accountCenterTitle: string;
+  accountCenterDescription: string;
+  profileInfoTitle: string;
+  profileInfoDescription: string;
+  accountVerificationTitle: string;
+  accountVerificationDescription: string;
   editProfile: string;
   changePassword: string;
   copyInviteCode: string;
@@ -61,6 +70,15 @@ export function useDashboardMyCopy(): DashboardMyCopy {
     bundleSyncDescription: t("bundleSyncDescription"),
     bundleSyncTitle: t("bundleSyncTitle"),
     retrySync: t("retrySync"),
+    sectionNavigationLabel: t("sectionNavigationLabel"),
+    personalCenterTitle: t("personalCenterTitle"),
+    personalCenterDescription: t("personalCenterDescription"),
+    accountCenterTitle: t("accountCenterTitle"),
+    accountCenterDescription: t("accountCenterDescription"),
+    profileInfoTitle: t("profileInfoTitle"),
+    profileInfoDescription: t("profileInfoDescription"),
+    accountVerificationTitle: t("accountVerificationTitle"),
+    accountVerificationDescription: t("accountVerificationDescription"),
     editProfile: t("editProfile"),
     changePassword: t("changePassword"),
     copyInviteCode: t("copyInviteCode"),

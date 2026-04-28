@@ -332,6 +332,13 @@
       "empty": "当前暂无可查看的公告。",
       "loadError": "公告暂时没有加载成功，请稍后再试。",
       "readError": "公告已读状态暂时没有保存成功，请稍后再试。"
+    },
+    "accountMenu": {
+      "open": "打开账号菜单",
+      "personalCenter": "个人中心",
+      "accountCenter": "账号中心",
+      "profileInfo": "个人资料",
+      "accountVerification": "账号与认证"
     }
   },
   "WorkspaceLoadingShell": {
@@ -585,7 +592,16 @@
     "cityPlaceholder": "请填写所在城市",
     "nameLabel": "显示姓名",
     "namePlaceholder": "请填写显示姓名",
-    "saveProfile": "保存资料"
+    "saveProfile": "保存资料",
+    "sectionNavigationLabel": "个人中心导航",
+    "personalCenterTitle": "个人中心",
+    "personalCenterDescription": "汇总当前账号的身份、城市和常用入口。",
+    "accountCenterTitle": "账号中心",
+    "accountCenterDescription": "查看账号状态、登录记录、邀请码和密码入口。",
+    "profileInfoTitle": "个人资料",
+    "profileInfoDescription": "维护显示姓名、所在城市、手机号码和邮箱。",
+    "accountVerificationTitle": "账号与认证",
+    "accountVerificationDescription": "处理实名信息、通行资料、个人照片和个人视频。"
   },
   "DashboardMyState": {
     "unnamedUser": "未命名用户",
