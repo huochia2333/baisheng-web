@@ -4,9 +4,9 @@ import dynamic from "next/dynamic";
 import {
   FileBadge2,
   LoaderCircle,
-  MapPin,
   Trash2,
   Upload,
+  UserRound,
   Video,
 } from "lucide-react";
 
@@ -299,34 +299,60 @@ export function DashboardSharedMyDialogs({
           <div className="rounded-[24px] border border-[#ece8e1] bg-white p-6 shadow-[0_10px_24px_rgba(96,113,128,0.06)]">
             <div className="flex items-center gap-3 text-[#486782]">
               <div className="flex h-11 w-11 items-center justify-center rounded-full bg-[#eef3f6]">
-                <MapPin className="size-5" />
+                <UserRound className="size-5" />
               </div>
               <div>
                 <p className="font-label text-[11px] font-semibold tracking-[0.18em] text-[#7d8890] uppercase">
-                  {copy.cityLabel}
+                  {copy.editProfile}
                 </p>
               </div>
             </div>
 
             <div className="mt-5 space-y-4">
-              <input
-                className="h-13 w-full rounded-[18px] border border-[#e1ddd7] bg-[#fbfaf8] px-4 text-[15px] text-[#23313a] outline-none transition focus:border-[#bfd2e1] focus:ring-4 focus:ring-[#bfd2e1]/30"
-                onChange={(event) => profileDialog.setCityDraft(event.target.value)}
-                placeholder={copy.cityPlaceholder}
-                value={profileDialog.cityDraft}
-              />
+              <label className="block space-y-2">
+                <span className="text-sm font-medium text-[#486782]">
+                  {copy.nameLabel}
+                </span>
+                <input
+                  className="h-13 w-full rounded-[18px] border border-[#e1ddd7] bg-[#fbfaf8] px-4 text-[15px] text-[#23313a] outline-none transition focus:border-[#bfd2e1] focus:ring-4 focus:ring-[#bfd2e1]/30"
+                  onChange={(event) =>
+                    profileDialog.setNameDraft(event.target.value)
+                  }
+                  placeholder={copy.namePlaceholder}
+                  value={profileDialog.nameDraft}
+                />
+              </label>
+
+              <label className="block space-y-2">
+                <span className="text-sm font-medium text-[#486782]">
+                  {copy.cityLabel}
+                </span>
+                <input
+                  className="h-13 w-full rounded-[18px] border border-[#e1ddd7] bg-[#fbfaf8] px-4 text-[15px] text-[#23313a] outline-none transition focus:border-[#bfd2e1] focus:ring-4 focus:ring-[#bfd2e1]/30"
+                  onChange={(event) =>
+                    profileDialog.setCityDraft(event.target.value)
+                  }
+                  placeholder={copy.cityPlaceholder}
+                  value={profileDialog.cityDraft}
+                />
+              </label>
+
               <div className="flex justify-end">
                 <Button
                   className="h-11 rounded-full bg-[#486782] px-5 text-white hover:bg-[#3e5f79]"
-                  disabled={!profileDialog.cityDraft.trim() || ui.busyKey === "profile-save"}
-                  onClick={() => void profileDialog.saveCity()}
+                  disabled={
+                    !profileDialog.nameDraft.trim() ||
+                    !profileDialog.cityDraft.trim() ||
+                    ui.busyKey === "profile-save"
+                  }
+                  onClick={() => void profileDialog.saveProfile()}
                 >
                   {ui.busyKey === "profile-save" ? (
                     <LoaderCircle className="size-4 animate-spin" />
                   ) : (
                     <Upload className="size-4" />
                   )}
-                  {copy.saveCity}
+                  {copy.saveProfile}
                 </Button>
               </div>
             </div>

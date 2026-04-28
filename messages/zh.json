@@ -106,14 +106,14 @@
       "metadataTitle": "服务条款",
       "eyebrow": "服务条款",
       "title": "服务条款",
-    "description": "本条款说明访问和使用柏盛管理系统的基本规则，包括账号、角色权限、提交资料和业务流程。",
+      "description": "本条款说明访问和使用柏盛管理系统的基本规则，包括账号、角色权限、提交资料和业务流程。",
       "lastUpdated": "2026-04-24",
       "sections": [
         {
           "title": "服务范围",
           "items": [
             "柏盛管理系统提供角色化 Web 工作台，用于注册、登录、个人资料管理、审核流程、订单、任务、推荐、团队、汇率和佣金相关操作。",
-      "你可使用的功能取决于系统分配给你的角色、团队关系、账号状态，以及当前为你开放的功能。",
+            "你可使用的功能取决于系统分配给你的角色、团队关系、账号状态，以及当前为你开放的功能。",
             "随着业务运营变化，系统可能调整、扩展或移除部分功能。"
           ]
         },
@@ -137,7 +137,7 @@
           "title": "提交资料与审核",
           "items": [
             "实名信息、媒体文件、任务成果和其他提交资料，可能需要由授权人员审核后才能被接受或展示。",
-      "审核结果可能为通过、拒绝或要求更正。系统可能保留审核记录，方便后续查询和核对。",
+            "审核结果可能为通过、拒绝或要求更正。系统可能保留审核记录，方便后续查询和核对。",
             "你应确保提交资料真实、已获授权，并适合对应业务流程。"
           ]
         },
@@ -145,7 +145,7 @@
           "title": "可用性与变更",
           "items": [
             "我们会努力保持服务可用，但维护、云服务问题、网络情况、安全事件或产品调整都可能导致访问中断。",
-      "出于安全、合规或业务运营需要，运营方可能调整业务流程、可见范围、资料项目、审核规则或页面展示。",
+            "出于安全、合规或业务运营需要，运营方可能调整业务流程、可见范围、资料项目、审核规则或页面展示。",
             "在可行情况下，重要变更应通过常规业务支持或管理渠道告知。"
           ]
         },
@@ -176,7 +176,8 @@
     "footerPrompt": "还没有账号？",
     "footerLinkLabel": "立即注册",
     "mobileNoteTitle": "今日灵感",
-    "mobileNoteDescription": "设计不只是视觉，更是一种思考和呼吸的方式。"
+    "mobileNoteDescription": "设计不只是视觉，更是一种思考和呼吸的方式。",
+    "announcementTitle": "最新公告"
   },
   "RegisterPage": {
     "title": "注册",
@@ -320,6 +321,17 @@
         "title": "客户工作台",
         "workspaceLabel": "客户中心"
       }
+    },
+    "announcements": {
+      "open": "查看公告",
+      "newTitle": "新的公告",
+      "newDescription": "这些公告与你当前账号可见，请确认后继续使用工作台。",
+      "recentTitle": "近期公告",
+      "recentDescription": "这里展示当前账号最近可查看的公告。",
+      "acknowledge": "我知道了",
+      "empty": "当前暂无可查看的公告。",
+      "loadError": "公告暂时没有加载成功，请稍后再试。",
+      "readError": "公告已读状态暂时没有保存成功，请稍后再试。"
     }
   },
   "WorkspaceLoadingShell": {
@@ -568,10 +580,12 @@
     "videoEmptyDescription": "上传后会进入待审核，审核完成后会在这里展示全部视频。",
     "videoPendingDescription": "至少有一条个人视频正在等待审核。",
     "videoApprovedDescription": "个人视频已审核通过。",
-    "editProfileDescription": "注册完成后可以在这里补充城市信息，保存后会同时更新“我的”页展示。",
+    "editProfileDescription": "你可以在这里更新显示姓名和所在城市。管理员保存后立即生效，其他账号提交后会等待管理员确认。",
     "cityLabel": "所在城市",
     "cityPlaceholder": "请填写所在城市",
-    "saveCity": "保存城市"
+    "nameLabel": "显示姓名",
+    "namePlaceholder": "请填写显示姓名",
+    "saveProfile": "保存资料"
   },
   "DashboardMyState": {
     "unnamedUser": "未命名用户",
@@ -599,7 +613,6 @@
     "inviteCopied": "邀请码已复制到剪贴板。",
     "inviteCopyFailed": "复制失败，请稍后重试。",
     "profileSaved": "个人资料已保存。",
-    "cityUpdated": "城市信息已更新。",
     "identitySubmitted": "身份证号已提交，当前状态为待审核。",
     "passportSubmitted": "护照号码已提交，当前状态为待审核。",
     "photosUploaded": "个人照片已上传，当前状态为待审核。",
@@ -612,7 +625,9 @@
     "deletePhotos": "删除照片",
     "uploadPhotos": "上传照片",
     "deleteVideos": "删除视频",
-    "uploadVideos": "上传视频"
+    "uploadVideos": "上传视频",
+    "profileChangeSubmitted": "资料修改已提交，管理员确认后会更新展示。",
+    "profileRequired": "请填写姓名和所在城市。"
   },
   "Orders": {
     "metadata": {
@@ -847,13 +862,15 @@
     "summary": {
       "privacy": "隐私待审核",
       "media": "媒体待审核",
-      "task": "任务待审核"
+      "task": "任务待审核",
+      "profile": "资料修改待审核"
     },
     "states": {
       "noPermissionTitle": "暂无审核权限",
-      "noPermissionDescription": "当前登录账号不是管理员，无法访问隐私、媒体和任务审核列表。"
+      "noPermissionDescription": "当前登录账号不是管理员，无法访问资料、隐私、媒体或任务审核列表。"
     },
     "tabs": {
+      "profile": "资料修改",
       "privacy": "隐私审核",
       "media": "媒体审核",
       "task": "任务审核"
@@ -866,7 +883,8 @@
       "privacy": "确定要{action}这条个人隐私资料审核吗？",
       "media": "确定要{action}这条个人媒体审核吗？",
       "task": "确定要{action}这条任务提审记录吗？",
-      "taskRejectReasonPrompt": "请输入拒绝原因，留空则不填写。"
+      "taskRejectReasonPrompt": "请输入拒绝原因，留空则不填写。",
+      "profile": "确定要{action}这条资料修改申请吗？"
     },
     "feedback": {
       "privacyApproved": "个人隐私资料已审核通过。",
@@ -874,7 +892,9 @@
       "mediaApproved": "个人媒体已审核通过。",
       "mediaRejected": "个人媒体已拒绝。",
       "taskApproved": "任务审核已通过，任务已完成。",
-      "taskRejected": "任务审核已拒绝，任务接取者可以重新提交。"
+      "taskRejected": "任务审核已拒绝，任务接取者可以重新提交。",
+      "profileApproved": "资料修改已通过，用户资料已更新。",
+      "profileRejected": "资料修改申请已拒绝。"
     },
     "errors": {
       "noTaskReviewPermission": "当前账号没有审核这条任务提审记录的权限。",
@@ -933,6 +953,18 @@
       "submissionNoteLabel": "提交说明",
       "assetsLabel": "提交文件",
       "assetsEmpty": "当前没有附带提交文件。"
+    },
+    "profile": {
+      "emptyTitle": "资料修改队列为空",
+      "emptyDescription": "当前没有待确认的姓名或城市修改申请。",
+      "valuePair": "姓名：{name} / 城市：{city}",
+      "columns": {
+        "name": "用户名",
+        "email": "邮箱",
+        "current": "当前资料",
+        "requested": "申请修改",
+        "actions": "操作"
+      }
     }
   },
   "ExchangeRates": {
@@ -1033,16 +1065,16 @@
       "deleted": "汇率 {pairLabel} 已删除。"
     },
     "validation": {
-      "originalCurrencyRequired": "\u8bf7\u8f93\u5165\u539f\u59cb\u8d27\u5e01\u4ee3\u7801\u3002",
-      "targetCurrencyRequired": "\u8bf7\u8f93\u5165\u76ee\u6807\u8d27\u5e01\u4ee3\u7801\u3002",
-      "inputPrompt": "\u8bf7\u8f93\u5165{label}\u3002",
-      "invalidFormat": "{label}\u683c\u5f0f\u4e0d\u6b63\u786e\u3002",
-      "greaterThanZero": "{label}\u5fc5\u987b\u5927\u4e8e 0\u3002"
+      "originalCurrencyRequired": "请输入原始货币代码。",
+      "targetCurrencyRequired": "请输入目标货币代码。",
+      "inputPrompt": "请输入{label}。",
+      "invalidFormat": "{label}格式不正确。",
+      "greaterThanZero": "{label}必须大于 0。"
     },
     "errors": {
       "duplicateKey": "该汇率记录已存在，请检查后重试。",
-      "positiveRate": "\u6c47\u7387\u503c\u5fc5\u987b\u5927\u4e8e 0\u3002",
-      "permission": "\u5f53\u524d\u8d26\u53f7\u6ca1\u6709\u67e5\u770b\u6216\u64cd\u4f5c\u6c47\u7387\u6570\u636e\u7684\u6743\u9650\u3002"
+      "positiveRate": "汇率值必须大于 0。",
+      "permission": "当前账号没有查看或操作汇率数据的权限。"
     }
   },
   "Referrals": {
@@ -1410,7 +1442,7 @@
           "reviewAttachmentTooLarge": "存在超出限制的提交文件：图片需小于 5 MB，视频需小于 30 MB，其他文件不能超过 20 MB。",
           "reviewAttachmentTotalTooLarge": "提交文件总大小超出限制，请控制在 100 MB 以内。",
           "reviewAttachmentTypeNotAllowed": "存在不支持的提交文件类型，请上传常见文档、图片、音视频或压缩文件。",
-      "inactive": "当前账号尚未启用，暂时不能处理任务。"
+          "inactive": "当前账号尚未启用，暂时不能处理任务。"
         }
       }
     },
@@ -1420,10 +1452,10 @@
         "createdWithAttachments": "任务和附件已创建。",
         "created": "任务已创建。",
         "updated": "任务已更新。",
-      "updatedWithCommissionSyncWarning": "任务已更新，但相关佣金信息还没全部刷新，请稍后再去佣金中心查看。",
+        "updatedWithCommissionSyncWarning": "任务已更新，但相关佣金信息还没全部刷新，请稍后再去佣金中心查看。",
         "assignmentUpdated": "任务归属已更新。",
         "assignmentPublic": "任务已更新为面向全员。",
-      "deletedWithAttachmentCleanupWarning": "任务已删除，但部分任务附件或提审附件还没清理完成，请稍后再查看。",
+        "deletedWithAttachmentCleanupWarning": "任务已删除，但部分任务附件或提审附件还没清理完成，请稍后再查看。",
         "deleted": "任务已删除。"
       },
       "confirmDelete": "确认删除任务“{taskName}”吗？任务附件也会一起清理。",
@@ -1799,10 +1831,9 @@
     }
   },
   "DashboardPagination": {
-    "previous": "\u4e0a\u4e00\u9875",
-    "next": "\u4e0b\u4e00\u9875",
-    "page": "\u7b2c {page} \u9875\uff0c\u5171 {pageCount} \u9875",
-    "range": "\u7b2c {start}-{end} \u6761\uff0c\u5171 {total} \u6761"
+    "previous": "上一页",
+    "next": "下一页",
+    "page": "第 {page} 页，共 {pageCount} 页",
+    "range": "第 {start}-{end} 条，共 {total} 条"
   }
 }
-

@@ -65,14 +65,12 @@ export type WorkspaceRouteConfig = {
 
 const managerNavItems = [
   { segment: "home", labelKey: "home" },
-  { segment: "my", labelKey: "my" },
   { segment: "referrals", labelKey: "referrals" },
   { segment: "team", labelKey: "team" },
 ] as const satisfies readonly WorkspaceNavItem[];
 
 const staffReadNavItems = [
   { segment: "home", labelKey: "home" },
-  { segment: "my", labelKey: "my" },
   { segment: "referrals", labelKey: "referrals" },
   { segment: "team", labelKey: "team" },
 ] as const satisfies readonly WorkspaceNavItem[];
@@ -84,20 +82,17 @@ const financeNavItems = [
 
 const clientNavItems = [
   { segment: "home", labelKey: "home" },
-  { segment: "my", labelKey: "my" },
   { segment: "orders", labelKey: "orders" },
   { segment: "referrals", labelKey: "referrals" },
 ] as const satisfies readonly WorkspaceNavItem[];
 
 const recruiterNavItems = [
   { segment: "home", labelKey: "home" },
-  { segment: "my", labelKey: "my" },
   { segment: "referrals", labelKey: "referrals" },
 ] as const satisfies readonly WorkspaceNavItem[];
 
 const sharedNavItems = [
   { segment: "home", labelKey: "home" },
-  { segment: "my", labelKey: "my" },
   { segment: "orders", labelKey: "orders" },
   { segment: "referrals", labelKey: "referrals" },
   { segment: "team", labelKey: "team" },

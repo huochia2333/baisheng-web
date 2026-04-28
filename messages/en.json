@@ -96,7 +96,7 @@
         {
           "title": "Updates and Contact",
           "items": [
-      "We may update this policy when the product, information handling methods, legal requirements, or business operations change.",
+            "We may update this policy when the product, information handling methods, legal requirements, or business operations change.",
             "Questions about this policy, account data or privacy requests should be sent to the system administrator through the normal business support channel."
           ]
         }
@@ -106,14 +106,14 @@
       "metadataTitle": "Terms of Service",
       "eyebrow": "Terms of Service",
       "title": "Terms of Service",
-    "description": "These terms describe the basic rules for accessing and using the Baisheng Management System, including accounts, role permissions, submitted materials, and everyday business processes.",
+      "description": "These terms describe the basic rules for accessing and using the Baisheng Management System, including accounts, role permissions, submitted materials, and everyday business processes.",
       "lastUpdated": "2026-04-24",
       "sections": [
         {
           "title": "Service Scope",
           "items": [
-      "Baisheng Management System provides different workspaces for different roles, covering registration, sign-in, profile management, reviews, orders, tasks, referrals, teams, exchange rates, and commission-related work.",
-      "The features available to you depend on your assigned role, team relationship, account status, and the functions currently opened to that role.",
+            "Baisheng Management System provides different workspaces for different roles, covering registration, sign-in, profile management, reviews, orders, tasks, referrals, teams, exchange rates, and commission-related work.",
+            "The features available to you depend on your assigned role, team relationship, account status, and the functions currently opened to that role.",
             "The system may change, expand or remove features as business operations evolve."
           ]
         },
@@ -137,15 +137,15 @@
           "title": "Submitted Materials and Reviews",
           "items": [
             "Identity information, media files, task deliverables and other submitted materials may be reviewed by authorized personnel before they are accepted or displayed.",
-      "A review decision may approve, reject, or require correction of submitted materials. The system may keep review history so it can be checked later when needed.",
-      "You are responsible for ensuring that submitted materials are accurate, authorized, and suitable for the related business purpose."
+            "A review decision may approve, reject, or require correction of submitted materials. The system may keep review history so it can be checked later when needed.",
+            "You are responsible for ensuring that submitted materials are accurate, authorized, and suitable for the related business purpose."
           ]
         },
         {
           "title": "Availability and Changes",
           "items": [
             "We work to keep the service available, but access may be interrupted by maintenance, cloud service issues, network conditions, security events or product changes.",
-      "The operator may adjust business processes, access rules, information items, review rules, or page displays when needed for security, compliance, or business operations.",
+            "The operator may adjust business processes, access rules, information items, review rules, or page displays when needed for security, compliance, or business operations.",
             "Important changes should be communicated through the normal business support or administration channel when practical."
           ]
         },
@@ -176,7 +176,8 @@
     "footerPrompt": "No account yet?",
     "footerLinkLabel": "Create One",
     "mobileNoteTitle": "Daily Thought",
-    "mobileNoteDescription": "Design is not only visual form, but also a way of thinking and breathing."
+    "mobileNoteDescription": "Design is not only visual form, but also a way of thinking and breathing.",
+    "announcementTitle": "Latest Announcement"
   },
   "RegisterPage": {
     "title": "Register",
@@ -320,6 +321,17 @@
         "title": "Client Workspace",
         "workspaceLabel": "Client Center"
       }
+    },
+    "announcements": {
+      "open": "View Announcements",
+      "newTitle": "New Announcements",
+      "newDescription": "These announcements are visible to your current account. Confirm them to continue using the workspace.",
+      "recentTitle": "Recent Announcements",
+      "recentDescription": "These are the latest announcements available to your current account.",
+      "acknowledge": "Got It",
+      "empty": "There are no announcements available right now.",
+      "loadError": "Announcements could not be loaded. Please try again later.",
+      "readError": "The read status could not be saved. Please try again later."
     }
   },
   "WorkspaceLoadingShell": {
@@ -568,10 +580,12 @@
     "videoEmptyDescription": "Uploaded videos will appear here after they pass review.",
     "videoPendingDescription": "At least one video is currently waiting for review.",
     "videoApprovedDescription": "Your profile videos have been approved.",
-    "editProfileDescription": "You can add your city here after registration. Saving updates the value shown on the My page.",
+    "editProfileDescription": "You can update your display name and city here. Admin changes take effect immediately; other accounts submit the change for admin confirmation.",
     "cityLabel": "City",
     "cityPlaceholder": "Enter your city",
-    "saveCity": "Save City"
+    "nameLabel": "Display Name",
+    "namePlaceholder": "Enter your display name",
+    "saveProfile": "Save Profile"
   },
   "DashboardMyState": {
     "unnamedUser": "Unnamed User",
@@ -599,7 +613,6 @@
     "inviteCopied": "Invite code copied to clipboard.",
     "inviteCopyFailed": "Copy failed. Please try again later.",
     "profileSaved": "Profile saved.",
-    "cityUpdated": "City updated.",
     "identitySubmitted": "ID number submitted and now pending review.",
     "passportSubmitted": "Passport number submitted and now pending review.",
     "photosUploaded": "Profile photos uploaded and now pending review.",
@@ -612,7 +625,9 @@
     "deletePhotos": "Delete Photos",
     "uploadPhotos": "Upload Photos",
     "deleteVideos": "Delete Videos",
-    "uploadVideos": "Upload Videos"
+    "uploadVideos": "Upload Videos",
+    "profileChangeSubmitted": "Profile changes submitted. They will update after admin confirmation.",
+    "profileRequired": "Enter both your name and city."
   },
   "Orders": {
     "metadata": {
@@ -624,7 +639,7 @@
       "admin": {
         "badge": "Order Workspace",
         "title": "Order Center",
-      "description": "The list shows the main order information first. Open any order to inspect the full details.",
+        "description": "The list shows the main order information first. Open any order to inspect the full details.",
         "createTitle": "Create Order",
         "createDescription": "After you fill in the basic order information, the new order is written to the list immediately.",
         "emptyDescription": "There are no order records yet. Newly created orders will appear here.",
@@ -847,13 +862,15 @@
     "summary": {
       "privacy": "Pending Privacy Reviews",
       "media": "Pending Media Reviews",
-      "task": "Pending Task Reviews"
+      "task": "Pending Task Reviews",
+      "profile": "Profile Changes Pending"
     },
     "states": {
       "noPermissionTitle": "No Review Access",
-      "noPermissionDescription": "The current account is not an administrator and cannot access privacy, media, or task review queues."
+      "noPermissionDescription": "The current account is not an admin and cannot access profile, privacy, media, or task reviews."
     },
     "tabs": {
+      "profile": "Profile Changes",
       "privacy": "Privacy Review",
       "media": "Media Review",
       "task": "Task Review"
@@ -866,7 +883,8 @@
       "privacy": "Are you sure you want to {action} this privacy review?",
       "media": "Are you sure you want to {action} this media review?",
       "task": "Are you sure you want to {action} this task submission?",
-      "taskRejectReasonPrompt": "Enter a rejection reason for the task submitter. Leave blank if no reason is needed."
+      "taskRejectReasonPrompt": "Enter a rejection reason for the task submitter. Leave blank if no reason is needed.",
+      "profile": "Are you sure you want to {action} this profile change request?"
     },
     "feedback": {
       "privacyApproved": "Privacy information approved.",
@@ -874,7 +892,9 @@
       "mediaApproved": "Media approved.",
       "mediaRejected": "Media rejected.",
       "taskApproved": "Task review approved. The task is now completed.",
-      "taskRejected": "Task review rejected. The task owner can resubmit it."
+      "taskRejected": "Task review rejected. The task owner can resubmit it.",
+      "profileApproved": "Profile change approved and the user profile has been updated.",
+      "profileRejected": "Profile change request rejected."
     },
     "errors": {
       "noTaskReviewPermission": "The current account cannot review this task submission.",
@@ -933,6 +953,18 @@
       "submissionNoteLabel": "Submission Note",
       "assetsLabel": "Submission Files",
       "assetsEmpty": "No submission files were attached."
+    },
+    "profile": {
+      "emptyTitle": "No Profile Changes Waiting",
+      "emptyDescription": "There are no name or city change requests waiting for confirmation.",
+      "valuePair": "Name: {name} / City: {city}",
+      "columns": {
+        "name": "Name",
+        "email": "Email",
+        "current": "Current Profile",
+        "requested": "Requested Profile",
+        "actions": "Actions"
+      }
     }
   },
   "ExchangeRates": {
@@ -1383,7 +1415,7 @@
           "teamRequired": "A team task must be linked to a specific team.",
           "taskTypeRequired": "Please choose a valid task type.",
           "commissionAmountInvalid": "The commission amount must be a valid number and cannot be below 0.",
-      "authExpired": "Your sign-in has expired. Sign in again and try once more.",
+          "authExpired": "Your sign-in has expired. Sign in again and try once more.",
           "taskNotFound": "The task no longer exists. Refresh the task list and try again.",
           "taskCompletedReadOnly": "Only administrators can edit or delete completed tasks.",
           "duplicateAttachmentPath": "An attachment path conflict was detected. Upload the file again.",
@@ -1410,7 +1442,7 @@
           "reviewAttachmentTooLarge": "At least one submission file is too large. Images must stay below 5 MB, videos must stay below 30 MB, and other files must stay within 20 MB.",
           "reviewAttachmentTotalTooLarge": "The submission files are too large altogether. Keep the total within 100 MB.",
           "reviewAttachmentTypeNotAllowed": "An unsupported submission file type was detected. Upload common document, image, media, or archive formats.",
-      "inactive": "This account is not enabled yet and cannot process tasks right now."
+          "inactive": "This account is not enabled yet and cannot process tasks right now."
         }
       }
     },
@@ -1420,10 +1452,10 @@
         "createdWithAttachments": "The task and attachments have been created.",
         "created": "The task has been created.",
         "updated": "The task has been updated.",
-      "updatedWithCommissionSyncWarning": "The task was updated, but the related commission information has not fully refreshed yet. Check the commission board again later.",
+        "updatedWithCommissionSyncWarning": "The task was updated, but the related commission information has not fully refreshed yet. Check the commission board again later.",
         "assignmentUpdated": "The task assignment has been updated.",
         "assignmentPublic": "The task is now visible to everyone.",
-      "deletedWithAttachmentCleanupWarning": "The task was deleted, but some task or review files have not been fully cleared yet. Check again later.",
+        "deletedWithAttachmentCleanupWarning": "The task was deleted, but some task or review files have not been fully cleared yet. Check again later.",
         "deleted": "The task has been deleted."
       },
       "confirmDelete": "Delete task \"{taskName}\"? Attached files will be removed as well.",
@@ -1805,4 +1837,3 @@
     "range": "{start}-{end} of {total}"
   }
 }
-

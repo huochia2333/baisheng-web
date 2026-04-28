@@ -12,7 +12,6 @@ import {
   deleteUserMediaAssets,
   getCurrentUserBundle,
   type CurrentUserBundle,
-  updateUserProfileCity,
   uploadUserMedia,
 } from "@/lib/user-self-service";
 
@@ -28,6 +27,7 @@ import {
 import { Button } from "../../ui/button";
 import { useDashboardSharedMyStateCopy } from "./dashboard-shared-my-state-copy";
 import { createDashboardSharedMyViewModel } from "./dashboard-shared-my-view-model";
+import { useDashboardProfileDialog } from "./use-dashboard-profile-dialog";
 
 export function useDashboardSharedMyState(initialData: CurrentUserBundle | null = null) {
   const router = useRouter();
@@ -49,15 +49,9 @@ export function useDashboardSharedMyState(initialData: CurrentUserBundle | null 
     tone: NoticeTone;
     message: string;
   } | null>(null);
-  const [profileDialogNotice, setProfileDialogNotice] = useState<{
-    tone: NoticeTone;
-    message: string;
-  } | null>(null);
   const [activeDialog, setActiveDialog] = useState<MediaAssetKey | null>(null);
-  const [profileDialogOpen, setProfileDialogOpen] = useState(false);
   const [identityDraft, setIdentityDraft] = useState("");
   const [passportDraft, setPassportDraft] = useState("");
-  const [profileCityDraft, setProfileCityDraft] = useState("");
   const [identityEditing, setIdentityEditing] = useState(false);
   const [passportEditing, setPassportEditing] = useState(false);
   const [busyKey, setBusyKey] = useState<string | null>(null);
@@ -295,44 +289,17 @@ export function useDashboardSharedMyState(initialData: CurrentUserBundle | null 
     }
   };
 
-  const openProfileDialog = () => {
-    setProfileDialogNotice(null);
-    setProfileCityDraft(profile?.city ?? "");
-    setProfileDialogOpen(true);
-  };
-
-  const closeProfileDialog = (open: boolean) => {
-    if (open) {
-      return;
-    }
-
-    setProfileDialogOpen(false);
-    setProfileDialogNotice(null);
-  };
-
-  const saveProfileCity = async () => {
-    if (!supabase || !authUser) {
-      return;
-    }
-
-    setBusyKey("profile-save");
-    setProfileDialogNotice(null);
-
-    try {
-      await updateUserProfileCity(supabase, {
-        city: profileCityDraft,
-        userId: authUser.id,
-      });
-
-      await refreshBundle({ quiet: true });
-      setProfileDialogNotice({ tone: "success", message: copy.profileSaved });
-      setPageNotice({ tone: "success", message: copy.cityUpdated });
-    } catch (error) {
-      setProfileDialogNotice({ tone: "error", message: toErrorMessage(error, sharedCopy) });
-    } finally {
-      setBusyKey(null);
-    }
-  };
+  const profileDialog = useDashboardProfileDialog({
+    authUser,
+    copy,
+    profile,
+    refreshBundle,
+    role: bundle?.role ?? null,
+    setBusyKey,
+    setPageNotice,
+    sharedCopy,
+    supabase,
+  });
 
   const submitIdentity = async () => {
     if (!supabase || !authUser) {
@@ -560,15 +527,7 @@ export function useDashboardSharedMyState(initialData: CurrentUserBundle | null 
       sendPasswordReset,
       verificationStatus,
     },
-    profileDialog: {
-      close: closeProfileDialog,
-      notice: profileDialogNotice,
-      open: profileDialogOpen,
-      openDialog: openProfileDialog,
-      saveCity: saveProfileCity,
-      setCityDraft: setProfileCityDraft,
-      cityDraft: profileCityDraft,
-    },
+    profileDialog,
     assetDialog: {
       actions: dialogActions,
       activeDialog,

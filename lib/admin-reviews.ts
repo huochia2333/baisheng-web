@@ -16,6 +16,12 @@ import {
   rejectTaskReview as rejectTaskReviewAction,
   type PendingTaskReviewWithAssets,
 } from "./task-reviews";
+import {
+  approveProfileChangeRequest as approveProfileChangeRequestAction,
+  getPendingProfileChangeReviews,
+  rejectProfileChangeRequest as rejectProfileChangeRequestAction,
+  type PendingProfileChangeReviewRow,
+} from "./profile-change-requests";
 
 const SIGNED_URL_TTL_SECONDS = 60 * 60;
 const SIGNED_URL_CONCURRENCY = 4;
@@ -57,6 +63,7 @@ export type AdminReviewsPageData = {
   hasPermission: boolean;
   privacyRows: PendingPrivacyReviewRow[];
   mediaRows: PendingMediaReviewWithPreview[];
+  profileRows: PendingProfileChangeReviewRow[];
   taskRows: PendingTaskReviewWithAssets[];
 };
 
@@ -161,13 +168,15 @@ export async function getAdminReviewsPageData(
       hasPermission: false,
       privacyRows: [],
       mediaRows: [],
+      profileRows: [],
       taskRows: [],
     };
   }
 
-  const [privacyRows, mediaRows, taskRows] = await Promise.all([
+  const [privacyRows, mediaRows, profileRows, taskRows] = await Promise.all([
     getPendingPrivacyReviews(supabase),
     getPendingMediaReviews(supabase),
+    getPendingProfileChangeReviews(supabase),
     getPendingTaskReviewsData(supabase),
   ]);
 
@@ -175,6 +184,7 @@ export async function getAdminReviewsPageData(
     hasPermission: true,
     privacyRows,
     mediaRows,
+    profileRows,
     taskRows,
   };
 }
@@ -318,6 +328,20 @@ export async function rejectMediaReview(
   }
 
   return parseRpcRow(data, "deny_user_media_asset", isUserMediaAssetRow);
+}
+
+export async function approveProfileChangeReview(
+  supabase: SupabaseClient,
+  requestId: string,
+) {
+  return approveProfileChangeRequestAction(supabase, requestId);
+}
+
+export async function rejectProfileChangeReview(
+  supabase: SupabaseClient,
+  requestId: string,
+) {
+  return rejectProfileChangeRequestAction(supabase, requestId);
 }
 
 export async function approveTaskReview(

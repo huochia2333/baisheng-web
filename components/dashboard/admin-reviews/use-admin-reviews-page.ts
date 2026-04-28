@@ -8,14 +8,17 @@ import {
   getAdminReviewsPageData,
   type AdminReviewsPageData,
   approveMediaReview,
+  approveProfileChangeReview,
   approvePrivacyReview,
   approveTaskReview,
   rejectMediaReview,
+  rejectProfileChangeReview,
   rejectPrivacyReview,
   rejectTaskReview,
   type PendingMediaReviewWithPreview,
   type PendingPrivacyReviewRow,
 } from "@/lib/admin-reviews";
+import type { PendingProfileChangeReviewRow } from "@/lib/profile-change-requests";
 import {
   getTaskReviewSubmissionAssetSignedUrl,
   type PendingTaskReviewWithAssets,
@@ -41,11 +44,12 @@ export function useAdminReviewsPage(initialData: AdminReviewsPageData) {
   const sharedCopy = createDashboardSharedCopy(sharedT);
   const supabase = getBrowserSupabaseClient();
 
-  const [activeTab, setActiveTab] = useState<ReviewTab>("privacy");
+  const [activeTab, setActiveTab] = useState<ReviewTab>("profile");
   const [hasPermission, setHasPermission] = useState(initialData.hasPermission);
   const [pageFeedback, setPageFeedback] = useState<PageFeedback>(null);
   const [privacyRows, setPrivacyRows] = useState<PendingPrivacyReviewRow[]>(initialData.privacyRows);
   const [mediaRows, setMediaRows] = useState<PendingMediaReviewWithPreview[]>(initialData.mediaRows);
+  const [profileRows, setProfileRows] = useState<PendingProfileChangeReviewRow[]>(initialData.profileRows);
   const [taskRows, setTaskRows] = useState<PendingTaskReviewWithAssets[]>(initialData.taskRows);
   const [busyRows, setBusyRows] = useState<Record<string, BusyAction>>({});
   const [assetBusyKey, setAssetBusyKey] = useState<string | null>(null);
@@ -55,6 +59,7 @@ export function useAdminReviewsPage(initialData: AdminReviewsPageData) {
     setHasPermission(pageData.hasPermission);
     setPrivacyRows(pageData.privacyRows);
     setMediaRows(pageData.mediaRows);
+    setProfileRows(pageData.profileRows);
     setTaskRows(pageData.taskRows);
   }, []);
 
@@ -210,6 +215,59 @@ export function useAdminReviewsPage(initialData: AdminReviewsPageData) {
     [busyRows, setRowBusyState, sharedCopy, supabase, t],
   );
 
+  const handleProfileChangeReview = useCallback(
+    async (row: PendingProfileChangeReviewRow, action: BusyAction) => {
+      if (!supabase) {
+        return;
+      }
+
+      const rowKey = `profile:${row.request_id}`;
+      const actionLabel =
+        action === "approve" ? t("actions.approve") : t("actions.reject");
+
+      if (busyRows[rowKey]) {
+        return;
+      }
+
+      if (
+        typeof window !== "undefined" &&
+        !window.confirm(t("confirm.profile", { action: actionLabel }))
+      ) {
+        return;
+      }
+
+      setRowBusyState(rowKey, action);
+      setPageFeedback(null);
+
+      try {
+        if (action === "approve") {
+          await approveProfileChangeReview(supabase, row.request_id);
+        } else {
+          await rejectProfileChangeReview(supabase, row.request_id);
+        }
+
+        setProfileRows((current) =>
+          current.filter((item) => item.request_id !== row.request_id),
+        );
+        setPageFeedback({
+          tone: "success",
+          message:
+            action === "approve"
+              ? t("feedback.profileApproved")
+              : t("feedback.profileRejected"),
+        });
+      } catch (error) {
+        setPageFeedback({
+          tone: "error",
+          message: toErrorMessage(error, sharedCopy),
+        });
+      } finally {
+        setRowBusyState(rowKey, null);
+      }
+    },
+    [busyRows, setRowBusyState, sharedCopy, supabase, t],
+  );
+
   const handleTaskReview = useCallback(
     async (row: PendingTaskReviewWithAssets, action: BusyAction) => {
       if (!supabase) {
@@ -320,6 +378,11 @@ export function useAdminReviewsPage(initialData: AdminReviewsPageData) {
   const reviewTabs = useMemo(
     () => [
       {
+        key: "profile" as const,
+        label: t("tabs.profile"),
+        count: profileRows.length,
+      },
+      {
         key: "privacy" as const,
         label: t("tabs.privacy"),
         count: privacyRows.length,
@@ -335,7 +398,7 @@ export function useAdminReviewsPage(initialData: AdminReviewsPageData) {
         count: taskRows.length,
       },
     ],
-    [mediaRows.length, privacyRows.length, taskRows.length, t],
+    [mediaRows.length, privacyRows.length, profileRows.length, taskRows.length, t],
   );
 
   return {
@@ -345,12 +408,14 @@ export function useAdminReviewsPage(initialData: AdminReviewsPageData) {
     closePreviewDialog,
     handleMediaReview,
     handleOpenTaskReviewAsset,
+    handleProfileChangeReview,
     handlePrivacyReview,
     handleTaskReview,
     hasPermission,
     mediaRows,
     pageFeedback,
     previewAsset,
+    profileRows,
     privacyRows,
     reviewTabs,
     setActiveTab,

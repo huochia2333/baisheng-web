@@ -46,9 +46,11 @@ export type DashboardMyCopy = {
   videoPendingDescription: string;
   videoApprovedDescription: string;
   editProfileDescription: string;
+  nameLabel: string;
+  namePlaceholder: string;
   cityLabel: string;
   cityPlaceholder: string;
-  saveCity: string;
+  saveProfile: string;
 };
 
 export function useDashboardMyCopy(): DashboardMyCopy {
@@ -98,8 +100,10 @@ export function useDashboardMyCopy(): DashboardMyCopy {
     videoPendingDescription: t("videoPendingDescription"),
     videoApprovedDescription: t("videoApprovedDescription"),
     editProfileDescription: t("editProfileDescription"),
+    nameLabel: t("nameLabel"),
+    namePlaceholder: t("namePlaceholder"),
     cityLabel: t("cityLabel"),
     cityPlaceholder: t("cityPlaceholder"),
-    saveCity: t("saveCity"),
+    saveProfile: t("saveProfile"),
   };
 }

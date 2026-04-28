@@ -1,13 +1,13 @@
 import type { ReactNode } from "react";
 
 import { getTranslations } from "next-intl/server";
-import { Bell } from "lucide-react";
 
 import {
   AdminShellLogoutButton,
   AdminShellNav,
   type AdminShellNavLink,
 } from "@/components/dashboard/admin-shell-client";
+import { WorkspaceHeaderActions } from "@/components/dashboard/workspace-header-actions";
 import { WorkspaceSessionProvider } from "@/components/dashboard/workspace-session-provider";
 import { ScopedIntlProvider } from "@/components/i18n/scoped-intl-provider";
 import { LanguageToggle } from "@/components/i18n/language-toggle";
@@ -19,6 +19,7 @@ import {
 type WorkspaceConfig = {
   accountLabel: string;
   initials: string;
+  myHref: string;
   navItems: AdminShellNavLink[];
   subtitle: string;
   title: string;
@@ -81,23 +82,11 @@ export async function AdminShell({ children, config }: AdminShellProps) {
 
                   <div className="flex items-center gap-2 sm:gap-3">
                     <LanguageToggle />
-                    <button
-                      className="flex h-9 w-9 items-center justify-center rounded-full text-[#486782] transition-colors hover:bg-white sm:h-10 sm:w-10"
-                      type="button"
-                    >
-                      <Bell className="size-[18px]" />
-                    </button>
-                    <button
-                      className="hidden items-center gap-3 rounded-full bg-[#f1efeb] py-1.5 pl-1.5 pr-4 transition-colors hover:bg-[#e8e5e0] sm:flex"
-                      type="button"
-                    >
-                      <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#5b7890] text-xs font-semibold text-white">
-                        {workspace.initials}
-                      </div>
-                      <span className="text-sm font-medium text-[#486782]">
-                        {workspace.accountLabel}
-                      </span>
-                    </button>
+                    <WorkspaceHeaderActions
+                      accountLabel={workspace.accountLabel}
+                      initials={workspace.initials}
+                      myHref={workspace.myHref}
+                    />
                   </div>
                 </div>
 
@@ -124,6 +113,7 @@ function getWorkspaceConfig(
   return {
     accountLabel: t(`roles.${roleKey}.accountLabel`),
     initials: config.initials,
+    myHref: getWorkspaceNavHref(config, "my"),
     navItems: config.navItems.map((item) => ({
       href: getWorkspaceNavHref(config, item.segment),
       icon: item.segment,

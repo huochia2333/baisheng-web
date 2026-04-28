@@ -1,6 +1,12 @@
 "use client";
 
-import { ClipboardList, FileBadge2, ImageIcon, ShieldAlert } from "lucide-react";
+import {
+  ClipboardList,
+  FileBadge2,
+  ImageIcon,
+  ShieldAlert,
+  UserRound,
+} from "lucide-react";
 import { useTranslations } from "next-intl";
 
 import type { AdminReviewsPageData } from "@/lib/admin-reviews";
@@ -14,11 +20,13 @@ import {
   MediaReviewList,
   PrivacyReviewList,
 } from "./admin-reviews-ui";
+import { ProfileChangeReviewList } from "./profile-change-review-list";
 import { TaskReviewList } from "./task-review-list";
 import { useAdminReviewsPage } from "./use-admin-reviews-page";
 
 const reviewTabIconMap = {
   media: ImageIcon,
+  profile: UserRound,
   privacy: FileBadge2,
   task: ClipboardList,
 } as const;
@@ -32,12 +40,14 @@ export function AdminReviewsClient({ initialData }: { initialData: AdminReviewsP
     closePreviewDialog,
     handleMediaReview,
     handleOpenTaskReviewAsset,
+    handleProfileChangeReview,
     handlePrivacyReview,
     handleTaskReview,
     hasPermission,
     mediaRows,
     pageFeedback,
     previewAsset,
+    profileRows,
     privacyRows,
     reviewTabs,
     setActiveTab,
@@ -55,6 +65,13 @@ export function AdminReviewsClient({ initialData }: { initialData: AdminReviewsP
         badge={t("header.badge")}
         contentClassName="max-w-2xl"
         metrics={[
+          {
+            accent: "green",
+            icon: <UserRound className="size-5" />,
+            key: "profile",
+            label: t("summary.profile"),
+            value: profileRows.length,
+          },
           {
             accent: "blue",
             icon: <FileBadge2 className="size-5" />,
@@ -77,7 +94,7 @@ export function AdminReviewsClient({ initialData }: { initialData: AdminReviewsP
             value: taskRows.length,
           },
         ]}
-        metricsClassName="sm:grid-cols-2 xl:grid-cols-3"
+        metricsClassName="sm:grid-cols-2 xl:grid-cols-4"
         title={t("header.title")}
       />
 
@@ -124,6 +141,14 @@ export function AdminReviewsClient({ initialData }: { initialData: AdminReviewsP
           </div>
 
           <div className="mt-6">
+            {activeTab === "profile" ? (
+              <ProfileChangeReviewList
+                busyRows={busyRows}
+                onAction={handleProfileChangeReview}
+                rows={profileRows}
+              />
+            ) : null}
+
             {activeTab === "privacy" ? (
               <PrivacyReviewList
                 busyRows={busyRows}
