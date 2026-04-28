@@ -4,7 +4,7 @@ import { startTransition, useState } from "react";
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowRight, LockKeyhole, Mail } from "lucide-react";
+import { ArrowRight, LoaderCircle, LockKeyhole, Mail } from "lucide-react";
 import { useTranslations } from "next-intl";
 
 import {
@@ -56,6 +56,11 @@ export function LoginForm({
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+
+    if (submitting) {
+      return;
+    }
+
     setSubmitting(true);
     setError(null);
 
@@ -78,13 +83,12 @@ export function LoginForm({
       await redirectToWorkspace(data.session?.user);
     } catch (signInError) {
       setError(formatLoginError(signInError, t));
-    } finally {
       setSubmitting(false);
     }
   };
 
   return (
-    <form className="space-y-6" onSubmit={handleSubmit}>
+    <form aria-busy={submitting} className="space-y-6" onSubmit={handleSubmit}>
       {registered ? (
         <AuthFeedback tone="success">{t("registeredNotice")}</AuthFeedback>
       ) : null}
@@ -103,6 +107,7 @@ export function LoginForm({
         onChange={(event) => setEmail(event.target.value)}
         placeholder="name@example.com"
         required
+        disabled={submitting}
         type="email"
         value={email}
       />
@@ -113,8 +118,17 @@ export function LoginForm({
             {t("password")}
           </span>
           <Link
-            className="text-xs font-medium text-[#5d7388] transition-colors hover:text-[#36536a]"
+            aria-disabled={submitting}
+            className={`text-xs font-medium text-[#5d7388] transition-colors hover:text-[#36536a] ${
+              submitting ? "pointer-events-none opacity-60" : ""
+            }`}
             href="/forgot-password"
+            onClick={(event) => {
+              if (submitting) {
+                event.preventDefault();
+              }
+            }}
+            tabIndex={submitting ? -1 : undefined}
           >
             {t("forgotPassword")}
           </Link>
@@ -125,7 +139,8 @@ export function LoginForm({
           </span>
           <input
             autoComplete="current-password"
-            className="h-[52px] w-full rounded-[22px] border border-[#ece9e4] bg-[#f2efeb]/90 pl-12 pr-4 text-[15px] text-[#22303a] shadow-[inset_0_1px_0_rgba(255,255,255,0.86)] transition-all placeholder:text-[#a9b1b8] focus:border-[#bfd2e1] focus:bg-white focus:ring-4 focus:ring-[#bfd2e1]/45 focus:outline-none"
+            className="h-[52px] w-full rounded-[22px] border border-[#ece9e4] bg-[#f2efeb]/90 pl-12 pr-4 text-[15px] text-[#22303a] shadow-[inset_0_1px_0_rgba(255,255,255,0.86)] transition-all placeholder:text-[#a9b1b8] focus:border-[#bfd2e1] focus:bg-white focus:ring-4 focus:ring-[#bfd2e1]/45 focus:outline-none disabled:cursor-wait disabled:opacity-80"
+            disabled={submitting}
             name="password"
             onChange={(event) => setPassword(event.target.value)}
             placeholder={t("passwordPlaceholder")}
@@ -142,7 +157,11 @@ export function LoginForm({
         type="submit"
       >
         {submitting ? t("submitting") : t("submit")}
-        <ArrowRight className="size-4 shrink-0" />
+        {submitting ? (
+          <LoaderCircle className="size-4 shrink-0 animate-spin" />
+        ) : (
+          <ArrowRight className="size-4 shrink-0" />
+        )}
       </button>
     </form>
   );

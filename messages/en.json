@@ -24,7 +24,8 @@
   },
   "LanguageToggle": {
     "zh": "中文",
-    "en": "EN"
+    "en": "EN",
+    "switching": "Switching"
   },
   "AuthShell": {
     "brandTitle": "Baisheng Management System",

@@ -27,6 +27,7 @@ export function AuthField({
         <input
           className={cn(
             "h-[52px] w-full rounded-[22px] border border-[#ece9e4] bg-[#f2efeb]/90 pl-12 pr-4 text-[15px] text-[#22303a] shadow-[inset_0_1px_0_rgba(255,255,255,0.86)] transition-all placeholder:text-[#a9b1b8] focus:border-[#bfd2e1] focus:bg-white focus:ring-4 focus:ring-[#bfd2e1]/45 focus:outline-none",
+            "disabled:cursor-wait disabled:opacity-80",
             className,
           )}
           {...props}

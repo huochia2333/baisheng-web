@@ -24,7 +24,8 @@
   },
   "LanguageToggle": {
     "zh": "中文",
-    "en": "EN"
+    "en": "EN",
+    "switching": "切换中"
   },
   "AuthShell": {
     "brandTitle": "柏盛管理系统",
