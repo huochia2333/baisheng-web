@@ -1,6 +1,7 @@
 import Link from "next/link";
-import { ArrowLeft, GalleryVerticalEnd, ShieldCheck } from "lucide-react";
+import { ArrowLeft, ShieldCheck } from "lucide-react";
 
+import { BrandMark } from "@/components/brand/brand-mark";
 import { ScopedIntlProvider } from "@/components/i18n/scoped-intl-provider";
 import { LanguageToggle } from "@/components/i18n/language-toggle";
 import type { LegalPageCopy } from "@/lib/legal-content";
@@ -26,9 +27,7 @@ export function LegalPage({ activePath, copy }: LegalPageProps) {
             className="inline-flex items-center gap-3 self-start text-[#486782] transition-colors hover:text-[#36536a]"
             href="/"
           >
-            <span className="flex size-11 items-center justify-center rounded-2xl bg-[#486782] text-white shadow-sm">
-              <GalleryVerticalEnd className="size-5" />
-            </span>
+            <BrandMark priority />
             <span>
               <span className="block text-lg font-bold">{copy.brandTitle}</span>
               <span className="font-label block text-[11px] text-[#8e99a3] uppercase">

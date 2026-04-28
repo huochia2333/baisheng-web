@@ -56,6 +56,7 @@ baisheng-web/
 │  └─ (workspace)/
 ├─ components/
 │  ├─ auth/
+│  ├─ brand/
 │  ├─ legal/
 │  └─ dashboard/
 │     ├─ admin-people/
@@ -87,6 +88,7 @@ baisheng-web/
 - `components/dashboard/dashboard-section-header.tsx` 统一承接各业务板块页头；新增订单、任务、团队、佣金、汇率、审核、公告、推荐树等板块时，优先复用它传入标题、说明、指标和操作按钮，避免在业务 Client/Page 中重复堆页头布局
 - `components/dashboard/dashboard-section-panel.tsx` 统一承接筛选面板、列表面板、列表标题和表格外框；新增带筛选或清单的板块时，优先复用它保持间距、边框、阴影和响应式结构一致
 - 工作台共享页头、指标卡、筛选面板、列表面板、移动导航和分页控件都需要保留小屏紧凑样式；新增板块不要只按桌面端密度堆叠信息
+- `components/brand/brand-mark.tsx` 统一承接公司 Logo 展示；当前 Logo 源文件为 `public/images/pt5-logo.png`，浏览器图标由 `app/favicon.ico`、`app/icon.png` 和 `app/apple-icon.png` 承接
 - `components/legal` 承接公开法律页和隐私/条款页脚链接，避免把 legal 展示继续堆进认证或“我的”核心文件
 - 单文件超过 `400-600` 行，或出现 3 个以上独立职责时，需要优先拆成 `queries`、`mutations`、`view-model hook`、`dialog`、`section/table` 或 `display-utils`
 - `output/playwright` 用于保留有价值的截图和报告，不存放长期无用的临时控制台垃圾

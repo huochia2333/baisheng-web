@@ -7,6 +7,7 @@ import {
   AdminShellNav,
   type AdminShellNavLink,
 } from "@/components/dashboard/admin-shell-client";
+import { BrandMark } from "@/components/brand/brand-mark";
 import { WorkspaceHeaderActions } from "@/components/dashboard/workspace-header-actions";
 import { WorkspaceSessionProvider } from "@/components/dashboard/workspace-session-provider";
 import { ScopedIntlProvider } from "@/components/i18n/scoped-intl-provider";
@@ -57,9 +58,7 @@ export async function AdminShell({ children, config }: AdminShellProps) {
           <div className="relative flex min-h-screen">
             <aside className="fixed inset-y-4 left-4 z-20 hidden w-[252px] rounded-[28px] border border-white/80 bg-[#f4f3f1]/92 px-4 py-6 shadow-[0_18px_45px_rgba(96,113,128,0.12)] backdrop-blur md:flex md:flex-col">
               <div className="mb-10 flex items-center gap-3 px-3">
-                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[linear-gradient(135deg,#6b8398,#4b6880)] text-sm font-semibold text-white shadow-sm">
-                  {workspace.initials}
-                </div>
+                <BrandMark className="size-12 rounded-full border-[#e4e7e2] bg-white/95" priority />
                 <div>
                   <h2 className="text-sm font-bold tracking-wide text-[#415f76]">
                     {workspace.title}

@@ -2,8 +2,9 @@ import type { ReactNode } from "react";
 
 import Image from "next/image";
 import Link from "next/link";
-import { GalleryVerticalEnd, ShieldCheck, Sparkles } from "lucide-react";
+import { ShieldCheck, Sparkles } from "lucide-react";
 
+import { BrandMark } from "@/components/brand/brand-mark";
 import { LanguageToggle } from "@/components/i18n/language-toggle";
 import { LegalFooterLinks } from "@/components/legal/legal-footer-links";
 import type { AuthShellCopy } from "@/lib/auth-shell-content";
@@ -76,9 +77,7 @@ export function AuthShell({
 
             <div className="relative z-10">
               <div className="mb-16 flex items-center gap-3">
-                <div className="flex size-11 items-center justify-center rounded-2xl border border-white/70 bg-white/90 text-[#486782] shadow-sm">
-                  <GalleryVerticalEnd className="size-5" />
-                </div>
+                <BrandMark priority />
                 <div className="space-y-0.5">
                   <p className="text-xl font-bold tracking-tight text-[#486782]">
                     {copy.brandTitle}
@@ -130,9 +129,7 @@ export function AuthShell({
             <div className="mx-auto flex w-full max-w-[580px] flex-1 flex-col px-6 py-8 sm:px-10 lg:px-14 lg:py-16">
               <div className="mb-10 flex items-start justify-between gap-4">
                 <div className="flex items-center gap-3 lg:hidden">
-                  <div className="flex size-11 items-center justify-center rounded-2xl bg-[#486782] text-white shadow-sm">
-                    <GalleryVerticalEnd className="size-5" />
-                  </div>
+                  <BrandMark priority />
                   <div className="space-y-0.5">
                     <p className="text-xl font-bold tracking-tight text-[#486782]">
                       {copy.brandTitle}
