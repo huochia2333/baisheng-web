@@ -21,7 +21,7 @@
 - `app/(auth)`：公开页与认证页，包含 `/`、`/login`、`/register`、`/forgot-password`、`/privacy`、`/terms`、`/help`
 - `app/(workspace)/[workspace]/home`：各角色登录后的默认首页，展示北京时间问候和当前角色可见公告
 - `app/(workspace)/[workspace]/my`：各角色共享“我的”个人资料页面入口
-- `app/(workspace)/[workspace]/[section]`：按角色动态装配公告管理、订单、推荐树、团队、佣金、汇率、任务、审核等页面
+- `app/(workspace)/[workspace]/[section]`：按角色动态装配公告管理、订单、推荐树、团队、人员管理、佣金、汇率、任务、审核等页面
 - `app/forbidden.tsx`：统一承接越权访问时的访问错误页
 - `proxy.ts`：会话同步、登录保护、工作台访问前置校验
 - `lib/workspace-config.ts`：角色导航、页面变体和工作台配置中心
@@ -33,13 +33,13 @@
 
 | 角色 | 默认入口 | 当前重点模块 |
 | --- | --- | --- |
-| `administrator` | `/admin/home` | `home`、`announcements`、`my`、`orders`、`referrals`、`team`、`commission`、`exchange-rates`、`tasks`、`reviews` |
-| `salesman` | `/salesman/home` | `home`、`my`、`orders`、`referrals`、`team`、`commission`、`exchange-rates`、`tasks` |
-| `client` | `/client/home` | `home`、`my`、`orders`、`referrals` |
-| `manager` | `/manager/home` | `home`、`my`、`referrals`、`team` |
-| `operator` | `/operator/home` | `home`、`my`、`referrals`、`team` |
-| `finance` | `/finance/home` | `home`、`my`、`referrals`、`team`、`commission` |
-| `recruiter` | `/recruiter/home` | `home`、`my`、`referrals` |
+| `administrator` | `/admin/home` | `home`、`announcements`、`orders`、`referrals`、`team`、`people`、`commission`、`exchange-rates`、`tasks`、`reviews` |
+| `salesman` | `/salesman/home` | `home`、`orders`、`referrals`、`team`、`commission`、`exchange-rates`、`tasks` |
+| `client` | `/client/home` | `home`、`orders`、`referrals` |
+| `manager` | `/manager/home` | `home`、`referrals`、`team` |
+| `operator` | `/operator/home` | `home`、`referrals`、`team` |
+| `finance` | `/finance/home` | `home`、`referrals`、`team`、`commission` |
+| `recruiter` | `/recruiter/home` | `home`、`referrals` |
 
 说明：
 
@@ -58,6 +58,7 @@ baisheng-web/
 │  ├─ auth/
 │  ├─ legal/
 │  └─ dashboard/
+│     ├─ admin-people/
 │     ├─ admin-orders/
 │     ├─ admin-reviews/
 │     ├─ admin-tasks/
@@ -288,6 +289,15 @@ npm run supabase:admin -- summary
 - 姓名和城市统一走资料修改规则：管理员修改自己的资料立即生效，其他角色提交后进入管理员审核。
 - 审核中心新增“资料修改”队列，和隐私、媒体、任务审核并列处理。
 - 本次新增公告读取、公开公告、资料修改申请和资料弹窗 hook 等独立模块，避免继续扩大自助资料页和工作区布局核心文件。
+
+## 人员管理（2026-04-28）
+
+- 管理员工作台新增 `/admin/people` 人员管理板块，左侧导航显示“人员管理”，仅正常启用的管理员账号可访问。
+- 人员管理只负责账号身份和账号状态调整；推荐树继续负责关系来源，团队管理继续负责团队归属，佣金等业务记录不会被自动改动。
+- 调整账号时，服务端会同时更新 Supabase Auth `app_metadata.role/status` 和业务表镜像，并写入管理员调整记录；浏览器端不会接触服务端凭据。
+- 为避免误锁账号，系统禁止管理员在该板块调整自己的身份或状态，并禁止停用或降级最后一个正常启用的管理员账号。
+- 角色和状态变化会在目标账号下次登录或刷新登录状态后完全生效，页面会在调整弹窗中提示这一点。
+- 前端新增 `components/dashboard/admin-people/`，按 client、view-model、sections、dialog、display 拆分；后端读取和 mutation 分别放在 `lib/admin-people.ts` 与 `lib/admin-people-mutations.ts`。
 
 ## 测试与验证要求
 

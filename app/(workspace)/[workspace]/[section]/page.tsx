@@ -14,6 +14,7 @@ import {
 } from "@/lib/admin-orders";
 import { getAdminCommissionPageData } from "@/lib/admin-commission";
 import { getAdminReviewsPageData } from "@/lib/admin-reviews";
+import { getAdminPeoplePageData } from "@/lib/admin-people";
 import { getAdminTasksPageData, parseAdminTasksSearchParams } from "@/lib/admin-tasks";
 import { getExchangeRatesPageData } from "@/lib/exchange-rates";
 import { getReferralsPageData } from "@/lib/referrals";
@@ -55,6 +56,13 @@ const AdminOrdersClient = dynamic(
   () =>
     import("@/components/dashboard/admin-orders/admin-orders-client").then(
       (mod) => mod.AdminOrdersClient,
+    ),
+);
+
+const AdminPeopleClient = dynamic(
+  () =>
+    import("@/components/dashboard/admin-people/admin-people-client").then(
+      (mod) => mod.AdminPeopleClient,
     ),
 );
 
@@ -161,6 +169,14 @@ export async function generateMetadata({
     };
   }
 
+  if (section === "people" && config.pageVariants.people) {
+    const t = await getTranslations("AdminPeople.metadata");
+
+    return {
+      title: t("title"),
+    };
+  }
+
   if (section === "announcements" && config.pageVariants.announcements) {
     const t = await getTranslations("Announcements.metadata");
 
@@ -261,6 +277,10 @@ export default async function WorkspaceSectionPage({
     const supabase = await getServerSupabaseClient();
     const initialData = await getAdminReviewsPageData(supabase);
     content = <AdminReviewsClient initialData={initialData} />;
+  } else if (section === "people" && config.pageVariants.people) {
+    const supabase = await getServerSupabaseClient();
+    const initialData = await getAdminPeoplePageData(supabase);
+    content = <AdminPeopleClient initialData={initialData} />;
   } else if (section === "referrals" && config.pageVariants.referrals) {
     const supabase = await getServerSupabaseClient();
     const initialData = await getReferralsPageData(supabase);
@@ -306,6 +326,8 @@ function isWorkspaceSectionEnabled(
       return Boolean(config.pageVariants.exchangeRates);
     case "orders":
       return Boolean(config.pageVariants.orders);
+    case "people":
+      return config.pageVariants.people === true;
     case "referrals":
       return config.pageVariants.referrals === true;
     case "reviews":
@@ -351,6 +373,10 @@ function getSectionNamespaces(
 
   if (section === "reviews" && config.pageVariants.reviews) {
     namespaces.push("Reviews", "ReviewsUI", "DashboardShared", "Tasks.shared");
+  }
+
+  if (section === "people" && config.pageVariants.people) {
+    namespaces.push("AdminPeople", "DashboardShared");
   }
 
   if (section === "referrals" && config.pageVariants.referrals) {

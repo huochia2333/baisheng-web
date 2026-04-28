@@ -273,6 +273,7 @@
       "orders": "订单",
       "referrals": "推荐树",
       "team": "团队",
+      "people": "人员管理",
       "commission": "佣金",
       "exchangeRates": "汇率",
       "tasks": "任务",
@@ -404,6 +405,10 @@
     "team": {
       "title": "团队管理",
       "description": "这里会承接团队成员、状态统计和组织协作信息，并逐步按不同角色补齐对应操作能力。"
+    },
+    "people": {
+      "title": "人员管理",
+      "description": "管理员在这里查看人员账号，调整账号身份和启用状态。推荐关系和团队归属仍在对应板块单独维护。"
     },
     "commission": {
       "title": "佣金中心",
@@ -1678,6 +1683,121 @@
         "filesHint": "最多上传 {maxFiles} 个文件，图片需小于 {imageMaxPerFile}，视频需小于 {videoMaxPerFile}，其他文件不超过 {otherMaxPerFile}，总计不超过 {maxTotal}。",
         "filesEmpty": "暂未选择任何提交文件。"
       }
+    }
+  },
+  "AdminPeople": {
+    "metadata": {
+      "title": "人员管理"
+    },
+    "header": {
+      "badge": "管理员专属",
+      "title": "人员管理",
+      "description": "集中查看系统人员账号，调整账号身份和启用状态。身份变化不会自动改动推荐树或团队归属。"
+    },
+    "summary": {
+      "total": "人员总数",
+      "active": "正常账号",
+      "administrators": "管理员",
+      "suspended": "已停用"
+    },
+    "states": {
+      "noPermissionTitle": "没有人员管理权限",
+      "noPermissionDescription": "只有正常启用的管理员账号可以查看和调整人员账号。"
+    },
+    "filters": {
+      "search": "搜索人员",
+      "searchPlaceholder": "搜索姓名、手机号、邮箱、城市、团队",
+      "role": "身份",
+      "status": "账号状态",
+      "allRoles": "全部身份",
+      "allStatuses": "全部状态"
+    },
+    "directory": {
+      "eyebrow": "人员目录",
+      "title": "账号列表",
+      "description": "这里只调整账号身份和状态。推荐关系、团队归属、佣金等业务记录不会被自动改变。",
+      "emptyTitle": "没有符合条件的人员",
+      "emptyDescription": "请调整搜索内容或筛选条件后再查看。",
+      "columns": {
+        "account": "账号",
+        "role": "身份",
+        "status": "账号状态",
+        "city": "城市",
+        "relation": "关系摘要",
+        "createdAt": "创建时间",
+        "actions": "操作"
+      },
+      "referrer": "推荐人：{value}",
+      "team": "团队：{value}",
+      "directReferrals": "直接推荐 {count} 人"
+    },
+    "logs": {
+      "eyebrow": "调整记录",
+      "title": "最近调整",
+      "description": "记录管理员最近对账号身份和状态做出的调整，方便后续核对。",
+      "emptyTitle": "暂无调整记录",
+      "emptyDescription": "管理员调整账号后，记录会显示在这里。",
+      "noNote": "未填写备注",
+      "columns": {
+        "target": "人员",
+        "change": "调整内容",
+        "actor": "操作人",
+        "note": "备注",
+        "time": "时间"
+      }
+    },
+    "dialog": {
+      "title": "调整 {name}",
+      "description": "保存后会同步账号身份和状态，目标账号下次登录或刷新登录状态后完全生效。",
+      "currentRole": "当前身份",
+      "currentStatus": "当前状态",
+      "nextRole": "调整为身份",
+      "nextStatus": "调整为状态",
+      "note": "备注",
+      "notePlaceholder": "填写本次调整原因，方便后续核对",
+      "effectHint": "角色和状态变化会在目标账号下次登录或刷新登录状态后完全生效。",
+      "relationHint": "本次操作不会自动改变推荐树、团队归属或佣金记录；如需调整，请到对应板块处理。",
+      "selfHint": "为了避免误停用当前账号，不能在这里调整自己的身份或状态。"
+    },
+    "actions": {
+      "adjust": "调整账号",
+      "currentAccount": "当前账号",
+      "cancel": "取消",
+      "save": "保存调整",
+      "saving": "保存中..."
+    },
+    "roles": {
+      "administrator": "管理员",
+      "manager": "经理",
+      "operator": "运营",
+      "recruiter": "招聘员",
+      "salesman": "业务员",
+      "finance": "财务",
+      "client": "客户"
+    },
+    "statuses": {
+      "active": "正常",
+      "inactive": "未启用",
+      "suspended": "已停用"
+    },
+    "fallback": {
+      "unnamedUser": "未命名人员",
+      "notProvided": "待补充",
+      "noReferrer": "无推荐人",
+      "noTeam": "未加入团队"
+    },
+    "feedback": {
+      "saved": "账号调整已保存。目标账号下次登录或刷新登录状态后会看到新的权限。"
+    },
+    "errors": {
+      "forbidden": "当前账号不能调整人员账号。",
+      "invalidInput": "请选择有效的身份和账号状态。",
+      "lastAdmin": "系统必须保留至少一个正常启用的管理员账号。",
+      "noChange": "账号身份和状态没有变化。",
+      "notFound": "没有找到要调整的人员账号。",
+      "selfChange": "不能在这里调整自己的身份或状态。",
+      "serviceUnavailable": "账号调整暂时没有保存成功，请稍后再试。",
+      "unknown": "账号调整暂时没有保存成功，请稍后再试。"
     }
   },
   "TeamManagement": {

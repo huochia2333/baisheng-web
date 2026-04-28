@@ -273,6 +273,7 @@
       "orders": "Orders",
       "referrals": "Referral Tree",
       "team": "Team",
+      "people": "People Management",
       "commission": "Commission",
       "exchangeRates": "FX Rates",
       "tasks": "Tasks",
@@ -404,6 +405,10 @@
     "team": {
       "title": "Team Management",
       "description": "This section will cover team members, status metrics, and organizational collaboration details, with role-specific actions added over time."
+    },
+    "people": {
+      "title": "People Management",
+      "description": "Administrators can review user accounts and adjust account role or status here. Referral relationships and team membership remain in their own sections."
     },
     "commission": {
       "title": "Commission Center",
@@ -1678,6 +1683,121 @@
         "filesHint": "You can upload up to {maxFiles} files. Images must stay below {imageMaxPerFile}, videos must stay below {videoMaxPerFile}, other files must stay within {otherMaxPerFile}, and the total must stay within {maxTotal}.",
         "filesEmpty": "No submission files selected yet."
       }
+    }
+  },
+  "AdminPeople": {
+    "metadata": {
+      "title": "People Management"
+    },
+    "header": {
+      "badge": "Admin Only",
+      "title": "People Management",
+      "description": "Review system accounts and adjust account role or status. Role changes do not automatically change referral or team relationships."
+    },
+    "summary": {
+      "total": "Total People",
+      "active": "Active Accounts",
+      "administrators": "Administrators",
+      "suspended": "Suspended"
+    },
+    "states": {
+      "noPermissionTitle": "No People Management Access",
+      "noPermissionDescription": "Only active administrator accounts can review and adjust people accounts."
+    },
+    "filters": {
+      "search": "Search People",
+      "searchPlaceholder": "Search name, phone, email, city, or team",
+      "role": "Role",
+      "status": "Account Status",
+      "allRoles": "All Roles",
+      "allStatuses": "All Statuses"
+    },
+    "directory": {
+      "eyebrow": "People Directory",
+      "title": "Accounts",
+      "description": "This area only adjusts account role and status. Referral relationships, team membership, and commission records are not changed automatically.",
+      "emptyTitle": "No people match these filters",
+      "emptyDescription": "Adjust the search text or filters and try again.",
+      "columns": {
+        "account": "Account",
+        "role": "Role",
+        "status": "Account Status",
+        "city": "City",
+        "relation": "Relationship Summary",
+        "createdAt": "Created",
+        "actions": "Actions"
+      },
+      "referrer": "Referrer: {value}",
+      "team": "Team: {value}",
+      "directReferrals": "{count} direct referrals"
+    },
+    "logs": {
+      "eyebrow": "Audit Records",
+      "title": "Recent Adjustments",
+      "description": "Recent administrator changes to account role and status are recorded here for later review.",
+      "emptyTitle": "No adjustment records yet",
+      "emptyDescription": "Records will appear here after an administrator adjusts an account.",
+      "noNote": "No note",
+      "columns": {
+        "target": "Person",
+        "change": "Change",
+        "actor": "Changed By",
+        "note": "Note",
+        "time": "Time"
+      }
+    },
+    "dialog": {
+      "title": "Adjust {name}",
+      "description": "After saving, the account role and status are synced. The target account fully receives the change after the next sign-in or session refresh.",
+      "currentRole": "Current Role",
+      "currentStatus": "Current Status",
+      "nextRole": "New Role",
+      "nextStatus": "New Status",
+      "note": "Note",
+      "notePlaceholder": "Add a reason so the change is easy to review later",
+      "effectHint": "Role and status changes fully apply after the target account signs in again or refreshes the session.",
+      "relationHint": "This action does not automatically change referral trees, team membership, or commission records. Use the related sections for those changes.",
+      "selfHint": "To avoid locking out the current account, you cannot adjust your own role or status here."
+    },
+    "actions": {
+      "adjust": "Adjust Account",
+      "currentAccount": "Current Account",
+      "cancel": "Cancel",
+      "save": "Save Change",
+      "saving": "Saving..."
+    },
+    "roles": {
+      "administrator": "Administrator",
+      "manager": "Manager",
+      "operator": "Operator",
+      "recruiter": "Recruiter",
+      "salesman": "Sales",
+      "finance": "Finance",
+      "client": "Client"
+    },
+    "statuses": {
+      "active": "Active",
+      "inactive": "Not Enabled",
+      "suspended": "Suspended"
+    },
+    "fallback": {
+      "unnamedUser": "Unnamed Person",
+      "notProvided": "Pending",
+      "noReferrer": "No referrer",
+      "noTeam": "No team"
+    },
+    "feedback": {
+      "saved": "Account adjustment saved. The target account will see the new access after the next sign-in or session refresh."
+    },
+    "errors": {
+      "forbidden": "The current account cannot adjust people accounts.",
+      "invalidInput": "Choose a valid role and account status.",
+      "lastAdmin": "The system must keep at least one active administrator account.",
+      "noChange": "The account role and status did not change.",
+      "notFound": "The person account could not be found.",
+      "selfChange": "You cannot adjust your own role or status here.",
+      "serviceUnavailable": "The account adjustment could not be saved. Please try again later.",
+      "unknown": "The account adjustment could not be saved. Please try again later."
     }
   },
   "TeamManagement": {
