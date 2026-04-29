@@ -129,7 +129,7 @@ function SectionNavigation({ copy }: { copy: DashboardMyCopy }) {
   return (
     <nav
       aria-label={copy.sectionNavigationLabel}
-      className="grid grid-cols-2 gap-3 lg:grid-cols-4"
+      className="sticky top-[7.25rem] z-[5] grid grid-cols-2 gap-3 rounded-[24px] bg-[#faf9f7]/90 py-2 backdrop-blur lg:top-[5.75rem] lg:grid-cols-4"
     >
       {SECTION_ITEMS.map((item) => {
         const Icon = item.icon;
