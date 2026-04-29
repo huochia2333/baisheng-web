@@ -593,7 +593,7 @@
     "videoEmptyDescription": "Uploaded videos will appear here after they pass review.",
     "videoPendingDescription": "At least one video is currently waiting for review.",
     "videoApprovedDescription": "Your profile videos have been approved.",
-    "editProfileDescription": "You can update your display name and city here. Admin changes take effect immediately; other accounts submit the change for admin confirmation.",
+    "editProfileDescription": "You can update your display name and city here.",
     "cityLabel": "City",
     "cityPlaceholder": "Enter your city",
     "nameLabel": "Display Name",

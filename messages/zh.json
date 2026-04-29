@@ -593,7 +593,7 @@
     "videoEmptyDescription": "上传后会进入待审核，审核完成后会在这里展示全部视频。",
     "videoPendingDescription": "至少有一条个人视频正在等待审核。",
     "videoApprovedDescription": "个人视频已审核通过。",
-    "editProfileDescription": "你可以在这里更新显示姓名和所在城市。管理员保存后立即生效，其他账号提交后会等待管理员确认。",
+    "editProfileDescription": "你可以在这里更新显示姓名和所在城市。",
     "cityLabel": "所在城市",
     "cityPlaceholder": "请填写所在城市",
     "nameLabel": "显示姓名",
