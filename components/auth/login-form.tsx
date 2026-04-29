@@ -6,10 +6,12 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowRight, LoaderCircle, LockKeyhole, Mail } from "lucide-react";
 import { useTranslations } from "next-intl";
+import type { Session } from "@supabase/supabase-js";
 
 import {
   getDefaultSignedInPathForRole,
   getRoleFromAuthClaims,
+  getRoleFromAuthSession,
 } from "@/lib/auth-session-client";
 import { getBrowserSupabaseClient } from "@/lib/supabase";
 import { useSupabaseAuthSync } from "@/lib/use-supabase-auth-sync";
@@ -34,8 +36,10 @@ export function LoginForm({
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const redirectToWorkspace = async (user?: Parameters<typeof getRoleFromAuthClaims>[1]) => {
-    const role = supabase ? await getRoleFromAuthClaims(supabase, user) : null;
+  const redirectToWorkspace = async (session?: Session | null) => {
+    const role =
+      getRoleFromAuthSession(session) ??
+      (supabase ? await getRoleFromAuthClaims(supabase, session?.user) : null);
     const nextPath = role ? getDefaultSignedInPathForRole(role) : "/";
 
     startTransition(() => {
@@ -45,12 +49,12 @@ export function LoginForm({
 
   useSupabaseAuthSync(supabase, {
     includeInitialSessionEvent: true,
-    onAuthStateChange: async ({ isMounted, session }) => {
-      if (!isMounted() || !session?.user) {
+    onAuthStateChange: async ({ event, isMounted, session }) => {
+      if (event !== "INITIAL_SESSION" || !isMounted() || !session?.user) {
         return;
       }
 
-      await redirectToWorkspace(session.user);
+      await redirectToWorkspace(session);
     },
   });
 
@@ -80,7 +84,7 @@ export function LoginForm({
         throw signInError;
       }
 
-      await redirectToWorkspace(data.session?.user);
+      await redirectToWorkspace(data.session);
     } catch (signInError) {
       setError(formatLoginError(signInError, t));
       setSubmitting(false);

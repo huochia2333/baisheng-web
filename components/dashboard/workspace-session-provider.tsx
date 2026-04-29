@@ -17,7 +17,10 @@ import {
   getDefaultWorkspaceBasePath,
   getWorkspaceBasePath,
 } from "@/lib/auth-routing";
-import { getRoleFromAuthClaims } from "@/lib/auth-session-client";
+import {
+  getRoleFromAuthClaims,
+  getRoleFromAuthSession,
+} from "@/lib/auth-session-client";
 import { getBrowserSupabaseClient } from "@/lib/supabase";
 import { useBrowserCloudSyncRecovery } from "@/lib/use-browser-cloud-sync-recovery";
 import { useResumeRecovery } from "@/lib/use-resume-recovery";
@@ -86,7 +89,9 @@ export function WorkspaceSessionProvider({
       const currentBasePath = getWorkspaceBasePath(pathname);
 
       if (currentBasePath) {
-        const role = await getRoleFromAuthClaims(supabase, session.user);
+        const role =
+          getRoleFromAuthSession(session) ??
+          (await getRoleFromAuthClaims(supabase, session.user));
 
         if (role) {
           const desiredBasePath = getDefaultWorkspaceBasePath(role);

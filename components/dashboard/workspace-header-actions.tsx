@@ -3,7 +3,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import {
   Bell,
   ChevronDown,
@@ -19,6 +18,7 @@ import { useTranslations } from "next-intl";
 import { useLocale } from "@/components/i18n/locale-provider";
 import { Button } from "@/components/ui/button";
 import type { AnnouncementRow } from "@/lib/announcements";
+import { signOutCurrentBrowserSession } from "@/lib/browser-auth-session";
 import { getBrowserSupabaseClient } from "@/lib/supabase";
 import type { WorkspaceAnnouncementsState } from "@/lib/workspace-announcements";
 
@@ -41,13 +41,11 @@ export function WorkspaceHeaderActions({
 }: WorkspaceHeaderActionsProps) {
   const t = useTranslations("DashboardShell");
   const { locale } = useLocale();
-  const router = useRouter();
   const supabase = getBrowserSupabaseClient();
   const menuRef = useRef<HTMLDivElement | null>(null);
 
   const [accountMenuOpen, setAccountMenuOpen] = useState(false);
   const [logoutPending, setLogoutPending] = useState(false);
-  const [menuErrorMessage, setMenuErrorMessage] = useState<string | null>(null);
   const announcementsCopy = useMemo(
     () => ({
       loadError: t("announcements.loadError"),
@@ -116,38 +114,13 @@ export function WorkspaceHeaderActions({
     };
   }, [accountMenuOpen]);
 
-  const handleLogout = async () => {
+  const handleLogout = () => {
     if (logoutPending) {
       return;
     }
 
-    setMenuErrorMessage(null);
-
-    if (!supabase) {
-      setMenuErrorMessage(t("serviceUnavailable"));
-      return;
-    }
-
     setLogoutPending(true);
-
-    try {
-      const { error } = await supabase.auth.signOut();
-
-      if (error) {
-        throw error;
-      }
-
-      if (typeof window !== "undefined") {
-        window.location.replace("/login");
-        return;
-      }
-
-      router.replace("/login");
-    } catch {
-      setMenuErrorMessage(t("serviceUnavailable"));
-    } finally {
-      setLogoutPending(false);
-    }
+    signOutCurrentBrowserSession(supabase);
   };
 
   return (
@@ -178,7 +151,6 @@ export function WorkspaceHeaderActions({
           className="inline-flex items-center gap-3 rounded-full bg-[#f1efeb] p-1.5 transition-colors hover:bg-[#e8e5e0] sm:pr-3"
           onClick={() => {
             setAccountMenuOpen((current) => !current);
-            setMenuErrorMessage(null);
           }}
           type="button"
         >
@@ -218,17 +190,11 @@ export function WorkspaceHeaderActions({
               })}
             </div>
 
-            {menuErrorMessage ? (
-              <p className="mx-3 mb-2 rounded-[14px] border border-[#f1d1d1] bg-[#fff2f2] px-3 py-2 text-xs leading-5 text-[#9f3535]">
-                {menuErrorMessage}
-              </p>
-            ) : null}
-
             <div className="border-t border-[#eee9e1] p-2">
               <button
                 className="flex w-full items-center gap-3 rounded-[16px] px-3 py-2.5 text-left text-sm font-semibold text-[#b13d3d] transition-colors hover:bg-[#fff4f4] disabled:cursor-not-allowed disabled:opacity-70"
                 disabled={logoutPending}
-                onClick={() => void handleLogout()}
+                onClick={handleLogout}
                 type="button"
               >
                 {logoutPending ? (

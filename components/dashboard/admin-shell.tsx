@@ -69,10 +69,7 @@ export async function AdminShell({ children, config }: AdminShellProps) {
 
               <AdminShellNav items={workspace.navItems} mode="desktop" />
 
-              <AdminShellLogoutButton
-                label={t("logout")}
-                serviceUnavailableMessage={t("serviceUnavailable")}
-              />
+              <AdminShellLogoutButton label={t("logout")} />
             </aside>
 
             <div className="flex min-h-screen min-w-0 flex-1 flex-col md:ml-[284px]">

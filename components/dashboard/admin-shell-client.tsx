@@ -21,6 +21,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 
+import { signOutCurrentBrowserSession } from "@/lib/browser-auth-session";
 import { getBrowserSupabaseClient } from "@/lib/supabase";
 import type { WorkspaceNavItem } from "@/lib/workspace-config";
 import { cn } from "@/lib/utils";
@@ -38,7 +39,6 @@ type AdminShellNavProps = {
 
 type AdminShellLogoutButtonProps = {
   label: string;
-  serviceUnavailableMessage: string;
 };
 
 const NAV_ICONS: Record<WorkspaceNavItem["segment"], LucideIcon> = {
@@ -173,60 +173,25 @@ export function AdminShellNav({ items, mode }: AdminShellNavProps) {
 
 export function AdminShellLogoutButton({
   label,
-  serviceUnavailableMessage,
 }: AdminShellLogoutButtonProps) {
-  const router = useRouter();
   const supabase = getBrowserSupabaseClient();
   const [pending, setPending] = useState(false);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const handleLogout = async () => {
+  const handleLogout = () => {
     if (pending) {
       return;
     }
 
-    setErrorMessage(null);
-
-    if (!supabase) {
-      setErrorMessage(serviceUnavailableMessage);
-      return;
-    }
-
     setPending(true);
-
-    try {
-      const { error } = await supabase.auth.signOut();
-
-      if (error) {
-        throw error;
-      }
-
-      if (typeof window !== "undefined") {
-        window.location.replace("/login");
-        return;
-      }
-
-      router.replace("/login");
-    } catch (error) {
-      setErrorMessage(
-        error instanceof Error ? error.message : serviceUnavailableMessage,
-      );
-    } finally {
-      setPending(false);
-    }
+    signOutCurrentBrowserSession(supabase);
   };
 
   return (
     <div className="mt-auto px-1">
-      {errorMessage ? (
-        <p className="mb-3 rounded-2xl border border-[#f1d1d1] bg-[#fff2f2] px-4 py-3 text-xs leading-6 text-[#9f3535]">
-          {errorMessage}
-        </p>
-      ) : null}
       <button
         className="flex w-full items-center justify-center gap-2 rounded-2xl bg-[#fceaea] py-3 text-sm font-semibold text-[#c43d3d] transition-colors hover:bg-[#f8dddd] disabled:cursor-not-allowed disabled:opacity-70"
         disabled={pending}
-        onClick={() => void handleLogout()}
+        onClick={handleLogout}
         type="button"
       >
         {pending ? (
