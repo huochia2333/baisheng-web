@@ -4,7 +4,7 @@ import { startTransition, useEffect, useMemo, useState } from "react";
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowRight, LockKeyhole, Mail, ShieldCheck } from "lucide-react";
+import { ArrowRight, Mail } from "lucide-react";
 import { useTranslations } from "next-intl";
 
 import { getAuthSession } from "@/lib/auth-session-client";
@@ -14,15 +14,20 @@ import { useSupabaseAuthSync } from "@/lib/use-supabase-auth-sync";
 import { AuthFeedback } from "./auth-feedback";
 import { AuthField } from "./auth-field";
 import { AuthLoadingShell } from "./auth-loading-shell";
+import { AuthPasswordField } from "./auth-password-field";
+import { getPasswordPolicyState } from "./auth-password-policy";
 
 type ForgotPasswordMode = "request" | "sent" | "reset";
 
 export function ForgotPasswordForm() {
   const router = useRouter();
   const t = useTranslations("ForgotPasswordForm");
-  const supabase = getBrowserSupabaseClient();
+  const [supabase] = useState<ReturnType<typeof getBrowserSupabaseClient>>(() =>
+    typeof window !== "undefined" ? getBrowserSupabaseClient() : null,
+  );
+  const recoveryHint = useMemo(() => getRecoveryHint(), []);
   const [mode, setMode] = useState<ForgotPasswordMode>("request");
-  const [checkingRecovery, setCheckingRecovery] = useState(true);
+  const [checkingRecovery, setCheckingRecovery] = useState(recoveryHint);
   const [recoveryReady, setRecoveryReady] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -31,12 +36,23 @@ export function ForgotPasswordForm() {
   const [cooldownRemaining, setCooldownRemaining] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
-
-  const recoveryHint = useMemo(() => getRecoveryHint(), []);
+  const passwordPolicy = getPasswordPolicyState(password);
+  const passwordHint =
+    password.length > 0 && passwordPolicy.isValid ? t("passwordReady") : t("passwordHint");
+  const passwordHintTone =
+    password.length === 0 ? "default" : passwordPolicy.isValid ? "success" : "warning";
 
   useSupabaseAuthSync(supabase, {
     onReady: async ({ isMounted }) => {
+      if (!recoveryHint) {
+        return;
+      }
+
       if (!supabase) {
+        if (isMounted()) {
+          setError(t("serviceUnavailable"));
+          setCheckingRecovery(false);
+        }
         return;
       }
 
@@ -123,17 +139,21 @@ export function ForgotPasswordForm() {
     setError(null);
     setNotice(null);
 
-    if (!supabase) {
+    const client = supabase ?? getBrowserSupabaseClient();
+
+    if (!client) {
       setSubmitting(false);
       setError(t("serviceUnavailable"));
       return;
     }
 
+    const normalizedEmail = email.trim();
+    const resetEmailSentNotice = t("resetEmailSent", { email: normalizedEmail });
     const redirectTo =
       typeof window !== "undefined" ? `${window.location.origin}/forgot-password` : undefined;
 
     try {
-      const { error: resetError } = await supabase.auth.resetPasswordForEmail(email.trim(), {
+      const { error: resetError } = await client.auth.resetPasswordForEmail(normalizedEmail, {
         redirectTo,
       });
 
@@ -143,12 +163,12 @@ export function ForgotPasswordForm() {
 
       setMode("sent");
       setCooldownRemaining(30);
-      setNotice(t("resetEmailSent"));
+      setNotice(resetEmailSentNotice);
     } catch (resetError) {
       if (shouldMaskForgotPasswordError(resetError)) {
         setMode("sent");
         setCooldownRemaining(30);
-        setNotice(t("resetEmailSent"));
+        setNotice(resetEmailSentNotice);
         return;
       }
 
@@ -165,8 +185,8 @@ export function ForgotPasswordForm() {
     setError(null);
     setNotice(null);
 
-    if (password.length < 8) {
-      setError(t("passwordTooShort"));
+    if (!passwordPolicy.isValid) {
+      setError(t("passwordPolicy"));
       return;
     }
 
@@ -177,20 +197,22 @@ export function ForgotPasswordForm() {
 
     setSubmitting(true);
 
-    if (!supabase) {
+    const client = supabase ?? getBrowserSupabaseClient();
+
+    if (!client) {
       setSubmitting(false);
       setError(t("serviceUnavailable"));
       return;
     }
 
     try {
-      const { error: updateError } = await supabase.auth.updateUser({ password });
+      const { error: updateError } = await client.auth.updateUser({ password });
 
       if (updateError) {
         throw updateError;
       }
 
-      const { error: signOutError } = await supabase.auth.signOut();
+      const { error: signOutError } = await client.auth.signOut();
 
       if (signOutError) {
         throw signOutError;
@@ -208,7 +230,7 @@ export function ForgotPasswordForm() {
     }
   };
 
-  if (checkingRecovery || !supabase) {
+  if (checkingRecovery) {
     return <AuthLoadingShell variant="recovery" />;
   }
 
@@ -228,26 +250,30 @@ export function ForgotPasswordForm() {
       {mode === "reset" ? (
         recoveryReady ? (
           <form className="space-y-6" onSubmit={handleUpdatePassword}>
-            <AuthField
+            <AuthPasswordField
               autoComplete="new-password"
-              icon={<LockKeyhole className="size-4" />}
+              disabled={submitting}
+              hidePasswordLabel={t("hidePassword")}
+              hint={passwordHint}
+              hintTone={passwordHintTone}
               label={t("newPassword")}
               name="password"
               onChange={(event) => setPassword(event.target.value)}
               placeholder={t("newPasswordPlaceholder")}
               required
-              type="password"
+              showPasswordLabel={t("showPassword")}
               value={password}
             />
-            <AuthField
+            <AuthPasswordField
               autoComplete="new-password"
-              icon={<ShieldCheck className="size-4" />}
+              disabled={submitting}
+              hidePasswordLabel={t("hidePassword")}
               label={t("confirmPassword")}
               name="confirmPassword"
               onChange={(event) => setConfirmPassword(event.target.value)}
               placeholder={t("confirmPasswordPlaceholder")}
               required
-              type="password"
+              showPasswordLabel={t("showPassword")}
               value={confirmPassword}
             />
             <button

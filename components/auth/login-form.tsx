@@ -4,7 +4,7 @@ import { startTransition, useState } from "react";
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowRight, LoaderCircle, LockKeyhole, Mail } from "lucide-react";
+import { ArrowRight, LoaderCircle, Mail } from "lucide-react";
 import { useTranslations } from "next-intl";
 import type { Session } from "@supabase/supabase-js";
 
@@ -18,6 +18,7 @@ import { useSupabaseAuthSync } from "@/lib/use-supabase-auth-sync";
 
 import { AuthFeedback } from "./auth-feedback";
 import { AuthField } from "./auth-field";
+import { AuthPasswordField } from "./auth-password-field";
 
 export function LoginForm({
   registered = false,
@@ -116,11 +117,12 @@ export function LoginForm({
         value={email}
       />
 
-      <div className="space-y-2">
-        <div className="flex items-center justify-between px-1">
-          <span className="font-label text-[11px] font-semibold tracking-[0.18em] text-[#5d7388] uppercase">
-            {t("password")}
-          </span>
+      <AuthPasswordField
+        autoComplete="current-password"
+        disabled={submitting}
+        hidePasswordLabel={t("hidePassword")}
+        label={t("password")}
+        labelAction={
           <Link
             aria-disabled={submitting}
             className={`text-xs font-medium text-[#5d7388] transition-colors hover:text-[#36536a] ${
@@ -136,24 +138,14 @@ export function LoginForm({
           >
             {t("forgotPassword")}
           </Link>
-        </div>
-        <div className="group relative">
-          <span className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4 text-[#98a3ad] transition-colors group-focus-within:text-[#486783]">
-            <LockKeyhole className="size-4" />
-          </span>
-          <input
-            autoComplete="current-password"
-            className="h-[52px] w-full rounded-[22px] border border-[#ece9e4] bg-[#f2efeb]/90 pl-12 pr-4 text-[15px] text-[#22303a] shadow-[inset_0_1px_0_rgba(255,255,255,0.86)] transition-all placeholder:text-[#a9b1b8] focus:border-[#bfd2e1] focus:bg-white focus:ring-4 focus:ring-[#bfd2e1]/45 focus:outline-none disabled:cursor-wait disabled:opacity-80"
-            disabled={submitting}
-            name="password"
-            onChange={(event) => setPassword(event.target.value)}
-            placeholder={t("passwordPlaceholder")}
-            required
-            type="password"
-            value={password}
-          />
-        </div>
-      </div>
+        }
+        name="password"
+        onChange={(event) => setPassword(event.target.value)}
+        placeholder={t("passwordPlaceholder")}
+        required
+        showPasswordLabel={t("showPassword")}
+        value={password}
+      />
 
       <button
         className="mt-2 flex h-[56px] w-full items-center justify-center gap-2 rounded-full bg-[#486782] text-base font-semibold text-white shadow-[0_10px_30px_rgba(72,103,130,0.28)] transition-all hover:bg-[#3f5f78] disabled:cursor-not-allowed disabled:opacity-70"

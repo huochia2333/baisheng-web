@@ -65,7 +65,7 @@ export function AuthShell({
                 )}
                 fill
                 blurDataURL={AUTH_SHELL_IMAGE_BLUR_DATA_URL}
-                priority
+                loading="lazy"
                 placeholder="blur"
                 sizes="(min-width: 1024px) 46vw, 0vw"
                 src="/images/zhang-kaiyv-Xqf2ph7vrgc-unsplash.jpg"

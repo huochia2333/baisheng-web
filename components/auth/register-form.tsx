@@ -8,7 +8,6 @@ import {
   ArrowRight,
   Check,
   KeyRound,
-  LockKeyhole,
   Mail,
   Phone,
   UserRound,
@@ -16,23 +15,20 @@ import {
 import { useTranslations } from "next-intl";
 
 import {
-  getAuthSession,
   getDefaultSignedInPathForRole,
   getRoleFromAuthClaims,
 } from "@/lib/auth-session-client";
 import { PRIVACY_POLICY_PATH, TERMS_OF_SERVICE_PATH } from "@/lib/legal-routes";
 import { getBrowserSupabaseClient } from "@/lib/supabase";
-import { useSupabaseAuthSync } from "@/lib/use-supabase-auth-sync";
 
 import { AuthFeedback } from "./auth-feedback";
 import { AuthField } from "./auth-field";
-import { AuthLoadingShell } from "./auth-loading-shell";
+import { AuthPasswordField } from "./auth-password-field";
+import { getPasswordPolicyState } from "./auth-password-policy";
 
 export function RegisterForm() {
   const router = useRouter();
   const t = useTranslations("RegisterForm");
-  const supabase = getBrowserSupabaseClient();
-  const [checkingSession, setCheckingSession] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [name, setName] = useState("");
@@ -41,42 +37,11 @@ export function RegisterForm() {
   const [inviteCode, setInviteCode] = useState("");
   const [password, setPassword] = useState("");
   const [acceptedTerms, setAcceptedTerms] = useState(false);
-
-  useSupabaseAuthSync(supabase, {
-    onReady: async ({ isMounted }) => {
-      if (!supabase) {
-        return;
-      }
-
-      try {
-        const session = await getAuthSession(supabase);
-
-        if (!isMounted()) {
-          return;
-        }
-
-        if (session?.user) {
-          const role = await getRoleFromAuthClaims(supabase, session.user);
-          const nextPath = role ? getDefaultSignedInPathForRole(role) : "/";
-
-          startTransition(() => {
-            router.replace(nextPath);
-          });
-          return;
-        }
-      } catch (sessionError) {
-        if (!isMounted()) {
-          return;
-        }
-
-        setError(formatAuthError(getErrorMessage(sessionError, t("serviceUnavailable")), t));
-      } finally {
-        if (isMounted()) {
-          setCheckingSession(false);
-        }
-      }
-    },
-  });
+  const passwordPolicy = getPasswordPolicyState(password);
+  const passwordHint =
+    password.length > 0 && passwordPolicy.isValid ? t("passwordReady") : t("passwordHint");
+  const passwordHintTone =
+    password.length === 0 ? "default" : passwordPolicy.isValid ? "success" : "warning";
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -86,8 +51,15 @@ export function RegisterForm() {
       return;
     }
 
+    if (!passwordPolicy.isValid) {
+      setError(t("passwordPolicy"));
+      return;
+    }
+
     setSubmitting(true);
     setError(null);
+
+    const supabase = getBrowserSupabaseClient();
 
     if (!supabase) {
       setSubmitting(false);
@@ -136,10 +108,6 @@ export function RegisterForm() {
       setSubmitting(false);
     }
   };
-
-  if (checkingSession || !supabase) {
-    return <AuthLoadingShell variant="register" />;
-  }
 
   return (
     <form className="space-y-6" onSubmit={handleSubmit}>
@@ -194,15 +162,18 @@ export function RegisterForm() {
         value={inviteCode}
       />
 
-      <AuthField
+      <AuthPasswordField
         autoComplete="new-password"
-        icon={<LockKeyhole className="size-4" />}
+        disabled={submitting}
+        hidePasswordLabel={t("hidePassword")}
+        hint={passwordHint}
+        hintTone={passwordHintTone}
         label={t("password")}
         name="password"
         onChange={(event) => setPassword(event.target.value)}
         placeholder={t("passwordPlaceholder")}
         required
-        type="password"
+        showPasswordLabel={t("showPassword")}
         value={password}
       />
 
