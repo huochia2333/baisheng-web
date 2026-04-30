@@ -17,9 +17,8 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function RegisterPage() {
-  await redirectAuthenticatedUserToWorkspace();
-
-  const [t, authShellCopy] = await Promise.all([
+  const [, t, authShellCopy] = await Promise.all([
+    redirectAuthenticatedUserToWorkspace(),
     getTranslations("RegisterPage"),
     getAuthShellCopy(),
   ]);

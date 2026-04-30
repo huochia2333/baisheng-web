@@ -1,9 +1,9 @@
 import type { ReactNode } from "react";
 
 import Image from "next/image";
-import Link from "next/link";
 import { ShieldCheck, Sparkles } from "lucide-react";
 
+import { AuthRouteLink } from "@/components/auth/auth-route-link";
 import { BrandMark } from "@/components/brand/brand-mark";
 import { LanguageToggle } from "@/components/i18n/language-toggle";
 import { LegalFooterLinks } from "@/components/legal/legal-footer-links";
@@ -164,12 +164,12 @@ export function AuthShell({
               <div className="border-t border-[#dfdfdc] pt-8 text-center">
                 <p className="text-sm text-[#6d767c]">
                   {footerPrompt}{" "}
-                  <Link
+                  <AuthRouteLink
                     href={footerLinkHref}
                     className="font-semibold text-[#486782] transition-colors hover:text-[#36536a]"
                   >
                     {footerLinkLabel}
-                  </Link>
+                  </AuthRouteLink>
                 </p>
               </div>
 
