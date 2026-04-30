@@ -1,4 +1,4 @@
-import type { UserStatus } from "./user-self-service";
+import { normalizeUserStatus } from "./auth-metadata";
 import type {
   AdminTaskAttachment,
   AdminTaskMainRow,
@@ -8,6 +8,17 @@ import type {
   TaskTeamSummary,
   TaskTypeOption,
 } from "./admin-tasks-types";
+import {
+  normalizeInteger,
+  normalizeNullableString,
+  normalizeNumericValue,
+} from "./value-normalizers";
+
+export {
+  normalizeInteger,
+  normalizeNullableString,
+  normalizeNumericValue,
+};
 
 export function normalizeTaskMainRecord(value: unknown): AdminTaskMainRow | null {
   if (typeof value !== "object" || value === null) {
@@ -156,42 +167,7 @@ export function normalizeTaskTypeOption(value: unknown): TaskTypeOption | null {
   };
 }
 
-export function normalizeNullableString(value: unknown) {
-  if (typeof value !== "string") {
-    return null;
-  }
-
-  const normalized = value.trim();
-  return normalized.length > 0 ? normalized : null;
-}
-
-export function normalizeInteger(value: unknown) {
-  if (typeof value === "number" && Number.isFinite(value)) {
-    return Math.trunc(value);
-  }
-
-  if (typeof value === "string") {
-    const parsed = Number.parseInt(value, 10);
-    return Number.isFinite(parsed) ? parsed : 0;
-  }
-
-  return 0;
-}
-
-export function normalizeNumericValue(value: unknown) {
-  if (typeof value === "number" && Number.isFinite(value)) {
-    return value;
-  }
-
-  if (typeof value === "string") {
-    const parsed = Number(value);
-    return Number.isFinite(parsed) ? parsed : null;
-  }
-
-  return null;
-}
-
-function normalizeTaskScope(value: unknown): TaskScope | null {
+export function normalizeTaskScope(value: unknown): TaskScope | null {
   if (value === "public" || value === "team") {
     return value;
   }
@@ -199,7 +175,7 @@ function normalizeTaskScope(value: unknown): TaskScope | null {
   return null;
 }
 
-function normalizeTaskStatus(value: unknown): TaskStatus | null {
+export function normalizeTaskStatus(value: unknown): TaskStatus | null {
   if (
     value === "to_be_accepted"
     || value === "accepted"
@@ -207,14 +183,6 @@ function normalizeTaskStatus(value: unknown): TaskStatus | null {
     || value === "rejected"
     || value === "completed"
   ) {
-    return value;
-  }
-
-  return null;
-}
-
-function normalizeUserStatus(value: unknown): UserStatus | null {
-  if (value === "inactive" || value === "active" || value === "suspended") {
     return value;
   }
 

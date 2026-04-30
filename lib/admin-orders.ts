@@ -6,6 +6,10 @@ import {
   type UserStatus,
 } from "./user-self-service";
 import {
+  normalizeAppRole,
+  normalizeUserStatus,
+} from "./auth-metadata";
+import {
   ADMIN_ORDER_SELECT,
   getAdminOrderCount,
   queryAdminOrders,
@@ -18,6 +22,11 @@ import {
   getDashboardQueryRangeForPage,
 } from "./dashboard-pagination";
 import { withRequestTimeout } from "./request-timeout";
+import {
+  normalizeOptionalString,
+  normalizePositiveInteger,
+  normalizeSearchText,
+} from "./value-normalizers";
 
 export type AdminOrderRow = {
   id: string;
@@ -837,30 +846,6 @@ async function getOrderOverviewReference(
   return data ?? null;
 }
 
-function normalizeAppRole(value: unknown): AppRole | null {
-  if (
-    value === "administrator" ||
-    value === "operator" ||
-    value === "manager" ||
-    value === "recruiter" ||
-    value === "salesman" ||
-    value === "finance" ||
-    value === "client"
-  ) {
-    return value;
-  }
-
-  return null;
-}
-
-function normalizeUserStatus(value: unknown): UserStatus | null {
-  if (value === "inactive" || value === "active" || value === "suspended") {
-    return value;
-  }
-
-  return null;
-}
-
 function createEmptyAdminOrdersPageData(options: {
   currentViewerId?: string | null;
   currentViewerRole?: AppRole | null;
@@ -944,24 +929,4 @@ function getSingleSearchParam(value: string | string[] | undefined) {
   }
 
   return value;
-}
-
-function normalizePositiveInteger(value: unknown, fallback: number) {
-  const parsed =
-    typeof value === "number" ? value : typeof value === "string" ? Number.parseInt(value, 10) : NaN;
-
-  return Number.isFinite(parsed) && parsed > 0 ? Math.trunc(parsed) : fallback;
-}
-
-function normalizeOptionalString(value: unknown) {
-  if (typeof value !== "string") {
-    return null;
-  }
-
-  const normalized = value.trim();
-  return normalized.length > 0 ? normalized : null;
-}
-
-function normalizeSearchText(value: string | null | undefined) {
-  return (normalizeOptionalString(value) ?? "").toLowerCase().replace(/\s+/g, " ");
 }

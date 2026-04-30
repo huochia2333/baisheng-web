@@ -12,6 +12,7 @@ import {
   type UserStatus,
 } from "./auth-metadata";
 import { withRequestTimeout } from "./request-timeout";
+import { normalizeOptionalString } from "./value-normalizers";
 
 export { getDefaultSignedInPathForRole, getDefaultWorkspaceBasePath };
 export type { AppRole, UserStatus };
@@ -479,15 +480,6 @@ async function syncProfileFromAuthMetadataIfPossible(
   }
 
   return data ?? profile;
-}
-
-function normalizeOptionalString(value: unknown) {
-  if (typeof value !== "string") {
-    return null;
-  }
-
-  const normalized = value.trim();
-  return normalized.length > 0 ? normalized : null;
 }
 
 async function resolveCurrentSession(

@@ -8,12 +8,21 @@ import type {
   TaskStatus,
   TaskTypeOption,
 } from "./admin-tasks";
+import {
+  normalizeTaskScope,
+  normalizeTaskStatus,
+} from "./admin-task-normalizers";
 import { getVisibleTeamOverviews, type TeamOverview } from "./team-management";
 import { getCurrentSessionContext, type AppRole, type UserStatus } from "./user-self-service";
 import {
   getDashboardQueryRange,
   MAX_DASHBOARD_QUERY_ROWS,
 } from "./dashboard-pagination";
+import {
+  normalizeInteger,
+  normalizeNumericValue,
+  normalizeOptionalString,
+} from "./value-normalizers";
 
 const TASK_SELECT =
   "id,task_name,task_intro,task_type_code,commission_amount_rmb,created_by_user_id,accepted_by_user_id,scope,team_id,status,created_at,accepted_at,submitted_at,reviewed_at,reviewed_by_user_id,review_reject_reason,completed_at";
@@ -478,61 +487,4 @@ function normalizeTaskTypeOption(value: unknown): TaskTypeOption | null {
     isActive: "is_active" in value ? value.is_active === true : false,
     sortOrder: "sort_order" in value ? normalizeInteger(value.sort_order) : 100,
   };
-}
-
-function normalizeOptionalString(value: unknown) {
-  if (typeof value !== "string") {
-    return null;
-  }
-
-  const normalized = value.trim();
-  return normalized.length > 0 ? normalized : null;
-}
-
-function normalizeInteger(value: unknown) {
-  if (typeof value === "number" && Number.isFinite(value)) {
-    return Math.trunc(value);
-  }
-
-  if (typeof value === "string") {
-    const parsed = Number.parseInt(value, 10);
-    return Number.isFinite(parsed) ? parsed : 0;
-  }
-
-  return 0;
-}
-
-function normalizeNumericValue(value: unknown) {
-  if (typeof value === "number" && Number.isFinite(value)) {
-    return value;
-  }
-
-  if (typeof value === "string") {
-    const parsed = Number(value);
-    return Number.isFinite(parsed) ? parsed : null;
-  }
-
-  return null;
-}
-
-function normalizeTaskScope(value: unknown): TaskScope | null {
-  if (value === "public" || value === "team") {
-    return value;
-  }
-
-  return null;
-}
-
-function normalizeTaskStatus(value: unknown): TaskStatus | null {
-  if (
-    value === "to_be_accepted"
-    || value === "accepted"
-    || value === "reviewing"
-    || value === "rejected"
-    || value === "completed"
-  ) {
-    return value;
-  }
-
-  return null;
 }

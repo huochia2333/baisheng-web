@@ -1,5 +1,6 @@
 import type { ReferralTreeEdge } from "@/lib/referrals";
 import type { AppRole, UserStatus } from "@/lib/user-self-service";
+import { normalizeSearchText } from "@/lib/value-normalizers";
 
 import {
   getRawErrorMessage,
@@ -149,7 +150,7 @@ export function buildTreeDisplayData(
   copy: ReferralsCopy,
   sharedCopy: DashboardSharedCopy,
 ): ReferralTreeDisplayData {
-  const normalizedSearchText = searchText.trim().toLowerCase();
+  const normalizedSearchText = normalizeSearchText(searchText);
   const matchingNodeIds = new Set<string>();
   const visibleNodeIds = new Set<string>();
 

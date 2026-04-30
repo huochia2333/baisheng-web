@@ -1,8 +1,9 @@
 import type { AppRole } from "./auth-routing";
+import { normalizeOptionalString } from "./value-normalizers";
 
 export type UserStatus = "inactive" | "active" | "suspended";
 
-const APP_ROLES = new Set<AppRole>([
+export const APP_ROLES = [
   "administrator",
   "operator",
   "manager",
@@ -10,22 +11,35 @@ const APP_ROLES = new Set<AppRole>([
   "salesman",
   "finance",
   "client",
-]);
+] as const satisfies readonly AppRole[];
 
-const USER_STATUSES = new Set<UserStatus>(["inactive", "active", "suspended"]);
+export const USER_STATUSES = [
+  "inactive",
+  "active",
+  "suspended",
+] as const satisfies readonly UserStatus[];
+
+const APP_ROLE_SET = new Set<AppRole>(APP_ROLES);
+const USER_STATUS_SET = new Set<UserStatus>(USER_STATUSES);
+
+export function normalizeAppRole(value: unknown): AppRole | null {
+  const role = normalizeOptionalString(value);
+  return role && APP_ROLE_SET.has(role as AppRole) ? (role as AppRole) : null;
+}
+
+export function normalizeUserStatus(value: unknown): UserStatus | null {
+  const status = normalizeOptionalString(value);
+  return status && USER_STATUS_SET.has(status as UserStatus)
+    ? (status as UserStatus)
+    : null;
+}
 
 export function getAppRoleFromMetadataContainer(value: unknown): AppRole | null {
-  const role = normalizeOptionalString(getAppMetadata(value)?.role);
-
-  return role && APP_ROLES.has(role as AppRole) ? (role as AppRole) : null;
+  return normalizeAppRole(getAppMetadata(value)?.role);
 }
 
 export function getUserStatusFromMetadataContainer(value: unknown): UserStatus | null {
-  const status = normalizeOptionalString(getAppMetadata(value)?.status);
-
-  return status && USER_STATUSES.has(status as UserStatus)
-    ? (status as UserStatus)
-    : null;
+  return normalizeUserStatus(getAppMetadata(value)?.status);
 }
 
 function getAppMetadata(value: unknown) {
@@ -42,13 +56,4 @@ function readRecord(value: unknown): Record<string, unknown> | null {
   return typeof value === "object" && value !== null
     ? (value as Record<string, unknown>)
     : null;
-}
-
-function normalizeOptionalString(value: unknown) {
-  if (typeof value !== "string") {
-    return null;
-  }
-
-  const normalized = value.trim();
-  return normalized.length > 0 ? normalized : null;
 }

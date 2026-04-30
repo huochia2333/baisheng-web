@@ -1,6 +1,11 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 import { withRequestTimeout } from "./request-timeout";
+import {
+  normalizeOptionalInteger,
+  normalizeOptionalNonnegativeNumber,
+  normalizeOptionalString,
+} from "./value-normalizers";
 
 const TASK_REVIEW_ASSET_SELECT =
   "id,submission_id,task_attachment_storage_path,file_size_bytes,original_name,bucket_name,mime_type,uploaded_by_user_id,created_at";
@@ -155,7 +160,7 @@ function normalizeTaskReviewSubmissionRecord(
 ): NormalizedTaskReviewSubmission | null {
   const id = normalizeOptionalString(value.id);
   const taskId = normalizeOptionalString(value.task_id);
-  const roundIndex = normalizeInteger(value.round_index);
+  const roundIndex = normalizeOptionalInteger(value.round_index);
 
   if (!id || !taskId || !roundIndex || value.status !== "approved") {
     return null;
@@ -181,7 +186,7 @@ function normalizeSubmissionMediaRecord(
   const bucketName = normalizeOptionalString(value.bucket_name);
   const mimeType = normalizeOptionalString(value.mime_type);
   const uploadedByUserId = normalizeOptionalString(value.uploaded_by_user_id);
-  const fileSizeBytes = normalizeNonnegativeNumber(value.file_size_bytes);
+  const fileSizeBytes = normalizeOptionalNonnegativeNumber(value.file_size_bytes);
   const kind = mimeType ? getMediaKind(mimeType) : null;
   const submission = submissionId ? submissionById.get(submissionId) : null;
 
@@ -230,30 +235,4 @@ function getMediaKind(mimeType: string): AdminTaskSubmissionMediaKind | null {
   }
 
   return null;
-}
-
-function normalizeOptionalString(value: unknown) {
-  return typeof value === "string" && value.trim() ? value.trim() : null;
-}
-
-function normalizeInteger(value: unknown) {
-  const parsed =
-    typeof value === "number"
-      ? value
-      : typeof value === "string"
-        ? Number.parseInt(value, 10)
-        : Number.NaN;
-
-  return Number.isInteger(parsed) ? parsed : null;
-}
-
-function normalizeNonnegativeNumber(value: unknown) {
-  const parsed =
-    typeof value === "number"
-      ? value
-      : typeof value === "string"
-        ? Number.parseFloat(value)
-        : Number.NaN;
-
-  return Number.isFinite(parsed) && parsed >= 0 ? parsed : null;
 }

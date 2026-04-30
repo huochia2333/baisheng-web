@@ -18,6 +18,12 @@ import type {
 } from "@/lib/team-management";
 
 import { Button } from "@/components/ui/button";
+import { DashboardMetricCard } from "@/components/dashboard/dashboard-metric-card";
+import { DashboardPill } from "@/components/dashboard/dashboard-pill";
+import {
+  DashboardListHeader,
+  DashboardSearchInput,
+} from "@/components/dashboard/dashboard-section-panel";
 import {
   formatDateTime,
   mapUserStatus,
@@ -35,12 +41,7 @@ export function SectionHeader({
   title: string;
   description: string;
 }) {
-  return (
-    <div>
-      <h3 className="text-2xl font-bold tracking-tight text-[#23313a]">{title}</h3>
-      <p className="mt-2 text-sm leading-7 text-[#6f7b85]">{description}</p>
-    </div>
-  );
+  return <DashboardListHeader description={description} title={title} />;
 }
 
 export function MetricCard({
@@ -55,33 +56,12 @@ export function MetricCard({
   tone: "blue" | "green" | "gold";
 }) {
   return (
-    <div
-      className={[
-        "rounded-[24px] border px-5 py-4 shadow-[0_10px_24px_rgba(96,113,128,0.05)]",
-        tone === "blue" ? "border-[#dde7ef] bg-[#f7fafc]" : "",
-        tone === "green" ? "border-[#dce8df] bg-[#f2f7f3]" : "",
-        tone === "gold" ? "border-[#eadfbf] bg-[#fbf5e8]" : "",
-      ].join(" ")}
-    >
-      <div className="flex items-center gap-3">
-        <div
-          className={[
-            "flex h-10 w-10 items-center justify-center rounded-full text-white",
-            tone === "blue" ? "bg-[#486782]" : "",
-            tone === "green" ? "bg-[#4c7259]" : "",
-            tone === "gold" ? "bg-[#b7892f]" : "",
-          ].join(" ")}
-        >
-          {icon}
-        </div>
-        <div>
-          <p className="text-xs font-semibold tracking-[0.16em] text-[#7d8890] uppercase">
-            {label}
-          </p>
-          <p className="mt-1 text-xl font-bold tracking-tight text-[#23313a]">{value}</p>
-        </div>
-      </div>
-    </div>
+    <DashboardMetricCard
+      accent={tone}
+      icon={icon}
+      label={label}
+      value={value}
+    />
   );
 }
 
@@ -295,16 +275,14 @@ export function SearchField({
   placeholder: string;
 }) {
   return (
-    <label className="flex items-center gap-3 rounded-full border border-[#dfe5ea] bg-white px-4 py-3 shadow-[0_10px_24px_rgba(96,113,128,0.04)]">
-      <Search className="size-4 text-[#7a8790]" />
-      <input
-        className="w-full bg-transparent text-sm text-[#23313a] outline-none placeholder:text-[#8a949c]"
-        onChange={(event) => onChange(event.target.value)}
-        placeholder={placeholder}
-        type="text"
-        value={value}
-      />
-    </label>
+    <DashboardSearchInput
+      className="rounded-full py-3 shadow-[0_10px_24px_rgba(96,113,128,0.04)]"
+      icon={<Search className="size-4 text-[#7a8790]" />}
+      inputClassName="h-auto"
+      onChange={onChange}
+      placeholder={placeholder}
+      value={value}
+    />
   );
 }
 
@@ -316,16 +294,9 @@ export function DataPill({
   accent: "blue" | "green" | "gold";
 }) {
   return (
-    <span
-      className={[
-        "inline-flex rounded-full px-2.5 py-1 text-[11px] font-semibold",
-        accent === "blue" ? "bg-[#e4edf3] text-[#486782]" : "",
-        accent === "green" ? "bg-[#e7f3ea] text-[#4c7259]" : "",
-        accent === "gold" ? "bg-[#fbf1d9] text-[#9a6a07]" : "",
-      ].join(" ")}
-    >
+    <DashboardPill accent={accent} className="px-2.5 text-[11px]">
       {children}
-    </span>
+    </DashboardPill>
   );
 }
 

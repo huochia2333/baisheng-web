@@ -1,11 +1,16 @@
 import type { SupabaseClient, User } from "@supabase/supabase-js";
 
+import {
+  normalizeAppRole,
+  normalizeUserStatus,
+} from "./auth-metadata";
 import { withRequestTimeout } from "./request-timeout";
 import {
   getCurrentSessionContext,
   type AppRole,
   type UserStatus,
 } from "./user-self-service";
+import { normalizeOptionalString } from "./value-normalizers";
 
 export type ReferralTreeScope =
   | "global"
@@ -152,39 +157,6 @@ function normalizeReferralTreeEdge(value: unknown): ReferralTreeEdge | null {
     created_at: createdAt,
     relation_scope: relationScope,
   };
-}
-
-function normalizeOptionalString(value: unknown) {
-  if (typeof value !== "string") {
-    return null;
-  }
-
-  const normalized = value.trim();
-  return normalized.length > 0 ? normalized : null;
-}
-
-function normalizeAppRole(value: unknown): AppRole | null {
-  if (
-    value === "administrator" ||
-    value === "operator" ||
-    value === "manager" ||
-    value === "recruiter" ||
-    value === "salesman" ||
-    value === "finance" ||
-    value === "client"
-  ) {
-    return value;
-  }
-
-  return null;
-}
-
-function normalizeUserStatus(value: unknown): UserStatus | null {
-  if (value === "inactive" || value === "active" || value === "suspended") {
-    return value;
-  }
-
-  return null;
 }
 
 function normalizeReferralScope(value: unknown): ReferralTreeScope {

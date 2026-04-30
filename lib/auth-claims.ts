@@ -4,6 +4,7 @@ import {
   getUserStatusFromMetadataContainer,
   type UserStatus,
 } from "./auth-metadata";
+import { normalizeOptionalString } from "./value-normalizers";
 
 export function getAuthClaimsUserId(claims: unknown) {
   return normalizeOptionalString(readRecord(claims)?.sub);
@@ -21,13 +22,4 @@ function readRecord(value: unknown): Record<string, unknown> | null {
   return typeof value === "object" && value !== null
     ? (value as Record<string, unknown>)
     : null;
-}
-
-function normalizeOptionalString(value: unknown) {
-  if (typeof value !== "string") {
-    return null;
-  }
-
-  const normalized = value.trim();
-  return normalized.length > 0 ? normalized : null;
 }

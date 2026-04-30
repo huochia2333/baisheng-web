@@ -37,6 +37,15 @@ type DashboardTableFrameProps = DashboardSectionPanelProps & {
   innerClassName?: string;
 };
 
+type DashboardSearchInputProps = {
+  className?: string;
+  icon: ReactNode;
+  inputClassName?: string;
+  onChange: (value: string) => void;
+  placeholder: string;
+  value: string;
+};
+
 export function DashboardSectionPanel({
   children,
   className,
@@ -178,6 +187,36 @@ export function DashboardFilterField({
         {label}
       </span>
       {children}
+    </label>
+  );
+}
+
+export function DashboardSearchInput({
+  className,
+  icon,
+  inputClassName,
+  onChange,
+  placeholder,
+  value,
+}: DashboardSearchInputProps) {
+  return (
+    <label
+      className={cn(
+        "flex items-center gap-3 rounded-[18px] border border-[#dfe5ea] bg-white px-4 shadow-[0_8px_18px_rgba(96,113,128,0.04)]",
+        className,
+      )}
+    >
+      {icon}
+      <input
+        className={cn(
+          "h-12 w-full bg-transparent text-sm text-[#23313a] outline-none placeholder:text-[#8a949c]",
+          inputClassName,
+        )}
+        onChange={(event) => onChange(event.target.value)}
+        placeholder={placeholder}
+        type="text"
+        value={value}
+      />
     </label>
   );
 }

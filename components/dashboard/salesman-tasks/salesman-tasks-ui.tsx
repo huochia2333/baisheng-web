@@ -1,16 +1,11 @@
 "use client";
 
-import type { ReactNode } from "react";
-
 import { useTranslations } from "next-intl";
 import {
   CircleCheckBig,
-  Globe2,
   LoaderCircle,
   Paperclip,
-  Search,
   Upload,
-  UsersRound,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -23,12 +18,21 @@ import {
   formatTaskCommissionMoney,
   getTaskAttachmentCountLabel,
   getTaskIntroText,
-  getTaskScopeLabel,
-  getTaskStatusMeta,
   getTaskTypeLabel,
   resolveSalesmanTaskTargetLabel,
 } from "@/components/dashboard/tasks/tasks-display";
+import {
+  TaskDataPill as DataPill,
+  TaskInfoTile as InfoTile,
+  TaskScopePill,
+  TaskStatusPill,
+} from "@/components/dashboard/tasks/task-ui";
 import type { SalesmanTaskRow } from "@/lib/salesman-tasks";
+
+export {
+  TaskFilterField as FilterField,
+  TaskSearchField as SearchField,
+} from "@/components/dashboard/tasks/task-ui";
 
 export function SalesmanTaskCard({
   task,
@@ -192,129 +196,5 @@ export function SalesmanTaskCard({
         </div>
       </div>
     </article>
-  );
-}
-
-export function SearchField({
-  label,
-  value,
-  placeholder,
-  onChange,
-}: {
-  label: string;
-  value: string;
-  placeholder: string;
-  onChange: (value: string) => void;
-}) {
-  return (
-    <label className="block">
-      <span className="mb-2 block text-[11px] font-semibold tracking-[0.16em] text-[#88939b] uppercase">
-        {label}
-      </span>
-      <div className="flex items-center gap-3 rounded-[18px] border border-[#dfe5ea] bg-white px-4 shadow-[0_8px_18px_rgba(96,113,128,0.04)]">
-        <Search className="size-4 text-[#7a8790]" />
-        <input
-          className="h-12 w-full bg-transparent text-sm text-[#23313a] outline-none placeholder:text-[#8a949c]"
-          onChange={(event) => onChange(event.target.value)}
-          placeholder={placeholder}
-          type="text"
-          value={value}
-        />
-      </div>
-    </label>
-  );
-}
-
-export function FilterField({
-  label,
-  value,
-  onChange,
-  children,
-}: {
-  label: string;
-  value: string;
-  onChange: (value: string) => void;
-  children: ReactNode;
-}) {
-  return (
-    <label className="block">
-      <span className="mb-2 block text-[11px] font-semibold tracking-[0.16em] text-[#88939b] uppercase">
-        {label}
-      </span>
-      <select
-        className="h-12 w-full rounded-[18px] border border-[#dfe5ea] bg-white px-4 text-sm text-[#23313a] outline-none transition focus:border-[#bfd2e1] focus:ring-4 focus:ring-[#bfd2e1]/30"
-        onChange={(event) => onChange(event.target.value)}
-        value={value}
-      >
-        {children}
-      </select>
-    </label>
-  );
-}
-
-function TaskStatusPill({ status }: { status: SalesmanTaskRow["status"] }) {
-  const sharedT = useTranslations("Tasks.shared");
-  const mapping = getTaskStatusMeta(status, sharedT);
-
-  return (
-    <span
-      className={[
-        "inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold",
-        mapping.accent === "gold" ? "bg-[#fbf1d9] text-[#9a6a07]" : "",
-        mapping.accent === "blue" ? "bg-[#e4edf3] text-[#486782]" : "",
-        mapping.accent === "orange" ? "bg-[#fdebd2] text-[#a76516]" : "",
-        mapping.accent === "rose" ? "bg-[#fae8e8] text-[#b13d3d]" : "",
-        mapping.accent === "green" ? "bg-[#e7f3ea] text-[#4c7259]" : "",
-      ].join(" ")}
-    >
-      {mapping.label}
-    </span>
-  );
-}
-
-function TaskScopePill({ scope }: { scope: SalesmanTaskRow["scope"] }) {
-  const sharedT = useTranslations("Tasks.shared");
-
-  return (
-    <span
-      className={[
-        "inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold",
-        scope === "public" ? "bg-[#edf2f7] text-[#486782]" : "bg-[#eef6ef] text-[#4c7259]",
-      ].join(" ")}
-    >
-      {scope === "public" ? <Globe2 className="size-3.5" /> : <UsersRound className="size-3.5" />}
-      {getTaskScopeLabel(scope, sharedT)}
-    </span>
-  );
-}
-
-function DataPill({
-  children,
-  accent,
-}: {
-  children: ReactNode;
-  accent: "blue" | "gold";
-}) {
-  return (
-    <span
-      className={[
-        "inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium",
-        accent === "blue" ? "bg-[#e4edf3] text-[#486782]" : "",
-        accent === "gold" ? "bg-[#fbf1d9] text-[#9a6a07]" : "",
-      ].join(" ")}
-    >
-      {children}
-    </span>
-  );
-}
-
-function InfoTile({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="rounded-[20px] bg-[#f7f5f2] px-4 py-3">
-      <p className="text-[11px] font-semibold tracking-[0.16em] text-[#88939b] uppercase">
-        {label}
-      </p>
-      <p className="mt-1 text-sm font-medium leading-7 text-[#23313a]">{value}</p>
-    </div>
   );
 }

@@ -7,6 +7,7 @@ import {
 } from "./dashboard-pagination";
 import { withRequestTimeout } from "./request-timeout";
 import type { AppRole, UserStatus } from "./user-self-service";
+import { normalizeOptionalString } from "./value-normalizers";
 
 const TASK_COMMISSION_SELECT =
   "id,task_id,review_submission_id,beneficiary_user_id,approved_by_user_id,task_type_code,task_name_snapshot,task_scope,team_id,commission_amount_rmb,calculation_snapshot,settlement_status,settled_at,settlement_note,created_at,updated_at";
@@ -382,15 +383,6 @@ function parseNumericValue(value: number | string | null | undefined) {
   }
 
   return null;
-}
-
-function normalizeOptionalString(value: unknown) {
-  if (typeof value !== "string") {
-    return null;
-  }
-
-  const normalized = value.trim();
-  return normalized.length > 0 ? normalized : null;
 }
 
 function isTaskCommissionSettlementStatus(

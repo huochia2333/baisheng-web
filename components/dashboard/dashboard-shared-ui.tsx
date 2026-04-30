@@ -18,6 +18,10 @@ import type {
   UserMediaAssetWithPreview,
 } from "@/lib/user-self-service";
 import { cn } from "@/lib/utils";
+import {
+  normalizeOptionalString,
+  normalizeSearchText,
+} from "@/lib/value-normalizers";
 
 import { Button } from "../ui/button";
 
@@ -578,18 +582,7 @@ export function formatFileSize(bytes: number) {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
-export function normalizeOptionalString(value: unknown) {
-  if (typeof value !== "string") {
-    return null;
-  }
-
-  const normalized = value.trim();
-  return normalized.length > 0 ? normalized : null;
-}
-
-export function normalizeSearchText(value: string | null | undefined) {
-  return (normalizeOptionalString(value) ?? "").toLowerCase().replace(/\s+/g, " ");
-}
+export { normalizeOptionalString, normalizeSearchText };
 
 function includesErrorFragment(message: string, fragments: readonly string[]) {
   return fragments.some((fragment) => message.includes(fragment));

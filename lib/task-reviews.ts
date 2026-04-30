@@ -1,7 +1,19 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
+import { normalizeTaskScope } from "./admin-task-normalizers";
 import { withRequestTimeout } from "./request-timeout";
-import { exceedsUploadFileSizeLimit } from "./upload-file-size-limits";
+import {
+  buildTaskAttachmentStoragePath,
+  removeTaskStorageObjects,
+  TASK_ATTACHMENT_MAX_FILES,
+  TASK_ATTACHMENT_MAX_TOTAL_SIZE_BYTES,
+  validateTaskAttachmentFiles,
+} from "./task-attachment-policy";
+import {
+  normalizeInteger,
+  normalizeNumericValue,
+  normalizeOptionalString,
+} from "./value-normalizers";
 
 const TASK_REVIEW_BUCKET = "task-review-submissions";
 const TASK_REVIEW_ASSET_SELECT =
@@ -9,53 +21,9 @@ const TASK_REVIEW_ASSET_SELECT =
 const PENDING_TASK_REVIEW_SELECT =
   "task_id,task_name,task_intro,task_type_code,task_type_name,commission_amount_rmb,scope,team_id,team_name,accepted_by_user_id,accepted_by_name,accepted_by_email,submission_id,submission_round,submission_note,submitted_at,asset_count";
 
-export const TASK_REVIEW_SUBMISSION_MAX_FILES = 10;
-export const TASK_REVIEW_SUBMISSION_MAX_TOTAL_SIZE_BYTES = 100 * 1024 * 1024;
-
-const TASK_REVIEW_ALLOWED_MIME_PREFIXES = ["image/", "video/", "audio/", "text/"];
-const TASK_REVIEW_ALLOWED_MIME_TYPES = new Set([
-  "application/json",
-  "application/msword",
-  "application/pdf",
-  "application/vnd.ms-excel",
-  "application/vnd.ms-powerpoint",
-  "application/vnd.openxmlformats-officedocument.presentationml.presentation",
-  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-  "application/vnd.rar",
-  "application/x-7z-compressed",
-  "application/x-rar-compressed",
-  "application/x-zip-compressed",
-  "application/zip",
-]);
-const TASK_REVIEW_ALLOWED_EXTENSIONS = new Set([
-  "7z",
-  "avi",
-  "csv",
-  "doc",
-  "docx",
-  "gif",
-  "jpeg",
-  "jpg",
-  "json",
-  "m4a",
-  "mkv",
-  "mov",
-  "mp3",
-  "mp4",
-  "pdf",
-  "png",
-  "ppt",
-  "pptx",
-  "rar",
-  "txt",
-  "wav",
-  "webm",
-  "webp",
-  "xls",
-  "xlsx",
-  "zip",
-]);
+export const TASK_REVIEW_SUBMISSION_MAX_FILES = TASK_ATTACHMENT_MAX_FILES;
+export const TASK_REVIEW_SUBMISSION_MAX_TOTAL_SIZE_BYTES =
+  TASK_ATTACHMENT_MAX_TOTAL_SIZE_BYTES;
 
 export type TaskReviewSubmissionStatus = "draft" | "pending" | "approved" | "rejected";
 
@@ -264,12 +232,13 @@ export async function uploadTaskReviewSubmissionAssets(
 
   try {
     for (const [index, file] of options.files.entries()) {
-      const storagePath = buildTaskReviewStoragePath(
-        options.uploadedByUserId,
-        options.submissionId,
-        file.name,
+      const storagePath = buildTaskAttachmentStoragePath({
+        fallbackPrefix: "submission",
+        fileName: file.name,
         index,
-      );
+        ownerId: options.uploadedByUserId,
+        parentId: options.submissionId,
+      });
 
       const { error } = await withRequestTimeout(
         supabase.storage.from(TASK_REVIEW_BUCKET).upload(storagePath, file, {
@@ -327,47 +296,10 @@ export async function removeStoredTaskReviewSubmissionAssets(
   supabase: SupabaseClient,
   assets: Pick<TaskReviewSubmissionAsset, "bucket_name" | "task_attachment_storage_path">[],
 ) {
-  if (assets.length === 0) {
-    return;
-  }
-
-  const pathsByBucket = new Map<string, string[]>();
-
-  assets.forEach((asset) => {
-    const bucketName = normalizeOptionalString(asset.bucket_name) ?? TASK_REVIEW_BUCKET;
-    const storagePath = normalizeOptionalString(asset.task_attachment_storage_path);
-
-    if (!storagePath) {
-      return;
-    }
-
-    const paths = pathsByBucket.get(bucketName);
-
-    if (paths) {
-      paths.push(storagePath);
-      return;
-    }
-
-    pathsByBucket.set(bucketName, [storagePath]);
+  await removeTaskStorageObjects(supabase, assets, {
+    defaultBucket: TASK_REVIEW_BUCKET,
+    timeoutMessage: "任务审核附件删除超时，请稍后重试。",
   });
-
-  for (const [bucketName, storagePaths] of pathsByBucket.entries()) {
-    if (storagePaths.length === 0) {
-      continue;
-    }
-
-    const { error } = await withRequestTimeout(
-      supabase.storage.from(bucketName).remove(storagePaths),
-      {
-        timeoutMs: 60_000,
-        message: "任务审核附件删除超时，请稍后重试。",
-      },
-    );
-
-    if (error) {
-      throw error;
-    }
-  }
 }
 
 export async function getTaskReviewSubmissionAssetsForTask(
@@ -470,35 +402,18 @@ export async function getTaskReviewSubmissionAssetSignedUrl(
 }
 
 export function validateTaskReviewSubmissionFiles(files: File[]) {
-  if (files.length === 0) {
-    throw new Error("task_review_submission_files_required");
-  }
-
-  if (files.length > TASK_REVIEW_SUBMISSION_MAX_FILES) {
-    throw new Error("task_review_submission_attachments_count_exceeded");
-  }
-
-  let totalSizeBytes = 0;
-
-  for (const file of files) {
-    totalSizeBytes += file.size;
-
-    if (file.size <= 0) {
-      throw new Error("task_review_submission_attachment_empty");
-    }
-
-    if (exceedsUploadFileSizeLimit(file)) {
-      throw new Error("task_review_submission_attachment_too_large");
-    }
-
-    if (!isAllowedTaskReviewFile(file)) {
-      throw new Error("task_review_submission_attachment_type_not_allowed");
-    }
-  }
-
-  if (totalSizeBytes > TASK_REVIEW_SUBMISSION_MAX_TOTAL_SIZE_BYTES) {
-    throw new Error("task_review_submission_attachments_total_too_large");
-  }
+  validateTaskAttachmentFiles({
+    files,
+    requireFiles: true,
+    errorCodes: {
+      countExceeded: "task_review_submission_attachments_count_exceeded",
+      empty: "task_review_submission_attachment_empty",
+      required: "task_review_submission_files_required",
+      tooLarge: "task_review_submission_attachment_too_large",
+      totalTooLarge: "task_review_submission_attachments_total_too_large",
+      typeNotAllowed: "task_review_submission_attachment_type_not_allowed",
+    },
+  });
 }
 
 async function getTaskReviewSubmissionAssets(
@@ -521,60 +436,6 @@ async function getTaskReviewSubmissionAssets(
   return (data ?? [])
     .map((item) => normalizeTaskReviewSubmissionAssetRecord(item))
     .filter((item): item is TaskReviewSubmissionAsset => item !== null);
-}
-
-function buildTaskReviewStoragePath(
-  uploadedByUserId: string,
-  submissionId: string,
-  originalName: string,
-  index: number,
-) {
-  const safeName = sanitizeFileName(originalName) || `submission-${index + 1}`;
-  const uniqueKey =
-    typeof globalThis.crypto?.randomUUID === "function"
-      ? globalThis.crypto.randomUUID()
-      : `${Date.now()}-${index + 1}`;
-
-  return `${uploadedByUserId}/${submissionId}/${uniqueKey}-${safeName}`;
-}
-
-function sanitizeFileName(fileName: string) {
-  return fileName
-    .trim()
-    .replace(/[\\/:*?"<>|]+/g, "-")
-    .replace(/\s+/g, "-");
-}
-
-function isAllowedTaskReviewFile(file: File) {
-  const normalizedType = file.type.trim().toLowerCase();
-
-  if (normalizedType) {
-    if (
-      TASK_REVIEW_ALLOWED_MIME_PREFIXES.some((prefix) =>
-        normalizedType.startsWith(prefix),
-      )
-    ) {
-      return true;
-    }
-
-    if (TASK_REVIEW_ALLOWED_MIME_TYPES.has(normalizedType)) {
-      return true;
-    }
-  }
-
-  const extension = getFileExtension(file.name);
-  return extension ? TASK_REVIEW_ALLOWED_EXTENSIONS.has(extension) : false;
-}
-
-function getFileExtension(fileName: string) {
-  const normalizedName = fileName.trim().toLowerCase();
-  const extensionIndex = normalizedName.lastIndexOf(".");
-
-  if (extensionIndex < 0 || extensionIndex === normalizedName.length - 1) {
-    return null;
-  }
-
-  return normalizedName.slice(extensionIndex + 1);
 }
 
 function normalizeTaskReviewSubmissionRecord(
@@ -719,41 +580,6 @@ function normalizePendingTaskReviewRecord(
   };
 }
 
-function normalizeOptionalString(value: unknown) {
-  if (typeof value !== "string") {
-    return null;
-  }
-
-  const normalized = value.trim();
-  return normalized.length > 0 ? normalized : null;
-}
-
-function normalizeInteger(value: unknown) {
-  if (typeof value === "number" && Number.isFinite(value)) {
-    return Math.trunc(value);
-  }
-
-  if (typeof value === "string") {
-    const parsed = Number.parseInt(value, 10);
-    return Number.isFinite(parsed) ? parsed : 0;
-  }
-
-  return 0;
-}
-
-function normalizeNumericValue(value: unknown) {
-  if (typeof value === "number" && Number.isFinite(value)) {
-    return value;
-  }
-
-  if (typeof value === "string") {
-    const parsed = Number(value);
-    return Number.isFinite(parsed) ? parsed : null;
-  }
-
-  return null;
-}
-
 function normalizeTaskReviewSubmissionStatus(
   value: unknown,
 ): TaskReviewSubmissionStatus | null {
@@ -767,8 +593,4 @@ function normalizeTaskReviewSubmissionStatus(
   }
 
   return null;
-}
-
-function normalizeTaskScope(value: unknown): "public" | "team" | null {
-  return value === "public" || value === "team" ? value : null;
 }

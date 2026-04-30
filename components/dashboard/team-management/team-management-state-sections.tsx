@@ -18,9 +18,12 @@ import type { AppRole } from "@/lib/user-self-service";
 
 import { Button } from "@/components/ui/button";
 import { DashboardSectionHeader } from "@/components/dashboard/dashboard-section-header";
+import {
+  DashboardListSection,
+  DashboardSectionPanel,
+} from "@/components/dashboard/dashboard-section-panel";
 import { EmptyState } from "@/components/dashboard/dashboard-shared-ui";
 
-import { SectionHeader } from "./team-management-ui";
 import { getManagerCandidateLabel, getTeamManagementDescription } from "./team-management-display";
 import {
   teamManagementSectionInputClassName,
@@ -129,13 +132,11 @@ export function AdminCreateTeamSection({
   const t = useTranslations("TeamManagement");
 
   return (
-    <section className="rounded-[28px] border border-white/85 bg-white/72 p-6 shadow-[0_18px_45px_rgba(96,113,128,0.06)] xl:p-8">
-      <SectionHeader
-        description={t("adminCreate.description")}
-        title={t("adminCreate.title")}
-      />
-
-      <div className="mt-6 grid gap-4 xl:grid-cols-[1fr_1fr_auto]">
+    <DashboardListSection
+      description={t("adminCreate.description")}
+      title={t("adminCreate.title")}
+    >
+      <div className="grid gap-4 xl:grid-cols-[1fr_1fr_auto]">
         <label className="block">
           <p className="font-label text-[11px] font-semibold tracking-[0.18em] text-[#7d8890] uppercase">
             {t("adminCreate.teamNameLabel")}
@@ -185,7 +186,7 @@ export function AdminCreateTeamSection({
           </Button>
         </div>
       </div>
-    </section>
+    </DashboardListSection>
   );
 }
 
@@ -193,13 +194,13 @@ export function NoPermissionSection() {
   const t = useTranslations("TeamManagement");
 
   return (
-    <section className="rounded-[28px] border border-white/85 bg-white/72 p-6 shadow-[0_18px_45px_rgba(96,113,128,0.06)] xl:p-8">
+    <DashboardListSection>
       <EmptyState
         description={t("states.noPermissionDescription")}
         icon={<ShieldAlert className="size-6" />}
         title={t("states.noPermissionTitle")}
       />
-    </section>
+    </DashboardListSection>
   );
 }
 
@@ -218,7 +219,7 @@ export function ManagerSetupSection({
 
   return (
     <section className="grid gap-6 xl:grid-cols-[1.25fr_0.95fr]">
-      <section className="rounded-[28px] border border-white/85 bg-white/72 p-6 shadow-[0_18px_45px_rgba(96,113,128,0.06)] xl:p-8">
+      <DashboardSectionPanel>
         <div className="flex items-start gap-4">
           <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#eef3f6] text-[#486782]">
             <Sparkles className="size-5" />
@@ -261,15 +262,15 @@ export function ManagerSetupSection({
             </Button>
           </div>
         </div>
-      </section>
+      </DashboardSectionPanel>
 
-      <section className="rounded-[28px] border border-white/85 bg-white/72 p-6 shadow-[0_18px_45px_rgba(96,113,128,0.06)] xl:p-8">
+      <DashboardListSection>
         <EmptyState
           description={t("managerSetup.emptyDescription")}
           icon={<UsersRound className="size-6" />}
           title={t("managerSetup.emptyTitle")}
         />
-      </section>
+      </DashboardListSection>
     </section>
   );
 }
@@ -278,12 +279,12 @@ export function NoTeamDataSection() {
   const t = useTranslations("TeamManagement");
 
   return (
-    <section className="rounded-[28px] border border-white/85 bg-white/72 p-6 shadow-[0_18px_45px_rgba(96,113,128,0.06)] xl:p-8">
+    <DashboardListSection>
       <EmptyState
         description={t("states.noTeamDataDescription")}
         icon={<Building2 className="size-6" />}
         title={t("states.noTeamDataTitle")}
       />
-    </section>
+    </DashboardListSection>
   );
 }

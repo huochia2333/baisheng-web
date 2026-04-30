@@ -3,6 +3,7 @@ import type {
   TeamMember,
   TeamSalesmanCandidate,
 } from "@/lib/team-management";
+import { normalizeSearchText } from "@/lib/value-normalizers";
 
 import { mapUserStatus } from "../dashboard-shared-ui";
 
@@ -11,7 +12,7 @@ export function filterTeamMembers(
   searchText: string,
   locale: "zh" | "en",
 ) {
-  const normalizedSearchText = searchText.trim().toLowerCase();
+  const normalizedSearchText = normalizeSearchText(searchText);
 
   if (!normalizedSearchText) {
     return members;
@@ -36,7 +37,7 @@ export function filterTeamClients(
   searchText: string,
   locale: "zh" | "en",
 ) {
-  const normalizedSearchText = searchText.trim().toLowerCase();
+  const normalizedSearchText = normalizeSearchText(searchText);
 
   if (!normalizedSearchText) {
     return clients;
@@ -62,7 +63,7 @@ export function filterTeamCandidates(
   searchText: string,
   locale: "zh" | "en",
 ) {
-  const normalizedSearchText = searchText.trim().toLowerCase();
+  const normalizedSearchText = normalizeSearchText(searchText);
 
   if (!normalizedSearchText) {
     return candidates;

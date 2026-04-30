@@ -22,8 +22,12 @@ import type { AppRole } from "@/lib/user-self-service";
 
 import { Button } from "@/components/ui/button";
 import { formatDateTime } from "@/components/dashboard/dashboard-shared-ui";
+import {
+  DashboardListSection,
+  DashboardSectionPanel,
+} from "@/components/dashboard/dashboard-section-panel";
 
-import { DataPill, InsightCard, MetricCard, MiniMetric, SectionHeader } from "./team-management-ui";
+import { DataPill, InsightCard, MetricCard, MiniMetric } from "./team-management-ui";
 import {
   getManagerCandidateLabel,
   getTeamDisplayName,
@@ -49,13 +53,11 @@ export function TeamOverviewSection({
   const t = useTranslations("TeamManagement");
 
   return (
-    <section className="rounded-[28px] border border-white/85 bg-white/72 p-6 shadow-[0_18px_45px_rgba(96,113,128,0.06)] xl:p-8">
-      <SectionHeader
-        description={t("overview.description")}
-        title={t("overview.title")}
-      />
-
-      <div className="mt-6 grid gap-4 lg:grid-cols-2">
+    <DashboardListSection
+      description={t("overview.description")}
+      title={t("overview.title")}
+    >
+      <div className="grid gap-4 lg:grid-cols-2">
         {overviews.map((team) => (
           <button
             key={team.team_id}
@@ -138,7 +140,7 @@ export function TeamOverviewSection({
           </button>
         ))}
       </div>
-    </section>
+    </DashboardListSection>
   );
 }
 
@@ -171,7 +173,7 @@ export function TeamDetailSummarySection({
   const t = useTranslations("TeamManagement");
 
   return (
-    <section className="rounded-[28px] border border-white/85 bg-white/72 p-6 shadow-[0_18px_45px_rgba(96,113,128,0.06)] xl:p-8">
+    <DashboardSectionPanel>
       <div className="flex flex-col gap-6">
         <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
           <div>
@@ -285,7 +287,7 @@ export function TeamDetailSummarySection({
           />
         </div>
       </div>
-    </section>
+    </DashboardSectionPanel>
   );
 }
 
@@ -299,13 +301,11 @@ export function TeamInsightsSection({
   const t = useTranslations("TeamManagement");
 
   return (
-    <section className="rounded-[28px] border border-white/85 bg-white/72 p-6 shadow-[0_18px_45px_rgba(96,113,128,0.06)] xl:p-8">
-      <SectionHeader
-        description={t("insights.description")}
-        title={t("insights.title")}
-      />
-
-      <div className="mt-6 space-y-4">
+    <DashboardListSection
+      description={t("insights.description")}
+      title={t("insights.title")}
+    >
+      <div className="space-y-4">
         <InsightCard
           description={
             detailTeam.active_member_count === 0
@@ -327,6 +327,6 @@ export function TeamInsightsSection({
           title={t("insights.relationsTitle", { count: clientCount })}
         />
       </div>
-    </section>
+    </DashboardListSection>
   );
 }

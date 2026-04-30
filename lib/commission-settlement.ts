@@ -1,6 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 import { withRequestTimeout } from "./request-timeout";
+import { normalizeOptionalString } from "./value-normalizers";
 
 export async function markCommissionRecordAsPaid(
   supabase: SupabaseClient,
@@ -60,13 +61,4 @@ export async function markTaskCommissionRecordAsPaid(
   }
 
   return normalizeOptionalString(data) ?? taskCommissionRecordId;
-}
-
-function normalizeOptionalString(value: unknown) {
-  if (typeof value !== "string") {
-    return null;
-  }
-
-  const trimmed = value.trim();
-  return trimmed.length > 0 ? trimmed : null;
 }

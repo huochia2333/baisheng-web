@@ -1,6 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
-import { withRequestTimeout } from "./request-timeout";
+import { removeTaskStorageObjects } from "./task-attachment-policy";
 import {
   getTaskReviewSubmissionAssetsForTask,
   removeStoredTaskReviewSubmissionAssets,
@@ -17,47 +17,10 @@ export async function removeStoredTaskAttachments(
   supabase: SupabaseClient,
   attachments: TaskStorageAsset[],
 ) {
-  if (attachments.length === 0) {
-    return;
-  }
-
-  const pathsByBucket = new Map<string, string[]>();
-
-  attachments.forEach((attachment) => {
-    const bucketName = normalizeOptionalString(attachment.bucket_name) ?? TASK_ATTACHMENT_BUCKET;
-    const storagePath = normalizeOptionalString(attachment.task_attachment_storage_path);
-
-    if (!storagePath) {
-      return;
-    }
-
-    const bucketPaths = pathsByBucket.get(bucketName);
-
-    if (bucketPaths) {
-      bucketPaths.push(storagePath);
-      return;
-    }
-
-    pathsByBucket.set(bucketName, [storagePath]);
+  await removeTaskStorageObjects(supabase, attachments, {
+    defaultBucket: TASK_ATTACHMENT_BUCKET,
+    timeoutMessage: "任务附件删除超时，请稍后重试。",
   });
-
-  for (const [bucketName, storagePaths] of pathsByBucket.entries()) {
-    if (storagePaths.length === 0) {
-      continue;
-    }
-
-    const { error } = await withRequestTimeout(
-      supabase.storage.from(bucketName).remove(storagePaths),
-      {
-        timeoutMs: 60_000,
-        message: "任务附件删除超时，请稍后重试。",
-      },
-    );
-
-    if (error) {
-      throw error;
-    }
-  }
 }
 
 export async function prepareDeletedTaskStorageCleanup(
@@ -80,13 +43,4 @@ export async function prepareDeletedTaskStorageCleanup(
 
     return cleanupResults.some((result) => result.status === "rejected");
   };
-}
-
-function normalizeOptionalString(value: unknown) {
-  if (typeof value !== "string") {
-    return null;
-  }
-
-  const trimmed = value.trim();
-  return trimmed.length > 0 ? trimmed : null;
 }

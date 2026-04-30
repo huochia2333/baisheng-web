@@ -87,9 +87,11 @@ baisheng-web/
 - `components/dashboard` 已按功能拆分；根目录只保留工作台壳层和共享 UI
 - `components/dashboard/dashboard-section-header.tsx` 统一承接各业务板块页头；新增订单、任务、团队、佣金、汇率、审核、公告、推荐树等板块时，优先复用它传入标题、说明、指标和操作按钮，避免在业务 Client/Page 中重复堆页头布局
 - `components/dashboard/dashboard-section-panel.tsx` 统一承接筛选面板、列表面板、列表标题和表格外框；新增带筛选或清单的板块时，优先复用它保持间距、边框、阴影和响应式结构一致
+- `components/dashboard/dashboard-pill.tsx` 与 `components/dashboard/tasks/task-ui.tsx` 分别统一承接工作台标签、任务状态/范围标签、任务搜索筛选和信息块；任务相关板块不要在各自 UI 文件里再复制一套 pill、tile 或筛选控件
 - 工作台共享页头、指标卡、筛选面板、列表面板、移动导航和分页控件都需要保留小屏紧凑样式；新增板块不要只按桌面端密度堆叠信息
 - `components/brand/brand-mark.tsx` 统一承接公司 Logo 展示；当前 Logo 源文件为 `public/images/pt5-logo.png`，浏览器图标由 `app/favicon.ico`、`app/icon.png` 和 `app/apple-icon.png` 承接；认证页和工作区样式入口都需要继续 `@source "../components/brand"`
 - `components/legal` 承接公开法律页和隐私/条款页脚链接，避免把 legal 展示继续堆进认证或“我的”核心文件
+- `lib/auth-metadata.ts`、`lib/value-normalizers.ts` 与 `lib/task-attachment-policy.ts` 分别承接角色/状态标准化、基础字符串/数字归一化、任务附件和提审附件的上传策略；新增查询、筛选或上传流程时优先复用这些 helper
 - 单文件超过 `400-600` 行，或出现 3 个以上独立职责时，需要优先拆成 `queries`、`mutations`、`view-model hook`、`dialog`、`section/table` 或 `display-utils`
 - `output/playwright` 用于保留有价值的截图和报告，不存放长期无用的临时控制台垃圾
 
@@ -129,6 +131,7 @@ baisheng-web/
 ## 上传限制（2026-04-24）
 
 - Web 端上传尺寸已统一收紧：个人照片、任务附件、提审附件中的图片需小于 `5 MB`，视频需小于 `30 MB`，其余文件维持 `20 MB` 单文件上限，总体积限制仍按各模块原有规则执行
+- `lib/task-attachment-policy.ts` 是任务发布附件和任务提审附件的共同来源，统一维护允许类型、体积校验、存储路径和失败清理；前端提示、任务发布和审核提交流程需要保持一致，不要再分别复制一份上传规则
 
 ### `dashboard-shared-my` 模块分层（2026-04-27）
 
@@ -160,7 +163,8 @@ baisheng-web/
 - `admin-tasks-dialogs.tsx`：只保留任务分配弹窗
 - `admin-tasks-view-model-shared.ts`：集中放置任务页共享类型、筛选比较和输入样式常量
 - `lib/admin-tasks.ts`：保留管理员任务页查询、创建、编辑、改派、删除和页面数据编排，当前已控制在 600 行以内
-- `lib/admin-tasks-types.ts`、`lib/admin-task-normalizers.ts`、`lib/admin-task-attachments.ts`：分别承接任务类型定义、数据库行归一化、附件上传/校验/读取，避免继续把类型、校验和存储逻辑堆在核心查询文件里
+- `admin-tasks-ui.tsx` 只保留管理员任务卡片和表单字段壳层；状态/范围标签、搜索/筛选和信息块统一复用 `components/dashboard/tasks/task-ui.tsx`
+- `lib/admin-tasks-types.ts`、`lib/admin-task-normalizers.ts`、`lib/admin-task-attachments.ts`：分别承接任务类型定义、数据库行归一化、附件上传/读取，通用上传校验和存储清理由 `lib/task-attachment-policy.ts` 统一承接
 - `admin-task-submission-media.tsx`、`use-admin-task-submission-media.ts`：单独承接历史已完成任务中的成员图片/视频成果读取、预览弹窗和下载动作
 - `lib/admin-task-submission-media.ts`：集中查询已完成任务的审核通过成果媒体，并为私有存储对象生成短期 signed URL
 - 管理员任务板头部指标只保留“进行中 / 审核中”两项，并移除状态筛选栏；任务卡片不再展示归属锁定说明文案
@@ -175,7 +179,7 @@ baisheng-web/
 
 - `salesman-tasks-client.tsx`：只负责任务中心编排、指标展示和组件组装
 - `use-salesman-tasks-page.ts`：负责路由筛选、分页、接取任务、上传成果、提交审核和附件打开动作
-- `salesman-tasks-ui.tsx`：只保留任务卡片、搜索框和筛选器展示
+- `salesman-tasks-ui.tsx`：只保留业务员任务卡片展示；搜索/筛选、状态/范围标签和信息块统一复用 `components/dashboard/tasks/task-ui.tsx`
 - `salesman-task-submit-dialog.tsx`：单独承接“提交审核 / 重新提交审核”弹窗与文件选择流程
 
 ### `admin-reviews` 模块分层（2026-04-22）
@@ -205,7 +209,8 @@ baisheng-web/
 - `use-team-management-actions.ts`、`team-management-view-model-shared.ts`：分别承接团队 CRUD/刷新动作，以及团队页共享状态结构与数据快照转换
 - `team-management-state-sections.tsx`、`team-management-summary-sections.tsx`、`team-management-roster-sections.tsx`：分别承接页头与空态、概览与详情、成员/候选/客户区块
 - `team-management-sections.tsx`：只保留 barrel re-export
-- `team-management-ui.tsx`：保留卡片、搜索框、标签和小型展示组件
+- `team-management-ui.tsx`：保留团队专属卡片和小型展示组件；页头、指标卡、搜索框和标签改为复用工作台共享组件
+- `team-management-state-sections.tsx` 与 `team-management-summary-sections.tsx` 的状态区、概览区和详情区已接入 `DashboardListSection` / `DashboardSectionPanel`，避免团队页继续维护一套不同的面板壳层
 - `team-management-display.ts`、`team-management-utils.ts`、`team-management-section-styles.ts`：继续负责文案映射、搜索过滤和共享输入样式，不再混入页面状态
 
 ## 本地开发

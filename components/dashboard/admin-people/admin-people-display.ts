@@ -2,6 +2,7 @@ import type { AppRole } from "@/lib/auth-routing";
 import type { UserStatus } from "@/lib/user-self-service";
 import type { AdminPersonRow } from "@/lib/admin-people";
 import type { Locale } from "@/lib/locale";
+import { normalizeSearchText } from "@/lib/value-normalizers";
 
 export type AdminPeopleRoleLabels = Record<AppRole, string>;
 export type AdminPeopleStatusLabels = Record<UserStatus, string>;
@@ -87,8 +88,4 @@ export function personMatchesSearch(person: AdminPersonRow, searchText: string) 
     person.referrer_email,
     person.team_name,
   ].some((value) => normalizeSearchText(value).includes(normalizedSearch));
-}
-
-export function normalizeSearchText(value: string | null | undefined) {
-  return (value ?? "").trim().toLowerCase().replace(/\s+/g, " ");
 }

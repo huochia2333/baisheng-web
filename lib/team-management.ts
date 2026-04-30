@@ -1,11 +1,16 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
+import { normalizeUserStatus } from "./auth-metadata";
 import { withRequestTimeout } from "./request-timeout";
 import {
   getCurrentSessionContext,
   type AppRole,
   type UserStatus,
 } from "./user-self-service";
+import {
+  normalizeInteger,
+  normalizeOptionalString,
+} from "./value-normalizers";
 
 export type TeamOverview = {
   team_id: string;
@@ -520,34 +525,4 @@ function normalizeTeamManagerCandidate(value: unknown): TeamManagerCandidate | n
       "current_team_name" in value ? normalizeOptionalString(value.current_team_name) : null,
     assignable: "assignable" in value && value.assignable === true,
   };
-}
-
-function normalizeOptionalString(value: unknown) {
-  if (typeof value !== "string") {
-    return null;
-  }
-
-  const normalized = value.trim();
-  return normalized.length > 0 ? normalized : null;
-}
-
-function normalizeInteger(value: unknown) {
-  if (typeof value === "number" && Number.isFinite(value)) {
-    return Math.trunc(value);
-  }
-
-  if (typeof value === "string") {
-    const parsed = Number.parseInt(value, 10);
-    return Number.isFinite(parsed) ? parsed : 0;
-  }
-
-  return 0;
-}
-
-function normalizeUserStatus(value: unknown): UserStatus | null {
-  if (value === "inactive" || value === "active" || value === "suspended") {
-    return value;
-  }
-
-  return null;
 }

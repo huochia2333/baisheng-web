@@ -1,8 +1,16 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 import type { AppRole } from "./auth-routing";
+import {
+  normalizeAppRole,
+  normalizeUserStatus,
+} from "./auth-metadata";
 import { withRequestTimeout } from "./request-timeout";
 import { type UserStatus, getCurrentSessionContext } from "./user-self-service";
+import {
+  normalizeInteger,
+  normalizeOptionalString,
+} from "./value-normalizers";
 
 export const ADMIN_PEOPLE_ROLE_OPTIONS = [
   "administrator",
@@ -73,8 +81,6 @@ export type AdminPersonAccountUpdatePayload = {
 };
 
 const ADMIN_PEOPLE_CHANGE_LOG_LIMIT = 10;
-const roleOptionSet = new Set<string>(ADMIN_PEOPLE_ROLE_OPTIONS);
-const statusOptionSet = new Set<string>(ADMIN_PEOPLE_STATUS_OPTIONS);
 
 export function canViewAdminPeople(
   role: AppRole | null,
@@ -84,11 +90,11 @@ export function canViewAdminPeople(
 }
 
 export function isAdminPeopleRole(value: unknown): value is AdminPeopleRole {
-  return typeof value === "string" && roleOptionSet.has(value);
+  return normalizeAppRole(value) !== null;
 }
 
 export function isAdminPeopleStatus(value: unknown): value is AdminPeopleStatus {
-  return typeof value === "string" && statusOptionSet.has(value);
+  return normalizeUserStatus(value) !== null;
 }
 
 export async function getAdminPeoplePageData(
@@ -254,36 +260,4 @@ function normalizeAdminPeopleChangeLogRow(
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
-}
-
-function normalizeOptionalString(value: unknown) {
-  if (typeof value !== "string") {
-    return null;
-  }
-
-  const normalized = value.trim();
-
-  return normalized.length > 0 ? normalized : null;
-}
-
-function normalizeInteger(value: unknown) {
-  if (typeof value === "number" && Number.isFinite(value)) {
-    return Math.trunc(value);
-  }
-
-  if (typeof value === "string") {
-    const parsed = Number.parseInt(value, 10);
-
-    return Number.isFinite(parsed) ? parsed : 0;
-  }
-
-  return 0;
-}
-
-function normalizeAppRole(value: unknown): AppRole | null {
-  return isAdminPeopleRole(value) ? value : null;
-}
-
-function normalizeUserStatus(value: unknown): UserStatus | null {
-  return isAdminPeopleStatus(value) ? value : null;
 }
