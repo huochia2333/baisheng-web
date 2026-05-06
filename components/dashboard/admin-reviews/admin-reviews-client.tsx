@@ -10,8 +10,8 @@ import {
 import { useTranslations } from "next-intl";
 
 import type { AdminReviewsPageData } from "@/lib/admin-reviews";
-import { cn } from "@/lib/utils";
 
+import { DashboardSegmentedTabs } from "@/components/dashboard/dashboard-segmented-tabs";
 import { DashboardSectionHeader } from "@/components/dashboard/dashboard-section-header";
 import { DashboardListSection } from "@/components/dashboard/dashboard-section-panel";
 import { EmptyState, PageBanner } from "@/components/dashboard/dashboard-shared-ui";
@@ -108,37 +108,20 @@ export function AdminReviewsClient({ initialData }: { initialData: AdminReviewsP
         </section>
       ) : (
         <DashboardListSection className="p-4 sm:p-6 xl:p-8">
-          <div className="flex flex-wrap gap-3 border-b border-[#e7e3dc] pb-5">
-            {reviewTabs.map((tab) => {
+          <DashboardSegmentedTabs
+            onChange={setActiveTab}
+            options={reviewTabs.map((tab) => {
               const Icon = reviewTabIconMap[tab.key];
-              const isActive = activeTab === tab.key;
 
-              return (
-                <button
-                  key={tab.key}
-                  className={cn(
-                    "inline-flex min-h-12 items-center gap-3 rounded-full px-4 py-3 text-sm font-medium transition-all",
-                    isActive
-                      ? "bg-[#486782] text-white shadow-[0_12px_24px_rgba(72,103,130,0.2)]"
-                      : "bg-[#f4f3f1] text-[#486782] hover:bg-[#e9edf0]",
-                  )}
-                  onClick={() => setActiveTab(tab.key)}
-                  type="button"
-                >
-                  <Icon className="size-4.5" />
-                  <span>{tab.label}</span>
-                  <span
-                    className={cn(
-                      "inline-flex min-w-8 items-center justify-center rounded-full px-2 py-1 text-xs font-semibold",
-                      isActive ? "bg-white/18 text-white" : "bg-white text-[#486782]",
-                    )}
-                  >
-                    {tab.count}
-                  </span>
-                </button>
-              );
+              return {
+                badge: tab.count,
+                icon: <Icon className="size-4" />,
+                key: tab.key,
+                label: tab.label,
+              };
             })}
-          </div>
+            value={activeTab}
+          />
 
           <div className="mt-6">
             {activeTab === "profile" ? (
