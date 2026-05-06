@@ -1,6 +1,5 @@
 import { LoginAnnouncementCard } from "@/components/auth/login-announcement-card";
-import { getLatestPublicAnnouncement } from "@/lib/public-announcements";
-import { getServerSupabaseClient } from "@/lib/supabase-server";
+import { getCachedLatestPublicAnnouncement } from "@/lib/public-announcements";
 
 type LoginAnnouncementPanelProps = {
   copy: {
@@ -26,8 +25,7 @@ export async function LoginAnnouncementPanel({
 
 async function getLoginPublicAnnouncement() {
   try {
-    const supabase = await getServerSupabaseClient();
-    return await getLatestPublicAnnouncement(supabase);
+    return await getCachedLatestPublicAnnouncement();
   } catch {
     return null;
   }

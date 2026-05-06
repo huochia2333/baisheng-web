@@ -32,7 +32,9 @@ export function BrandMark({
         alt={alt}
         className={imageClassName}
         height={size}
-        priority={priority}
+        preload={priority}
+        quality={90}
+        sizes={`${size}px`}
         src="/images/pt5-logo.png"
         style={{
           display: "block",
@@ -40,7 +42,6 @@ export function BrandMark({
           objectFit: "contain",
           width: "100%",
         }}
-        unoptimized
         width={size}
       />
     </span>
