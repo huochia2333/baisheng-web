@@ -31,6 +31,7 @@ export type WorkspaceNavLabelKey =
   | "team"
   | "commission"
   | "exchangeRates"
+  | "feedback"
   | "tasks"
   | "reviews";
 
@@ -48,6 +49,7 @@ export type WorkspacePageVariants = {
   announcements?: true;
   commission?: WorkspaceCommissionPageMode;
   exchangeRates?: WorkspaceExchangeRatesMode;
+  feedback?: true;
   orders?: WorkspaceOrdersPageMode;
   people?: true;
   referrals?: true;
@@ -113,6 +115,7 @@ const adminNavItems = [
   { segment: "commission", labelKey: "commission" },
   { segment: "tasks", labelKey: "tasks" },
   { segment: "reviews", labelKey: "reviews" },
+  { segment: "feedback", labelKey: "feedback" },
 ] as const satisfies readonly WorkspaceNavItem[];
 
 const WORKSPACE_ROUTE_CONFIG_BY_SEGMENT = {
@@ -125,6 +128,7 @@ const WORKSPACE_ROUTE_CONFIG_BY_SEGMENT = {
       announcements: true,
       commission: "admin",
       exchangeRates: "manage",
+      feedback: true,
       orders: "admin",
       people: true,
       referrals: true,

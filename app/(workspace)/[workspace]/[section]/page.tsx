@@ -17,6 +17,7 @@ import { getAdminReviewsPageData } from "@/lib/admin-reviews";
 import { getAdminPeoplePageData } from "@/lib/admin-people";
 import { getAdminTasksPageData, parseAdminTasksSearchParams } from "@/lib/admin-tasks";
 import { getExchangeRatesPageData } from "@/lib/exchange-rates";
+import { getAdminWorkspaceFeedbackPageData } from "@/lib/workspace-feedback";
 import { getReferralsPageData } from "@/lib/referrals";
 import { getSalesmanCommissionPageData } from "@/lib/salesman-commission";
 import {
@@ -49,6 +50,13 @@ const AdminAnnouncementsClient = dynamic(
   () =>
     import("@/components/dashboard/announcements/announcements-client").then(
       (mod) => mod.AdminAnnouncementsClient,
+    ),
+);
+
+const AdminFeedbackClient = dynamic(
+  () =>
+    import("@/components/dashboard/admin-feedback/admin-feedback-client").then(
+      (mod) => mod.AdminFeedbackClient,
     ),
 );
 
@@ -185,6 +193,14 @@ export async function generateMetadata({
     };
   }
 
+  if (section === "feedback" && config.pageVariants.feedback) {
+    const t = await getTranslations("WorkspaceFeedback.metadata");
+
+    return {
+      title: t("title"),
+    };
+  }
+
   const sectionT = await getTranslations("WorkspaceSections");
   const fallbackT = await getTranslations(
     `WorkspaceSections.fallbacks.${config.routeSegment}`,
@@ -226,6 +242,10 @@ export default async function WorkspaceSectionPage({
     const supabase = await getServerSupabaseClient();
     const initialData = await getAdminAnnouncementsPageData(supabase);
     content = <AdminAnnouncementsClient initialData={initialData} />;
+  } else if (section === "feedback" && config.pageVariants.feedback) {
+    const supabase = await getServerSupabaseClient();
+    const initialData = await getAdminWorkspaceFeedbackPageData(supabase);
+    content = <AdminFeedbackClient initialData={initialData} />;
   } else if (section === "orders" && config.pageVariants.orders) {
     const supabase = await getServerSupabaseClient();
     const orderSearchParams = parseAdminOrdersSearchParams(resolvedSearchParams);
@@ -333,6 +353,8 @@ function isWorkspaceSectionEnabled(
       return Boolean(config.pageVariants.commission);
     case "exchange-rates":
       return Boolean(config.pageVariants.exchangeRates);
+    case "feedback":
+      return config.pageVariants.feedback === true;
     case "orders":
       return Boolean(config.pageVariants.orders);
     case "people":
@@ -364,6 +386,10 @@ function getSectionNamespaces(
 
   if (section === "announcements" && config.pageVariants.announcements) {
     namespaces.push("Announcements", "DashboardShared");
+  }
+
+  if (section === "feedback" && config.pageVariants.feedback) {
+    namespaces.push("WorkspaceFeedback", "DashboardShared");
   }
 
   if (section === "commission" && config.pageVariants.commission) {

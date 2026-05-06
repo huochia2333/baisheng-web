@@ -305,7 +305,8 @@
       "commission": "Commission",
       "exchangeRates": "FX Rates",
       "tasks": "Tasks",
-      "reviews": "Reviews"
+      "reviews": "Reviews",
+      "feedback": "Feedback"
     },
     "roles": {
       "admin": {
@@ -361,6 +362,28 @@
       "empty": "There are no announcements available right now.",
       "loadError": "Announcements could not be loaded. Please try again later.",
       "readError": "The read status could not be saved. Please try again later."
+    },
+    "feedback": {
+      "open": "Send Feedback",
+      "title": "Feedback",
+      "description": "Tell us about a problem you found or a change that would make your work easier.",
+      "typeLabel": "Feedback Type",
+      "types": {
+        "bug": "Problem",
+        "suggestion": "Improvement"
+      },
+      "titleLabel": "Short Title",
+      "titlePlaceholder": "Example: Order filters are hard to use",
+      "contentLabel": "Details",
+      "contentPlaceholder": "Describe what happened, what you expected, or what you would like improved.",
+      "cancel": "Cancel",
+      "submit": "Send Feedback",
+      "titleTooShort": "Enter a title with at least 2 characters.",
+      "titleTooLong": "Keep the title within 100 characters.",
+      "contentTooShort": "Enter details with at least 10 characters.",
+      "contentTooLong": "Keep the details within 2000 characters.",
+      "serviceUnavailable": "Feedback could not be sent. Please try again later.",
+      "success": "Feedback received. We will review it."
     },
     "accountMenu": {
       "open": "Open Account Menu",
@@ -453,6 +476,10 @@
     "reviews": {
       "title": "Review Center",
       "description": "This section will handle document review, identity verification, risk checks, and approval flows. It can later branch into role-specific review views for operators, managers, and clients."
+    },
+    "feedback": {
+      "title": "Feedback",
+      "description": "Administrators can review problems and improvement ideas submitted by every role, then update the handling status."
     }
   },
   "DashboardHome": {
@@ -535,6 +562,74 @@
     },
     "noPermissionTitle": "Cannot manage announcements",
     "noPermissionDescription": "The current account does not have announcement management permission."
+  },
+  "WorkspaceFeedback": {
+    "metadata": {
+      "title": "Feedback"
+    },
+    "types": {
+      "bug": "Problem",
+      "suggestion": "Improvement"
+    },
+    "statuses": {
+      "new": "New",
+      "inProgress": "In Progress",
+      "resolved": "Resolved",
+      "declined": "Declined"
+    },
+    "roles": {
+      "administrator": "Administrator",
+      "client": "Client",
+      "finance": "Finance",
+      "manager": "Manager",
+      "operator": "Operator",
+      "recruiter": "Recruiter",
+      "salesman": "Sales"
+    },
+    "header": {
+      "badge": "Feedback",
+      "title": "Problems and Improvements",
+      "description": "Review feedback submitted inside the workspace and update each item as it is handled."
+    },
+    "summary": {
+      "total": "All Feedback",
+      "new": "New",
+      "inProgress": "In Progress",
+      "resolved": "Resolved"
+    },
+    "filters": {
+      "search": "Search",
+      "searchPlaceholder": "Search title, details, submitter, or page",
+      "type": "Type",
+      "status": "Status",
+      "allTypes": "All Types",
+      "allStatuses": "All Statuses"
+    },
+    "list": {
+      "eyebrow": "Feedback List",
+      "title": "User Feedback",
+      "description": "Review the content, submitter, and source page, then update the current handling status.",
+      "emptyTitle": "No matching feedback",
+      "emptyDescription": "Adjust the filters or wait for users to send new feedback.",
+      "feedback": "Feedback",
+      "submitter": "Submitter",
+      "type": "Type",
+      "source": "Source Page",
+      "createdAt": "Submitted",
+      "status": "Status",
+      "statusAction": "Update handling status"
+    },
+    "feedback": {
+      "statusSaved": "Status updated.",
+      "statusError": "Status could not be saved. Please try again later."
+    },
+    "states": {
+      "noPermissionTitle": "Cannot manage feedback",
+      "noPermissionDescription": "The current account does not have feedback management permission."
+    },
+    "fallback": {
+      "notProvided": "Not provided"
+    }
   },
   "DashboardShared": {
     "loading": "loading",

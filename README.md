@@ -21,7 +21,7 @@
 - `app/(auth)`：公开页与认证页，包含 `/`、`/login`、`/register`、`/forgot-password`、`/privacy`、`/terms`、`/help`
 - `app/(workspace)/[workspace]/home`：各角色登录后的默认首页，展示北京时间问候和当前角色可见公告
 - `app/(workspace)/[workspace]/my`：各角色共享“我的”个人资料页面入口
-- `app/(workspace)/[workspace]/[section]`：按角色动态装配公告管理、订单、推荐树、团队、人员管理、佣金、任务、审核等页面；管理员汇率设置整合在订单页内
+- `app/(workspace)/[workspace]/[section]`：按角色动态装配公告管理、订单、推荐树、团队、人员管理、佣金、任务、审核、反馈管理等页面；管理员汇率设置整合在订单页内
 - `app/forbidden.tsx`：统一承接越权访问时的访问错误页
 - `proxy.ts`：会话同步、登录保护、工作台访问前置校验
 - `lib/workspace-config.ts`：角色导航、页面变体和工作台配置中心
@@ -33,7 +33,7 @@
 
 | 角色 | 默认入口 | 当前重点模块 |
 | --- | --- | --- |
-| `administrator` | `/admin/home` | `home`、`announcements`、`orders`（含汇率设置）、`referrals`、`team`、`people`、`commission`、`tasks`、`reviews` |
+| `administrator` | `/admin/home` | `home`、`announcements`、`orders`（含汇率设置）、`referrals`、`team`、`people`、`commission`、`tasks`、`reviews`、`feedback` |
 | `salesman` | `/salesman/home` | `home`、`orders`、`referrals`、`team`、`commission`、`exchange-rates`、`tasks` |
 | `client` | `/client/home` | `home`、`orders`、`referrals` |
 | `manager` | `/manager/home` | `home`、`referrals`、`team` |
@@ -60,6 +60,7 @@ baisheng-web/
 │  ├─ legal/
 │  └─ dashboard/
 │     ├─ admin-people/
+│     ├─ admin-feedback/
 │     ├─ admin-orders/
 │     ├─ admin-reviews/
 │     ├─ admin-tasks/
@@ -70,6 +71,7 @@ baisheng-web/
 │     ├─ salesman-tasks/
 │     ├─ tasks/
 │     ├─ team-management/
+│     ├─ workspace-feedback/
 │     └─ ...共享壳层与通用 UI
 ├─ i18n/
 ├─ lib/
@@ -85,6 +87,7 @@ baisheng-web/
 说明：
 
 - `components/dashboard` 已按功能拆分；根目录只保留工作台壳层和共享 UI
+- `components/dashboard/workspace-feedback` 承接所有登录用户的顶部反馈弹窗；`components/dashboard/admin-feedback` 承接管理员反馈列表、筛选和状态调整
 - `components/dashboard/ai-assistant` 承接登录后右下角柏盛助手浮窗、打开/关闭动效、聊天状态、流式消息展示和“新对话”二次确认；`AdminShell` 只负责挂载入口，不承载助手对话逻辑
 - `lib/ai-assistant` 承接柏盛管理系统助手提示词、请求类型和 DeepSeek 服务端流式调用；第一版只做工作台问答引导，不读取或改动订单、人员、任务等业务数据
 - `components/dashboard/dashboard-section-header.tsx` 统一承接各业务板块页头；新增订单、任务、团队、佣金、汇率、审核、公告、推荐树等板块时，优先复用它传入标题、说明、指标和操作按钮，避免在业务 Client/Page 中重复堆页头布局
@@ -336,6 +339,14 @@ npm run supabase:admin -- summary
 - 姓名和城市统一走资料修改规则：管理员修改自己的资料立即生效，其他角色提交后进入管理员审核。
 - 审核中心新增“资料修改”队列，和隐私、媒体、任务审核并列处理。
 - 本次新增公告读取、公开公告、资料修改申请和资料弹窗 hook 等独立模块，避免继续扩大自助资料页和工作区布局核心文件。
+
+## 问题反馈与改进建议（2026-05-06）
+
+- 所有正常登录用户可以从工作区顶部“反馈”按钮提交问题反馈或改进建议；第一版只收集文字说明，不上传截图或附件，也不展示用户历史。
+- 反馈数据由 Supabase `workspace_feedback` 承接，普通用户通过受控提交函数写入，管理员通过 `/admin/feedback` 查看并调整处理状态。
+- 管理员反馈页支持搜索、类型筛选、状态筛选和状态切换；其他角色不会显示左侧反馈管理入口，直接访问也会进入当前访问错误页。
+- 前端分层保持拆分：`lib/workspace-feedback.ts` 承接查询与状态更新，`components/dashboard/workspace-feedback/` 承接全局提交弹窗，`components/dashboard/admin-feedback/` 承接管理员列表、筛选和显示工具。
+- 最近验证：`npm run lint`、`npx tsc --noEmit`、`npm run build` 通过；`20260506113000_add_workspace_feedback.sql` 已推送到 Supabase 远端；Playwright 覆盖业务员提交反馈、管理员查看并改为“处理中”、业务员直接访问 `/admin/feedback` 显示访问错误页。
 
 ## 人员管理（2026-04-28）
 

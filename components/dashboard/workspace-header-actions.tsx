@@ -24,6 +24,7 @@ import type { WorkspaceAnnouncementsState } from "@/lib/workspace-announcements"
 
 import { DashboardDialog } from "./dashboard-dialog";
 import { PageBanner } from "./dashboard-shared-ui";
+import { WorkspaceFeedbackButton } from "./workspace-feedback/workspace-feedback-button";
 import { useWorkspaceHeaderAnnouncements } from "./use-workspace-header-announcements";
 
 type WorkspaceHeaderActionsProps = {
@@ -143,6 +144,7 @@ export function WorkspaceHeaderActions({
           </span>
         ) : null}
       </button>
+      <WorkspaceFeedbackButton />
 
       <div className="relative" ref={menuRef}>
         <button

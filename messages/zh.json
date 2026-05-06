@@ -305,7 +305,8 @@
       "commission": "佣金",
       "exchangeRates": "汇率",
       "tasks": "任务",
-      "reviews": "审核"
+      "reviews": "审核",
+      "feedback": "反馈管理"
     },
     "roles": {
       "admin": {
@@ -361,6 +362,28 @@
       "empty": "当前暂无可查看的公告。",
       "loadError": "公告暂时没有加载成功，请稍后再试。",
       "readError": "公告已读状态暂时没有保存成功，请稍后再试。"
+    },
+    "feedback": {
+      "open": "提交反馈",
+      "title": "问题反馈",
+      "description": "请说明你遇到的问题或希望调整的地方，我们会查看并安排处理。",
+      "typeLabel": "反馈类型",
+      "types": {
+        "bug": "问题反馈",
+        "suggestion": "改进建议"
+      },
+      "titleLabel": "简短标题",
+      "titlePlaceholder": "例如：订单列表筛选不方便",
+      "contentLabel": "详细说明",
+      "contentPlaceholder": "请描述发生了什么、你原本期待怎样，或希望改进哪里。",
+      "cancel": "取消",
+      "submit": "提交反馈",
+      "titleTooShort": "请填写至少 2 个字的标题。",
+      "titleTooLong": "标题请控制在 100 个字以内。",
+      "contentTooShort": "请填写至少 10 个字的详细说明。",
+      "contentTooLong": "详细说明请控制在 2000 个字以内。",
+      "serviceUnavailable": "反馈暂时没有提交成功，请稍后再试。",
+      "success": "反馈已收到，我们会查看。"
     },
     "accountMenu": {
       "open": "打开账号菜单",
@@ -453,6 +476,10 @@
     "reviews": {
       "title": "审核中心",
       "description": "这里将处理资料审核、实名认证、风险复核和审批流。后续运营、经理与客户角色也可以从这里派生不同的审核视图。"
+    },
+    "feedback": {
+      "title": "反馈管理",
+      "description": "管理员在这里查看各角色提交的问题反馈和改进建议，并更新处理状态。"
     }
   },
   "DashboardHome": {
@@ -535,6 +562,74 @@
     },
     "noPermissionTitle": "无法管理公告",
     "noPermissionDescription": "当前账号没有公告管理权限。"
+  },
+  "WorkspaceFeedback": {
+    "metadata": {
+      "title": "反馈管理"
+    },
+    "types": {
+      "bug": "问题反馈",
+      "suggestion": "改进建议"
+    },
+    "statuses": {
+      "new": "待处理",
+      "inProgress": "处理中",
+      "resolved": "已完成",
+      "declined": "暂不处理"
+    },
+    "roles": {
+      "administrator": "管理员",
+      "client": "客户",
+      "finance": "财务",
+      "manager": "经理",
+      "operator": "运营",
+      "recruiter": "招聘员",
+      "salesman": "业务员"
+    },
+    "header": {
+      "badge": "反馈管理",
+      "title": "问题反馈与改进建议",
+      "description": "集中查看用户在工作台内提交的反馈，并按处理进度更新状态。"
+    },
+    "summary": {
+      "total": "全部反馈",
+      "new": "待处理",
+      "inProgress": "处理中",
+      "resolved": "已完成"
+    },
+    "filters": {
+      "search": "搜索",
+      "searchPlaceholder": "搜索标题、说明、提交人或页面",
+      "type": "类型",
+      "status": "状态",
+      "allTypes": "全部类型",
+      "allStatuses": "全部状态"
+    },
+    "list": {
+      "eyebrow": "反馈列表",
+      "title": "用户反馈",
+      "description": "查看反馈内容、提交人和来源页面，并更新当前处理进度。",
+      "emptyTitle": "没有匹配的反馈",
+      "emptyDescription": "调整筛选条件后再查看，或等待用户提交新的反馈。",
+      "feedback": "反馈内容",
+      "submitter": "提交人",
+      "type": "类型",
+      "source": "来源页面",
+      "createdAt": "提交时间",
+      "status": "处理状态",
+      "statusAction": "调整处理状态"
+    },
+    "feedback": {
+      "statusSaved": "处理状态已更新。",
+      "statusError": "处理状态暂时没有保存成功，请稍后再试。"
+    },
+    "states": {
+      "noPermissionTitle": "无法管理反馈",
+      "noPermissionDescription": "当前账号没有反馈管理权限。"
+    },
+    "fallback": {
+      "notProvided": "未填写"
+    }
   },
   "DashboardShared": {
     "loading": "加载中",
