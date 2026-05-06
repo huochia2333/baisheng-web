@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback } from "react";
+import { useCallback, useOptimistic, useTransition } from "react";
 
 import { ReceiptText, ShieldAlert } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
@@ -42,10 +42,15 @@ export function AdminOrdersClient({
   const searchParams = useSearchParams();
   const viewModel = useAdminOrdersViewModel({ initialData, mode });
   const canShowTabs = mode === "admin" && initialExchangeRatesData !== null;
-  const activeTab: AdminOrdersTab =
+  const routeActiveTab: AdminOrdersTab =
     canShowTabs && searchParams.get("tab") === "exchange-rates"
       ? "exchange-rates"
       : "orders";
+  const [isTabSwitchPending, startTabSwitchTransition] = useTransition();
+  const [activeTab, setOptimisticActiveTab] = useOptimistic(
+    routeActiveTab,
+    (_currentTab, nextTab: AdminOrdersTab) => nextTab,
+  );
 
   const handleTabChange = useCallback(
     (tab: AdminOrdersTab) => {
@@ -62,17 +67,31 @@ export function AdminOrdersClient({
       }
 
       const queryString = nextSearchParams.toString();
-      router.replace(queryString ? `${pathname}?${queryString}` : pathname, {
-        scroll: false,
+      startTabSwitchTransition(() => {
+        setOptimisticActiveTab(tab);
+        router.replace(queryString ? `${pathname}?${queryString}` : pathname, {
+          scroll: false,
+        });
       });
     },
-    [canShowTabs, pathname, router, searchParams],
+    [
+      canShowTabs,
+      pathname,
+      router,
+      searchParams,
+      setOptimisticActiveTab,
+      startTabSwitchTransition,
+    ],
   );
 
   return (
     <section className="mx-auto flex w-full max-w-[1320px] flex-col gap-8">
       {canShowTabs ? (
-        <AdminOrdersTabs activeTab={activeTab} onTabChange={handleTabChange} />
+        <AdminOrdersTabs
+          activeTab={activeTab}
+          onTabChange={handleTabChange}
+          pendingTab={isTabSwitchPending ? activeTab : null}
+        />
       ) : null}
 
       {activeTab === "exchange-rates" && initialExchangeRatesData ? (

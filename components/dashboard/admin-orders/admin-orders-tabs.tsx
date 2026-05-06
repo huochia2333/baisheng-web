@@ -12,6 +12,7 @@ export type AdminOrdersTab = "orders" | "exchange-rates";
 type AdminOrdersTabsProps = {
   activeTab: AdminOrdersTab;
   onTabChange: (tab: AdminOrdersTab) => void;
+  pendingTab?: AdminOrdersTab | null;
 };
 
 const tabs = [
@@ -28,6 +29,7 @@ const tabs = [
 export const AdminOrdersTabs = memo(function AdminOrdersTabs({
   activeTab,
   onTabChange,
+  pendingTab = null,
 }: AdminOrdersTabsProps) {
   const t = useTranslations("Orders");
 
@@ -44,6 +46,7 @@ export const AdminOrdersTabs = memo(function AdminOrdersTabs({
           label: t(`tabs.${tab.key}`),
         };
       })}
+      pendingValue={pendingTab}
       value={activeTab}
     />
   );

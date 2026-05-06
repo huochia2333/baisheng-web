@@ -2,6 +2,8 @@
 
 import type { ReactNode } from "react";
 
+import { LoaderCircle } from "lucide-react";
+
 import { cn } from "@/lib/utils";
 
 export type DashboardSegmentedTabOption<Key extends string> = {
@@ -16,6 +18,7 @@ type DashboardSegmentedTabsProps<Key extends string> = {
   className?: string;
   onChange: (value: Key) => void;
   options: Array<DashboardSegmentedTabOption<Key>>;
+  pendingValue?: Key | null;
   value: Key;
 };
 
@@ -23,6 +26,7 @@ export function DashboardSegmentedTabs<Key extends string>({
   className,
   onChange,
   options,
+  pendingValue = null,
   value,
 }: DashboardSegmentedTabsProps<Key>) {
   return (
@@ -34,10 +38,12 @@ export function DashboardSegmentedTabs<Key extends string>({
     >
       {options.map((option) => {
         const isActive = option.key === value;
+        const isPending = option.key === pendingValue;
 
         return (
           <button
             aria-pressed={isActive}
+            aria-busy={isPending}
             className={cn(
               "flex min-h-12 flex-1 items-center gap-3 rounded-[16px] px-4 py-3 text-left text-sm transition-colors",
               isActive
@@ -48,14 +54,18 @@ export function DashboardSegmentedTabs<Key extends string>({
             onClick={() => onChange(option.key)}
             type="button"
           >
-            {option.icon ? (
+            {option.icon || isPending ? (
               <span
                 className={cn(
                   "inline-flex size-8 shrink-0 items-center justify-center rounded-full",
                   isActive ? "bg-white/16 text-white" : "bg-white text-[#486782]",
                 )}
               >
-                {option.icon}
+                {isPending ? (
+                  <LoaderCircle className="size-4 animate-spin" />
+                ) : (
+                  option.icon
+                )}
               </span>
             ) : null}
             <span className="min-w-0 flex-1">
