@@ -7,6 +7,7 @@ import {
   AdminShellNav,
   type AdminShellNavLink,
 } from "@/components/dashboard/admin-shell-client";
+import { AiAssistantClient } from "@/components/dashboard/ai-assistant/ai-assistant-client";
 import { BrandMark } from "@/components/brand/brand-mark";
 import { WorkspaceHeaderActions } from "@/components/dashboard/workspace-header-actions";
 import { WorkspaceSessionProvider } from "@/components/dashboard/workspace-session-provider";
@@ -101,6 +102,7 @@ export async function AdminShell({ children, config }: AdminShellProps) {
               </header>
 
               <main className="flex-1 px-3 py-5 sm:px-6 sm:py-6 lg:px-8">{children}</main>
+              <AiAssistantClient />
             </div>
           </div>
         </div>

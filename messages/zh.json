@@ -279,6 +279,21 @@
     "brandTitle": "柏盛管理系统",
     "logout": "退出登录",
     "serviceUnavailable": "当前服务暂时不可用，请稍后再试。",
+    "aiAssistant": {
+      "title": "柏盛助手",
+      "open": "打开柏盛助手",
+      "close": "关闭柏盛助手",
+      "reset": "新对话",
+      "resetConfirmDescription": "开始新对话会清空当前聊天内容。",
+      "resetConfirmAction": "确认开始",
+      "resetConfirmCancel": "取消",
+      "greeting": "你好，我在这里帮你处理工作台问题。",
+      "placeholder": "请输入问题",
+      "inputLabel": "问题内容",
+      "send": "发送",
+      "thinking": "正在回复",
+      "serviceUnavailable": "助手暂时没有回复成功，请稍后再试。"
+    },
     "nav": {
       "home": "首页",
       "my": "我的",

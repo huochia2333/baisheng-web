@@ -279,6 +279,21 @@
     "brandTitle": "Baisheng Management System",
     "logout": "Sign Out",
     "serviceUnavailable": "The service is temporarily unavailable. Please try again later.",
+    "aiAssistant": {
+      "title": "Baisheng Assistant",
+      "open": "Open Baisheng Assistant",
+      "close": "Close Baisheng Assistant",
+      "reset": "New Chat",
+      "resetConfirmDescription": "Starting a new chat will clear the current conversation.",
+      "resetConfirmAction": "Start New",
+      "resetConfirmCancel": "Cancel",
+      "greeting": "Hi, I can help with workspace questions.",
+      "placeholder": "Type your question",
+      "inputLabel": "Question",
+      "send": "Send",
+      "thinking": "Replying",
+      "serviceUnavailable": "The assistant could not reply. Please try again later."
+    },
     "nav": {
       "home": "Home",
       "my": "My Profile",

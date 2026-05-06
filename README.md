@@ -85,6 +85,8 @@ baisheng-web/
 说明：
 
 - `components/dashboard` 已按功能拆分；根目录只保留工作台壳层和共享 UI
+- `components/dashboard/ai-assistant` 承接登录后右下角柏盛助手浮窗、打开/关闭动效、聊天状态、流式消息展示和“新对话”二次确认；`AdminShell` 只负责挂载入口，不承载助手对话逻辑
+- `lib/ai-assistant` 承接柏盛管理系统助手提示词、请求类型和 DeepSeek 服务端流式调用；第一版只做工作台问答引导，不读取或改动订单、人员、任务等业务数据
 - `components/dashboard/dashboard-section-header.tsx` 统一承接各业务板块页头；新增订单、任务、团队、佣金、汇率、审核、公告、推荐树等板块时，优先复用它传入标题、说明、指标和操作按钮，避免在业务 Client/Page 中重复堆页头布局
 - `components/dashboard/dashboard-section-panel.tsx` 统一承接筛选面板、列表面板、列表标题和表格外框；新增带筛选或清单的板块时，优先复用它保持间距、边框、阴影和响应式结构一致
 - `components/dashboard/dashboard-segmented-tabs.tsx` 统一承接板块内切换按钮；订单页“订单列表 / 汇率设置”、佣金页“普通佣金 / 任务佣金”和审核页多队列切换都应复用这一套视觉样式
@@ -264,6 +266,9 @@ NEXT_PUBLIC_SUPABASE_URL=https://your-project-ref.supabase.co
 NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=your-supabase-publishable-key
 SUPABASE_SERVICE_ROLE_KEY=your-supabase-service-role-key
 EXCHANGE_RATE_API_KEY=your-exchangerate-api-key
+DEEPSEEK_API_KEY=your-deepseek-api-key
+DEEPSEEK_BASE_URL=https://api.deepseek.com
+DEEPSEEK_MODEL=deepseek-v4-flash
 ```
 
 说明：
@@ -271,6 +276,8 @@ EXCHANGE_RATE_API_KEY=your-exchangerate-api-key
 - `NEXT_PUBLIC_*` 用于浏览器端和 SSR 访问 Supabase
 - `SUPABASE_SERVICE_ROLE_KEY` 只允许服务端脚本或受控管理任务使用，不能暴露到前端
 - `EXCHANGE_RATE_API_KEY` 只配置为 Supabase Edge Function secret，用于自动和手动获取当日汇率
+- `DEEPSEEK_API_KEY` 只在 Next.js 服务端接口中使用，用于登录后右下角的柏盛助手
+- `DEEPSEEK_BASE_URL` 和 `DEEPSEEK_MODEL` 用于切换 DeepSeek 接入地址和模型，默认使用 `https://api.deepseek.com` 与 `deepseek-v4-flash`
 - `.env.local` 不应提交到仓库
 
 ## 常用命令
