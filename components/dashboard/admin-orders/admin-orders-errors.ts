@@ -22,6 +22,10 @@ export function toOrderErrorMessage(
     return copy.errors.invalidForeignKeys;
   }
 
+  if (rawMessage.includes("today exchange rate is not ready")) {
+    return copy.errors.exchangeRateMissing;
+  }
+
   if (rawMessage.includes("current user cannot create this order")) {
     return copy.errors.cannotCreate;
   }

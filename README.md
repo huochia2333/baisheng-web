@@ -21,7 +21,7 @@
 - `app/(auth)`：公开页与认证页，包含 `/`、`/login`、`/register`、`/forgot-password`、`/privacy`、`/terms`、`/help`
 - `app/(workspace)/[workspace]/home`：各角色登录后的默认首页，展示北京时间问候和当前角色可见公告
 - `app/(workspace)/[workspace]/my`：各角色共享“我的”个人资料页面入口
-- `app/(workspace)/[workspace]/[section]`：按角色动态装配公告管理、订单、推荐树、团队、人员管理、佣金、汇率、任务、审核等页面
+- `app/(workspace)/[workspace]/[section]`：按角色动态装配公告管理、订单、推荐树、团队、人员管理、佣金、任务、审核等页面；管理员汇率设置整合在订单页内
 - `app/forbidden.tsx`：统一承接越权访问时的访问错误页
 - `proxy.ts`：会话同步、登录保护、工作台访问前置校验
 - `lib/workspace-config.ts`：角色导航、页面变体和工作台配置中心
@@ -33,7 +33,7 @@
 
 | 角色 | 默认入口 | 当前重点模块 |
 | --- | --- | --- |
-| `administrator` | `/admin/home` | `home`、`announcements`、`orders`、`referrals`、`team`、`people`、`commission`、`exchange-rates`、`tasks`、`reviews` |
+| `administrator` | `/admin/home` | `home`、`announcements`、`orders`（含汇率设置）、`referrals`、`team`、`people`、`commission`、`tasks`、`reviews` |
 | `salesman` | `/salesman/home` | `home`、`orders`、`referrals`、`team`、`commission`、`exchange-rates`、`tasks` |
 | `client` | `/client/home` | `home`、`orders`、`referrals` |
 | `manager` | `/manager/home` | `home`、`referrals`、`team` |
@@ -150,7 +150,18 @@ baisheng-web/
 - `admin-orders-copy.ts`、`admin-orders-display.ts`、`admin-orders-form.ts`、`admin-orders-details.ts`、`admin-orders-errors.ts`、`admin-orders-permissions.ts`：分别承接文案映射、显示格式化、表单解析、详情展开、错误映射和权限判断
 - `admin-orders-form-dialog.tsx`、`admin-orders-details-dialog.tsx`、`admin-orders-dialog-ui.tsx`：拆出订单表单弹窗、详情弹窗以及弹窗共享 UI
 - 2026-04-28 补充：订单采购/服务补充明细改为通过“创建类别”添加双输入行，左侧填写类别名称，右侧填写对应内容，不再要求用户手写“项目: 内容”格式
+- 2026-05-06 补充：管理员汇率设置整合到 `/admin/orders?tab=exchange-rates`，左侧导航不再单独展示管理员汇率入口；旧 `/admin/exchange-rates` 会跳转到订单页的汇率设置标签
+- 2026-05-06 补充：新建订单默认使用 `USD -> CNY`，当日汇率自动填入且不能手动修改；缺少当日汇率时会阻止创建订单，已创建订单编辑时币种、当日汇率和公司成交汇率保持原值
 - `admin-orders-utils.ts`：只保留 barrel re-export，不再承载实际业务实现
+
+### 自动汇率与订单规则（2026-05-06）
+
+- 汇率同步配置由 Supabase 的 `exchange_rate_sync_settings` 和 `exchange_rate_sync_pairs` 承接，默认每天获取 `USD -> CNY`；管理员可以在订单页的“汇率设置”标签中开关自动获取、增删每天获取的币种，并一次手动获取多个币种
+- 自动获取由 Supabase `pg_cron` 每天 UTC `01:30` 调用 `exchange-rate-sync` Edge Function，对应北京时间 `09:30`
+- `exchange-rate-sync` 使用 ExchangeRate-API Standard endpoint，从 `{base}` 读取 `conversion_rates.CNY`；API key 只通过 Supabase secret `EXCHANGE_RATE_API_KEY` 配置，不进入前端代码和仓库
+- 管理员手动获取会先校验当前登录令牌中的管理员身份，再由 Edge Function 使用服务端 secret 请求汇率接口，前端不会接触真实 API key
+- 订单保存 RPC 会在数据库端重新按当天 `原币 -> CNY` 取汇率，忽略前端传入的汇率字段；`rmb_amount` 仍按现有业务方式录入，不自动计算
+- 本次拆分新增 `exchange-rate-sync-section.tsx` 和 `use-exchange-rate-sync-settings.ts` 承接汇率设置 UI 与动作，订单页只负责标签组合，避免把自动汇率状态继续堆进订单或汇率核心 Client 文件
 
 ### `admin-tasks` 模块分层（2026-04-23）
 
@@ -248,12 +259,14 @@ npm run dev
 NEXT_PUBLIC_SUPABASE_URL=https://your-project-ref.supabase.co
 NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=your-supabase-publishable-key
 SUPABASE_SERVICE_ROLE_KEY=your-supabase-service-role-key
+EXCHANGE_RATE_API_KEY=your-exchangerate-api-key
 ```
 
 说明：
 
 - `NEXT_PUBLIC_*` 用于浏览器端和 SSR 访问 Supabase
 - `SUPABASE_SERVICE_ROLE_KEY` 只允许服务端脚本或受控管理任务使用，不能暴露到前端
+- `EXCHANGE_RATE_API_KEY` 只配置为 Supabase Edge Function secret，用于自动和手动获取当日汇率
 - `.env.local` 不应提交到仓库
 
 ## 常用命令

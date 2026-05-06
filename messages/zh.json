@@ -669,6 +669,10 @@
       "salesman": "客户订单",
       "client": "我的订单"
     },
+    "tabs": {
+      "orders": "订单列表",
+      "exchange-rates": "汇率设置"
+    },
     "modes": {
       "admin": {
         "badge": "订单工作台",
@@ -815,6 +819,8 @@
     "hints": {
       "transactionRate": "自动 = 当日汇率 * 0.99",
       "lockedOrderEntryUser": "当前页面创建的订单会自动归属到当前业务员名下。",
+      "autoDailyExchangeRate": "当日汇率会自动填入，不能手动修改。",
+      "lockedCurrencyAndRates": "已创建订单的币种和汇率保持原值。",
       "autoTimestamps": "创建订单后，系统会自动写入创建时间；编辑订单保存后，系统会自动更新最后一次改动时间。"
     },
     "select": {
@@ -834,6 +840,7 @@
     },
     "errors": {
       "duplicateOrderNumber": "订单编号生成冲突，请稍后重试。",
+      "exchangeRateMissing": "今天的汇率还没有准备好，请先让管理员获取当日汇率。",
       "invalidForeignKeys": "请选择有效的订单录入员、订单客户、订单类型，以及对应的采购或服务信息选项。",
       "cannotCreate": "你没有创建该订单的权限。",
       "cannotUpdate": "你没有修改该订单的权限。",
@@ -1031,6 +1038,40 @@
       "noManageDescription": "当前登录账号暂时没有管理汇率记录的权限。",
       "noViewTitle": "暂无查看权限",
       "noViewDescription": "当前登录账号暂时没有查看汇率记录的权限。"
+    },
+    "sync": {
+      "eyebrow": "自动获取",
+      "title": "汇率设置",
+      "description": "设置每天自动获取的币种，也可以临时手动获取多个币种的当日汇率。",
+      "schedule": "每天 09:30 获取",
+      "autoFetchTitle": "自动获取当日汇率",
+      "autoFetchEnabled": "已开启后，每天会按下方币种自动获取到人民币的汇率。",
+      "autoFetchDisabled": "关闭后不会自动获取，可继续使用手动获取。",
+      "switchOn": "已开启",
+      "switchOff": "已关闭",
+      "switchPending": "保存中",
+      "pairsTitle": "每天获取的币种",
+      "pairsDescription": "目标币种固定为 CNY；新增币种后会在每天 09:30 一起获取。",
+      "noPairs": "还没有设置币种",
+      "addPairLabel": "新增币种",
+      "currencyPlaceholder": "例如 USD",
+      "addPair": "添加",
+      "removePair": "移除 {currency}",
+      "manualTitle": "手动获取",
+      "manualDescription": "填写一个或多个币种后，可立即获取今天到 CNY 的汇率。",
+      "addManualCurrency": "添加币种",
+      "removeManualCurrency": "移除币种",
+      "fetchNow": "立即获取",
+      "resultSuccess": "{currency} 已获取，汇率 {rate}",
+      "resultFailed": "{currency} 暂时获取失败",
+      "feedback": {
+        "enabled": "自动获取已开启。",
+        "disabled": "自动获取已关闭。",
+        "currencyRequired": "请填写要添加的币种。",
+        "pairAdded": "{currency} 已加入每天获取列表。",
+        "pairRemoved": "{currency} 已从每天获取列表移除。",
+        "manualFetched": "已获取 {count} 个币种的当日汇率。"
+      }
     },
     "latest": {
       "eyebrow": "当前概览",

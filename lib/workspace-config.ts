@@ -111,7 +111,6 @@ const adminNavItems = [
   { segment: "team", labelKey: "team" },
   { segment: "people", labelKey: "people" },
   { segment: "commission", labelKey: "commission" },
-  { segment: "exchange-rates", labelKey: "exchangeRates" },
   { segment: "tasks", labelKey: "tasks" },
   { segment: "reviews", labelKey: "reviews" },
 ] as const satisfies readonly WorkspaceNavItem[];

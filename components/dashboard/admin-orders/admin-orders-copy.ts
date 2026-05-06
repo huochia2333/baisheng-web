@@ -44,6 +44,7 @@ export type OrdersUiCopy = {
     cannotDelete: string;
     cannotUpdate: string;
     duplicateOrderNumber: string;
+    exchangeRateMissing: string;
     inactiveOrderNumber: string;
     invalidForeignKeys: string;
     orderNotFound: string;
@@ -90,6 +91,7 @@ export function createOrdersUiCopy(t: OrdersUiTranslator): OrdersUiCopy {
       cannotDelete: t("errors.cannotDelete"),
       cannotUpdate: t("errors.cannotUpdate"),
       duplicateOrderNumber: t("errors.duplicateOrderNumber"),
+      exchangeRateMissing: t("errors.exchangeRateMissing"),
       inactiveOrderNumber: t("errors.inactiveOrderNumber"),
       invalidForeignKeys: t("errors.invalidForeignKeys"),
       orderNotFound: t("errors.orderNotFound"),

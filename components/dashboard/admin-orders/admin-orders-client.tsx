@@ -1,11 +1,16 @@
 "use client";
 
+import { useCallback } from "react";
+
 import { ReceiptText, ShieldAlert } from "lucide-react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 
 import { type AdminOrdersPageData } from "@/lib/admin-orders";
+import { type ExchangeRatesPageData } from "@/lib/exchange-rates";
 
 import { EmptyState, PageBanner } from "@/components/dashboard/dashboard-shared-ui";
+import { ExchangeRatesClient } from "@/components/dashboard/exchange-rates/exchange-rates-client";
 
 import {
   OrdersHeaderSection,
@@ -13,23 +18,72 @@ import {
 } from "./admin-orders-sections";
 import { type OrdersClientMode } from "./admin-orders-client-config";
 import {
+  AdminOrdersTabs,
+  type AdminOrdersTab,
+} from "./admin-orders-tabs";
+import {
   OrderDetailsDialog,
   OrderFormDialog,
 } from "./admin-orders-ui";
 import { useAdminOrdersViewModel } from "./use-admin-orders-view-model";
 
 export function AdminOrdersClient({
+  initialExchangeRatesData = null,
   initialData,
   mode = "admin",
 }: {
+  initialExchangeRatesData?: ExchangeRatesPageData | null;
   initialData: AdminOrdersPageData;
   mode?: OrdersClientMode;
 }) {
   const t = useTranslations("Orders");
+  const pathname = usePathname();
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const viewModel = useAdminOrdersViewModel({ initialData, mode });
+  const canShowTabs = mode === "admin" && initialExchangeRatesData !== null;
+  const activeTab: AdminOrdersTab =
+    canShowTabs && searchParams.get("tab") === "exchange-rates"
+      ? "exchange-rates"
+      : "orders";
+
+  const handleTabChange = useCallback(
+    (tab: AdminOrdersTab) => {
+      if (!canShowTabs) {
+        return;
+      }
+
+      const nextSearchParams = new URLSearchParams(searchParams.toString());
+
+      if (tab === "exchange-rates") {
+        nextSearchParams.set("tab", "exchange-rates");
+      } else {
+        nextSearchParams.delete("tab");
+      }
+
+      const queryString = nextSearchParams.toString();
+      router.replace(queryString ? `${pathname}?${queryString}` : pathname, {
+        scroll: false,
+      });
+    },
+    [canShowTabs, pathname, router, searchParams],
+  );
 
   return (
     <section className="mx-auto flex w-full max-w-[1320px] flex-col gap-8">
+      {canShowTabs ? (
+        <AdminOrdersTabs activeTab={activeTab} onTabChange={handleTabChange} />
+      ) : null}
+
+      {activeTab === "exchange-rates" && initialExchangeRatesData ? (
+        <ExchangeRatesClient
+          embedded
+          homeHref="/admin/orders"
+          initialData={initialExchangeRatesData}
+          mode="manage"
+        />
+      ) : (
+        <>
       {viewModel.pageFeedback ? (
         <PageBanner tone={viewModel.pageFeedback.tone}>
           {viewModel.pageFeedback.message}
@@ -91,6 +145,7 @@ export function AdminOrdersClient({
         description={viewModel.viewConfig.createDescription}
         feedback={viewModel.createDialogFeedback}
         formState={viewModel.createFormState}
+        lockExchangeRateFields
         lockOrderEntryUser={viewModel.viewConfig.lockOrderEntryToCurrentViewer}
         mode="create"
         open={viewModel.createDialogOpen}
@@ -114,6 +169,8 @@ export function AdminOrdersClient({
         description={t("dialogs.editDescription")}
         feedback={viewModel.editDialogFeedback}
         formState={viewModel.editFormState}
+        lockCurrencyField
+        lockExchangeRateFields
         mode="edit"
         open={viewModel.editDialogOpen}
         orderDiscountOptions={viewModel.orderDiscountOptions}
@@ -148,6 +205,8 @@ export function AdminOrdersClient({
         supabase={viewModel.supabase}
         userLabelById={viewModel.userLabelById}
       />
+        </>
+      )}
     </section>
   );
 }

@@ -669,6 +669,10 @@
       "salesman": "Client Orders",
       "client": "My Orders"
     },
+    "tabs": {
+      "orders": "Order List",
+      "exchange-rates": "FX Settings"
+    },
     "modes": {
       "admin": {
         "badge": "Order Workspace",
@@ -815,6 +819,8 @@
     "hints": {
       "transactionRate": "Auto = Daily exchange rate * 0.99",
       "lockedOrderEntryUser": "Orders created from this page are automatically assigned to the current salesperson.",
+      "autoDailyExchangeRate": "Today's exchange rate is filled automatically and cannot be edited.",
+      "lockedCurrencyAndRates": "The currency and exchange rates stay fixed after the order is created.",
       "autoTimestamps": "After creation, the system writes the created time automatically. After editing, the system updates the latest modified time automatically."
     },
     "select": {
@@ -834,6 +840,7 @@
     },
     "errors": {
       "duplicateOrderNumber": "Order number generation conflicted. Please try again later.",
+      "exchangeRateMissing": "Today's exchange rate is not ready. Ask an administrator to fetch it first.",
       "invalidForeignKeys": "Select a valid order owner, customer, order type, and matching purchase or service options.",
       "cannotCreate": "You do not have permission to create this order.",
       "cannotUpdate": "You do not have permission to update this order.",
@@ -1031,6 +1038,40 @@
       "noManageDescription": "The current signed-in account is not allowed to manage FX rate records.",
       "noViewTitle": "No View Access",
       "noViewDescription": "The current signed-in account is not allowed to view FX rate records."
+    },
+    "sync": {
+      "eyebrow": "Auto Fetch",
+      "title": "FX Settings",
+      "description": "Choose which currencies are fetched every day, or fetch several currencies for today right away.",
+      "schedule": "Runs every day at 09:30",
+      "autoFetchTitle": "Auto-fetch today's rates",
+      "autoFetchEnabled": "Enabled. The currencies below are fetched against CNY every day.",
+      "autoFetchDisabled": "Disabled. You can still fetch rates manually.",
+      "switchOn": "On",
+      "switchOff": "Off",
+      "switchPending": "Saving",
+      "pairsTitle": "Daily currencies",
+      "pairsDescription": "The target currency is fixed to CNY. Added currencies are included in the daily 09:30 fetch.",
+      "noPairs": "No currencies set yet",
+      "addPairLabel": "Add Currency",
+      "currencyPlaceholder": "For example USD",
+      "addPair": "Add",
+      "removePair": "Remove {currency}",
+      "manualTitle": "Manual Fetch",
+      "manualDescription": "Enter one or more currencies and fetch today's CNY rate immediately.",
+      "addManualCurrency": "Add Currency",
+      "removeManualCurrency": "Remove Currency",
+      "fetchNow": "Fetch Now",
+      "resultSuccess": "{currency} fetched, rate {rate}",
+      "resultFailed": "{currency} could not be fetched",
+      "feedback": {
+        "enabled": "Auto-fetch is on.",
+        "disabled": "Auto-fetch is off.",
+        "currencyRequired": "Enter the currency to add.",
+        "pairAdded": "{currency} was added to the daily list.",
+        "pairRemoved": "{currency} was removed from the daily list.",
+        "manualFetched": "Fetched today's rates for {count} currencies."
+      }
     },
     "latest": {
       "eyebrow": "Current Overview",

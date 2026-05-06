@@ -35,6 +35,7 @@ import {
   ExchangeRatesHistorySection,
   ExchangeRatesLatestSection,
 } from "./exchange-rates-sections";
+import { ExchangeRateSyncSection } from "./exchange-rate-sync-section";
 import {
   createExchangeRateCopy,
   createExchangeRateFormState,
@@ -44,9 +45,11 @@ import {
   toExchangeRateErrorMessage,
   type ExchangeRateFormState,
 } from "./exchange-rates-utils";
+import { useExchangeRateSyncSettings } from "./use-exchange-rate-sync-settings";
 import { useWorkspaceSyncEffect } from "@/components/dashboard/workspace-session-provider";
 
 type ExchangeRatesClientProps = {
+  embedded?: boolean;
   homeHref: string;
   initialData: ExchangeRatesPageData;
   mode: "manage" | "readonly";
@@ -60,6 +63,7 @@ type FilterState = {
 type PageFeedback = { tone: NoticeTone; message: string } | null;
 
 export function ExchangeRatesClient({
+  embedded = false,
   homeHref,
   initialData,
   mode,
@@ -142,6 +146,14 @@ export function ExchangeRatesClient({
   useWorkspaceSyncEffect(refreshExchangeRates);
 
   const canManage = mode === "manage" && hasPermission === true;
+  const canManageDirectRates = canManage && !embedded;
+  const syncSettings = useExchangeRateSyncSettings({
+    canManage,
+    formatError: (error) => toExchangeRateErrorMessage(error, exchangeRateCopy),
+    initialState: initialData.syncState,
+    onPageDataLoaded: applyPageData,
+    supabase,
+  });
   const latestRows = useMemo(() => buildExchangeRateLatestRows(rates), [rates]);
 
   const normalizedFilters = useMemo(
@@ -436,13 +448,19 @@ export function ExchangeRatesClient({
   );
 
   return (
-    <section className="mx-auto flex w-full max-w-[1320px] flex-col gap-8">
+    <section
+      className={
+        embedded
+          ? "flex w-full flex-col gap-8"
+          : "mx-auto flex w-full max-w-[1320px] flex-col gap-8"
+      }
+    >
       {pageFeedback ? (
         <PageBanner tone={pageFeedback.tone}>{pageFeedback.message}</PageBanner>
       ) : null}
 
       <ExchangeRatesHeaderSection
-        canManage={canManage}
+        canManage={canManageDirectRates}
         latestRowsCount={latestRows.length}
         latestUpdatedAt={latestUpdatedAt}
         onCreate={openCreateDialog}
@@ -463,6 +481,28 @@ export function ExchangeRatesClient({
         </section>
       ) : (
         <>
+          {canManage ? (
+            <ExchangeRateSyncSection
+              addPairPending={syncSettings.addPairPending}
+              feedback={syncSettings.feedback}
+              manualCurrencies={syncSettings.manualCurrencies}
+              manualFetchPending={syncSettings.manualFetchPending}
+              manualResults={syncSettings.manualResults}
+              pairInput={syncSettings.pairInput}
+              removePairPendingId={syncSettings.removePairPendingId}
+              settingsPending={syncSettings.settingsPending}
+              syncState={syncSettings.syncState}
+              onAddManualCurrency={syncSettings.handleAddManualCurrency}
+              onAddPair={syncSettings.handleAddPair}
+              onAutoSyncChange={syncSettings.handleAutoSyncChange}
+              onManualCurrencyChange={syncSettings.handleManualCurrencyChange}
+              onManualFetch={syncSettings.handleManualFetch}
+              onPairInputChange={syncSettings.setPairInput}
+              onRemoveManualCurrency={syncSettings.handleRemoveManualCurrency}
+              onRemovePair={syncSettings.handleRemovePair}
+            />
+          ) : null}
+
           <ExchangeRatesLatestSection
             filteredRowsCount={filteredLatestRows.length}
             pagination={latestPaginationState}
@@ -472,7 +512,7 @@ export function ExchangeRatesClient({
           />
 
           <ExchangeRatesHistorySection
-            canManage={canManage}
+            canManage={canManageDirectRates}
             deletePendingId={deletePendingId}
             filteredRowsCount={filteredHistoryRows.length}
             filters={filters}

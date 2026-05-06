@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import type { ReactNode } from "react";
 
 import dynamic from "next/dynamic";
-import { forbidden, notFound } from "next/navigation";
+import { forbidden, notFound, redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 
 import { AdminSectionPlaceholder } from "@/components/dashboard/admin-section-placeholder";
@@ -210,6 +210,10 @@ export default async function WorkspaceSectionPage({
     notFound();
   }
 
+  if (section === "exchange-rates" && config.routeSegment === "admin") {
+    redirect(`${config.basePath}/orders?tab=exchange-rates`);
+  }
+
   const namespaces = getSectionNamespaces(section, config);
   const sectionKey = getWorkspaceSectionKey(section);
   let content: ReactNode | null = null;
@@ -230,9 +234,14 @@ export default async function WorkspaceSectionPage({
       includeOrderCosts: config.pageVariants.orders === "admin",
       page: orderSearchParams.page,
     });
+    const initialExchangeRatesData =
+      config.pageVariants.orders === "admin"
+        ? await getExchangeRatesPageData(supabase, "manage")
+        : null;
 
     content = (
       <AdminOrdersClient
+        initialExchangeRatesData={initialExchangeRatesData}
         initialData={initialData}
         mode={config.pageVariants.orders}
       />
@@ -347,6 +356,10 @@ function getSectionNamespaces(
 
   if (section === "orders" && config.pageVariants.orders) {
     namespaces.push("Orders", "OrdersUI", "DashboardPagination", "DashboardShared");
+
+    if (config.pageVariants.orders === "admin") {
+      namespaces.push("ExchangeRates");
+    }
   }
 
   if (section === "announcements" && config.pageVariants.announcements) {

@@ -4,6 +4,10 @@ import {
   type AdminOrderSupplementaryDetail,
   type CreateAdminOrderInput,
 } from "@/lib/admin-orders";
+import {
+  findTodayCnyExchangeRate,
+  type ExchangeRateRow,
+} from "@/lib/exchange-rates";
 
 import { normalizeOptionalString } from "../dashboard-shared-ui";
 
@@ -33,11 +37,12 @@ export type OrderFormState = {
 };
 
 export function createOrderFormState(defaults?: {
+  originalCurrency?: string;
   orderEntryUser?: string;
   orderType?: string;
 }): OrderFormState {
   return {
-    originalCurrency: "",
+    originalCurrency: defaults?.originalCurrency ?? "USD",
     amount: "",
     dailyExchangeRate: "",
     transactionRate: "",
@@ -100,6 +105,23 @@ export function applyOrderFormDefaults(
     ...formState,
     orderEntryUser: formState.orderEntryUser || defaults.orderEntryUser,
     orderType: formState.orderType || defaults.orderType,
+  };
+}
+
+export function applyTodayExchangeRateToOrderForm(
+  formState: OrderFormState,
+  todayExchangeRates: ExchangeRateRow[],
+) {
+  const rate = findTodayCnyExchangeRate(
+    todayExchangeRates,
+    formState.originalCurrency,
+  );
+  const dailyExchangeRate = formatEditableNumericValue(rate?.daily_exchange_rate);
+
+  return {
+    ...formState,
+    dailyExchangeRate,
+    transactionRate: deriveTransactionRateValue(dailyExchangeRate),
   };
 }
 

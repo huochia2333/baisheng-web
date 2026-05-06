@@ -27,6 +27,10 @@ import {
   normalizePositiveInteger,
   normalizeSearchText,
 } from "./value-normalizers";
+import {
+  getTodayCnyExchangeRates,
+  type ExchangeRateRow,
+} from "./exchange-rates";
 
 export type AdminOrderRow = {
   id: string;
@@ -202,6 +206,7 @@ export type AdminOrdersPageData = {
     pending: number;
     total: number;
   };
+  todayExchangeRates: ExchangeRateRow[];
   totalOrdersCount: number;
   userOptions: OrderUserOption[];
 };
@@ -338,6 +343,7 @@ export async function getAdminOrdersPageData(
     totalOrdersCount,
     pendingOrdersCount,
     completedOrdersCount,
+    todayExchangeRates,
   ] = await Promise.all([
     getOrderUserOptions(supabase),
     getOrderTypeOptions(supabase),
@@ -347,6 +353,7 @@ export async function getAdminOrdersPageData(
     getAdminOrderCount(supabase),
     getAdminOrderCount(supabase, { orderStatus: "pending" }),
     getAdminOrderCount(supabase, { orderStatus: "completed" }),
+    getTodayCnyExchangeRates(supabase),
   ]);
 
   const orderEntryUserFilter = resolveAdminOrderUserFilter(
@@ -394,6 +401,7 @@ export async function getAdminOrdersPageData(
         pending: pendingOrdersCount,
         total: totalOrdersCount,
       },
+      todayExchangeRates,
       totalOrdersCount,
       userOptions,
     };
@@ -430,6 +438,7 @@ export async function getAdminOrdersPageData(
       pending: pendingOrdersCount,
       total: totalOrdersCount,
     },
+    todayExchangeRates,
     totalOrdersCount,
     userOptions,
   };
@@ -873,6 +882,7 @@ function createEmptyAdminOrdersPageData(options: {
       pending: 0,
       total: 0,
     },
+    todayExchangeRates: [],
     totalOrdersCount: 0,
     userOptions: [],
   };

@@ -21,6 +21,7 @@ export { flattenOrderDetailItems } from "./admin-orders-details";
 export { toOrderErrorMessage } from "./admin-orders-errors";
 export {
   applyOrderFormDefaults,
+  applyTodayExchangeRateToOrderForm,
   createOrderFormState,
   createOrderFormStateFromOrder,
   deriveTransactionRateValue,
