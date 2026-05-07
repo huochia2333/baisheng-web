@@ -141,6 +141,14 @@ baisheng-web/
 - Web 端上传尺寸已统一收紧：个人照片、任务附件、提审附件中的图片需小于 `5 MB`，视频需小于 `30 MB`，其余文件维持 `20 MB` 单文件上限，总体积限制仍按各模块原有规则执行
 - `lib/task-attachment-policy.ts` 是任务发布附件和任务提审附件的共同来源，统一维护允许类型、体积校验、存储路径和失败清理；前端提示、任务发布和审核提交流程需要保持一致，不要再分别复制一份上传规则
 
+### 个人照片智能初审（2026-05-07）
+
+- 个人照片上传后会写入 `user_media_image_ai_reviews` 初审记录，并由 `user-media-image-review` Edge Function 处理；当前供应商默认 `disabled`，不会调用外部 AI，也不会凭空自动通过
+- 初审接口按可替换供应商设计，后续接入阿里云、腾讯云或火山引擎时只替换 provider adapter；低风险照片可由系统自动通过，高风险、失败或未配置时仍进入管理员人工审核
+- `pending_user_media_assets` 会返回初审状态，管理员媒体审核列表展示“智能初审”结果，但用户可见文案不暴露供应商、模型、表名或接口细节
+- `user-media-mutate` 只在照片上传成功后触发初审请求；触发失败不会影响上传成功，照片仍保留在人工审核队列
+- `pg_cron` 每 10 分钟兜底请求一次 `user-media-image-review`，处理仍在排队或失败状态的照片初审记录
+
 ### `dashboard-shared-my` 模块分层（2026-04-27）
 
 - `dashboard-shared-my-client.tsx`：只保留“我的”页主结构编排、资料卡片区、媒体入口卡片、隐藏上传输入和弹窗挂载点，当前已控制在 400 行以内
@@ -206,7 +214,9 @@ baisheng-web/
 
 - `admin-reviews-client.tsx`：只负责审核工作台编排、tab 切换和组件组装
 - `use-admin-reviews-page.ts`：负责隐私审核、媒体审核、任务审核和提审附件打开动作
-- `admin-reviews-ui.tsx`：保留隐私/媒体审核列表、媒体预览弹窗和共享摘要卡
+- `admin-reviews-ui.tsx`：只保留隐私审核列表和加载态，不再承载媒体预览或媒体表格
+- `media-review-list.tsx`：单独承接媒体审核列表、媒体预览弹窗和智能初审状态展示
+- `admin-reviews-shared-ui.tsx`：集中承接审核列表共享单元格、操作按钮和用户显示名格式化
 - `task-review-list.tsx`：单独承接任务审核列表，避免把任务提审展示继续堆进现有审核 UI 文件
 
 ### `commission` 模块分层（2026-04-23）
@@ -279,6 +289,7 @@ DEEPSEEK_MODEL=deepseek-v4-flash
 - `NEXT_PUBLIC_*` 用于浏览器端和 SSR 访问 Supabase
 - `SUPABASE_SERVICE_ROLE_KEY` 只允许服务端脚本或受控管理任务使用，不能暴露到前端
 - `EXCHANGE_RATE_API_KEY` 只配置为 Supabase Edge Function secret，用于自动和手动获取当日汇率
+- `USER_MEDIA_IMAGE_REVIEW_PROVIDER` 只配置为 Supabase Edge Function secret，默认 `disabled`；真实内容安全供应商密钥也只放在 Supabase Function secrets 中
 - `DEEPSEEK_API_KEY` 只在 Next.js 服务端接口中使用，用于登录后右下角的柏盛助手
 - `DEEPSEEK_BASE_URL` 和 `DEEPSEEK_MODEL` 用于切换 DeepSeek 接入地址和模型，默认使用 `https://api.deepseek.com` 与 `deepseek-v4-flash`
 - `.env.local` 不应提交到仓库

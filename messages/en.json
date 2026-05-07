@@ -1088,10 +1088,20 @@
       "image": "Image",
       "videoPreview": "Video Preview",
       "imagePreview": "Image Preview",
+      "aiReview": {
+        "queued": "Waiting for smart check",
+        "processing": "Checking now",
+        "manualReview": "Needs manual review",
+        "failed": "Smart check unavailable",
+        "videoSkipped": "Manual review only",
+        "notConfigured": "Manual review for now",
+        "autoPass": "Ready to pass"
+      },
       "columns": {
         "preview": "Preview",
         "name": "User Name",
         "email": "Email",
+        "aiReview": "Smart Check",
         "actions": "Actions"
       }
     },

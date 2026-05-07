@@ -27,6 +27,14 @@ const SIGNED_URL_TTL_SECONDS = 60 * 60;
 const SIGNED_URL_CONCURRENCY = 4;
 const REVIEW_MUTATION_TIMEOUT_MS = 30_000;
 const REVIEW_MUTATION_TIMEOUT_MESSAGE = "Review action timed out. Please try again.";
+const PENDING_MEDIA_REVIEW_SELECT =
+  "asset_id,user_id,name,email,kind,bucket_name,storage_path,original_name,mime_type,file_size_bytes,status,created_at,ai_review_status,ai_review_decision,ai_review_risk_score,ai_review_reasons,ai_review_provider,ai_review_model,ai_review_completed_at,ai_review_error_message";
+const PENDING_MEDIA_REVIEW_LEGACY_SELECT =
+  "asset_id,user_id,name,email,kind,bucket_name,storage_path,original_name,mime_type,file_size_bytes,status,created_at";
+const AI_REVIEW_NOT_CONFIGURED_REASON = "not_configured";
+
+export type AiImageReviewStatus = "queued" | "processing" | "completed" | "failed";
+export type AiImageReviewDecision = "auto_pass" | "manual_review";
 
 export type PendingPrivacyReviewRow = {
   request_id: string;
@@ -53,7 +61,27 @@ export type PendingMediaReviewRow = {
   file_size_bytes: number;
   status: PrivacyRequestStatus;
   created_at: string;
+  ai_review_status: AiImageReviewStatus | null;
+  ai_review_decision: AiImageReviewDecision | null;
+  ai_review_risk_score: number | null;
+  ai_review_reasons: string[] | null;
+  ai_review_provider: string | null;
+  ai_review_model: string | null;
+  ai_review_completed_at: string | null;
+  ai_review_error_message: string | null;
 };
+
+type PendingMediaReviewLegacyRow = Omit<
+  PendingMediaReviewRow,
+  | "ai_review_status"
+  | "ai_review_decision"
+  | "ai_review_risk_score"
+  | "ai_review_reasons"
+  | "ai_review_provider"
+  | "ai_review_model"
+  | "ai_review_completed_at"
+  | "ai_review_error_message"
+>;
 
 export type PendingMediaReviewWithPreview = PendingMediaReviewRow & {
   previewUrl: string | null;
@@ -139,6 +167,52 @@ function parseRpcRow<T>(
   throw new Error(`Unexpected RPC response from ${rpcName}.`);
 }
 
+function isMissingAiReviewFieldsError(error: unknown) {
+  const message = isRecord(error) && typeof error.message === "string" ? error.message : "";
+
+  return (
+    message.includes("ai_review_") ||
+    message.includes("PENDING_MEDIA_REVIEW_SELECT") ||
+    (message.includes("schema cache") && message.includes("pending_user_media_assets"))
+  );
+}
+
+function withManualAiReviewFallback(row: PendingMediaReviewLegacyRow): PendingMediaReviewRow {
+  return {
+    ...row,
+    ai_review_status: "completed",
+    ai_review_decision: "manual_review",
+    ai_review_risk_score: null,
+    ai_review_reasons: [AI_REVIEW_NOT_CONFIGURED_REASON],
+    ai_review_provider: "disabled",
+    ai_review_model: null,
+    ai_review_completed_at: null,
+    ai_review_error_message: null,
+  };
+}
+
+async function attachMediaPreviewUrls(
+  supabase: SupabaseClient,
+  rows: PendingMediaReviewRow[],
+) {
+  return withRequestTimeout(
+    mapWithConcurrencyLimit(
+      rows,
+      SIGNED_URL_CONCURRENCY,
+      async (row) => {
+        const { data: signedUrlData, error: signedUrlError } = await supabase.storage
+          .from(row.bucket_name)
+          .createSignedUrl(row.storage_path, SIGNED_URL_TTL_SECONDS);
+
+        return {
+          ...row,
+          previewUrl: signedUrlError ? null : (signedUrlData?.signedUrl ?? null),
+        } satisfies PendingMediaReviewWithPreview;
+      },
+    ),
+  );
+}
+
 export async function getCurrentReviewerContext(
   supabase: SupabaseClient,
 ): Promise<{ user: User; role: AppRole | null } | null> {
@@ -212,37 +286,37 @@ export async function getPendingPrivacyReviews(
 export async function getPendingMediaReviews(
   supabase: SupabaseClient,
 ): Promise<PendingMediaReviewWithPreview[]> {
-  const { data, error } = await withRequestTimeout(
+  const result = await withRequestTimeout(
     supabase
       .from("pending_user_media_assets")
-      .select(
-        "asset_id,user_id,name,email,kind,bucket_name,storage_path,original_name,mime_type,file_size_bytes,status,created_at",
-      )
+      .select(PENDING_MEDIA_REVIEW_SELECT)
       .order("created_at", { ascending: false })
       .returns<PendingMediaReviewRow[]>(),
   );
 
-  if (error) {
-    throw error;
+  if (!result.error) {
+    return attachMediaPreviewUrls(supabase, result.data ?? []);
   }
 
-  const rows = data ?? [];
+  if (!isMissingAiReviewFieldsError(result.error)) {
+    throw result.error;
+  }
 
-  return withRequestTimeout(
-    mapWithConcurrencyLimit(
-      rows,
-      SIGNED_URL_CONCURRENCY,
-      async (row) => {
-        const { data: signedUrlData, error: signedUrlError } = await supabase.storage
-          .from(row.bucket_name)
-          .createSignedUrl(row.storage_path, SIGNED_URL_TTL_SECONDS);
+  const { data: legacyData, error: legacyError } = await withRequestTimeout(
+    supabase
+      .from("pending_user_media_assets")
+      .select(PENDING_MEDIA_REVIEW_LEGACY_SELECT)
+      .order("created_at", { ascending: false })
+      .returns<PendingMediaReviewLegacyRow[]>(),
+  );
 
-        return {
-          ...row,
-          previewUrl: signedUrlError ? null : (signedUrlData?.signedUrl ?? null),
-        } satisfies PendingMediaReviewWithPreview;
-      },
-    ),
+  if (legacyError) {
+    throw legacyError;
+  }
+
+  return attachMediaPreviewUrls(
+    supabase,
+    (legacyData ?? []).map(withManualAiReviewFallback),
   );
 }
 

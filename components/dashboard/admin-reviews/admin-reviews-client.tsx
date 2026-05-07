@@ -15,11 +15,8 @@ import { DashboardSegmentedTabs } from "@/components/dashboard/dashboard-segment
 import { DashboardSectionHeader } from "@/components/dashboard/dashboard-section-header";
 import { DashboardListSection } from "@/components/dashboard/dashboard-section-panel";
 import { EmptyState, PageBanner } from "@/components/dashboard/dashboard-shared-ui";
-import {
-  MediaPreviewDialog,
-  MediaReviewList,
-  PrivacyReviewList,
-} from "./admin-reviews-ui";
+import { PrivacyReviewList } from "./admin-reviews-ui";
+import { MediaPreviewDialog, MediaReviewList } from "./media-review-list";
 import { ProfileChangeReviewList } from "./profile-change-review-list";
 import { TaskReviewList } from "./task-review-list";
 import { useAdminReviewsPage } from "./use-admin-reviews-page";

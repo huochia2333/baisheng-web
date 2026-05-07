@@ -1088,10 +1088,20 @@
       "image": "图片",
       "videoPreview": "视频预览",
       "imagePreview": "图片预览",
+      "aiReview": {
+        "queued": "等待智能初审",
+        "processing": "正在初审",
+        "manualReview": "需要人工复核",
+        "failed": "智能初审暂不可用",
+        "videoSkipped": "仅人工审核",
+        "notConfigured": "当前先由人工审核",
+        "autoPass": "可自动通过"
+      },
       "columns": {
         "preview": "媒体缩略图",
         "name": "用户名",
         "email": "邮箱",
+        "aiReview": "智能初审",
         "actions": "操作"
       }
     },
