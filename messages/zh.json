@@ -292,7 +292,17 @@
       "inputLabel": "问题内容",
       "send": "发送",
       "thinking": "正在回复",
-      "serviceUnavailable": "助手暂时没有回复成功，请稍后再试。"
+      "serviceUnavailable": "助手暂时没有回复成功，请稍后再试。",
+      "feedbackAction": "提交反馈",
+      "feedbackErrorDescription": "如果这个问题一直没有解决，可以把刚才的情况提交给管理员查看。",
+      "feedbackExplicitDescription": "你可以直接把这个问题提交给管理员查看，不用再去找反馈入口。",
+      "feedbackUnableDescription": "这件事需要人工确认，可以把刚才的对话提交给管理员查看。",
+      "feedbackDraftTitle": "柏盛助手没有解决我的问题",
+      "feedbackDraftIntro": "我在使用柏盛助手时遇到这个问题：",
+      "feedbackDraftUserQuestionLabel": "我的问题：",
+      "feedbackDraftAssistantLabel": "助手回复：",
+      "feedbackDraftErrorLabel": "当前情况：",
+      "feedbackDraftExpectation": "希望管理员协助确认或处理。"
     },
     "nav": {
       "home": "首页",

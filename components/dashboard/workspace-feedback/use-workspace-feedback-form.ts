@@ -24,6 +24,7 @@ type UseWorkspaceFeedbackFormOptions = {
     success: string;
   };
 };
+type WorkspaceFeedbackDraft = Partial<WorkspaceFeedbackFormState>;
 
 const SUCCESS_MESSAGE_VISIBLE_MS = 4_000;
 
@@ -52,9 +53,13 @@ export function useWorkspaceFeedbackForm({
     return () => window.clearTimeout(timeoutId);
   }, [successMessage]);
 
-  const openDialog = useCallback(() => {
+  const openDialog = useCallback((draft?: WorkspaceFeedbackDraft) => {
     setSuccessMessage(null);
     setDialogFeedback(null);
+    setFormState({
+      ...createEmptyWorkspaceFeedbackForm(),
+      ...draft,
+    });
     setDialogOpen(true);
   }, []);
 

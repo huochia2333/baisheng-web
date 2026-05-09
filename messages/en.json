@@ -292,7 +292,17 @@
       "inputLabel": "Question",
       "send": "Send",
       "thinking": "Replying",
-      "serviceUnavailable": "The assistant could not reply. Please try again later."
+      "serviceUnavailable": "The assistant could not reply. Please try again later.",
+      "feedbackAction": "Send Feedback",
+      "feedbackErrorDescription": "If this problem keeps blocking you, send the recent details to an administrator for review.",
+      "feedbackExplicitDescription": "You can send this problem to an administrator from here without looking for the feedback button.",
+      "feedbackUnableDescription": "This needs someone to confirm it. You can send the recent conversation to an administrator for review.",
+      "feedbackDraftTitle": "Baisheng Assistant did not solve my problem",
+      "feedbackDraftIntro": "I ran into this while using Baisheng Assistant:",
+      "feedbackDraftUserQuestionLabel": "My question: ",
+      "feedbackDraftAssistantLabel": "Assistant reply: ",
+      "feedbackDraftErrorLabel": "Current situation: ",
+      "feedbackDraftExpectation": "Please help confirm or handle it."
     },
     "nav": {
       "home": "Home",

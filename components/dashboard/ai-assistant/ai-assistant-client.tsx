@@ -10,6 +10,7 @@ import { useTranslations } from "next-intl";
 import { useLocale } from "@/components/i18n/locale-provider";
 import type { AiAssistantLocale } from "@/lib/ai-assistant/assistant-types";
 
+import { AiAssistantFeedbackBridge } from "./ai-assistant-feedback-bridge";
 import { AiAssistantPanel } from "./ai-assistant-panel";
 import { useAiAssistantChat } from "./use-ai-assistant-chat";
 
@@ -22,6 +23,18 @@ export function AiAssistantClient() {
   const copy = useMemo(
     () => ({
       close: t("close"),
+      feedbackEntry: {
+        action: t("feedbackAction"),
+        assistantReplyLabel: t("feedbackDraftAssistantLabel"),
+        draftExpectation: t("feedbackDraftExpectation"),
+        draftIntro: t("feedbackDraftIntro"),
+        draftTitle: t("feedbackDraftTitle"),
+        errorDescription: t("feedbackErrorDescription"),
+        errorLabel: t("feedbackDraftErrorLabel"),
+        explicitDescription: t("feedbackExplicitDescription"),
+        unableDescription: t("feedbackUnableDescription"),
+        userQuestionLabel: t("feedbackDraftUserQuestionLabel"),
+      },
       greeting: t("greeting"),
       inputLabel: t("inputLabel"),
       open: t("open"),
@@ -62,33 +75,42 @@ export function AiAssistantClient() {
   }, [open]);
 
   return (
-    <>
-      <AnimatePresence>
-        {open ? (
-          <AiAssistantPanel
-            copy={copy}
-            errorMessage={chat.errorMessage}
-            input={chat.input}
-            messages={chat.messages}
-            onClose={() => setOpen(false)}
-            onInputChange={chat.setInput}
-            onReset={chat.reset}
-            onSend={chat.sendMessage}
-            pending={chat.pending}
-          />
-        ) : null}
-      </AnimatePresence>
+    <AiAssistantFeedbackBridge>
+      {({ openFeedback }) => (
+        <>
+          <AnimatePresence>
+            {open ? (
+              <AiAssistantPanel
+                copy={copy}
+                errorMessage={chat.errorMessage}
+                input={chat.input}
+                messages={chat.messages}
+                onClose={() => setOpen(false)}
+                onInputChange={chat.setInput}
+                onOpenFeedback={openFeedback}
+                onReset={chat.reset}
+                onSend={chat.sendMessage}
+                pending={chat.pending}
+              />
+            ) : null}
+          </AnimatePresence>
 
-      <motion.button
-        aria-expanded={open}
-        aria-label={copy.open}
-        className="fixed bottom-4 right-4 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-[#486782] text-white shadow-[0_16px_34px_rgba(35,49,58,0.24)] transition hover:bg-[#3e5f79] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#bfd2e1]/50 sm:bottom-6 sm:right-6"
-        onClick={() => setOpen((current) => !current)}
-        type="button"
-        whileTap={{ scale: 0.94 }}
-      >
-        {open ? <Bot className="size-6" /> : <MessageCircle className="size-6" />}
-      </motion.button>
-    </>
+          <motion.button
+            aria-expanded={open}
+            aria-label={copy.open}
+            className="fixed bottom-4 right-4 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-[#486782] text-white shadow-[0_16px_34px_rgba(35,49,58,0.24)] transition hover:bg-[#3e5f79] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#bfd2e1]/50 sm:bottom-6 sm:right-6"
+            onClick={() => setOpen((current) => !current)}
+            type="button"
+            whileTap={{ scale: 0.94 }}
+          >
+            {open ? (
+              <Bot className="size-6" />
+            ) : (
+              <MessageCircle className="size-6" />
+            )}
+          </motion.button>
+        </>
+      )}
+    </AiAssistantFeedbackBridge>
   );
 }

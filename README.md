@@ -89,8 +89,8 @@ baisheng-web/
 说明：
 
 - `components/dashboard` 已按功能拆分；根目录只保留工作台壳层和共享 UI
-- `components/dashboard/workspace-feedback` 承接所有登录用户的顶部反馈弹窗；`components/dashboard/admin-feedback` 承接管理员反馈列表、筛选和状态调整
-- `components/dashboard/ai-assistant` 承接登录后右下角柏盛助手浮窗、打开/关闭动效、聊天状态、流式消息展示和“新对话”二次确认；`AdminShell` 只负责挂载入口，不承载助手对话逻辑
+- `components/dashboard/workspace-feedback` 承接所有登录用户的顶部反馈弹窗、反馈文案和提交成功提示；`components/dashboard/admin-feedback` 承接管理员反馈列表、筛选和状态调整
+- `components/dashboard/ai-assistant` 承接登录后右下角柏盛助手浮窗、打开/关闭动效、聊天状态、流式消息展示、“新对话”二次确认和助手答不上来时的反馈入口衔接；`AdminShell` 只负责挂载入口，不承载助手对话逻辑
 - `lib/ai-assistant` 承接柏盛管理系统助手提示词、请求类型和 DeepSeek 服务端流式调用；第一版只做工作台问答引导，不读取或改动订单、人员、任务等业务数据
 - `components/dashboard/dashboard-section-header.tsx` 统一承接各业务板块页头；新增订单、任务、团队、佣金、汇率、审核、公告、推荐树等板块时，优先复用它传入标题、说明、指标和操作按钮，避免在业务 Client/Page 中重复堆页头布局
 - `components/dashboard/dashboard-section-panel.tsx` 统一承接筛选面板、列表面板、列表标题和表格外框；新增带筛选或清单的板块时，优先复用它保持间距、边框、阴影和响应式结构一致
@@ -376,9 +376,10 @@ npm run supabase:admin -- summary
 ## 问题反馈与改进建议（2026-05-06）
 
 - 所有正常登录用户可以从工作区顶部“反馈”按钮提交问题反馈或改进建议；第一版只收集文字说明，不上传截图或附件，也不展示用户历史。
+- 柏盛助手在回复失败、无法确认或用户明确表达要反馈问题时，会在助手内直接显示“提交反馈”入口，并预填刚才的问题和助手回复，用户无需再去顶部寻找反馈按钮。
 - 反馈数据由 Supabase `workspace_feedback` 承接，普通用户通过受控提交函数写入，管理员通过 `/admin/feedback` 查看并调整处理状态。
 - 管理员反馈页支持搜索、类型筛选、状态筛选和状态切换；其他角色不会显示左侧反馈管理入口，直接访问也会进入当前访问错误页。
-- 前端分层保持拆分：`lib/workspace-feedback.ts` 承接查询与状态更新，`components/dashboard/workspace-feedback/` 承接全局提交弹窗，`components/dashboard/admin-feedback/` 承接管理员列表、筛选和显示工具。
+- 前端分层保持拆分：`lib/workspace-feedback.ts` 承接查询与状态更新，`components/dashboard/workspace-feedback/` 承接全局提交弹窗、反馈文案与成功提示，`components/dashboard/ai-assistant/ai-assistant-feedback-*` 承接助手到反馈的衔接，`components/dashboard/admin-feedback/` 承接管理员列表、筛选和显示工具。
 - 最近验证：`npm run lint`、`npx tsc --noEmit`、`npm run build` 通过；`20260506113000_add_workspace_feedback.sql` 已推送到 Supabase 远端；Playwright 覆盖业务员提交反馈、管理员查看并改为“处理中”、业务员直接访问 `/admin/feedback` 显示访问错误页。
 
 ## 人员管理（2026-04-28）

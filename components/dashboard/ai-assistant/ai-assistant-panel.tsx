@@ -15,10 +15,16 @@ import { AnimatePresence, motion } from "motion/react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
+import type { AiAssistantOpenFeedback } from "./ai-assistant-feedback-bridge";
+import {
+  AiAssistantFeedbackEntry,
+  type AiAssistantFeedbackEntryCopy,
+} from "./ai-assistant-feedback-entry";
 import type { AiAssistantUiMessage } from "./use-ai-assistant-chat";
 
 type AiAssistantPanelCopy = {
   close: string;
+  feedbackEntry: AiAssistantFeedbackEntryCopy;
   inputLabel: string;
   placeholder: string;
   reset: string;
@@ -36,6 +42,7 @@ type AiAssistantPanelProps = {
   input: string;
   messages: AiAssistantUiMessage[];
   onClose: () => void;
+  onOpenFeedback: AiAssistantOpenFeedback;
   onInputChange: (value: string) => void;
   onReset: () => void;
   onSend: () => void;
@@ -48,6 +55,7 @@ export function AiAssistantPanel({
   input,
   messages,
   onClose,
+  onOpenFeedback,
   onInputChange,
   onReset,
   onSend,
@@ -165,6 +173,13 @@ export function AiAssistantPanel({
             {errorMessage}
           </div>
         ) : null}
+
+        <AiAssistantFeedbackEntry
+          copy={copy.feedbackEntry}
+          errorMessage={errorMessage}
+          messages={messages}
+          onOpenFeedback={onOpenFeedback}
+        />
 
         <div ref={messageEndRef} />
       </div>
