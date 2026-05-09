@@ -423,3 +423,10 @@ Supabase Auth 建议配置：
 
 - [web项目说明及推送流程.md](D:/code/code-project/web项目说明及推送流程.md)
 - [SUPABASE操作指南.md](D:/code/code-project/SUPABASE操作指南.md)
+
+## 腾讯云图片初审接入（2026-05-09）
+
+- `user-media-image-review` 支持 `USER_MEDIA_IMAGE_REVIEW_PROVIDER=tencent`，用于把个人照片接入腾讯云图片内容安全同步检测。
+- 当前实现使用腾讯云 `ImageModeration` 的 `FileContent` 入参：Edge Function 先读取 Supabase 私有图片并转为 Base64，再提交给腾讯云，避免依赖图片公网直链。
+- Function secrets 需要配置 `TENCENT_SECRET_ID`、`TENCENT_SECRET_KEY`、`TENCENT_IMAGE_BIZ_TYPE`，可选配置 `TENCENT_IMAGE_REGION`，默认区域为 `ap-guangzhou`，默认 BizType 为 `personal_photo_review`。
+- 腾讯云返回 `Pass` 时系统自动通过照片；返回 `Review`、`Block`、调用失败或密钥未配置时，照片继续进入人工审核。
