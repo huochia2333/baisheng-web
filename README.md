@@ -21,8 +21,9 @@
 - `app/(auth)`：公开页与认证页，包含 `/`、`/login`、`/register`、`/forgot-password`、`/privacy`、`/terms`、`/help`
 - `app/(workspace)/[workspace]/home`：各角色登录后的默认首页，展示北京时间问候和当前角色可见公告
 - `app/(workspace)/[workspace]/my`：各角色共享“我的”个人资料页面入口
-- `app/(workspace)/[workspace]/[section]`：按角色动态装配公告管理、订单、推荐树、团队、人员管理、佣金、任务、审核、反馈管理等页面；管理员汇率设置整合在订单页内
+- `app/(workspace)/[workspace]/[section]`：按角色动态装配公告管理、订单、推荐树、团队、人员管理、操作记录、佣金、任务、审核、反馈管理等页面；管理员汇率设置整合在订单页内
 - `app/forbidden.tsx`：统一承接越权访问时的访问错误页
+- `app/error.tsx`、`app/global-error.tsx`：统一承接页面异常，使用不依赖接口或翻译上下文的日常语言兜底文案
 - `proxy.ts`：会话同步、登录保护、工作台访问前置校验
 - `lib/workspace-config.ts`：角色导航、页面变体和工作台配置中心
 - `lib/auth-routing.ts`：角色与工作台 base path 的映射
@@ -33,7 +34,7 @@
 
 | 角色 | 默认入口 | 当前重点模块 |
 | --- | --- | --- |
-| `administrator` | `/admin/home` | `home`、`announcements`、`orders`（含汇率设置）、`referrals`、`team`、`people`、`commission`、`tasks`、`reviews`、`feedback` |
+| `administrator` | `/admin/home` | `home`、`announcements`、`orders`（含汇率设置）、`referrals`、`team`、`people`、`records`、`commission`、`tasks`、`reviews`、`feedback` |
 | `salesman` | `/salesman/home` | `home`、`orders`、`referrals`、`team`、`commission`、`exchange-rates`、`tasks` |
 | `client` | `/client/home` | `home`、`orders`、`referrals` |
 | `manager` | `/manager/home` | `home`、`referrals`、`team` |
@@ -60,6 +61,7 @@ baisheng-web/
 │  ├─ legal/
 │  └─ dashboard/
 │     ├─ admin-people/
+│     ├─ admin-operation-records/
 │     ├─ admin-feedback/
 │     ├─ admin-orders/
 │     ├─ admin-reviews/
@@ -133,6 +135,7 @@ baisheng-web/
 
 - `messages/zh.json` 和 `messages/en.json` 中的用户可见文案禁止暴露数据库表名、字段名、主键、同步请求、云端登录态等实现细节，应改为面向业务结果的表达
 - `components/dashboard/dashboard-shared-ui.tsx` 作为共享错误提示入口，需要把明显的数据库、存储、网络和服务端技术错误收敛成通用可读提示；具体模块如订单、任务、团队、汇率可再基于原始错误补充更细的业务映射
+- `app/error.tsx` 和 `app/global-error.tsx` 不能依赖可能在异常链路里缺失的上下文；即使页面加载失败，也只能展示“重试、刷新页面”等普通用户能理解的提示
 - 2026-04-27 补充：国际化文案不仅要避开数据库和接口词，还要继续清理 `JSON`、`task_sub`、`task-attachments`、`salesman` 角色码、`active` 状态码、`快照同步` 等工程术语，统一改成用户能直接理解的日常表达
 - 2026-04-28 补充：语言切换、登录跳转等会引起页面刷新或路由跳转的操作，点击后必须立即展示等待状态，并在切换或跳转完成前禁止重复点击
 
@@ -202,6 +205,13 @@ baisheng-web/
 - 任务状态目前覆盖 `to_be_accepted -> accepted -> reviewing -> rejected/completed`，其中管理员发布附件仍记录在 `task_sub`，执行人提交审核成果则单独进入 `task_review_submissions` / `task_review_submission_assets`
 - 任务主表同时写入 `task_type_code` 与 `commission_amount_rmb`，当前内置 `video_shoot` 类型，后续可以继续扩展更多任务类型
 - 任务审核通过后会同步写入 `task_commission_record`，任务佣金与订单佣金并行展示，但不复用订单佣金表结构
+
+### 全局操作记录（2026-05-08）
+
+- 管理员工作台新增 `/admin/records` 操作记录入口，第一版聚合账号调整、资料修改审核和反馈处理状态这些已有留痕，不改变现有审核中心的待办处理流程
+- 数据读取集中在 `lib/admin-operation-records.ts`，通过现有 `admin_user_account_change_logs`、`user_profile_change_requests` 和 `workspace_feedback` 汇总最近关键动作；本次不新增数据库表，也不要求 Supabase 迁移
+- 前端新增 `components/dashboard/admin-operation-records/`，按 client、view-model、sections、display 拆分，支持按记录类型、处理动作和搜索词筛选
+- 操作记录用于事后核对“谁在什么时候处理了什么”，现有 `/admin/reviews` 继续负责待审核队列；后续订单、佣金、团队、公告等关键动作可继续接入这个记录中心
 
 ### `salesman-tasks` 模块分层（2026-04-22）
 
@@ -299,8 +309,12 @@ DEEPSEEK_MODEL=deepseek-v4-flash
 ```bash
 npm run dev
 npm run lint
+npm run typecheck
 npm run build
 npm run start
+npm run test:e2e
+npm run test:e2e:ui
+npm run test:regression
 npm run clean:artifacts
 npm run clean:cache
 npm run clean:all
@@ -313,6 +327,14 @@ npm run supabase:admin -- summary
 - `npm run clean:cache`：清理 `.next` 和 `tsconfig.tsbuildinfo`
 - `npm run clean:all`：同时执行产物清理和缓存清理
 - `npm run supabase:admin -- summary`：查看订单、汇率等表的概览
+
+## 自动化回归测试（2026-05-08）
+
+- `playwright.config.ts` 是自动化回归入口，默认使用 `http://127.0.0.1:3000`，会在本地自动启动 `npm run dev -- --hostname 127.0.0.1`；如果已有服务，可设置 `PLAYWRIGHT_SKIP_WEB_SERVER=1` 并用 `PLAYWRIGHT_BASE_URL` 指定地址
+- 第一版回归测试位于 `tests/e2e`，覆盖登录、角色首页、越权拦截和关键工作区入口；当前只做只读验证，不创建订单、不提交审核、不删除数据
+- 测试账号优先读取 `E2E_ADMIN_EMAIL` / `E2E_ADMIN_PASSWORD`、`E2E_SALESMAN_EMAIL` / `E2E_SALESMAN_PASSWORD`、`E2E_CLIENT_EMAIL` / `E2E_CLIENT_PASSWORD`、`E2E_FINANCE_EMAIL` / `E2E_FINANCE_PASSWORD`；未设置时会读取本机 `D:\code\code-project\测试账号.txt`
+- 回归产物输出到 `output/playwright-results` 和 `output/playwright-report`，仍属于本地临时验证产物，不提交到仓库
+- 完整上传前建议执行 `npm run test:regression`，它会依次运行 lint、typecheck、build 和 Playwright 回归测试；日常开发可只运行 `npm run test:e2e`
 
 ## 构建与本地产物
 

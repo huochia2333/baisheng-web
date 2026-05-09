@@ -306,7 +306,8 @@
       "exchangeRates": "汇率",
       "tasks": "任务",
       "reviews": "审核",
-      "feedback": "反馈管理"
+      "feedback": "反馈管理",
+      "records": "操作记录"
     },
     "roles": {
       "admin": {
@@ -1861,6 +1862,97 @@
         "filesHint": "最多上传 {maxFiles} 个文件，图片需小于 {imageMaxPerFile}，视频需小于 {videoMaxPerFile}，其他文件不超过 {otherMaxPerFile}，总计不超过 {maxTotal}。",
         "filesEmpty": "暂未选择任何提交文件。"
       }
+    }
+  },
+  "OperationRecords": {
+    "metadata": {
+      "title": "操作记录"
+    },
+    "header": {
+      "badge": "管理员专属",
+      "title": "操作记录",
+      "description": "集中查看账号调整、资料审核和反馈处理等关键动作，方便管理员回看谁在什么时候处理了什么。"
+    },
+    "summary": {
+      "total": "记录总数",
+      "account": "账号调整",
+      "profile": "资料审核",
+      "feedback": "反馈处理"
+    },
+    "states": {
+      "noPermissionTitle": "没有操作记录查看权限",
+      "noPermissionDescription": "只有正常启用的管理员账号可以查看系统操作记录。"
+    },
+    "filters": {
+      "search": "搜索记录",
+      "searchPlaceholder": "搜索人员、邮箱、处理内容、来源页面",
+      "category": "记录类型",
+      "action": "处理动作",
+      "allCategories": "全部类型",
+      "allActions": "全部动作"
+    },
+    "categories": {
+      "account": "账号调整",
+      "profile": "资料审核",
+      "feedback": "反馈处理"
+    },
+    "actions": {
+      "accountChanged": "调整账号",
+      "profileApproved": "通过资料修改",
+      "profileRejected": "拒绝资料修改",
+      "feedbackNew": "反馈待处理",
+      "feedbackInProgress": "反馈处理中",
+      "feedbackResolved": "反馈已处理",
+      "feedbackDeclined": "反馈不处理"
+    },
+    "list": {
+      "eyebrow": "全局记录",
+      "title": "最近操作",
+      "description": "这里先汇总已有留痕的关键动作，后续订单、佣金、团队和公告等模块可以继续接入。",
+      "emptyTitle": "暂无操作记录",
+      "emptyDescription": "有账号调整、资料审核或反馈处理后，记录会显示在这里。",
+      "columns": {
+        "time": "时间",
+        "category": "类型",
+        "action": "动作",
+        "subject": "对象",
+        "actor": "处理人",
+        "detail": "处理内容"
+      }
+    },
+    "detail": {
+      "roleChange": "身份：{from} -> {to}",
+      "statusChange": "状态：{from} -> {to}",
+      "nameChange": "姓名：{from} -> {to}",
+      "cityChange": "城市：{from} -> {to}",
+      "feedbackTitle": "反馈：{title}",
+      "feedbackStatus": "处理状态：{status}",
+      "feedbackSource": "来源：{path}",
+      "note": "备注：{note}",
+      "noNote": "未填写备注"
+    },
+    "roles": {
+      "administrator": "管理员",
+      "manager": "经理",
+      "operator": "运营",
+      "recruiter": "招聘员",
+      "salesman": "业务员",
+      "finance": "财务",
+      "client": "客户"
+    },
+    "statuses": {
+      "active": "正常",
+      "inactive": "未启用",
+      "suspended": "已停用"
+    },
+    "feedbackStatuses": {
+      "new": "新反馈",
+      "inProgress": "处理中",
+      "resolved": "已处理",
+      "declined": "不处理"
+    },
+    "fallback": {
+      "notProvided": "待补充"
     }
   },
   "AdminPeople": {

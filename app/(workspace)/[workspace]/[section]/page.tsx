@@ -15,6 +15,7 @@ import {
 import { getAdminCommissionPageData } from "@/lib/admin-commission";
 import { getAdminReviewsPageData } from "@/lib/admin-reviews";
 import { getAdminPeoplePageData } from "@/lib/admin-people";
+import { getAdminOperationRecordsPageData } from "@/lib/admin-operation-records";
 import { getAdminTasksPageData, parseAdminTasksSearchParams } from "@/lib/admin-tasks";
 import { getExchangeRatesPageData } from "@/lib/exchange-rates";
 import { getAdminWorkspaceFeedbackPageData } from "@/lib/workspace-feedback";
@@ -72,6 +73,13 @@ const AdminPeopleClient = dynamic(
     import("@/components/dashboard/admin-people/admin-people-client").then(
       (mod) => mod.AdminPeopleClient,
     ),
+);
+
+const AdminOperationRecordsClient = dynamic(
+  () =>
+    import(
+      "@/components/dashboard/admin-operation-records/admin-operation-records-client"
+    ).then((mod) => mod.AdminOperationRecordsClient),
 );
 
 const AdminReviewsClient = dynamic(
@@ -179,6 +187,14 @@ export async function generateMetadata({
 
   if (section === "people" && config.pageVariants.people) {
     const t = await getTranslations("AdminPeople.metadata");
+
+    return {
+      title: t("title"),
+    };
+  }
+
+  if (section === "records" && config.pageVariants.records) {
+    const t = await getTranslations("OperationRecords.metadata");
 
     return {
       title: t("title"),
@@ -310,6 +326,10 @@ export default async function WorkspaceSectionPage({
     const supabase = await getServerSupabaseClient();
     const initialData = await getAdminPeoplePageData(supabase);
     content = <AdminPeopleClient initialData={initialData} />;
+  } else if (section === "records" && config.pageVariants.records) {
+    const supabase = await getServerSupabaseClient();
+    const initialData = await getAdminOperationRecordsPageData(supabase);
+    content = <AdminOperationRecordsClient initialData={initialData} />;
   } else if (section === "referrals" && config.pageVariants.referrals) {
     const supabase = await getServerSupabaseClient();
     const initialData = await getReferralsPageData(supabase);
@@ -359,6 +379,8 @@ function isWorkspaceSectionEnabled(
       return Boolean(config.pageVariants.orders);
     case "people":
       return config.pageVariants.people === true;
+    case "records":
+      return config.pageVariants.records === true;
     case "referrals":
       return config.pageVariants.referrals === true;
     case "reviews":
@@ -416,6 +438,10 @@ function getSectionNamespaces(
 
   if (section === "people" && config.pageVariants.people) {
     namespaces.push("AdminPeople", "DashboardShared");
+  }
+
+  if (section === "records" && config.pageVariants.records) {
+    namespaces.push("OperationRecords", "DashboardShared");
   }
 
   if (section === "referrals" && config.pageVariants.referrals) {

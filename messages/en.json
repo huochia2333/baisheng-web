@@ -306,7 +306,8 @@
       "exchangeRates": "FX Rates",
       "tasks": "Tasks",
       "reviews": "Reviews",
-      "feedback": "Feedback"
+      "feedback": "Feedback",
+      "records": "Operation Records"
     },
     "roles": {
       "admin": {
@@ -1861,6 +1862,97 @@
         "filesHint": "You can upload up to {maxFiles} files. Images must stay below {imageMaxPerFile}, videos must stay below {videoMaxPerFile}, other files must stay within {otherMaxPerFile}, and the total must stay within {maxTotal}.",
         "filesEmpty": "No submission files selected yet."
       }
+    }
+  },
+  "OperationRecords": {
+    "metadata": {
+      "title": "Operation Records"
+    },
+    "header": {
+      "badge": "Administrator only",
+      "title": "Operation Records",
+      "description": "Review account changes, profile approvals, and feedback handling in one place so administrators can see who handled what and when."
+    },
+    "summary": {
+      "total": "Total records",
+      "account": "Account changes",
+      "profile": "Profile reviews",
+      "feedback": "Feedback handling"
+    },
+    "states": {
+      "noPermissionTitle": "No access to operation records",
+      "noPermissionDescription": "Only active administrator accounts can view operation records."
+    },
+    "filters": {
+      "search": "Search records",
+      "searchPlaceholder": "Search people, email, action detail, or source page",
+      "category": "Record type",
+      "action": "Action",
+      "allCategories": "All types",
+      "allActions": "All actions"
+    },
+    "categories": {
+      "account": "Account change",
+      "profile": "Profile review",
+      "feedback": "Feedback handling"
+    },
+    "actions": {
+      "accountChanged": "Adjusted account",
+      "profileApproved": "Approved profile update",
+      "profileRejected": "Rejected profile update",
+      "feedbackNew": "Marked feedback new",
+      "feedbackInProgress": "Marked feedback in progress",
+      "feedbackResolved": "Marked feedback resolved",
+      "feedbackDeclined": "Declined feedback"
+    },
+    "list": {
+      "eyebrow": "Global records",
+      "title": "Recent Operations",
+      "description": "This first version summarizes existing tracked actions. Orders, commissions, teams, and announcements can be connected next.",
+      "emptyTitle": "No operation records yet",
+      "emptyDescription": "Account changes, profile reviews, and feedback handling will appear here.",
+      "columns": {
+        "time": "Time",
+        "category": "Type",
+        "action": "Action",
+        "subject": "Subject",
+        "actor": "Handled by",
+        "detail": "Detail"
+      }
+    },
+    "detail": {
+      "roleChange": "Role: {from} -> {to}",
+      "statusChange": "Status: {from} -> {to}",
+      "nameChange": "Name: {from} -> {to}",
+      "cityChange": "City: {from} -> {to}",
+      "feedbackTitle": "Feedback: {title}",
+      "feedbackStatus": "Handling status: {status}",
+      "feedbackSource": "Source: {path}",
+      "note": "Note: {note}",
+      "noNote": "No note provided"
+    },
+    "roles": {
+      "administrator": "Administrator",
+      "manager": "Manager",
+      "operator": "Operator",
+      "recruiter": "Recruiter",
+      "salesman": "Salesman",
+      "finance": "Finance",
+      "client": "Client"
+    },
+    "statuses": {
+      "active": "Active",
+      "inactive": "Inactive",
+      "suspended": "Suspended"
+    },
+    "feedbackStatuses": {
+      "new": "New",
+      "inProgress": "In progress",
+      "resolved": "Resolved",
+      "declined": "Declined"
+    },
+    "fallback": {
+      "notProvided": "Not provided"
     }
   },
   "AdminPeople": {

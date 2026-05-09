@@ -27,6 +27,7 @@ export type WorkspaceNavLabelKey =
   | "my"
   | "orders"
   | "people"
+  | "records"
   | "referrals"
   | "team"
   | "commission"
@@ -52,6 +53,7 @@ export type WorkspacePageVariants = {
   feedback?: true;
   orders?: WorkspaceOrdersPageMode;
   people?: true;
+  records?: true;
   referrals?: true;
   reviews?: true;
   tasks?: WorkspaceTasksPageMode;
@@ -112,6 +114,7 @@ const adminNavItems = [
   { segment: "referrals", labelKey: "referrals" },
   { segment: "team", labelKey: "team" },
   { segment: "people", labelKey: "people" },
+  { segment: "records", labelKey: "records" },
   { segment: "commission", labelKey: "commission" },
   { segment: "tasks", labelKey: "tasks" },
   { segment: "reviews", labelKey: "reviews" },
@@ -131,6 +134,7 @@ const WORKSPACE_ROUTE_CONFIG_BY_SEGMENT = {
       feedback: true,
       orders: "admin",
       people: true,
+      records: true,
       referrals: true,
       reviews: true,
       tasks: "admin",

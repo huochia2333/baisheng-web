@@ -6,6 +6,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
   ArrowLeftRight,
+  ClipboardClock,
   ClipboardList,
   GitBranchPlus,
   Home,
@@ -51,6 +52,7 @@ const NAV_ICONS: Record<WorkspaceNavItem["segment"], LucideIcon> = {
   my: UserRound,
   orders: ShoppingCart,
   people: UserCog,
+  records: ClipboardClock,
   referrals: GitBranchPlus,
   reviews: ShieldCheck,
   tasks: ClipboardList,
