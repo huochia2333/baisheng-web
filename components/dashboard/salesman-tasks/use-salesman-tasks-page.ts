@@ -34,7 +34,6 @@ import {
   type NoticeTone,
 } from "@/components/dashboard/dashboard-shared-ui";
 import {
-  getTaskTeamName,
   toSalesmanTaskErrorMessage,
 } from "@/components/dashboard/tasks/tasks-display";
 import { useWorkspaceSyncEffect } from "@/components/dashboard/workspace-session-provider";
@@ -48,7 +47,6 @@ function areSalesmanTasksFiltersEqual(
   return (
     left.searchText === right.searchText
     && left.focus === right.focus
-    && left.scope === right.scope
   );
 }
 
@@ -82,7 +80,6 @@ export function useSalesmanTasksPage({
   const deferredSearchText = useDeferredValue(filters.searchText);
   const viewerId = initialData.viewerId;
   const tasks = initialData.tasks;
-  const teamOptions = initialData.teamOptions;
   const canView = initialData.canView;
   const openTaskCount = useMemo(
     () => tasks.filter((task) => task.status !== "completed").length,
@@ -124,12 +121,6 @@ export function useSalesmanTasksPage({
         nextParams.delete("focus");
       }
 
-      if (nextFilters.scope !== "all") {
-        nextParams.set("scope", nextFilters.scope);
-      } else {
-        nextParams.delete("scope");
-      }
-
       if (nextPage > 1) {
         nextParams.set("page", String(nextPage));
       } else {
@@ -169,20 +160,11 @@ export function useSalesmanTasksPage({
     [openTaskCount, tasks, viewerId],
   );
 
-  const teamNameById = useMemo(
-    () => new Map(teamOptions.map((team) => [team.team_id, getTaskTeamName(team.team_name, sharedT)])),
-    [sharedT, teamOptions],
-  );
-
   const filteredTasks = useMemo(() => {
     const normalizedText = normalizeSearchText(deferredSearchText);
 
     return tasks.filter((task) => {
       if (filters.focus === "all" && task.status === "completed") {
-        return false;
-      }
-
-      if (filters.scope !== "all" && task.scope !== filters.scope) {
         return false;
       }
 
@@ -227,7 +209,6 @@ export function useSalesmanTasksPage({
         task.task_intro,
         task.task_type_label,
         task.review_reject_reason,
-        teamNameById.get(task.team_id ?? "") ?? null,
       ]
         .map((value) => normalizeSearchText(value))
         .filter(Boolean)
@@ -235,7 +216,7 @@ export function useSalesmanTasksPage({
 
       return searchableText.includes(normalizedText);
     });
-  }, [deferredSearchText, filters.focus, filters.scope, tasks, teamNameById, viewerId]);
+  }, [deferredSearchText, filters.focus, tasks, viewerId]);
 
   const tasksPagination = useMemo(
     () => paginateDashboardItems(filteredTasks, page),
@@ -508,7 +489,6 @@ export function useSalesmanTasksPage({
     submitDialogTask,
     summary,
     tasksPagination,
-    teamNameById,
     updateFilter,
     viewerId,
     openSubmitDialog,

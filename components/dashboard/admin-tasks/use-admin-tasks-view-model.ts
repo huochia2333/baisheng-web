@@ -16,6 +16,7 @@ import { useAdminTaskAssignmentDialog } from "./use-admin-task-assignment-dialog
 import { useAdminTaskCreateDialog } from "./use-admin-task-create-dialog";
 import { useAdminTaskDeleteAction } from "./use-admin-task-delete-action";
 import { useAdminTaskEditDialog } from "./use-admin-task-edit-dialog";
+import { useAdminTaskTypeManagementDialog } from "./use-admin-task-type-management-dialog";
 import { useAdminTasksRouteState } from "./use-admin-tasks-route-state";
 
 export function useAdminTasksViewModel({
@@ -34,6 +35,11 @@ export function useAdminTasksViewModel({
   }, []);
 
   const { canView, refreshTaskBoard } = routeState;
+  const taskTypeManagementDialog = useAdminTaskTypeManagementDialog({
+    initialTaskTypeOptions: routeState.taskTypeOptions,
+    refreshTaskBoard: routeState.refreshTaskBoard,
+    supabase,
+  });
 
   const handleRefresh = () => {
     if (!canView) {
@@ -49,7 +55,7 @@ export function useAdminTasksViewModel({
     onPageFeedback: handlePageFeedback,
     refreshTaskBoard: routeState.refreshTaskBoard,
     supabase,
-    taskTypeOptions: routeState.taskTypeOptions,
+    taskTypeOptions: taskTypeManagementDialog.taskTypeOptions,
     viewerId: routeState.viewerId,
   });
   const assignmentDialog = useAdminTaskAssignmentDialog({
@@ -62,7 +68,7 @@ export function useAdminTasksViewModel({
     onPageFeedback: handlePageFeedback,
     refreshTaskBoard: routeState.refreshTaskBoard,
     supabase,
-    taskTypeOptions: routeState.taskTypeOptions,
+    taskTypeOptions: taskTypeManagementDialog.taskTypeOptions,
     tasks: routeState.tasks,
   });
   const deleteAction = useAdminTaskDeleteAction({
@@ -77,7 +83,9 @@ export function useAdminTasksViewModel({
     ...deleteAction,
     ...editDialog,
     ...routeState,
+    ...taskTypeManagementDialog,
     handleRefresh,
     pageFeedback,
+    taskTypeOptions: taskTypeManagementDialog.taskTypeOptions,
   };
 }

@@ -37,10 +37,10 @@
 | `administrator` | `/admin/home` | `home`、`announcements`、`orders`（含汇率设置）、`referrals`、`team`、`people`、`records`、`commission`、`tasks`、`reviews`、`feedback` |
 | `salesman` | `/salesman/home` | `home`、`orders`、`referrals`、`team`、`commission`、`exchange-rates`、`tasks` |
 | `client` | `/client/home` | `home`、`orders`、`referrals` |
-| `manager` | `/manager/home` | `home`、`referrals`、`team` |
-| `operator` | `/operator/home` | `home`、`referrals`、`team` |
-| `finance` | `/finance/home` | `home`、`referrals`、`team`、`commission` |
-| `recruiter` | `/recruiter/home` | `home`、`referrals` |
+| `manager` | `/manager/home` | `home`、`referrals`、`team`、`tasks` |
+| `operator` | `/operator/home` | `home`、`referrals`、`team`、`tasks` |
+| `finance` | `/finance/home` | `home`、`referrals`、`team`、`tasks`、`commission` |
+| `recruiter` | `/recruiter/home` | `home`、`referrals`、`tasks` |
 
 说明：
 
@@ -95,7 +95,7 @@ baisheng-web/
 - `components/dashboard/dashboard-section-header.tsx` 统一承接各业务板块页头；新增订单、任务、团队、佣金、汇率、审核、公告、推荐树等板块时，优先复用它传入标题、说明、指标和操作按钮，避免在业务 Client/Page 中重复堆页头布局
 - `components/dashboard/dashboard-section-panel.tsx` 统一承接筛选面板、列表面板、列表标题和表格外框；新增带筛选或清单的板块时，优先复用它保持间距、边框、阴影和响应式结构一致
 - `components/dashboard/dashboard-segmented-tabs.tsx` 统一承接板块内切换按钮；订单页“订单列表 / 汇率设置”、佣金页“普通佣金 / 任务佣金”和审核页多队列切换都应复用这一套视觉样式
-- `components/dashboard/dashboard-pill.tsx` 与 `components/dashboard/tasks/task-ui.tsx` 分别统一承接工作台标签、任务状态/范围标签、任务搜索筛选和信息块；任务相关板块不要在各自 UI 文件里再复制一套 pill、tile 或筛选控件
+- `components/dashboard/dashboard-pill.tsx` 与 `components/dashboard/tasks/task-ui.tsx` 分别统一承接工作台标签、任务状态/目标角色展示、任务搜索筛选和信息块；任务相关板块不要在各自 UI 文件里再复制一套 pill、tile 或筛选控件
 - 工作台共享页头、指标卡、筛选面板、列表面板、移动导航和分页控件都需要保留小屏紧凑样式；新增板块不要只按桌面端密度堆叠信息
 - `components/brand/brand-mark.tsx` 统一承接公司 Logo 展示；当前 Logo 源文件为 `public/images/pt5-logo.png`，浏览器图标由 `app/favicon.ico`、`app/icon.png` 和 `app/apple-icon.png` 承接；认证页和工作区样式入口都需要继续 `@source "../components/brand"`
 - `components/legal` 承接公开法律页和隐私/条款页脚链接，避免把 legal 展示继续堆进认证或“我的”核心文件
@@ -183,27 +183,29 @@ baisheng-web/
 - 订单保存 RPC 会在数据库端重新按当天 `原币 -> CNY` 取汇率，忽略前端传入的汇率字段；`rmb_amount` 仍按现有业务方式录入，不自动计算
 - 本次拆分新增 `exchange-rate-sync-section.tsx` 和 `use-exchange-rate-sync-settings.ts` 承接汇率设置 UI 与动作，订单页只负责标签组合，避免把自动汇率状态继续堆进订单或汇率核心 Client 文件
 
-### `admin-tasks` 模块分层（2026-04-23）
+### `admin-tasks` 模块分层（2026-05-11）
 
 - `admin-tasks-client.tsx`：只负责工作台编排，不再直接承载筛选、分页、创建、编辑、分配和删除逻辑
-- `use-admin-tasks-view-model.ts`：聚合任务页的路由状态、创建/编辑弹窗、分配弹窗和删除动作
-- `use-admin-tasks-route-state.ts`、`use-admin-task-create-dialog.ts`、`use-admin-task-edit-dialog.ts`、`use-admin-task-assignment-dialog.ts`、`use-admin-task-delete-action.ts`：分别承接路由筛选与分页、创建任务、编辑任务、任务分配和删除流程
+- `use-admin-tasks-view-model.ts`：聚合任务页的路由状态、创建/编辑弹窗、目标角色调整弹窗、任务类型管理弹窗和删除动作
+- `use-admin-tasks-route-state.ts`、`use-admin-task-create-dialog.ts`、`use-admin-task-edit-dialog.ts`、`use-admin-task-assignment-dialog.ts`、`use-admin-task-type-management-dialog.ts`、`use-admin-task-delete-action.ts`：分别承接路由筛选与分页、创建任务、编辑任务、目标角色调整、任务类型新增/编辑/停用和删除流程
 - `admin-tasks-sections.tsx`：拆出头部指标、筛选区、列表区和无权限态
 - `admin-task-form-dialog.tsx`：集中承接任务创建/编辑表单弹窗，避免把字段表单继续堆进 client 或 assignment dialog
 - `admin-task-form-sections.tsx`：拆出任务表单摘要卡、核心字段区和附件区，控制单文件长度并保持弹窗壳层纯粹
-- `admin-tasks-dialogs.tsx`：只保留任务分配弹窗
+- `admin-tasks-dialogs.tsx`：只保留目标角色调整弹窗；`admin-task-type-management-dialog.tsx` 单独承接任务类型管理弹窗
 - `admin-tasks-view-model-shared.ts`：集中放置任务页共享类型、筛选比较和输入样式常量
-- `lib/admin-tasks.ts`：保留管理员任务页查询、创建、编辑、改派、删除和页面数据编排，当前已控制在 600 行以内
-- `admin-tasks-ui.tsx` 只保留管理员任务卡片和表单字段壳层；状态/范围标签、搜索/筛选和信息块统一复用 `components/dashboard/tasks/task-ui.tsx`
-- `lib/admin-tasks-types.ts`、`lib/admin-task-normalizers.ts`、`lib/admin-task-attachments.ts`：分别承接任务类型定义、数据库行归一化、附件上传/读取，通用上传校验和存储清理由 `lib/task-attachment-policy.ts` 统一承接
+- `lib/admin-tasks.ts`：保留管理员任务页查询、创建、编辑、目标角色调整、删除和页面数据编排，当前约 512 行；任务类型操作已拆到 `lib/admin-task-type-management.ts`
+- `admin-tasks-ui.tsx` 只保留管理员任务卡片和表单字段壳层；状态、目标角色、搜索/筛选和信息块统一复用 `components/dashboard/tasks/task-ui.tsx`
+- `lib/admin-tasks-types.ts`、`lib/admin-task-normalizers.ts`、`lib/admin-task-attachments.ts`、`lib/admin-task-type-management.ts`：分别承接任务类型定义、数据库行归一化、附件上传/读取、任务类型新增/编辑/停用，通用上传校验和存储清理由 `lib/task-attachment-policy.ts` 统一承接
 - `admin-task-submission-media.tsx`、`use-admin-task-submission-media.ts`：单独承接历史已完成任务中的成员图片/视频成果读取、预览弹窗和下载动作
 - `lib/admin-task-submission-media.ts`：集中查询已完成任务的审核通过成果媒体，并为私有存储对象生成短期 signed URL
 - 管理员任务板头部指标只保留“进行中 / 审核中”两项，并移除状态筛选栏；任务卡片不再展示归属锁定说明文案
-- 任务操作权限已拆成“编辑 / 删除 / 调整归属”三类：已完成任务仅管理员可编辑/删除，任务开始后禁止再改归属；默认任务板只展示未完成任务，已完成任务统一收进“历史已完成任务”视图
-- 管理员在“历史已完成任务”视图中可直接查看业务员已通过审核的图片/视频成果，并按单个文件预览或下载原文件
+- 任务按目标角色多选分发，目标角色限定为经理、运营、招聘、业务和财务；命中角色的内部成员都能看到待领取任务，领取后由第一个领取人负责，其他目标角色不再继续领取同一任务
+- 管理员可在任务页弹窗中新增、编辑、停用任务类型；任务类型清空后不再保留内置默认类型，需要由管理员在 Web 端重新添加
+- 任务操作权限已拆成“编辑 / 删除 / 调整目标角色”三类：已完成任务仅管理员可编辑/删除，任务领取后禁止再改目标角色；默认任务板只展示未完成任务，已完成任务统一收进“历史已完成任务”视图
+- 管理员在“历史已完成任务”视图中可直接查看成员已通过审核的图片/视频成果，并按单个文件预览或下载原文件
 - 删除历史任务时会先读取关联的提审附件清单，再在任务删除后同步清理 `task-attachments` 和 `task-review-submissions` 两个存储桶中的对象，避免数据库级联删除后留下提审附件孤儿文件
 - 任务状态目前覆盖 `to_be_accepted -> accepted -> reviewing -> rejected/completed`，其中管理员发布附件仍记录在 `task_sub`，执行人提交审核成果则单独进入 `task_review_submissions` / `task_review_submission_assets`
-- 任务主表同时写入 `task_type_code` 与 `commission_amount_rmb`，当前内置 `video_shoot` 类型，后续可以继续扩展更多任务类型
+- 本轮 Supabase 迁移会清空现有任务、任务附件、任务提审、任务佣金和任务类型，并清理 `task-attachments`、`task-review-submissions` 两个存储桶中的旧任务文件；上线前需要确认这是预期的破坏性数据重置
 - 任务审核通过后会同步写入 `task_commission_record`，任务佣金与订单佣金并行展示，但不复用订单佣金表结构
 
 ### 全局操作记录（2026-05-08）
@@ -213,11 +215,11 @@ baisheng-web/
 - 前端新增 `components/dashboard/admin-operation-records/`，按 client、view-model、sections、display 拆分，支持按记录类型、处理动作和搜索词筛选
 - 操作记录用于事后核对“谁在什么时候处理了什么”，现有 `/admin/reviews` 继续负责待审核队列；后续订单、佣金、团队、公告等关键动作可继续接入这个记录中心
 
-### `salesman-tasks` 模块分层（2026-04-22）
+### 内部任务接收端模块分层（2026-05-11）
 
-- `salesman-tasks-client.tsx`：只负责任务中心编排、指标展示和组件组装
+- `salesman-tasks-client.tsx`：只负责任务中心编排、指标展示和组件组装；当前组件名沿用历史目录，但页面已作为经理、运营、招聘、业务和财务共用的内部任务接收端
 - `use-salesman-tasks-page.ts`：负责路由筛选、分页、接取任务、上传成果、提交审核和附件打开动作
-- `salesman-tasks-ui.tsx`：只保留业务员任务卡片展示；搜索/筛选、状态/范围标签和信息块统一复用 `components/dashboard/tasks/task-ui.tsx`
+- `salesman-tasks-ui.tsx`：只保留内部成员任务卡片展示；搜索/筛选、状态/目标角色展示和信息块统一复用 `components/dashboard/tasks/task-ui.tsx`
 - `salesman-task-submit-dialog.tsx`：单独承接“提交审核 / 重新提交审核”弹窗与文件选择流程
 
 ### `admin-reviews` 模块分层（2026-04-22）

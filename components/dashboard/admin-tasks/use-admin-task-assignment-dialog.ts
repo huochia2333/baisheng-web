@@ -7,7 +7,7 @@ import { useTranslations } from "next-intl";
 import {
   updateAdminTaskAssignment,
   type AdminTaskRow,
-  type TaskScope,
+  type TaskTargetRole,
 } from "@/lib/admin-tasks";
 import { type getBrowserSupabaseClient } from "@/lib/supabase";
 
@@ -62,24 +62,16 @@ export function useAdminTaskAssignmentDialog({
     setSelectedTaskId(task.id);
     setAssignmentDialogFeedback(null);
     setAssignmentFormState({
-      scope: task.scope,
-      teamId: task.team_id ?? "",
+      targetRoles: task.target_roles,
     });
     setAssignmentDialogOpen(true);
   }, []);
 
-  const handleAssignmentScopeChange = useCallback((scope: TaskScope) => {
+  const handleAssignmentTargetRoleToggle = useCallback((role: TaskTargetRole) => {
     setAssignmentFormState((current) => ({
-      ...current,
-      scope,
-      teamId: scope === "team" ? current.teamId : "",
-    }));
-  }, []);
-
-  const handleAssignmentTeamChange = useCallback((teamId: string) => {
-    setAssignmentFormState((current) => ({
-      ...current,
-      teamId,
+      targetRoles: current.targetRoles.includes(role)
+        ? current.targetRoles.filter((targetRole) => targetRole !== role)
+        : [...current.targetRoles, role],
     }));
   }, []);
 
@@ -104,18 +96,14 @@ export function useAdminTaskAssignmentDialog({
     try {
       await updateAdminTaskAssignment(supabase, {
         taskId: selectedTask.id,
-        scope: assignmentFormState.scope,
-        teamId: assignmentFormState.scope === "team" ? assignmentFormState.teamId : null,
+        targetRoles: assignmentFormState.targetRoles,
       });
 
       setAssignmentDialogOpen(false);
       setSelectedTaskId(null);
       onPageFeedback({
         tone: "success",
-        message:
-          assignmentFormState.scope === "team"
-            ? t("feedback.assignmentUpdated")
-            : t("feedback.assignmentPublic"),
+        message: t("feedback.assignmentUpdated"),
       });
       refreshTaskBoard();
     } catch (error) {
@@ -135,8 +123,7 @@ export function useAdminTaskAssignmentDialog({
     assignmentPending,
     assignmentPendingTaskId: assignmentPending ? selectedTask?.id ?? null : null,
     handleAssignmentDialogOpenChange,
-    handleAssignmentScopeChange,
-    handleAssignmentTeamChange,
+    handleAssignmentTargetRoleToggle,
     handleSaveAssignment,
     openAssignmentDialog,
     selectedTask,

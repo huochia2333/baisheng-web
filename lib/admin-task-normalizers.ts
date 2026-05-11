@@ -6,6 +6,7 @@ import type {
   TaskScope,
   TaskStatus,
   TaskTeamSummary,
+  TaskTargetRole,
   TaskTypeOption,
 } from "./admin-tasks-types";
 import {
@@ -165,6 +166,20 @@ export function normalizeTaskTypeOption(value: unknown): TaskTypeOption | null {
     isActive: "is_active" in value ? value.is_active === true : false,
     sortOrder: "sort_order" in value ? normalizeInteger(value.sort_order) : 100,
   };
+}
+
+export function normalizeTaskTargetRole(value: unknown): TaskTargetRole | null {
+  if (
+    value === "manager"
+    || value === "operator"
+    || value === "recruiter"
+    || value === "salesman"
+    || value === "finance"
+  ) {
+    return value;
+  }
+
+  return null;
 }
 
 export function normalizeTaskScope(value: unknown): TaskScope | null {

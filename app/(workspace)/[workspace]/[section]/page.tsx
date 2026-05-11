@@ -173,7 +173,7 @@ export async function generateMetadata({
     const t = await getTranslations("Tasks.metadata");
 
     return {
-      title: t(config.pageVariants.tasks === "admin" ? "adminTitle" : "salesmanTitle"),
+      title: t(config.pageVariants.tasks === "admin" ? "adminTitle" : "staffTitle"),
     };
   }
 
@@ -312,7 +312,7 @@ export default async function WorkspaceSectionPage({
       const initialData = await getAdminTasksPageData(supabase);
       const initialView = parseAdminTasksSearchParams(resolvedSearchParams);
       content = <AdminTasksClient initialData={initialData} initialView={initialView} />;
-    } else if (config.pageVariants.tasks === "salesman") {
+    } else if (config.pageVariants.tasks === "staff") {
       const supabase = await getServerSupabaseClient();
       const initialData = await getSalesmanTasksPageData(supabase);
       const initialView = parseSalesmanTasksSearchParams(resolvedSearchParams);
@@ -427,7 +427,7 @@ function getSectionNamespaces(
       namespaces.push("DashboardPagination", "Tasks.admin", "Tasks.shared");
     }
 
-    if (config.pageVariants.tasks === "salesman") {
+    if (config.pageVariants.tasks === "staff") {
       namespaces.push("DashboardPagination", "Tasks.salesman", "Tasks.shared");
     }
   }

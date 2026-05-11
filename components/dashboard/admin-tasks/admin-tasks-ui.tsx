@@ -9,6 +9,7 @@ import {
   PencilLine,
   Shuffle,
   Trash2,
+  UsersRound,
 } from "lucide-react";
 
 import type { AdminTaskRow } from "@/lib/admin-tasks";
@@ -22,17 +23,16 @@ import {
 } from "@/components/dashboard/dashboard-shared-ui";
 import {
   formatTaskCommissionMoney,
-  getTaskAssignmentLabel,
   getTaskAttachmentCountLabel,
   getTaskIntroText,
   getTaskMoreAttachmentsLabel,
+  getTaskTargetRolesLabel,
   getTaskTypeLabel,
   resolveTaskActorLabel,
 } from "@/components/dashboard/tasks/tasks-display";
 import {
   TaskDataPill as DataPill,
   TaskInfoTile as InfoTile,
-  TaskScopePill,
   TaskStatusPill,
 } from "@/components/dashboard/tasks/task-ui";
 import {
@@ -44,7 +44,6 @@ import { AdminTaskSubmissionMediaPanel } from "./admin-task-submission-media";
 
 export {
   TaskFilterField as FilterField,
-  TaskScopePill,
   TaskSearchField as SearchField,
   TaskStatusPill,
 } from "@/components/dashboard/tasks/task-ui";
@@ -88,7 +87,10 @@ export function TaskCard({
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-2">
               <TaskStatusPill status={task.status} />
-              <TaskScopePill scope={task.scope} />
+              <DataPill accent="blue">
+                <UsersRound className="size-3.5" />
+                {getTaskTargetRolesLabel(task.target_roles, sharedT)}
+              </DataPill>
               <DataPill accent="blue">
                 {getTaskTypeLabel(task.task_type_label, task.task_type_code, sharedT)}
               </DataPill>
@@ -153,7 +155,7 @@ export function TaskCard({
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <InfoTile
             label={t("assignmentLabel")}
-            value={getTaskAssignmentLabel(task.scope, task.team?.team_name, sharedT)}
+            value={getTaskTargetRolesLabel(task.target_roles, sharedT)}
           />
           <InfoTile
             label={t("taskTypeLabel")}

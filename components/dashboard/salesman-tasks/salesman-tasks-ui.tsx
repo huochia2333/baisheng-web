@@ -6,6 +6,7 @@ import {
   LoaderCircle,
   Paperclip,
   Upload,
+  UsersRound,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -18,13 +19,12 @@ import {
   formatTaskCommissionMoney,
   getTaskAttachmentCountLabel,
   getTaskIntroText,
+  getTaskTargetRolesLabel,
   getTaskTypeLabel,
-  resolveSalesmanTaskTargetLabel,
 } from "@/components/dashboard/tasks/tasks-display";
 import {
   TaskDataPill as DataPill,
   TaskInfoTile as InfoTile,
-  TaskScopePill,
   TaskStatusPill,
 } from "@/components/dashboard/tasks/task-ui";
 import type { SalesmanTaskRow } from "@/lib/salesman-tasks";
@@ -39,7 +39,6 @@ export function SalesmanTaskCard({
   viewerId,
   busy,
   attachmentBusyKey,
-  teamNameById,
   onAccept,
   onOpenAttachment,
   onSubmitReview,
@@ -48,7 +47,6 @@ export function SalesmanTaskCard({
   viewerId: string | null;
   busy: boolean;
   attachmentBusyKey: string | null;
-  teamNameById: Map<string, string>;
   onAccept: () => void;
   onOpenAttachment: (attachment: SalesmanTaskRow["attachments"][number]) => void;
   onSubmitReview: () => void;
@@ -57,7 +55,7 @@ export function SalesmanTaskCard({
   const sharedT = useTranslations("Tasks.shared");
   const { locale } = useLocale();
   const isMine = task.accepted_by_user_id === viewerId;
-  const targetLabel = resolveSalesmanTaskTargetLabel(task, teamNameById, sharedT);
+  const targetLabel = getTaskTargetRolesLabel(task.target_roles, sharedT);
   const hasReviewFeedback = Boolean(task.review_reject_reason);
 
   return (
@@ -65,7 +63,10 @@ export function SalesmanTaskCard({
       <div className="flex flex-col gap-5">
         <div className="flex flex-wrap items-center gap-2">
           <TaskStatusPill status={task.status} />
-          <TaskScopePill scope={task.scope} />
+          <DataPill accent="blue">
+            <UsersRound className="size-3.5" />
+            {targetLabel}
+          </DataPill>
           <DataPill accent="blue">
             {getTaskTypeLabel(task.task_type_label, task.task_type_code, sharedT)}
           </DataPill>

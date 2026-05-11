@@ -1,7 +1,7 @@
 "use client";
 
 import {
-  type AdminTaskScopeFilter,
+  type AdminTaskTargetRoleFilter,
   type AdminTasksPageData,
   type AdminTasksSearchParams,
 } from "@/lib/admin-tasks";
@@ -15,6 +15,7 @@ import {
   CreateTaskDialog,
   EditTaskDialog,
 } from "./admin-task-form-dialog";
+import { TaskTypeManagementDialog } from "./admin-task-type-management-dialog";
 import {
   AdminTasksFiltersSection,
   AdminTasksHeroSection,
@@ -47,6 +48,7 @@ export function AdminTasksClient({
         canView={viewModel.canView}
         isRefreshing={viewModel.isRefreshing}
         onCreate={viewModel.openCreateDialog}
+        onManageTaskTypes={viewModel.openTaskTypeDialog}
         onRefresh={viewModel.handleRefresh}
         onToggleCompletedHistory={() =>
           viewModel.updateFilter(
@@ -64,12 +66,11 @@ export function AdminTasksClient({
         <>
           <AdminTasksFiltersSection
             filters={viewModel.filters}
-            onScopeChange={(value) =>
-              viewModel.updateFilter("scope", value as AdminTaskScopeFilter)
+            onTargetRoleChange={(value) =>
+              viewModel.updateFilter("targetRole", value as AdminTaskTargetRoleFilter)
             }
             onSearchTextChange={(value) => viewModel.updateFilter("searchText", value)}
-            onTeamChange={(value) => viewModel.updateFilter("teamId", value)}
-            teamOptions={viewModel.teamOptions}
+            targetRoleOptions={viewModel.targetRoleOptions}
           />
 
           <AdminTasksListSection
@@ -92,16 +93,15 @@ export function AdminTasksClient({
         onFilesChange={viewModel.handleCreateFilesChange}
         onOpenChange={viewModel.handleCreateDialogOpenChange}
         onRemoveFile={viewModel.removeCreateFile}
-        onScopeChange={viewModel.handleCreateScopeChange}
+        onTargetRoleToggle={viewModel.handleCreateTargetRoleToggle}
         onTaskTypeChange={viewModel.handleCreateTaskTypeChange}
         onSubmit={() => void viewModel.handleCreateTask()}
         onCommissionAmountChange={(value) => viewModel.updateCreateField("commissionAmount", value)}
         onTaskIntroChange={(value) => viewModel.updateCreateField("taskIntro", value)}
         onTaskNameChange={(value) => viewModel.updateCreateField("taskName", value)}
-        onTeamChange={(value) => viewModel.updateCreateField("teamId", value)}
         open={viewModel.createDialogOpen}
         pending={viewModel.createPending}
-        teamOptions={viewModel.teamOptions}
+        targetRoleOptions={viewModel.targetRoleOptions}
         taskTypeOptions={viewModel.taskTypeOptions}
       />
 
@@ -109,31 +109,45 @@ export function AdminTasksClient({
         feedback={viewModel.editDialogFeedback}
         formState={viewModel.editFormState}
         onOpenChange={viewModel.handleEditDialogOpenChange}
-        onScopeChange={viewModel.handleEditScopeChange}
+        onTargetRoleToggle={viewModel.handleEditTargetRoleToggle}
         onSubmit={() => void viewModel.handleEditTask()}
         onTaskTypeChange={viewModel.handleEditTaskTypeChange}
         onCommissionAmountChange={(value) => viewModel.updateEditField("commissionAmount", value)}
         onTaskIntroChange={(value) => viewModel.updateEditField("taskIntro", value)}
         onTaskNameChange={(value) => viewModel.updateEditField("taskName", value)}
-        onTeamChange={(value) => viewModel.updateEditField("teamId", value)}
         open={viewModel.editDialogOpen}
         pending={viewModel.editPending}
         selectedTask={viewModel.editingTask}
         taskTypeOptions={viewModel.taskTypeOptions}
-        teamOptions={viewModel.teamOptions}
+        targetRoleOptions={viewModel.targetRoleOptions}
       />
 
       <AssignmentDialog
         feedback={viewModel.assignmentDialogFeedback}
         formState={viewModel.assignmentFormState}
         onOpenChange={viewModel.handleAssignmentDialogOpenChange}
-        onScopeChange={viewModel.handleAssignmentScopeChange}
+        onTargetRoleToggle={viewModel.handleAssignmentTargetRoleToggle}
         onSubmit={() => void viewModel.handleSaveAssignment()}
-        onTeamChange={viewModel.handleAssignmentTeamChange}
         open={viewModel.assignmentDialogOpen}
         pending={viewModel.assignmentPending}
         selectedTask={viewModel.selectedTask}
-        teamOptions={viewModel.teamOptions}
+        targetRoleOptions={viewModel.targetRoleOptions}
+      />
+
+      <TaskTypeManagementDialog
+        editingTaskType={viewModel.editingTaskType}
+        feedback={viewModel.taskTypeDialogFeedback}
+        formPending={viewModel.taskTypeFormPending}
+        formState={viewModel.taskTypeFormState}
+        onDeactivate={(taskType) => void viewModel.handleDeactivateTaskType(taskType)}
+        onFieldChange={viewModel.updateTaskTypeFormField}
+        onOpenChange={viewModel.handleTaskTypeDialogOpenChange}
+        onStartCreate={viewModel.startCreateTaskType}
+        onStartEdit={viewModel.startEditTaskType}
+        onSubmit={() => void viewModel.handleSubmitTaskType()}
+        open={viewModel.taskTypeDialogOpen}
+        pendingCode={viewModel.taskTypePendingCode}
+        taskTypeOptions={viewModel.taskTypeOptions}
       />
     </section>
   );

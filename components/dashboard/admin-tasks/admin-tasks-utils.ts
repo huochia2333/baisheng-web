@@ -1,6 +1,6 @@
 import type {
   AdminTaskRow,
-  TaskScope,
+  TaskTargetRole,
   TaskTypeOption,
 } from "@/lib/admin-tasks";
 
@@ -9,20 +9,18 @@ export type CreateTaskFormState = {
   taskIntro: string;
   taskTypeCode: string;
   commissionAmount: string;
-  scope: TaskScope;
-  teamId: string;
+  targetRoles: TaskTargetRole[];
   files: File[];
 };
 
 export type AssignmentFormState = {
-  scope: TaskScope;
-  teamId: string;
+  targetRoles: TaskTargetRole[];
 };
 
 export function createEmptyTaskForm(
   taskTypeOptions: TaskTypeOption[] = [],
 ): CreateTaskFormState {
-  const defaultTaskType = taskTypeOptions[0] ?? null;
+  const defaultTaskType = taskTypeOptions.find((taskType) => taskType.isActive) ?? null;
 
   return {
     taskName: "",
@@ -32,16 +30,14 @@ export function createEmptyTaskForm(
       defaultTaskType !== null
         ? formatTaskCommissionInput(defaultTaskType.defaultCommissionAmountRmb)
         : "",
-    scope: "public",
-    teamId: "",
+    targetRoles: [],
     files: [],
   };
 }
 
 export function createEmptyAssignmentForm(): AssignmentFormState {
   return {
-    scope: "public",
-    teamId: "",
+    targetRoles: [],
   };
 }
 
@@ -51,8 +47,7 @@ export function createTaskFormFromTask(task: AdminTaskRow): CreateTaskFormState 
     taskIntro: task.task_intro ?? "",
     taskTypeCode: task.task_type_code,
     commissionAmount: formatTaskCommissionInput(task.commission_amount_rmb),
-    scope: task.scope,
-    teamId: task.team_id ?? "",
+    targetRoles: task.target_roles,
     files: [],
   };
 }

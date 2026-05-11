@@ -6,6 +6,7 @@ import {
   History,
   Plus,
   RefreshCw,
+  Settings2,
   ShieldAlert,
   Upload,
   UserRound,
@@ -13,7 +14,7 @@ import {
 
 import {
   type AdminTaskRow,
-  type AdminTaskScopeFilter,
+  type AdminTaskTargetRoleFilter,
   type AdminTasksFilters,
   type AdminTasksPageData,
 } from "@/lib/admin-tasks";
@@ -27,9 +28,7 @@ import {
 } from "@/components/dashboard/dashboard-section-panel";
 import { EmptyState, PageBanner } from "@/components/dashboard/dashboard-shared-ui";
 
-import {
-  getTaskTeamName,
-} from "@/components/dashboard/tasks/tasks-display";
+import { getTaskTargetRoleLabel } from "@/components/dashboard/tasks/tasks-display";
 
 import {
   FilterField,
@@ -45,12 +44,13 @@ import {
 } from "./admin-tasks-view-model-shared";
 import { useAdminTaskSubmissionMedia } from "./use-admin-task-submission-media";
 
-type TeamOptions = AdminTasksPageData["teamOptions"];
+type TargetRoleOptions = AdminTasksPageData["targetRoleOptions"];
 
 export function AdminTasksHeroSection({
   canView,
   isRefreshing,
   onCreate,
+  onManageTaskTypes,
   onRefresh,
   onToggleCompletedHistory,
   showCompletedHistory,
@@ -59,6 +59,7 @@ export function AdminTasksHeroSection({
   canView: boolean;
   isRefreshing: boolean;
   onCreate: () => void;
+  onManageTaskTypes: () => void;
   onRefresh: () => void;
   onToggleCompletedHistory: () => void;
   showCompletedHistory: boolean;
@@ -78,6 +79,15 @@ export function AdminTasksHeroSection({
           >
             <RefreshCw className={["size-4", isRefreshing ? "animate-spin" : ""].join(" ")} />
             {t("header.refresh")}
+          </Button>
+          <Button
+            className="h-11 rounded-full border border-[#d8e2e8] bg-white px-5 text-[#486782] hover:bg-[#eef3f6]"
+            disabled={!canView}
+            onClick={onManageTaskTypes}
+            type="button"
+          >
+            <Settings2 className="size-4" />
+            {t("header.manageTypes")}
           </Button>
           <Button
             className="h-11 rounded-full border border-[#d8e2e8] bg-white px-5 text-[#486782] hover:bg-[#eef3f6]"
@@ -139,23 +149,21 @@ export function AdminTasksNoPermissionState() {
 
 export function AdminTasksFiltersSection({
   filters,
-  onScopeChange,
   onSearchTextChange,
-  onTeamChange,
-  teamOptions,
+  onTargetRoleChange,
+  targetRoleOptions,
 }: {
   filters: AdminTasksFilters;
-  onScopeChange: (value: AdminTaskScopeFilter) => void;
   onSearchTextChange: (value: string) => void;
-  onTeamChange: (value: string) => void;
-  teamOptions: TeamOptions;
+  onTargetRoleChange: (value: AdminTaskTargetRoleFilter) => void;
+  targetRoleOptions: TargetRoleOptions;
 }) {
   const t = useTranslations("Tasks.admin");
   const sharedT = useTranslations("Tasks.shared");
 
   return (
     <DashboardFilterPanel
-      gridClassName="grid-cols-1 xl:grid-cols-[minmax(0,1.3fr)_repeat(2,minmax(0,0.55fr))]"
+      gridClassName="grid-cols-1 xl:grid-cols-[minmax(0,1.3fr)_minmax(0,0.55fr)]"
       variant="standalone"
     >
         <SearchField
@@ -166,24 +174,14 @@ export function AdminTasksFiltersSection({
         />
 
         <FilterField
-          label={t("filters.scopeLabel")}
-          onChange={(value) => onScopeChange(value as AdminTaskScopeFilter)}
-          value={filters.scope}
+          label={t("filters.targetRoleLabel")}
+          onChange={(value) => onTargetRoleChange(value as AdminTaskTargetRoleFilter)}
+          value={filters.targetRole}
         >
-          <option value="all">{t("filters.scopeAll")}</option>
-          <option value="public">{sharedT("scope.public")}</option>
-          <option value="team">{sharedT("scope.team")}</option>
-        </FilterField>
-
-        <FilterField
-          label={t("filters.teamLabel")}
-          onChange={onTeamChange}
-          value={filters.teamId}
-        >
-          <option value="all">{t("filters.teamAll")}</option>
-          {teamOptions.map((team) => (
-            <option key={team.team_id} value={team.team_id}>
-              {getTaskTeamName(team.team_name, sharedT)}
+          <option value="all">{t("filters.targetRoleAll")}</option>
+          {targetRoleOptions.map((option) => (
+            <option key={option.role} value={option.role}>
+              {getTaskTargetRoleLabel(option.role, sharedT)}
             </option>
           ))}
         </FilterField>

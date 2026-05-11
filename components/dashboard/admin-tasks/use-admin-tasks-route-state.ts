@@ -47,7 +47,6 @@ export function useAdminTasksRouteState({
 
   const viewerId = initialData.viewerId;
   const tasks = initialData.tasks;
-  const teamOptions = initialData.teamOptions;
   const taskTypeOptions = initialData.taskTypeOptions;
   const canView = initialData.canView;
 
@@ -56,15 +55,13 @@ export function useAdminTasksRouteState({
       [
         initialView.page,
         initialView.filters.searchText,
-        initialView.filters.scope,
+        initialView.filters.targetRole,
         initialView.filters.status,
-        initialView.filters.teamId,
       ].join("|"),
     [
-      initialView.filters.scope,
       initialView.filters.searchText,
       initialView.filters.status,
-      initialView.filters.teamId,
+      initialView.filters.targetRole,
       initialView.page,
     ],
   );
@@ -104,16 +101,10 @@ export function useAdminTasksRouteState({
         nextParams.delete("status");
       }
 
-      if (nextFilters.scope !== "all") {
-        nextParams.set("scope", nextFilters.scope);
+      if (nextFilters.targetRole !== "all") {
+        nextParams.set("targetRole", nextFilters.targetRole);
       } else {
-        nextParams.delete("scope");
-      }
-
-      if (nextFilters.teamId !== "all") {
-        nextParams.set("teamId", nextFilters.teamId);
-      } else {
-        nextParams.delete("teamId");
+        nextParams.delete("targetRole");
       }
 
       if (nextPage > 1) {
@@ -155,11 +146,7 @@ export function useAdminTasksRouteState({
         return false;
       }
 
-      if (filters.scope !== "all" && task.scope !== filters.scope) {
-        return false;
-      }
-
-      if (filters.teamId !== "all" && task.team_id !== filters.teamId) {
+      if (filters.targetRole !== "all" && !task.target_roles.includes(filters.targetRole)) {
         return false;
       }
 
@@ -176,7 +163,7 @@ export function useAdminTasksRouteState({
         task.creator?.email,
         resolveTaskActorLabel(task.accepted_by, task.accepted_by_user_id, sharedT),
         task.accepted_by?.email,
-        task.team?.team_name,
+        task.target_roles.map((role) => sharedT(`targetRoles.${role}`)).join(" "),
       ]
         .map((value) => normalizeSearchText(value))
         .filter(Boolean)
@@ -184,7 +171,7 @@ export function useAdminTasksRouteState({
 
       return searchableText.includes(normalizedSearchText);
     });
-  }, [deferredSearchText, filters.scope, filters.status, filters.teamId, sharedT, tasks]);
+  }, [deferredSearchText, filters.status, filters.targetRole, sharedT, tasks]);
 
   const tasksPagination = useMemo(
     () => paginateDashboardItems(filteredTasks, page),
@@ -290,7 +277,7 @@ export function useAdminTasksRouteState({
     stats,
     tasks,
     tasksPagination,
-    teamOptions,
+    targetRoleOptions: initialData.targetRoleOptions,
     taskTypeOptions,
     updateFilter,
     viewerId,

@@ -5,20 +5,29 @@ import {
   normalizeNullableString,
   normalizeTaskMainRecord,
   normalizeTaskProfile,
-  normalizeTaskTeam,
-  normalizeTaskTypeOption,
+  normalizeTaskTargetRole,
 } from "./admin-task-normalizers";
+import {
+  getTaskTypeOptions,
+  getTaskTypesByCodes,
+} from "./admin-task-type-management";
 export {
   ADMIN_TASK_ATTACHMENT_MAX_FILES,
   ADMIN_TASK_ATTACHMENT_MAX_TOTAL_SIZE_BYTES,
   uploadAdminTaskAttachments,
   validateAdminTaskAttachments,
 } from "./admin-task-attachments";
+export {
+  createTaskType,
+  deactivateTaskType,
+  updateTaskType,
+} from "./admin-task-type-management";
+export { TASK_TARGET_ROLES } from "./admin-tasks-types";
 export type {
   AdminTaskAttachment,
+  AdminTaskTargetRoleFilter,
   AdminTaskMainRow,
   AdminTaskRow,
-  AdminTaskScopeFilter,
   AdminTasksFilters,
   AdminTasksPageData,
   AdminTasksSearchParams,
@@ -29,19 +38,20 @@ export type {
   TaskProfileSummary,
   TaskScope,
   TaskStatus,
-  TaskTeamSummary,
-  TaskTypeCatalogRecord,
+  TaskTargetRole,
+  TaskTargetRoleOption,
+  TaskTargetRoleRecord,
+  TaskTypeMutationInput,
   TaskTypeOption,
-  TeamProfileRecord,
   UpdateAdminTaskAssignmentInput,
   UpdateAdminTaskInput,
   UserProfileRecord,
 } from "./admin-tasks-types";
 import type {
   AdminTaskAttachment,
+  AdminTaskTargetRoleFilter,
   AdminTaskMainRow,
   AdminTaskRow,
-  AdminTaskScopeFilter,
   AdminTasksFilters,
   AdminTasksPageData,
   AdminTasksSearchParams,
@@ -50,17 +60,16 @@ import type {
   CreateAdminTaskInput,
   TaskMainRecord,
   TaskProfileSummary,
-  TaskTeamSummary,
-  TaskTypeCatalogRecord,
-  TaskTypeOption,
-  TeamProfileRecord,
+  TaskTargetRole,
+  TaskTargetRoleOption,
+  TaskTargetRoleRecord,
   UpdateAdminTaskAssignmentInput,
   UpdateAdminTaskInput,
   UserProfileRecord,
 } from "./admin-tasks-types";
+import { TASK_TARGET_ROLES } from "./admin-tasks-types";
 import { withRequestTimeout } from "./request-timeout";
 import { prepareDeletedTaskStorageCleanup } from "./task-storage-cleanup";
-import { getVisibleTeamOverviews } from "./team-management";
 import {
   getCurrentSessionContext,
   type AppRole,
@@ -99,9 +108,8 @@ export function normalizeAdminTasksFilters(
 ): AdminTasksFilters {
   return {
     searchText: normalizeNullableString(filters?.searchText) ?? "",
-    scope: normalizeAdminTaskScopeFilter(filters?.scope),
+    targetRole: normalizeAdminTaskTargetRoleFilter(filters?.targetRole),
     status: normalizeAdminTaskStatusFilter(filters?.status),
-    teamId: normalizeNullableString(filters?.teamId) ?? "all",
   };
 }
 
@@ -111,9 +119,10 @@ export function parseAdminTasksSearchParams(
   return {
     filters: normalizeAdminTasksFilters({
       searchText: getSingleSearchParam(searchParams.searchText),
-      scope: normalizeAdminTaskScopeFilter(getSingleSearchParam(searchParams.scope)),
+      targetRole: normalizeAdminTaskTargetRoleFilter(
+        getSingleSearchParam(searchParams.targetRole),
+      ),
       status: normalizeAdminTaskStatusFilter(getSingleSearchParam(searchParams.status)),
-      teamId: getSingleSearchParam(searchParams.teamId),
     }),
     page: normalizePositiveInteger(getSingleSearchParam(searchParams.page), 1),
   };
@@ -140,10 +149,9 @@ export async function getAdminTasksPageData(
     });
   }
 
-  const [tasks, teamOptions, taskTypeOptions] = await Promise.all([
+  const [tasks, taskTypeOptions] = await Promise.all([
     getAdminTasks(supabase),
-    getVisibleTeamOverviews(supabase),
-    getVisibleTaskTypeOptions(supabase),
+    getTaskTypeOptions(supabase),
   ]);
 
   return {
@@ -152,7 +160,7 @@ export async function getAdminTasksPageData(
     viewerStatus: viewer.status,
     canView: true,
     tasks,
-    teamOptions,
+    targetRoleOptions: getTaskTargetRoleOptions(),
     taskTypeOptions,
   };
 }
@@ -193,20 +201,13 @@ export async function getAdminTasks(
       ),
     ),
   );
-  const teamIds = Array.from(
-    new Set(
-      taskRows
-        .map((task) => task.team_id)
-        .filter((value): value is string => Boolean(value)),
-    ),
-  );
   const taskTypeCodes = Array.from(new Set(taskRows.map((task) => task.task_type_code)));
 
-  const [attachments, profiles, teams, taskTypes] = await Promise.all([
+  const [attachments, profiles, taskTypes, targetRoles] = await Promise.all([
     getTaskAttachmentsByTaskIds(supabase, taskIds),
     getTaskProfilesByUserIds(supabase, userIds),
-    getTaskTeamsByIds(supabase, teamIds),
     getTaskTypesByCodes(supabase, taskTypeCodes),
+    getTaskTargetRolesByTaskIds(supabase, taskIds),
   ]);
 
   const attachmentsByTaskId = new Map<string, AdminTaskAttachment[]>();
@@ -221,8 +222,19 @@ export async function getAdminTasks(
   });
 
   const profileByUserId = new Map(profiles.map((profile) => [profile.user_id, profile]));
-  const teamById = new Map(teams.map((team) => [team.id, team]));
   const taskTypeByCode = new Map(taskTypes.map((taskType) => [taskType.code, taskType]));
+  const targetRolesByTaskId = new Map<string, TaskTargetRole[]>();
+
+  targetRoles.forEach((targetRole) => {
+    const bucket = targetRolesByTaskId.get(targetRole.taskId);
+
+    if (bucket) {
+      bucket.push(targetRole.role);
+      return;
+    }
+
+    targetRolesByTaskId.set(targetRole.taskId, [targetRole.role]);
+  });
 
   return taskRows.map((task) => ({
     ...task,
@@ -232,7 +244,8 @@ export async function getAdminTasks(
     accepted_by: task.accepted_by_user_id
       ? profileByUserId.get(task.accepted_by_user_id) ?? null
       : null,
-    team: task.team_id ? teamById.get(task.team_id) ?? null : null,
+    team: null,
+    target_roles: targetRolesByTaskId.get(task.id) ?? [],
     attachments: attachmentsByTaskId.get(task.id) ?? [],
   }));
 }
@@ -241,23 +254,14 @@ export async function createAdminTask(
   supabase: SupabaseClient,
   input: CreateAdminTaskInput,
 ): Promise<AdminTaskMainRow> {
-  const payload = {
-    task_name: input.taskName.trim(),
-    task_intro: normalizeNullableString(input.taskIntro),
-    task_type_code: input.taskTypeCode,
-    commission_amount_rmb: input.commissionAmountRmb,
-    created_by_user_id: input.createdByUserId,
-    scope: input.scope,
-    team_id: input.scope === "team" ? input.teamId ?? null : null,
-  };
-
   const { data, error } = await withRequestTimeout(
-    supabase
-      .from("task_main")
-      .insert(payload)
-      .select(ADMIN_TASK_SELECT)
-      .single()
-      .returns<TaskMainRecord>(),
+    supabase.rpc("create_role_targeted_task", {
+      p_task_name: input.taskName.trim(),
+      p_task_intro: normalizeNullableString(input.taskIntro),
+      p_task_type_code: input.taskTypeCode,
+      p_commission_amount_rmb: input.commissionAmountRmb,
+      p_target_roles: input.targetRoles,
+    }).returns<TaskMainRecord>(),
   );
 
   if (error) {
@@ -280,23 +284,15 @@ export async function updateAdminTask(
   commissionSyncFailed: boolean;
   task: AdminTaskMainRow;
 }> {
-  const payload = {
-    task_name: input.taskName.trim(),
-    task_intro: normalizeNullableString(input.taskIntro),
-    task_type_code: input.taskTypeCode,
-    commission_amount_rmb: input.commissionAmountRmb,
-    scope: input.scope,
-    team_id: input.scope === "team" ? input.teamId ?? null : null,
-  };
-
   const { data, error } = await withRequestTimeout(
-    supabase
-      .from("task_main")
-      .update(payload)
-      .eq("id", input.taskId)
-      .select(ADMIN_TASK_SELECT)
-      .single()
-      .returns<TaskMainRecord>(),
+    supabase.rpc("update_role_targeted_task", {
+      p_task_id: input.taskId,
+      p_task_name: input.taskName.trim(),
+      p_task_intro: normalizeNullableString(input.taskIntro),
+      p_task_type_code: input.taskTypeCode,
+      p_commission_amount_rmb: input.commissionAmountRmb,
+      p_target_roles: input.targetRoles,
+    }).returns<TaskMainRecord>(),
   );
 
   if (error) {
@@ -334,24 +330,31 @@ export async function updateAdminTaskAssignment(
   supabase: SupabaseClient,
   input: UpdateAdminTaskAssignmentInput,
 ): Promise<AdminTaskMainRow> {
-  const { data, error } = await withRequestTimeout(
-    supabase
-      .from("task_main")
-      .update({
-        scope: input.scope,
-        team_id: input.scope === "team" ? input.teamId ?? null : null,
-      })
-      .eq("id", input.taskId)
-      .select(ADMIN_TASK_SELECT)
-      .single()
-      .returns<TaskMainRecord>(),
+  const { error } = await withRequestTimeout(
+    supabase.rpc("set_task_target_roles", {
+      p_task_id: input.taskId,
+      p_target_roles: input.targetRoles,
+    }),
   );
 
   if (error) {
     throw error;
   }
 
-  const task = normalizeTaskMainRecord(data);
+  const { data: taskData, error: taskError } = await withRequestTimeout(
+    supabase
+      .from("task_main")
+      .select(ADMIN_TASK_SELECT)
+      .eq("id", input.taskId)
+      .single()
+      .returns<TaskMainRecord>(),
+  );
+
+  if (taskError) {
+    throw taskError;
+  }
+
+  const task = normalizeTaskMainRecord(taskData);
 
   if (!task) {
     throw new Error("任务改派成功，但返回数据不完整。");
@@ -413,7 +416,7 @@ function createEmptyAdminTasksPageData(options: {
     viewerStatus: options.viewerStatus,
     canView: canViewAdminTaskBoard(options.viewerRole, options.viewerStatus),
     tasks: [],
-    teamOptions: [],
+    targetRoleOptions: [],
     taskTypeOptions: [],
   };
 }
@@ -432,8 +435,10 @@ function normalizePositiveInteger(value: string | null | undefined, fallback: nu
   return parsed;
 }
 
-function normalizeAdminTaskScopeFilter(value: unknown): AdminTaskScopeFilter {
-  return value === "public" || value === "team" ? value : "all";
+function normalizeAdminTaskTargetRoleFilter(value: unknown): AdminTaskTargetRoleFilter {
+  const role = normalizeTaskTargetRole(value);
+
+  return role ?? "all";
 }
 
 function normalizeAdminTaskStatusFilter(value: unknown): AdminTaskStatusFilter {
@@ -471,20 +476,24 @@ async function getTaskProfilesByUserIds(
     .filter((item): item is TaskProfileSummary => item !== null);
 }
 
-async function getTaskTeamsByIds(
+function getTaskTargetRoleOptions(): TaskTargetRoleOption[] {
+  return TASK_TARGET_ROLES.map((role) => ({ role }));
+}
+
+async function getTaskTargetRolesByTaskIds(
   supabase: SupabaseClient,
-  teamIds: string[],
-): Promise<TaskTeamSummary[]> {
-  if (teamIds.length === 0) {
+  taskIds: string[],
+): Promise<Array<{ taskId: string; role: TaskTargetRole }>> {
+  if (taskIds.length === 0) {
     return [];
   }
 
   const { data, error } = await withRequestTimeout(
     supabase
-      .from("team_profiles")
-      .select("id,team_name")
-      .in("id", teamIds)
-      .returns<TeamProfileRecord[]>(),
+      .from("task_target_roles")
+      .select("task_id,target_role")
+      .in("task_id", taskIds)
+      .returns<TaskTargetRoleRecord[]>(),
   );
 
   if (error) {
@@ -492,53 +501,11 @@ async function getTaskTeamsByIds(
   }
 
   return (data ?? [])
-    .map((item) => normalizeTaskTeam(item))
-    .filter((item): item is TaskTeamSummary => item !== null);
-}
+    .map((item) => {
+      const taskId = normalizeNullableString(item.task_id);
+      const role = normalizeTaskTargetRole(item.target_role);
 
-async function getVisibleTaskTypeOptions(
-  supabase: SupabaseClient,
-): Promise<TaskTypeOption[]> {
-  const { data, error } = await withRequestTimeout(
-    supabase
-      .from("task_type_catalog")
-      .select("code,display_name,description,default_commission_amount_rmb,is_active,sort_order")
-      .eq("is_active", true)
-      .order("sort_order", { ascending: true })
-      .order("display_name", { ascending: true })
-      .returns<TaskTypeCatalogRecord[]>(),
-  );
-
-  if (error) {
-    throw error;
-  }
-
-  return (data ?? [])
-    .map((item) => normalizeTaskTypeOption(item))
-    .filter((item): item is TaskTypeOption => item !== null);
-}
-
-async function getTaskTypesByCodes(
-  supabase: SupabaseClient,
-  codes: string[],
-): Promise<TaskTypeOption[]> {
-  if (codes.length === 0) {
-    return [];
-  }
-
-  const { data, error } = await withRequestTimeout(
-    supabase
-      .from("task_type_catalog")
-      .select("code,display_name,description,default_commission_amount_rmb,is_active,sort_order")
-      .in("code", codes)
-      .returns<TaskTypeCatalogRecord[]>(),
-  );
-
-  if (error) {
-    throw error;
-  }
-
-  return (data ?? [])
-    .map((item) => normalizeTaskTypeOption(item))
-    .filter((item): item is TaskTypeOption => item !== null);
+      return taskId && role ? { taskId, role } : null;
+    })
+    .filter((item): item is { taskId: string; role: TaskTargetRole } => item !== null);
 }

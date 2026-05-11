@@ -39,7 +39,7 @@ export type WorkspaceNavLabelKey =
 export type WorkspaceOrdersPageMode = "admin" | "salesman" | "client";
 export type WorkspaceCommissionPageMode = "admin" | "salesman";
 export type WorkspaceExchangeRatesMode = "manage" | "readonly";
-export type WorkspaceTasksPageMode = "admin" | "salesman";
+export type WorkspaceTasksPageMode = "admin" | "staff";
 
 export type WorkspaceNavItem = {
   segment: WorkspaceNavSegment;
@@ -73,12 +73,14 @@ const managerNavItems = [
   { segment: "home", labelKey: "home" },
   { segment: "referrals", labelKey: "referrals" },
   { segment: "team", labelKey: "team" },
+  { segment: "tasks", labelKey: "tasks" },
 ] as const satisfies readonly WorkspaceNavItem[];
 
 const staffReadNavItems = [
   { segment: "home", labelKey: "home" },
   { segment: "referrals", labelKey: "referrals" },
   { segment: "team", labelKey: "team" },
+  { segment: "tasks", labelKey: "tasks" },
 ] as const satisfies readonly WorkspaceNavItem[];
 
 const financeNavItems = [
@@ -95,6 +97,7 @@ const clientNavItems = [
 const recruiterNavItems = [
   { segment: "home", labelKey: "home" },
   { segment: "referrals", labelKey: "referrals" },
+  { segment: "tasks", labelKey: "tasks" },
 ] as const satisfies readonly WorkspaceNavItem[];
 
 const sharedNavItems = [
@@ -161,6 +164,7 @@ const WORKSPACE_ROUTE_CONFIG_BY_SEGMENT = {
     pageVariants: {
       commission: "admin",
       referrals: true,
+      tasks: "staff",
       team: true,
     },
     routeSegment: "finance",
@@ -172,6 +176,7 @@ const WORKSPACE_ROUTE_CONFIG_BY_SEGMENT = {
     navItems: managerNavItems,
     pageVariants: {
       referrals: true,
+      tasks: "staff",
       team: true,
     },
     routeSegment: "manager",
@@ -183,6 +188,7 @@ const WORKSPACE_ROUTE_CONFIG_BY_SEGMENT = {
     navItems: staffReadNavItems,
     pageVariants: {
       referrals: true,
+      tasks: "staff",
       team: true,
     },
     routeSegment: "operator",
@@ -194,6 +200,7 @@ const WORKSPACE_ROUTE_CONFIG_BY_SEGMENT = {
     navItems: recruiterNavItems,
     pageVariants: {
       referrals: true,
+      tasks: "staff",
     },
     routeSegment: "recruiter",
   },
@@ -207,7 +214,7 @@ const WORKSPACE_ROUTE_CONFIG_BY_SEGMENT = {
       exchangeRates: "readonly",
       orders: "salesman",
       referrals: true,
-      tasks: "salesman",
+      tasks: "staff",
       team: true,
     },
     routeSegment: "salesman",

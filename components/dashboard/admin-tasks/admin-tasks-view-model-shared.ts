@@ -33,8 +33,7 @@ export function areAdminTaskFiltersEqual(
 ) {
   return (
     left.searchText === right.searchText &&
-    left.scope === right.scope &&
-    left.status === right.status &&
-    left.teamId === right.teamId
+    left.targetRole === right.targetRole &&
+    left.status === right.status
   );
 }

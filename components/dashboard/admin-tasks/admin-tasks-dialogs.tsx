@@ -10,14 +10,14 @@ import {
 import {
   type AdminTaskRow,
   type AdminTasksPageData,
-  type TaskScope,
+  type TaskTargetRole,
 } from "@/lib/admin-tasks";
 
 import { Button } from "@/components/ui/button";
 import { PageBanner } from "@/components/dashboard/dashboard-shared-ui";
 import {
-  getTaskAssignmentLabel,
-  getTaskTeamName,
+  getTaskTargetRoleLabel,
+  getTaskTargetRolesLabel,
 } from "@/components/dashboard/tasks/tasks-display";
 
 import {
@@ -25,44 +25,37 @@ import {
   type AssignmentFormState,
 } from "./admin-tasks-utils";
 import {
-  FormField,
-  TaskScopePill,
   TaskStatusPill,
 } from "./admin-tasks-ui";
-import {
-  type PageFeedback,
-  taskSelectClassName,
-} from "./admin-tasks-view-model-shared";
+import { type PageFeedback } from "./admin-tasks-view-model-shared";
 
 const DashboardDialog = dynamic(
   () => import("@/components/dashboard/dashboard-dialog").then((mod) => mod.DashboardDialog),
   { ssr: false },
 );
 
-type TeamOptions = AdminTasksPageData["teamOptions"];
+type TargetRoleOptions = AdminTasksPageData["targetRoleOptions"];
 
 export function AssignmentDialog({
   feedback,
   formState,
   onOpenChange,
-  onScopeChange,
+  onTargetRoleToggle,
   onSubmit,
-  onTeamChange,
   open,
   pending,
   selectedTask,
-  teamOptions,
+  targetRoleOptions,
 }: {
   feedback: PageFeedback;
   formState: AssignmentFormState;
   onOpenChange: (open: boolean) => void;
-  onScopeChange: (scope: TaskScope) => void;
+  onTargetRoleToggle: (role: TaskTargetRole) => void;
   onSubmit: () => void;
-  onTeamChange: (teamId: string) => void;
   open: boolean;
   pending: boolean;
   selectedTask: AdminTaskRow | null;
-  teamOptions: TeamOptions;
+  targetRoleOptions: TargetRoleOptions;
 }) {
   const t = useTranslations("Tasks.admin");
   const sharedT = useTranslations("Tasks.shared");
@@ -115,18 +108,13 @@ export function AssignmentDialog({
             <div className="rounded-[24px] border border-[#e6ebef] bg-[#f8fbfc] p-5">
               <div className="flex flex-wrap items-center gap-2">
                 <TaskStatusPill status={selectedTask.status} />
-                <TaskScopePill scope={selectedTask.scope} />
               </div>
               <p className="mt-4 text-lg font-semibold tracking-tight text-[#23313a]">
                 {selectedTask.task_name}
               </p>
               <p className="mt-2 text-sm leading-7 text-[#6f7b85]">
-                {t("assignmentDialog.currentAssignment", {
-                  assignmentLabel: getTaskAssignmentLabel(
-                    selectedTask.scope,
-                    selectedTask.team?.team_name,
-                    sharedT,
-                  ),
+                {t("assignmentDialog.currentTargetRoles", {
+                  targetRoles: getTaskTargetRolesLabel(selectedTask.target_roles, sharedT),
                 })}
               </p>
             </div>
@@ -134,35 +122,40 @@ export function AssignmentDialog({
             {!canChangeAssignment ? (
               <PageBanner tone="info">{t("assignmentDialog.viewOnlyNotice")}</PageBanner>
             ) : (
-              <>
-                <FormField label={t("assignmentDialog.scopeLabel")}>
-                  <select
-                    className={taskSelectClassName}
-                    onChange={(event) => onScopeChange(event.target.value as TaskScope)}
-                    value={formState.scope}
-                  >
-                    <option value="public">{sharedT("scope.public")}</option>
-                    <option value="team">{sharedT("scope.team")}</option>
-                  </select>
-                </FormField>
+              <div>
+                <p className="mb-2 block text-sm font-semibold text-[#23313a]">
+                  {t("assignmentDialog.targetRolesLabel")}
+                </p>
+                <div className="grid gap-2 sm:grid-cols-2">
+                  {targetRoleOptions.map((option) => {
+                    const checked = formState.targetRoles.includes(option.role);
 
-                {formState.scope === "team" ? (
-                  <FormField label={t("assignmentDialog.teamLabel")}>
-                    <select
-                      className={taskSelectClassName}
-                      onChange={(event) => onTeamChange(event.target.value)}
-                      value={formState.teamId}
-                    >
-                      <option value="">{t("assignmentDialog.teamPlaceholder")}</option>
-                      {teamOptions.map((team) => (
-                        <option key={team.team_id} value={team.team_id}>
-                          {getTaskTeamName(team.team_name, sharedT)}
-                        </option>
-                      ))}
-                    </select>
-                  </FormField>
-                ) : null}
-              </>
+                    return (
+                      <label
+                        className={[
+                          "flex min-h-11 items-center gap-3 rounded-[16px] border px-3 py-2 text-sm font-medium transition",
+                          checked
+                            ? "border-[#486782] bg-[#eef4f8] text-[#23313a]"
+                            : "border-[#dfe6eb] bg-white text-[#60717d]",
+                          pending
+                            ? "cursor-not-allowed opacity-60"
+                            : "cursor-pointer hover:bg-[#f8fbfd]",
+                        ].join(" ")}
+                        key={option.role}
+                      >
+                        <input
+                          checked={checked}
+                          className="size-4 accent-[#486782]"
+                          disabled={pending}
+                          onChange={() => onTargetRoleToggle(option.role)}
+                          type="checkbox"
+                        />
+                        {getTaskTargetRoleLabel(option.role, sharedT)}
+                      </label>
+                    );
+                  })}
+                </div>
+              </div>
             )}
           </>
         ) : null}

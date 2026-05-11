@@ -7,7 +7,6 @@ import type {
   SalesmanTaskFocusFilter,
   SalesmanTasksPageData,
   SalesmanTasksSearchParams,
-  SalesmanTaskScopeFilter,
 } from "@/lib/salesman-tasks";
 import { Button } from "@/components/ui/button";
 import { DashboardPaginationControls } from "@/components/dashboard/dashboard-pagination-controls";
@@ -34,7 +33,6 @@ export function SalesmanTasksClient({
   initialView: SalesmanTasksSearchParams;
 }) {
   const t = useTranslations("Tasks.salesman");
-  const sharedT = useTranslations("Tasks.shared");
   const viewModel = useSalesmanTasksPage({ initialData, initialView });
 
   return (
@@ -121,7 +119,7 @@ export function SalesmanTasksClient({
       ) : (
         <>
           <DashboardFilterPanel
-            gridClassName="grid-cols-1 xl:grid-cols-[minmax(0,1.2fr)_repeat(2,minmax(0,0.6fr))]"
+            gridClassName="grid-cols-1 xl:grid-cols-[minmax(0,1.2fr)_minmax(0,0.6fr)]"
             variant="standalone"
           >
               <SearchField
@@ -142,16 +140,6 @@ export function SalesmanTasksClient({
                 <option value="reviewing">{t("filters.focusReviewing")}</option>
                 <option value="rejected">{t("filters.focusRejected")}</option>
                 <option value="completed">{t("filters.focusCompleted")}</option>
-              </FilterField>
-
-              <FilterField
-                label={t("filters.scopeLabel")}
-                onChange={(value) => viewModel.updateFilter("scope", value as SalesmanTaskScopeFilter)}
-                value={viewModel.filters.scope}
-              >
-                <option value="all">{t("filters.scopeAll")}</option>
-                <option value="public">{sharedT("scope.public")}</option>
-                <option value="team">{sharedT("scope.team")}</option>
               </FilterField>
           </DashboardFilterPanel>
 
@@ -177,7 +165,6 @@ export function SalesmanTasksClient({
                     onOpenAttachment={(attachment) => void viewModel.handleOpenAttachment(task.id, attachment)}
                     onSubmitReview={() => viewModel.openSubmitDialog(task)}
                     task={task}
-                    teamNameById={viewModel.teamNameById}
                     viewerId={viewModel.viewerId}
                   />
                 ))}

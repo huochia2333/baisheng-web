@@ -10,7 +10,7 @@ import {
   type TaskTypeOption,
   uploadAdminTaskAttachments,
   validateAdminTaskAttachments,
-  type TaskScope,
+  type TaskTargetRole,
 } from "@/lib/admin-tasks";
 import { type getBrowserSupabaseClient } from "@/lib/supabase";
 
@@ -79,11 +79,12 @@ export function useAdminTaskCreateDialog({
     [],
   );
 
-  const handleCreateScopeChange = useCallback((scope: TaskScope) => {
+  const handleCreateTargetRoleToggle = useCallback((role: TaskTargetRole) => {
     setCreateFormState((current) => ({
       ...current,
-      scope,
-      teamId: scope === "team" ? current.teamId : "",
+      targetRoles: current.targetRoles.includes(role)
+        ? current.targetRoles.filter((targetRole) => targetRole !== role)
+        : [...current.targetRoles, role],
     }));
   }, []);
 
@@ -168,8 +169,7 @@ export function useAdminTaskCreateDialog({
         taskTypeCode: createFormState.taskTypeCode,
         commissionAmountRmb: Number(createFormState.commissionAmount),
         createdByUserId: viewerId,
-        scope: createFormState.scope,
-        teamId: createFormState.scope === "team" ? createFormState.teamId : null,
+        targetRoles: createFormState.targetRoles,
       });
 
       if (createFormState.files.length > 0) {
@@ -220,7 +220,7 @@ export function useAdminTaskCreateDialog({
     createPending,
     handleCreateDialogOpenChange,
     handleCreateFilesChange,
-    handleCreateScopeChange,
+    handleCreateTargetRoleToggle,
     handleCreateTaskTypeChange,
     handleCreateTask,
     openCreateDialog,

@@ -1,5 +1,5 @@
 import type { SalesmanTaskRow } from "@/lib/salesman-tasks";
-import type { TaskScope, TaskStatus } from "@/lib/admin-tasks";
+import type { TaskScope, TaskStatus, TaskTargetRole } from "@/lib/admin-tasks";
 import type { Locale } from "@/lib/locale";
 
 import {
@@ -14,13 +14,11 @@ type TaskDraftLike = {
   taskName: string;
   taskTypeCode: string;
   commissionAmount: string;
-  scope: TaskScope;
-  teamId: string;
+  targetRoles: TaskTargetRole[];
 };
 
 type TaskAssignmentDraftLike = {
-  scope: TaskScope;
-  teamId: string;
+  targetRoles: TaskTargetRole[];
 };
 
 export function getTaskStatusMeta(
@@ -58,6 +56,21 @@ export function getTaskTeamName(
   t: TranslateFn,
 ) {
   return teamName?.trim() || t("fallback.unnamedTeam");
+}
+
+export function getTaskTargetRoleLabel(role: TaskTargetRole, t: TranslateFn) {
+  return t(`targetRoles.${role}`);
+}
+
+export function getTaskTargetRolesLabel(
+  roles: TaskTargetRole[],
+  t: TranslateFn,
+) {
+  if (roles.length === 0) {
+    return t("fallback.noRecord");
+  }
+
+  return roles.map((role) => getTaskTargetRoleLabel(role, t)).join("、");
 }
 
 export function getTaskIntroText(
@@ -132,8 +145,8 @@ export function validateTaskDraft(
     return t("validation.commissionAmountRequired");
   }
 
-  if (formState.scope === "team" && !formState.teamId) {
-    return t("validation.teamRequiredForCreate");
+  if (formState.targetRoles.length === 0) {
+    return t("validation.targetRolesRequiredForCreate");
   }
 
   return null;
@@ -143,27 +156,11 @@ export function validateTaskAssignmentDraft(
   formState: TaskAssignmentDraftLike,
   t: TranslateFn,
 ) {
-  if (formState.scope === "team" && !formState.teamId) {
-    return t("validation.teamRequiredForAssignment");
+  if (formState.targetRoles.length === 0) {
+    return t("validation.targetRolesRequiredForAssignment");
   }
 
   return null;
-}
-
-export function resolveSalesmanTaskTargetLabel(
-  task: SalesmanTaskRow,
-  teamNameById: Map<string, string>,
-  t: TranslateFn,
-) {
-  if (task.scope === "public") {
-    return t("scope.public");
-  }
-
-  if (task.team_id) {
-    return teamNameById.get(task.team_id) ?? t("scope.team");
-  }
-
-  return t("scope.team");
 }
 
 export function toAdminTaskErrorMessage(error: unknown, t: TranslateFn) {
@@ -182,12 +179,36 @@ export function toAdminTaskErrorMessage(error: unknown, t: TranslateFn) {
     return t("errors.admin.taskTypeRequired");
   }
 
+  if (rawMessage.includes("invalid task target roles")) {
+    return t("errors.admin.targetRolesRequired");
+  }
+
+  if (rawMessage.includes("task target roles can only be changed before acceptance")) {
+    return t("errors.admin.targetRolesLocked");
+  }
+
+  if (rawMessage.includes("task type display name is required")) {
+    return t("errors.admin.taskTypeNameRequired");
+  }
+
+  if (rawMessage.includes("task type default commission must be nonnegative")) {
+    return t("errors.admin.commissionAmountInvalid");
+  }
+
+  if (rawMessage.includes("task type not found")) {
+    return t("errors.admin.taskTypeRequired");
+  }
+
   if (rawMessage.includes("task_main_commission_amount_nonnegative")) {
     return t("errors.admin.commissionAmountInvalid");
   }
 
   if (rawMessage.includes("authenticated user is required")) {
     return t("errors.admin.authExpired");
+  }
+
+  if (rawMessage.includes("only administrator")) {
+    return t("errors.admin.noPermission");
   }
 
   if (rawMessage.includes("task not found")) {

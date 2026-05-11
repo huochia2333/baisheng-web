@@ -8,7 +8,7 @@ import {
   ADMIN_TASK_ATTACHMENT_MAX_TOTAL_SIZE_BYTES,
   type AdminTaskRow,
   type AdminTasksPageData,
-  type TaskScope,
+  type TaskTargetRole,
   type TaskTypeOption,
 } from "@/lib/admin-tasks";
 import {
@@ -19,14 +19,13 @@ import {
 
 import { formatFileSize } from "@/components/dashboard/dashboard-shared-ui";
 import {
-  getTaskAssignmentLabel,
-  getTaskTeamName,
+  getTaskTargetRoleLabel,
+  getTaskTargetRolesLabel,
 } from "@/components/dashboard/tasks/tasks-display";
 
 import { type CreateTaskFormState } from "./admin-tasks-utils";
 import {
   FormField,
-  TaskScopePill,
   TaskStatusPill,
 } from "./admin-tasks-ui";
 import {
@@ -35,7 +34,7 @@ import {
   taskTextareaClassName,
 } from "./admin-tasks-view-model-shared";
 
-type TeamOptions = AdminTasksPageData["teamOptions"];
+type TargetRoleOptions = AdminTasksPageData["targetRoleOptions"];
 
 export function TaskEditSummaryCard({
   task,
@@ -49,18 +48,13 @@ export function TaskEditSummaryCard({
     <div className="rounded-[24px] border border-[#e6ebef] bg-[#f8fbfc] p-5">
       <div className="flex flex-wrap items-center gap-2">
         <TaskStatusPill status={task.status} />
-        <TaskScopePill scope={task.scope} />
       </div>
       <p className="mt-4 text-lg font-semibold tracking-tight text-[#23313a]">
         {task.task_name}
       </p>
       <p className="mt-2 text-sm leading-7 text-[#6f7b85]">
-        {t("editDialog.currentAssignment", {
-          assignmentLabel: getTaskAssignmentLabel(
-            task.scope,
-            task.team?.team_name,
-            sharedT,
-          ),
+        {t("editDialog.currentTargetRoles", {
+          targetRoles: getTaskTargetRolesLabel(task.target_roles, sharedT),
         })}
       </p>
     </div>
@@ -71,29 +65,29 @@ export function TaskFormFields({
   canChangeAssignment,
   formState,
   onCommissionAmountChange,
-  onScopeChange,
+  onTargetRoleToggle,
   onTaskIntroChange,
   onTaskNameChange,
   onTaskTypeChange,
-  onTeamChange,
   pending,
   taskTypeOptions,
-  teamOptions,
+  targetRoleOptions,
 }: {
   canChangeAssignment: boolean;
   formState: CreateTaskFormState;
   onCommissionAmountChange: (value: string) => void;
-  onScopeChange: (scope: TaskScope) => void;
+  onTargetRoleToggle: (role: TaskTargetRole) => void;
   onTaskIntroChange: (value: string) => void;
   onTaskNameChange: (value: string) => void;
   onTaskTypeChange: (taskTypeCode: string) => void;
-  onTeamChange: (teamId: string) => void;
   pending: boolean;
   taskTypeOptions: TaskTypeOption[];
-  teamOptions: TeamOptions;
+  targetRoleOptions: TargetRoleOptions;
 }) {
   const t = useTranslations("Tasks.admin");
-  const sharedT = useTranslations("Tasks.shared");
+  const selectableTaskTypes = taskTypeOptions.filter(
+    (taskType) => taskType.isActive || taskType.code === formState.taskTypeCode,
+  );
 
   return (
     <>
@@ -109,17 +103,12 @@ export function TaskFormFields({
           />
         </FormField>
 
-        <FormField label={t("createDialog.scopeLabel")}>
-          <select
-            className={taskSelectClassName}
-            disabled={pending || !canChangeAssignment}
-            onChange={(event) => onScopeChange(event.target.value as TaskScope)}
-            value={formState.scope}
-          >
-            <option value="public">{sharedT("scope.public")}</option>
-            <option value="team">{sharedT("scope.team")}</option>
-          </select>
-        </FormField>
+        <TargetRoleCheckboxGrid
+          disabled={pending || !canChangeAssignment}
+          onToggle={onTargetRoleToggle}
+          selectedRoles={formState.targetRoles}
+          targetRoleOptions={targetRoleOptions}
+        />
       </div>
 
       <div className="grid gap-5 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
@@ -131,7 +120,7 @@ export function TaskFormFields({
             value={formState.taskTypeCode}
           >
             <option value="">{t("createDialog.taskTypePlaceholder")}</option>
-            {taskTypeOptions.map((taskType) => (
+            {selectableTaskTypes.map((taskType) => (
               <option key={taskType.code} value={taskType.code}>
                 {taskType.displayName}
               </option>
@@ -161,24 +150,6 @@ export function TaskFormFields({
         </p>
       ) : null}
 
-      {formState.scope === "team" ? (
-        <FormField label={t("createDialog.teamLabel")}>
-          <select
-            className={taskSelectClassName}
-            disabled={pending || !canChangeAssignment}
-            onChange={(event) => onTeamChange(event.target.value)}
-            value={formState.teamId}
-          >
-            <option value="">{t("createDialog.teamPlaceholder")}</option>
-            {teamOptions.map((team) => (
-              <option key={team.team_id} value={team.team_id}>
-                {getTaskTeamName(team.team_name, sharedT)}
-              </option>
-            ))}
-          </select>
-        </FormField>
-      ) : null}
-
       <FormField label={t("createDialog.taskIntroLabel")}>
         <textarea
           className={taskTextareaClassName}
@@ -189,6 +160,59 @@ export function TaskFormFields({
         />
       </FormField>
     </>
+  );
+}
+
+function TargetRoleCheckboxGrid({
+  disabled,
+  onToggle,
+  selectedRoles,
+  targetRoleOptions,
+}: {
+  disabled: boolean;
+  onToggle: (role: TaskTargetRole) => void;
+  selectedRoles: TaskTargetRole[];
+  targetRoleOptions: TargetRoleOptions;
+}) {
+  const t = useTranslations("Tasks.admin");
+  const sharedT = useTranslations("Tasks.shared");
+
+  return (
+    <fieldset>
+      <legend className="mb-2 block text-sm font-semibold text-[#23313a]">
+        {t("createDialog.targetRolesLabel")}
+      </legend>
+      <div className="grid gap-2 sm:grid-cols-2">
+        {targetRoleOptions.map((option) => {
+          const checked = selectedRoles.includes(option.role);
+
+          return (
+            <label
+              className={[
+                "flex min-h-11 items-center gap-3 rounded-[16px] border px-3 py-2 text-sm font-medium transition",
+                checked
+                  ? "border-[#486782] bg-[#eef4f8] text-[#23313a]"
+                  : "border-[#dfe6eb] bg-white text-[#60717d]",
+                disabled ? "cursor-not-allowed opacity-60" : "cursor-pointer hover:bg-[#f8fbfd]",
+              ].join(" ")}
+              key={option.role}
+            >
+              <input
+                checked={checked}
+                className="size-4 accent-[#486782]"
+                disabled={disabled}
+                onChange={() => onToggle(option.role)}
+                type="checkbox"
+              />
+              {getTaskTargetRoleLabel(option.role, sharedT)}
+            </label>
+          );
+        })}
+      </div>
+      <p className="mt-2 text-xs leading-6 text-[#7b858d]">
+        {t("createDialog.targetRolesHint")}
+      </p>
+    </fieldset>
   );
 }
 

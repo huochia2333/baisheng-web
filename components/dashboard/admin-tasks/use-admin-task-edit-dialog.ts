@@ -7,7 +7,7 @@ import { useTranslations } from "next-intl";
 import {
   updateAdminTask,
   type AdminTaskRow,
-  type TaskScope,
+  type TaskTargetRole,
   type TaskTypeOption,
 } from "@/lib/admin-tasks";
 import { type getBrowserSupabaseClient } from "@/lib/supabase";
@@ -49,8 +49,7 @@ export function useAdminTaskEditDialog({
     taskIntro: "",
     taskTypeCode: "",
     commissionAmount: "",
-    scope: "public",
-    teamId: "",
+    targetRoles: [],
     files: [],
   });
 
@@ -92,11 +91,12 @@ export function useAdminTaskEditDialog({
     [],
   );
 
-  const handleEditScopeChange = useCallback((scope: TaskScope) => {
+  const handleEditTargetRoleToggle = useCallback((role: TaskTargetRole) => {
     setEditFormState((current) => ({
       ...current,
-      scope,
-      teamId: scope === "team" ? current.teamId : "",
+      targetRoles: current.targetRoles.includes(role)
+        ? current.targetRoles.filter((targetRole) => targetRole !== role)
+        : [...current.targetRoles, role],
     }));
   }, []);
 
@@ -157,8 +157,7 @@ export function useAdminTaskEditDialog({
         taskIntro: editFormState.taskIntro,
         taskTypeCode: editFormState.taskTypeCode,
         commissionAmountRmb: Number(editFormState.commissionAmount),
-        scope: editFormState.scope,
-        teamId: editFormState.scope === "team" ? editFormState.teamId : null,
+        targetRoles: editFormState.targetRoles,
       });
 
       setEditDialogOpen(false);
@@ -187,7 +186,7 @@ export function useAdminTaskEditDialog({
     editPending,
     editingTask,
     handleEditDialogOpenChange,
-    handleEditScopeChange,
+    handleEditTargetRoleToggle,
     handleEditTask,
     handleEditTaskTypeChange,
     openEditDialog,

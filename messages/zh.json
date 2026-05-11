@@ -1597,6 +1597,7 @@
   "Tasks": {
     "metadata": {
       "adminTitle": "管理员任务板",
+      "staffTitle": "任务中心",
       "salesmanTitle": "我的任务"
     },
     "shared": {
@@ -1611,6 +1612,13 @@
         "public": "面向全员",
         "team": "团队任务"
       },
+      "targetRoles": {
+        "manager": "经理",
+        "operator": "运营",
+        "recruiter": "招聘",
+        "salesman": "业务",
+        "finance": "财务"
+      },
       "fallback": {
         "unnamedTeam": "未命名团队",
         "noTaskIntro": "暂无任务说明。",
@@ -1624,8 +1632,12 @@
           "taskNameBlank": "任务名称不能为空。",
           "teamRequired": "团队任务必须绑定一个具体团队。",
           "taskTypeRequired": "请选择有效的任务类型。",
+          "targetRolesRequired": "请选择至少一个目标角色。",
+          "targetRolesLocked": "这项任务已经有人领取，目标角色暂时不能再调整。",
+          "taskTypeNameRequired": "请填写任务类型名称。",
           "commissionAmountInvalid": "佣金金额必须是有效数字，且不能小于 0。",
           "authExpired": "登录状态已失效，请重新登录后再试。",
+          "noPermission": "当前账号不能执行这个操作。",
           "taskNotFound": "任务不存在，建议先刷新任务列表。",
           "taskCompletedReadOnly": "仅管理员可以编辑或删除已完成任务。",
           "duplicateAttachmentPath": "附件路径出现冲突，请重新上传一次。",
@@ -1663,8 +1675,7 @@
         "created": "任务已创建。",
         "updated": "任务已更新。",
         "updatedWithCommissionSyncWarning": "任务已更新，但相关佣金信息还没全部刷新，请稍后再去佣金中心查看。",
-        "assignmentUpdated": "任务归属已更新。",
-        "assignmentPublic": "任务已更新为面向全员。",
+        "assignmentUpdated": "目标角色已更新。",
         "deletedWithAttachmentCleanupWarning": "任务已删除，但部分任务附件或提审附件还没清理完成，请稍后再查看。",
         "deleted": "任务已删除。"
       },
@@ -1673,10 +1684,11 @@
       "header": {
         "badge": "平台任务调度",
         "title": "管理员任务板",
-        "description": "在这里可以集中查看任务进展、发布新任务，并在任务开始前调整协作范围与归属。",
+        "description": "在这里可以集中查看任务进展、发布新任务，并在任务开始前调整目标角色。",
         "refresh": "刷新数据",
         "history": "历史已完成任务",
         "allTasks": "返回任务板",
+        "manageTypes": "任务类型",
         "create": "新建任务"
       },
       "summary": {
@@ -1691,11 +1703,9 @@
       },
       "filters": {
         "searchLabel": "搜索任务",
-        "searchPlaceholder": "搜索任务名、创建人、团队或领取人",
-        "scopeLabel": "范围",
-        "scopeAll": "全部范围",
-        "teamLabel": "团队",
-        "teamAll": "全部团队"
+        "searchPlaceholder": "搜索任务名、创建人、目标角色或领取人",
+        "targetRoleLabel": "目标角色",
+        "targetRoleAll": "全部角色"
       },
       "list": {
         "title": "任务清单",
@@ -1703,12 +1713,11 @@
       },
       "createDialog": {
         "title": "新建任务",
-        "description": "可以选择面向全员开放任务，或设置为指定团队可见。附件会和任务一起保存。",
+        "description": "选择一个或多个目标角色后，符合角色的内部成员都能看到并领取任务。附件会和任务一起保存。",
         "taskNameLabel": "任务名称",
         "taskNamePlaceholder": "例如：跟进本周客户回访资料",
-        "scopeLabel": "分配范围",
-        "teamLabel": "目标团队",
-        "teamPlaceholder": "请选择团队",
+        "targetRolesLabel": "目标角色",
+        "targetRolesHint": "可多选；任务被领取后，由领取人继续负责。",
         "taskTypeLabel": "任务类型",
         "taskTypePlaceholder": "请选择任务类型",
         "commissionAmountLabel": "佣金金额",
@@ -1726,9 +1735,9 @@
       "editDialog": {
         "title": "编辑任务",
         "titleWithName": "编辑任务：{taskName}",
-        "description": "可以在这里修改已发布任务的核心信息。任务开始处理后，归属范围会锁定，但任务内容仍可调整。",
-        "currentAssignment": "当前分配：{assignmentLabel}",
-        "scopeLockedHint": "该任务已经开始处理，当前不能再修改归属范围。",
+        "description": "可以在这里修改已发布任务的核心信息。任务被领取后，目标角色会锁定，但任务内容仍可调整。",
+        "currentTargetRoles": "当前目标角色：{targetRoles}",
+        "targetRolesLockedHint": "该任务已经有人领取，当前不能再修改目标角色。",
         "attachmentsLocked": "编辑模式下暂不调整附件；如需更换附件，请先删除后重新创建任务。",
         "noAttachments": "该任务当前没有附件。",
         "cancel": "取消",
@@ -1737,12 +1746,10 @@
       "assignmentDialog": {
         "title": "调整任务设置",
         "titleWithName": "调整任务设置：{taskName}",
-        "description": "任务开始处理后会以查看为主，如需调整范围或归属，请在开始前完成设置。",
-        "currentAssignment": "当前分配：{assignmentLabel}",
+        "description": "任务被领取后会以查看为主，如需调整目标角色，请在领取前完成设置。",
+        "currentTargetRoles": "当前目标角色：{targetRoles}",
         "viewOnlyNotice": "该任务正在处理中或已完成，当前仅支持查看。",
-        "scopeLabel": "新的分配范围",
-        "teamLabel": "目标团队",
-        "teamPlaceholder": "请选择团队",
+        "targetRolesLabel": "目标角色",
         "cancel": "取消",
         "submit": "保存设置"
       },
@@ -1750,7 +1757,7 @@
         "edit": "编辑",
         "reassign": "调整归属",
         "delete": "删除",
-        "assignmentLabel": "当前分配",
+        "assignmentLabel": "目标角色",
         "taskTypeLabel": "任务类型",
         "commissionAmountLabel": "任务佣金",
         "creatorLabel": "创建人",
@@ -1767,7 +1774,7 @@
       },
       "submissionMedia": {
         "title": "成员提交成果",
-        "description": "展示业务员已通过审核的图片和视频成果，可预览或下载原文件。",
+        "description": "展示成员已通过审核的图片和视频成果，可预览或下载原文件。",
         "count": "{count} 个媒体文件",
         "loading": "正在读取成员提交成果",
         "empty": "当前已完成任务暂时没有可预览的图片或视频成果。",
@@ -1782,12 +1789,51 @@
         "openFailed": "成果预览地址生成失败，请稍后重试。",
         "downloadFailed": "成果下载地址生成失败，请稍后重试。"
       },
+      "taskTypes": {
+        "dialog": {
+          "title": "任务类型管理",
+          "description": "在这里维护任务类型名称、说明和默认佣金。新建任务时只显示启用中的类型。",
+          "close": "关闭"
+        },
+        "list": {
+          "title": "已有类型",
+          "new": "新建类型",
+          "empty": "暂时没有任务类型，请先在右侧新增。",
+          "active": "启用中",
+          "inactive": "已停用",
+          "noDescription": "暂无说明。",
+          "defaultCommission": "默认佣金：{amount}",
+          "edit": "编辑",
+          "deactivate": "停用"
+        },
+        "form": {
+          "createTitle": "新增任务类型",
+          "editTitle": "编辑任务类型",
+          "nameLabel": "类型名称",
+          "namePlaceholder": "例如：客户回访",
+          "commissionLabel": "默认佣金",
+          "commissionPlaceholder": "例如：80",
+          "descriptionLabel": "说明",
+          "descriptionPlaceholder": "补充这个类型适合哪些任务。",
+          "create": "新增类型",
+          "save": "保存修改"
+        },
+        "feedback": {
+          "created": "任务类型已新增。",
+          "updated": "任务类型已更新。",
+          "deactivated": "任务类型已停用。"
+        },
+        "validation": {
+          "nameRequired": "请填写任务类型名称。",
+          "commissionRequired": "默认佣金需填写为不小于 0 的数字。"
+        }
+      },
       "validation": {
         "taskNameRequired": "请先填写任务名称。",
         "taskTypeRequired": "请选择任务类型。",
         "commissionAmountRequired": "请输入大于 0 的佣金金额。",
-        "teamRequiredForCreate": "请选择目标团队。",
-        "teamRequiredForAssignment": "请先选择团队。"
+        "targetRolesRequiredForCreate": "请选择至少一个目标角色。",
+        "targetRolesRequiredForAssignment": "请选择至少一个目标角色。"
       }
     },
     "salesman": {
@@ -1821,7 +1867,7 @@
       },
       "filters": {
         "searchLabel": "搜索任务",
-        "searchPlaceholder": "搜索任务名称、说明或任务范围",
+        "searchPlaceholder": "搜索任务名称、说明或目标角色",
         "focusLabel": "查看范围",
         "focusAll": "未完成任务",
         "focusAvailable": "待接取",
@@ -1837,7 +1883,7 @@
         "description": "当前共匹配到 {count} 个任务。"
       },
       "card": {
-        "taskScopeLabel": "任务范围",
+        "taskScopeLabel": "目标角色",
         "taskTypeLabel": "任务类型",
         "commissionAmountLabel": "任务佣金",
         "createdAtLabel": "发布时间",

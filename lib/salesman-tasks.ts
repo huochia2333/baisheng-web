@@ -1,18 +1,21 @@
 import type { SupabaseClient, User } from "@supabase/supabase-js";
 
+import { TASK_TARGET_ROLES } from "./admin-tasks";
 import { withRequestTimeout } from "./request-timeout";
 import type {
   AdminTaskAttachment,
   AdminTaskMainRow,
   TaskScope,
   TaskStatus,
+  TaskTargetRole,
+  TaskTargetRoleRecord,
   TaskTypeOption,
 } from "./admin-tasks";
 import {
+  normalizeTaskTargetRole,
   normalizeTaskScope,
   normalizeTaskStatus,
 } from "./admin-task-normalizers";
-import { getVisibleTeamOverviews, type TeamOverview } from "./team-management";
 import { getCurrentSessionContext, type AppRole, type UserStatus } from "./user-self-service";
 import {
   getDashboardQueryRange,
@@ -36,6 +39,7 @@ export type SalesmanTaskViewerContext = {
 };
 
 export type SalesmanTaskRow = AdminTaskMainRow & {
+  target_roles: TaskTargetRole[];
   attachments: AdminTaskAttachment[];
 };
 
@@ -45,7 +49,6 @@ export type SalesmanTasksPageData = {
   viewerStatus: UserStatus | null;
   canView: boolean;
   tasks: SalesmanTaskRow[];
-  teamOptions: TeamOverview[];
 };
 
 export type SalesmanTaskFocusFilter =
@@ -56,12 +59,9 @@ export type SalesmanTaskFocusFilter =
   | "rejected"
   | "completed";
 
-export type SalesmanTaskScopeFilter = "all" | TaskScope;
-
 export type SalesmanTasksFilters = {
   searchText: string;
   focus: SalesmanTaskFocusFilter;
-  scope: SalesmanTaskScopeFilter;
 };
 
 export type SalesmanTasksSearchParams = {
@@ -110,6 +110,8 @@ type TaskTypeCatalogRecord = {
   sort_order: number | string | null;
 };
 
+type TaskTargetRoleRow = TaskTargetRoleRecord;
+
 export async function getCurrentSalesmanTaskViewerContext(
   supabase: SupabaseClient,
 ): Promise<SalesmanTaskViewerContext | null> {
@@ -127,7 +129,7 @@ export async function getCurrentSalesmanTaskViewerContext(
 }
 
 export function canViewSalesmanTaskBoard(role: AppRole | null, status: UserStatus | null) {
-  return role === "salesman" && status === "active";
+  return status === "active" && TASK_TARGET_ROLES.some((targetRole) => targetRole === role);
 }
 
 export function normalizeSalesmanTasksFilters(
@@ -136,7 +138,6 @@ export function normalizeSalesmanTasksFilters(
   return {
     searchText: normalizeOptionalString(filters?.searchText) ?? "",
     focus: normalizeSalesmanTaskFocusFilter(filters?.focus),
-    scope: normalizeSalesmanTaskScopeFilter(filters?.scope),
   };
 }
 
@@ -147,7 +148,6 @@ export function parseSalesmanTasksSearchParams(
     filters: normalizeSalesmanTasksFilters({
       searchText: getSingleSearchParam(searchParams.searchText),
       focus: normalizeSalesmanTaskFocusFilter(getSingleSearchParam(searchParams.focus)),
-      scope: normalizeSalesmanTaskScopeFilter(getSingleSearchParam(searchParams.scope)),
     }),
     page: normalizePositiveInteger(getSingleSearchParam(searchParams.page), 1),
   };
@@ -174,10 +174,7 @@ export async function getSalesmanTasksPageData(
     });
   }
 
-  const [tasks, teamOptions] = await Promise.all([
-    getVisibleSalesmanTasks(supabase),
-    getVisibleTeamOverviews(supabase),
-  ]);
+  const tasks = await getVisibleSalesmanTasks(supabase);
 
   return {
     viewerId: viewer.user.id,
@@ -185,7 +182,6 @@ export async function getSalesmanTasksPageData(
     viewerStatus: viewer.status,
     canView: true,
     tasks,
-    teamOptions,
   };
 }
 
@@ -217,12 +213,14 @@ export async function getVisibleSalesmanTasks(
 
   const taskIds = tasks.map((task) => task.id);
   const taskTypeCodes = Array.from(new Set(tasks.map((task) => task.task_type_code)));
-  const [attachments, taskTypes] = await Promise.all([
+  const [attachments, taskTypes, targetRoles] = await Promise.all([
     getVisibleTaskAttachments(supabase, taskIds),
     getTaskTypesByCodes(supabase, taskTypeCodes),
+    getTaskTargetRolesByTaskIds(supabase, taskIds),
   ]);
   const attachmentByTaskId = new Map<string, AdminTaskAttachment[]>();
   const taskTypeByCode = new Map(taskTypes.map((taskType) => [taskType.code, taskType]));
+  const targetRolesByTaskId = new Map<string, TaskTargetRole[]>();
 
   attachments.forEach((attachment) => {
     const bucket = attachmentByTaskId.get(attachment.task_id);
@@ -235,10 +233,22 @@ export async function getVisibleSalesmanTasks(
     attachmentByTaskId.set(attachment.task_id, [attachment]);
   });
 
+  targetRoles.forEach((targetRole) => {
+    const bucket = targetRolesByTaskId.get(targetRole.taskId);
+
+    if (bucket) {
+      bucket.push(targetRole.role);
+      return;
+    }
+
+    targetRolesByTaskId.set(targetRole.taskId, [targetRole.role]);
+  });
+
   return tasks.map((task) => ({
     ...task,
     task_type_label:
       taskTypeByCode.get(task.task_type_code)?.displayName ?? task.task_type_label,
+    target_roles: targetRolesByTaskId.get(task.id) ?? [],
     attachments: attachmentByTaskId.get(task.id) ?? [],
   }));
 }
@@ -300,7 +310,6 @@ function createEmptySalesmanTasksPageData(options: {
     viewerStatus: options.viewerStatus,
     canView: canViewSalesmanTaskBoard(options.viewerRole, options.viewerStatus),
     tasks: [],
-    teamOptions: [],
   };
 }
 
@@ -328,10 +337,6 @@ function normalizeSalesmanTaskFocusFilter(value: unknown): SalesmanTaskFocusFilt
     : "all";
 }
 
-function normalizeSalesmanTaskScopeFilter(value: unknown): SalesmanTaskScopeFilter {
-  return value === "public" || value === "team" ? value : "all";
-}
-
 async function getVisibleTaskAttachments(
   supabase: SupabaseClient,
   taskIds: string[],
@@ -352,6 +357,36 @@ async function getVisibleTaskAttachments(
   return (data ?? [])
     .map((item) => normalizeTaskAttachment(item))
     .filter((item): item is AdminTaskAttachment => item !== null);
+}
+
+async function getTaskTargetRolesByTaskIds(
+  supabase: SupabaseClient,
+  taskIds: string[],
+): Promise<Array<{ taskId: string; role: TaskTargetRole }>> {
+  if (taskIds.length === 0) {
+    return [];
+  }
+
+  const { data, error } = await withRequestTimeout(
+    supabase
+      .from("task_target_roles")
+      .select("task_id,target_role")
+      .in("task_id", taskIds)
+      .returns<TaskTargetRoleRow[]>(),
+  );
+
+  if (error) {
+    throw error;
+  }
+
+  return (data ?? [])
+    .map((item) => {
+      const taskId = normalizeOptionalString(item.task_id);
+      const role = normalizeTaskTargetRole(item.target_role);
+
+      return taskId && role ? { taskId, role } : null;
+    })
+    .filter((item): item is { taskId: string; role: TaskTargetRole } => item !== null);
 }
 
 async function getTaskTypesByCodes(

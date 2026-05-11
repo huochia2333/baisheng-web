@@ -11,7 +11,7 @@ import {
 import {
   type AdminTaskRow,
   type AdminTasksPageData,
-  type TaskScope,
+  type TaskTargetRole,
   type TaskTypeOption,
 } from "@/lib/admin-tasks";
 
@@ -36,7 +36,7 @@ const DashboardDialog = dynamic(
   { ssr: false },
 );
 
-type TeamOptions = AdminTasksPageData["teamOptions"];
+type TargetRoleOptions = AdminTasksPageData["targetRoleOptions"];
 
 type TaskFormDialogProps = {
   description: string;
@@ -44,18 +44,17 @@ type TaskFormDialogProps = {
   formState: CreateTaskFormState;
   onCommissionAmountChange: (value: string) => void;
   onOpenChange: (open: boolean) => void;
-  onScopeChange: (scope: TaskScope) => void;
+  onTargetRoleToggle: (role: TaskTargetRole) => void;
   onSubmit: () => void;
   onTaskIntroChange: (value: string) => void;
   onTaskNameChange: (value: string) => void;
   onTaskTypeChange: (taskTypeCode: string) => void;
-  onTeamChange: (teamId: string) => void;
   open: boolean;
   pending: boolean;
   selectedTask: AdminTaskRow | null;
   submitLabel: string;
   taskTypeOptions: TaskTypeOption[];
-  teamOptions: TeamOptions;
+  targetRoleOptions: TargetRoleOptions;
   title: string;
 };
 
@@ -73,16 +72,15 @@ export function CreateTaskDialog({
   onFilesChange,
   onOpenChange,
   onRemoveFile,
-  onScopeChange,
+  onTargetRoleToggle,
   onSubmit,
   onTaskIntroChange,
   onTaskNameChange,
   onTaskTypeChange,
-  onTeamChange,
   open,
   pending,
   taskTypeOptions,
-  teamOptions,
+  targetRoleOptions,
 }: CreateTaskDialogProps) {
   const t = useTranslations("Tasks.admin");
 
@@ -95,18 +93,17 @@ export function CreateTaskDialog({
       onFilesChange={onFilesChange}
       onOpenChange={onOpenChange}
       onRemoveFile={onRemoveFile}
-      onScopeChange={onScopeChange}
+      onTargetRoleToggle={onTargetRoleToggle}
       onSubmit={onSubmit}
       onTaskIntroChange={onTaskIntroChange}
       onTaskNameChange={onTaskNameChange}
       onTaskTypeChange={onTaskTypeChange}
-      onTeamChange={onTeamChange}
       open={open}
       pending={pending}
       selectedTask={null}
       submitLabel={t("createDialog.submit")}
       taskTypeOptions={taskTypeOptions}
-      teamOptions={teamOptions}
+      targetRoleOptions={targetRoleOptions}
       title={t("createDialog.title")}
     />
   );
@@ -117,17 +114,16 @@ export function EditTaskDialog({
   formState,
   onCommissionAmountChange,
   onOpenChange,
-  onScopeChange,
+  onTargetRoleToggle,
   onSubmit,
   onTaskIntroChange,
   onTaskNameChange,
   onTaskTypeChange,
-  onTeamChange,
   open,
   pending,
   selectedTask,
   taskTypeOptions,
-  teamOptions,
+  targetRoleOptions,
 }: EditTaskDialogProps) {
   const t = useTranslations("Tasks.admin");
 
@@ -142,18 +138,17 @@ export function EditTaskDialog({
       formState={formState}
       onCommissionAmountChange={onCommissionAmountChange}
       onOpenChange={onOpenChange}
-      onScopeChange={onScopeChange}
+      onTargetRoleToggle={onTargetRoleToggle}
       onSubmit={onSubmit}
       onTaskIntroChange={onTaskIntroChange}
       onTaskNameChange={onTaskNameChange}
       onTaskTypeChange={onTaskTypeChange}
-      onTeamChange={onTeamChange}
       open={open}
       pending={pending}
       selectedTask={selectedTask}
       submitLabel={t("editDialog.submit")}
       taskTypeOptions={taskTypeOptions}
-      teamOptions={teamOptions}
+      targetRoleOptions={targetRoleOptions}
       title={t("editDialog.titleWithName", { taskName: selectedTask.task_name })}
     />
   );
@@ -165,18 +160,17 @@ function TaskFormDialog({
   formState,
   onCommissionAmountChange,
   onOpenChange,
-  onScopeChange,
+  onTargetRoleToggle,
   onSubmit,
   onTaskIntroChange,
   onTaskNameChange,
   onTaskTypeChange,
-  onTeamChange,
   open,
   pending,
   selectedTask,
   submitLabel,
   taskTypeOptions,
-  teamOptions,
+  targetRoleOptions,
   title,
   onFilesChange,
   onRemoveFile,
@@ -229,21 +223,20 @@ function TaskFormDialog({
         {selectedTask ? <TaskEditSummaryCard task={selectedTask} /> : null}
 
         {selectedTask && !canChangeAssignment ? (
-          <PageBanner tone="info">{t("editDialog.scopeLockedHint")}</PageBanner>
+          <PageBanner tone="info">{t("editDialog.targetRolesLockedHint")}</PageBanner>
         ) : null}
 
         <TaskFormFields
           canChangeAssignment={canChangeAssignment}
           formState={formState}
           onCommissionAmountChange={onCommissionAmountChange}
-          onScopeChange={onScopeChange}
+          onTargetRoleToggle={onTargetRoleToggle}
           onTaskIntroChange={onTaskIntroChange}
           onTaskNameChange={onTaskNameChange}
           onTaskTypeChange={onTaskTypeChange}
-          onTeamChange={onTeamChange}
           pending={pending}
           taskTypeOptions={taskTypeOptions}
-          teamOptions={teamOptions}
+          targetRoleOptions={targetRoleOptions}
         />
 
         {createMode && onFilesChange && onRemoveFile ? (

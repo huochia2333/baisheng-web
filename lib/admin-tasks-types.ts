@@ -1,6 +1,5 @@
 import type { User } from "@supabase/supabase-js";
 
-import type { TeamOverview } from "./team-management";
 import type { AppRole, UserStatus } from "./user-self-service";
 
 export type TaskScope = "public" | "team";
@@ -11,7 +10,16 @@ export type TaskStatus =
   | "rejected"
   | "completed";
 export type AdminTaskStatusFilter = "all" | TaskStatus;
-export type AdminTaskScopeFilter = "all" | TaskScope;
+export type TaskTargetRole = "manager" | "operator" | "recruiter" | "salesman" | "finance";
+export type AdminTaskTargetRoleFilter = "all" | TaskTargetRole;
+
+export const TASK_TARGET_ROLES = [
+  "manager",
+  "operator",
+  "recruiter",
+  "salesman",
+  "finance",
+] as const satisfies readonly TaskTargetRole[];
 
 export type AdminTaskViewerContext = {
   user: User;
@@ -38,6 +46,10 @@ export type TaskTypeOption = {
   defaultCommissionAmountRmb: number;
   isActive: boolean;
   sortOrder: number;
+};
+
+export type TaskTargetRoleOption = {
+  role: TaskTargetRole;
 };
 
 export type AdminTaskAttachment = {
@@ -77,6 +89,7 @@ export type AdminTaskRow = AdminTaskMainRow & {
   creator: TaskProfileSummary | null;
   accepted_by: TaskProfileSummary | null;
   team: TaskTeamSummary | null;
+  target_roles: TaskTargetRole[];
   attachments: AdminTaskAttachment[];
 };
 
@@ -86,15 +99,14 @@ export type AdminTasksPageData = {
   viewerStatus: UserStatus | null;
   canView: boolean;
   tasks: AdminTaskRow[];
-  teamOptions: TeamOverview[];
+  targetRoleOptions: TaskTargetRoleOption[];
   taskTypeOptions: TaskTypeOption[];
 };
 
 export type AdminTasksFilters = {
   searchText: string;
-  scope: AdminTaskScopeFilter;
+  targetRole: AdminTaskTargetRoleFilter;
   status: AdminTaskStatusFilter;
-  teamId: string;
 };
 
 export type AdminTasksSearchParams = {
@@ -108,8 +120,7 @@ export type CreateAdminTaskInput = {
   taskTypeCode: string;
   commissionAmountRmb: number;
   createdByUserId: string;
-  scope: TaskScope;
-  teamId?: string | null;
+  targetRoles: TaskTargetRole[];
 };
 
 export type UpdateAdminTaskInput = {
@@ -118,14 +129,12 @@ export type UpdateAdminTaskInput = {
   taskIntro?: string | null;
   taskTypeCode: string;
   commissionAmountRmb: number;
-  scope: TaskScope;
-  teamId?: string | null;
+  targetRoles: TaskTargetRole[];
 };
 
 export type UpdateAdminTaskAssignmentInput = {
   taskId: string;
-  scope: TaskScope;
-  teamId?: string | null;
+  targetRoles: TaskTargetRole[];
 };
 
 export type TaskMainRecord = {
@@ -179,4 +188,16 @@ export type TaskTypeCatalogRecord = {
   default_commission_amount_rmb: number | string | null;
   is_active: boolean | null;
   sort_order: number | string | null;
+};
+
+export type TaskTargetRoleRecord = {
+  task_id: string | null;
+  target_role: string | null;
+};
+
+export type TaskTypeMutationInput = {
+  code?: string;
+  displayName: string;
+  description?: string | null;
+  defaultCommissionAmountRmb: number;
 };
