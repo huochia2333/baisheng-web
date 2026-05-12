@@ -13,6 +13,7 @@ import {
 import { type getBrowserSupabaseClient } from "@/lib/supabase";
 
 import {
+  parseTaskCommissionAmountInput,
   toAdminTaskErrorMessage,
   validateTaskDraft,
 } from "@/components/dashboard/tasks/tasks-display";
@@ -20,7 +21,7 @@ import {
 import {
   canEditTask,
   createTaskFormFromTask,
-  formatTaskCommissionInput,
+  formatOptionalTaskCommissionInput,
   type CreateTaskFormState,
 } from "./admin-tasks-utils";
 import { type PageFeedbackValue } from "./admin-tasks-view-model-shared";
@@ -110,11 +111,11 @@ export function useAdminTaskEditDialog({
           taskTypeOptions.find((taskType) => taskType.code === taskTypeCode) ?? null;
         const currentDefault =
           currentType !== undefined
-            ? formatTaskCommissionInput(currentType.defaultCommissionAmountRmb)
+            ? formatOptionalTaskCommissionInput(currentType.defaultCommissionAmountRmb)
             : "";
         const nextDefault =
           nextType !== null
-            ? formatTaskCommissionInput(nextType.defaultCommissionAmountRmb)
+            ? formatOptionalTaskCommissionInput(nextType.defaultCommissionAmountRmb)
             : "";
         const shouldReplaceCommission =
           current.commissionAmount.trim().length === 0
@@ -156,7 +157,8 @@ export function useAdminTaskEditDialog({
         taskName: editFormState.taskName,
         taskIntro: editFormState.taskIntro,
         taskTypeCode: editFormState.taskTypeCode,
-        commissionAmountRmb: Number(editFormState.commissionAmount),
+        commissionAmountRmb:
+          parseTaskCommissionAmountInput(editFormState.commissionAmount) ?? 0,
         targetRoles: editFormState.targetRoles,
       });
 

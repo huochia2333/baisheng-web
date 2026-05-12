@@ -1635,7 +1635,7 @@
           "targetRolesRequired": "Choose at least one target role.",
           "targetRolesLocked": "This task has already been accepted, so target roles cannot be changed right now.",
           "taskTypeNameRequired": "Enter a task type name.",
-          "commissionAmountInvalid": "The commission amount must be a valid number and cannot be below 0.",
+          "commissionAmountInvalid": "The commission amount can be left blank. If filled, it must be a number that is 0 or above.",
           "authExpired": "Your sign-in has expired. Sign in again and try once more.",
           "noPermission": "This account cannot perform this action.",
           "taskNotFound": "The task no longer exists. Refresh the task list and try again.",
@@ -1720,8 +1720,8 @@
         "targetRolesHint": "Multiple roles can be selected. After acceptance, the task belongs to the teammate who accepted it.",
         "taskTypeLabel": "Task Type",
         "taskTypePlaceholder": "Select a task type",
-        "commissionAmountLabel": "Commission Amount",
-        "commissionAmountPlaceholder": "For example: 80",
+        "commissionAmountLabel": "Commission Amount (Optional)",
+        "commissionAmountPlaceholder": "Leave blank if there is no reward; for example: 80",
         "taskTypeHint": "The task type controls how the task is categorized and how related commissions are displayed. More types will be added later.",
         "taskIntroLabel": "Task Details",
         "taskIntroPlaceholder": "Add the background, goals, execution requirements, and any notes for this task.",
@@ -1831,7 +1831,7 @@
       "validation": {
         "taskNameRequired": "Please enter a task name first.",
         "taskTypeRequired": "Please choose a task type.",
-        "commissionAmountRequired": "Please enter a commission amount greater than 0.",
+        "commissionAmountInvalid": "Leave commission blank when there is no reward, or enter a number that is 0 or above.",
         "targetRolesRequiredForCreate": "Choose at least one target role.",
         "targetRolesRequiredForAssignment": "Choose at least one target role."
       }

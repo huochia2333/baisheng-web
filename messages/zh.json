@@ -1635,7 +1635,7 @@
           "targetRolesRequired": "请选择至少一个目标角色。",
           "targetRolesLocked": "这项任务已经有人领取，目标角色暂时不能再调整。",
           "taskTypeNameRequired": "请填写任务类型名称。",
-          "commissionAmountInvalid": "佣金金额必须是有效数字，且不能小于 0。",
+          "commissionAmountInvalid": "佣金金额可不填；填写时需是不小于 0 的数字。",
           "authExpired": "登录状态已失效，请重新登录后再试。",
           "noPermission": "当前账号不能执行这个操作。",
           "taskNotFound": "任务不存在，建议先刷新任务列表。",
@@ -1720,8 +1720,8 @@
         "targetRolesHint": "可多选；任务被领取后，由领取人继续负责。",
         "taskTypeLabel": "任务类型",
         "taskTypePlaceholder": "请选择任务类型",
-        "commissionAmountLabel": "佣金金额",
-        "commissionAmountPlaceholder": "例如：80",
+        "commissionAmountLabel": "佣金金额（可不填）",
+        "commissionAmountPlaceholder": "无奖励可留空；例如：80",
         "taskTypeHint": "当前任务类型会影响任务展示和后续佣金归类，后续会继续扩展更多类型。",
         "taskIntroLabel": "任务说明",
         "taskIntroPlaceholder": "补充任务背景、目标、执行要求和注意事项。",
@@ -1831,7 +1831,7 @@
       "validation": {
         "taskNameRequired": "请先填写任务名称。",
         "taskTypeRequired": "请选择任务类型。",
-        "commissionAmountRequired": "请输入大于 0 的佣金金额。",
+        "commissionAmountInvalid": "佣金金额可不填；填写时需是不小于 0 的数字。",
         "targetRolesRequiredForCreate": "请选择至少一个目标角色。",
         "targetRolesRequiredForAssignment": "请选择至少一个目标角色。"
       }

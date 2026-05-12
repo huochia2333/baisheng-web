@@ -28,7 +28,7 @@ export function createEmptyTaskForm(
     taskTypeCode: defaultTaskType?.code ?? "",
     commissionAmount:
       defaultTaskType !== null
-        ? formatTaskCommissionInput(defaultTaskType.defaultCommissionAmountRmb)
+        ? formatOptionalTaskCommissionInput(defaultTaskType.defaultCommissionAmountRmb)
         : "",
     targetRoles: [],
     files: [],
@@ -46,7 +46,7 @@ export function createTaskFormFromTask(task: AdminTaskRow): CreateTaskFormState 
     taskName: task.task_name,
     taskIntro: task.task_intro ?? "",
     taskTypeCode: task.task_type_code,
-    commissionAmount: formatTaskCommissionInput(task.commission_amount_rmb),
+    commissionAmount: formatOptionalTaskCommissionInput(task.commission_amount_rmb),
     targetRoles: task.target_roles,
     files: [],
   };
@@ -68,4 +68,8 @@ export function canReassignTask(task: AdminTaskRow) {
 
 export function formatTaskCommissionInput(value: number) {
   return Number.isFinite(value) ? value.toFixed(2) : "";
+}
+
+export function formatOptionalTaskCommissionInput(value: number) {
+  return Number.isFinite(value) && value > 0 ? value.toFixed(2) : "";
 }

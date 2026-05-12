@@ -15,13 +15,14 @@ import {
 import { type getBrowserSupabaseClient } from "@/lib/supabase";
 
 import {
+  parseTaskCommissionAmountInput,
   toAdminTaskErrorMessage,
   validateTaskDraft,
 } from "@/components/dashboard/tasks/tasks-display";
 
 import {
   createEmptyTaskForm,
-  formatTaskCommissionInput,
+  formatOptionalTaskCommissionInput,
   type CreateTaskFormState,
 } from "./admin-tasks-utils";
 import { type PageFeedbackValue } from "./admin-tasks-view-model-shared";
@@ -98,11 +99,11 @@ export function useAdminTaskCreateDialog({
           taskTypeOptions.find((taskType) => taskType.code === taskTypeCode) ?? null;
         const currentDefault =
           currentType !== undefined
-            ? formatTaskCommissionInput(currentType.defaultCommissionAmountRmb)
+            ? formatOptionalTaskCommissionInput(currentType.defaultCommissionAmountRmb)
             : "";
         const nextDefault =
           nextType !== null
-            ? formatTaskCommissionInput(nextType.defaultCommissionAmountRmb)
+            ? formatOptionalTaskCommissionInput(nextType.defaultCommissionAmountRmb)
             : "";
         const shouldReplaceCommission =
           current.commissionAmount.trim().length === 0
@@ -167,7 +168,8 @@ export function useAdminTaskCreateDialog({
         taskName: createFormState.taskName,
         taskIntro: createFormState.taskIntro,
         taskTypeCode: createFormState.taskTypeCode,
-        commissionAmountRmb: Number(createFormState.commissionAmount),
+        commissionAmountRmb:
+          parseTaskCommissionAmountInput(createFormState.commissionAmount) ?? 0,
         createdByUserId: viewerId,
         targetRoles: createFormState.targetRoles,
       });

@@ -89,12 +89,28 @@ export function getTaskTypeLabel(
 }
 
 export function formatTaskCommissionMoney(value: number, locale: Locale) {
+  if (value <= 0) {
+    return locale === "zh" ? "无奖励" : "No reward";
+  }
+
   return new Intl.NumberFormat(locale === "zh" ? "zh-CN" : "en-US", {
     style: "currency",
     currency: "CNY",
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   }).format(value);
+}
+
+export function parseTaskCommissionAmountInput(value: string) {
+  const trimmedValue = value.trim();
+
+  if (!trimmedValue) {
+    return 0;
+  }
+
+  const parsedValue = Number(trimmedValue);
+
+  return Number.isFinite(parsedValue) ? parsedValue : null;
 }
 
 export function getTaskAttachmentCountLabel(count: number, t: TranslateFn) {
@@ -139,10 +155,10 @@ export function validateTaskDraft(
     return t("validation.taskTypeRequired");
   }
 
-  const commissionAmount = Number(formState.commissionAmount);
+  const commissionAmount = parseTaskCommissionAmountInput(formState.commissionAmount);
 
-  if (!Number.isFinite(commissionAmount) || commissionAmount <= 0) {
-    return t("validation.commissionAmountRequired");
+  if (commissionAmount === null || commissionAmount < 0) {
+    return t("validation.commissionAmountInvalid");
   }
 
   if (formState.targetRoles.length === 0) {
