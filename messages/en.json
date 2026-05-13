@@ -1772,9 +1772,13 @@
         "submit": "Save Settings"
       },
       "card": {
+        "detailsTitle": "Task Details",
+        "viewDetails": "View Details",
         "edit": "Edit",
         "reassign": "Adjust Assignment",
         "delete": "Delete",
+        "introTitle": "Task Notes",
+        "infoTitle": "More Information",
         "assignmentLabel": "Target Roles",
         "taskTypeLabel": "Task Type",
         "commissionAmountLabel": "Task Commission",

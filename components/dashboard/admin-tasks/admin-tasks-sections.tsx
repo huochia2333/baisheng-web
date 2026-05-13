@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useTranslations } from "next-intl";
 import {
   ClipboardList,
@@ -35,6 +36,7 @@ import {
   SearchField,
   TaskCard,
 } from "./admin-tasks-ui";
+import { AdminTaskDetailDialog } from "./admin-task-detail-dialog";
 import {
   AdminTaskSubmissionMediaPreviewDialog,
 } from "./admin-task-submission-media";
@@ -215,6 +217,9 @@ export function AdminTasksListSection({
     .filter((task) => task.status === "completed")
     .map((task) => task.id);
   const submissionMediaState = useAdminTaskSubmissionMedia(visibleCompletedTaskIds);
+  const [detailsTask, setDetailsTask] = useState<AdminTaskRow | null>(null);
+  const detailsTaskSubmissionMedia =
+    detailsTask ? (submissionMediaState.mediaByTaskId.get(detailsTask.id) ?? []) : [];
 
   return (
     <DashboardListSection
@@ -240,18 +245,10 @@ export function AdminTasksListSection({
                 deleteBusy={deletePendingTaskId === task.id}
                 key={task.id}
                 onDelete={() => onDeleteTask(task)}
-                onDownloadSubmissionMedia={(media) =>
-                  void submissionMediaState.downloadMedia(media)
-                }
                 onEdit={() => onEditTask(task)}
-                onPreviewSubmissionMedia={(media) =>
-                  void submissionMediaState.openPreview(media)
-                }
                 onReassign={() => onReassignTask(task)}
+                onViewDetails={() => setDetailsTask(task)}
                 reassignBusy={assignmentPendingTaskId === task.id}
-                submissionMedia={submissionMediaState.mediaByTaskId.get(task.id) ?? []}
-                submissionMediaBusyId={submissionMediaState.busyMediaId}
-                submissionMediaLoading={submissionMediaState.loadingTaskIds.has(task.id)}
                 task={task}
               />
             ))}
@@ -275,6 +272,22 @@ export function AdminTasksListSection({
         media={submissionMediaState.previewMedia}
         onDownload={(media) => void submissionMediaState.downloadMedia(media)}
         onOpenChange={submissionMediaState.closePreview}
+      />
+
+      <AdminTaskDetailDialog
+        onDownloadSubmissionMedia={(media) => void submissionMediaState.downloadMedia(media)}
+        onOpenChange={(open) => {
+          if (!open) {
+            setDetailsTask(null);
+          }
+        }}
+        onPreviewSubmissionMedia={(media) => void submissionMediaState.openPreview(media)}
+        submissionMedia={detailsTaskSubmissionMedia}
+        submissionMediaBusyId={submissionMediaState.busyMediaId}
+        submissionMediaLoading={
+          detailsTask ? submissionMediaState.loadingTaskIds.has(detailsTask.id) : false
+        }
+        task={detailsTask}
       />
     </DashboardListSection>
   );

@@ -401,6 +401,13 @@ npm run supabase:admin -- summary
 - 2026-05-13 补充：管理员调整账号角色后，会同步刷新该账号邀请码后续注册可分配的目标角色，避免人员角色已变更但邀请码仍按旧角色发放。
 - 前端新增 `components/dashboard/admin-people/`，按 client、view-model、sections、dialog、display 拆分；后端读取和 mutation 分别放在 `lib/admin-people.ts` 与 `lib/admin-people-mutations.ts`。
 
+## 任务页面展示优化（2026-05-13）
+
+- 管理员任务清单改为摘要卡片，列表只展示状态、目标角色、任务类型、附件数量、任务说明摘要、佣金、领取进度和创建时间。
+- 任务完整说明、领取次数、创建人、领取人、全部时间节点、附件明细和已完成成果统一放到“查看详情”弹窗里，减少列表页面拥挤。
+- 移动端柏盛助手入口不再固定压在页面右下角，改为跟随内容排在页面底部，避免覆盖任务筛选和列表内容。
+- 前端继续保持拆分：摘要卡片留在 `components/dashboard/admin-tasks/admin-tasks-ui.tsx`，详情内容新增到 `components/dashboard/admin-tasks/admin-task-detail-dialog.tsx`，列表区只负责打开详情弹窗和传入已完成成果数据。
+
 ## 测试与验证要求
 
 Web 项目改动后，必须在真实浏览器环境中进行验证。

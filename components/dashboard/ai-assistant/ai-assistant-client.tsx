@@ -98,7 +98,7 @@ export function AiAssistantClient() {
           <motion.button
             aria-expanded={open}
             aria-label={copy.open}
-            className="fixed bottom-4 right-4 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-[#486782] text-white shadow-[0_16px_34px_rgba(35,49,58,0.24)] transition hover:bg-[#3e5f79] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#bfd2e1]/50 sm:bottom-6 sm:right-6"
+            className="z-40 mb-5 mr-4 ml-auto flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-[#486782] text-white shadow-[0_16px_34px_rgba(35,49,58,0.24)] transition hover:bg-[#3e5f79] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#bfd2e1]/50 sm:fixed sm:right-6 sm:bottom-6 sm:mb-0 sm:mr-0"
             onClick={() => setOpen((current) => !current)}
             type="button"
             whileTap={{ scale: 0.94 }}

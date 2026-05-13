@@ -1772,9 +1772,13 @@
         "submit": "保存设置"
       },
       "card": {
+        "detailsTitle": "任务详情",
+        "viewDetails": "查看详情",
         "edit": "编辑",
         "reassign": "调整归属",
         "delete": "删除",
+        "introTitle": "任务说明",
+        "infoTitle": "更多信息",
         "assignmentLabel": "目标角色",
         "taskTypeLabel": "任务类型",
         "commissionAmountLabel": "任务佣金",
