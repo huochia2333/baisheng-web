@@ -59,7 +59,7 @@ export function CommissionBeneficiarySummarySection({
         />
       ) : (
         <DashboardTableFrame>
-          <table className="min-w-full divide-y divide-[#e6e2db] text-sm">
+          <table className="min-w-[980px] w-full divide-y divide-[#e6e2db] text-sm">
             <thead>
               <tr className="text-left text-xs font-semibold tracking-[0.16em] text-[#8b959c] uppercase">
                 <th className="px-4 py-3">{t("beneficiaries.columns.beneficiary")}</th>
@@ -185,7 +185,7 @@ export function AdminCommissionTableSection({
             />
           }
         >
-          <table className="min-w-full divide-y divide-[#e6e2db] text-sm">
+          <table className="min-w-[1220px] w-full divide-y divide-[#e6e2db] text-sm">
             <thead>
               <tr className="text-left text-xs font-semibold tracking-[0.16em] text-[#8b959c] uppercase">
                 <th className="px-4 py-3">{t("table.columns.orderStatus")}</th>

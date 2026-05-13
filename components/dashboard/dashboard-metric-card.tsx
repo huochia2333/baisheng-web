@@ -40,10 +40,10 @@ export function DashboardMetricCard({
           {icon}
         </div>
 
-        <div className="min-w-0">
+        <div className="min-w-[4.5rem] flex-1">
           <p
             className={cn(
-              "font-label text-[10px] font-semibold tracking-[0.12em] text-[#7d8890] uppercase sm:text-[11px] sm:tracking-[0.18em]",
+              "font-label whitespace-nowrap text-[10px] font-semibold tracking-normal text-[#7d8890] uppercase sm:text-[11px]",
               labelClassName,
             )}
           >

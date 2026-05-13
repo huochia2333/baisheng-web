@@ -808,10 +808,10 @@
       "salesman": {
         "badge": "Sales Orders",
         "title": "Client Orders",
-        "description": "This page shows only orders related to you and your assigned clients. You can create new orders for your own clients here.",
+        "description": "You can create new orders for your own clients here.",
         "createTitle": "Create Client Order",
-        "createDescription": "This page allows new orders only for clients associated with you. New records appear in the list immediately.",
-        "emptyDescription": "Orders for you and your assigned clients will appear here. There are no visible orders right now.",
+        "createDescription": "Enter the client and order details, then save.",
+        "emptyDescription": "There are no visible orders right now.",
         "noPermissionDescription": "The current account does not have access to sales orders.",
         "noCreateTargetHint": "You do not have any linked clients available for new orders yet."
       },

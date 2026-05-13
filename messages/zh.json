@@ -808,10 +808,10 @@
       "salesman": {
         "badge": "业务员订单",
         "title": "客户订单",
-        "description": "这里只展示你和关联客户的订单，你可以直接为自己名下的客户创建新订单。",
+        "description": "你可以直接为自己名下的客户创建新订单。",
         "createTitle": "创建客户订单",
-        "createDescription": "当前页面只允许为你已关联的客户创建订单，创建后会立即出现在列表中。",
-        "emptyDescription": "你和关联客户的订单会展示在这里，当前还没有可查看的订单。",
+        "createDescription": "填写客户和订单信息后保存。",
+        "emptyDescription": "当前还没有可查看的订单。",
         "noPermissionDescription": "当前登录账号暂时没有业务员订单查看权限。",
         "noCreateTargetHint": "你当前还没有可创建订单的关联客户。"
       },

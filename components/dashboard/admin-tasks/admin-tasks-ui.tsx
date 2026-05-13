@@ -83,9 +83,9 @@ export function TaskCard({
   return (
     <article className="rounded-[28px] border border-[#ebe7e1] bg-white p-6 shadow-[0_14px_30px_rgba(96,113,128,0.05)]">
       <div className="flex flex-col gap-5">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-          <div className="min-w-0">
-            <div className="flex flex-wrap items-center gap-2">
+        <div className="flex flex-col gap-4">
+          <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+            <div className="flex min-w-0 flex-1 flex-wrap items-center gap-2">
               <TaskStatusPill status={task.status} />
               <DataPill accent="blue">
                 <UsersRound className="size-3.5" />
@@ -105,50 +105,52 @@ export function TaskCard({
               ) : null}
             </div>
 
-            <h3 className="mt-4 text-2xl font-bold tracking-tight text-[#23313a]">
-              {task.task_name}
-            </h3>
-            <p className="mt-3 text-sm leading-7 text-[#6f7b85]">
-              {getTaskIntroText(task.task_intro, sharedT)}
-            </p>
+            <div className="flex shrink-0 flex-wrap gap-2 lg:justify-end">
+              <Button
+                className="h-10 rounded-full border border-[#d8e2e8] bg-white px-4 text-[#486782] hover:bg-[#eef3f6] disabled:cursor-not-allowed disabled:opacity-60"
+                disabled={!canEdit}
+                onClick={onEdit}
+                type="button"
+              >
+                <PencilLine className="size-4" />
+                {t("edit")}
+              </Button>
+              <Button
+                className="h-10 rounded-full border border-[#d8e2e8] bg-white px-4 text-[#486782] hover:bg-[#eef3f6] disabled:cursor-not-allowed disabled:opacity-60"
+                disabled={!canChangeAssignment || reassignBusy}
+                onClick={onReassign}
+                type="button"
+              >
+                {reassignBusy ? (
+                  <LoaderCircle className="size-4 animate-spin" />
+                ) : (
+                  <Shuffle className="size-4" />
+                )}
+                {t("reassign")}
+              </Button>
+              <Button
+                className="h-10 rounded-full border border-[#f1d1d1] bg-[#fff2f2] px-4 text-[#b13d3d] hover:bg-[#fce5e5] disabled:cursor-not-allowed disabled:opacity-60"
+                disabled={!canDelete || deleteBusy}
+                onClick={onDelete}
+                type="button"
+              >
+                {deleteBusy ? (
+                  <LoaderCircle className="size-4 animate-spin" />
+                ) : (
+                  <Trash2 className="size-4" />
+                )}
+                {t("delete")}
+              </Button>
+            </div>
           </div>
 
-          <div className="flex shrink-0 flex-wrap gap-2">
-            <Button
-              className="h-10 rounded-full border border-[#d8e2e8] bg-white px-4 text-[#486782] hover:bg-[#eef3f6] disabled:cursor-not-allowed disabled:opacity-60"
-              disabled={!canEdit}
-              onClick={onEdit}
-              type="button"
-            >
-              <PencilLine className="size-4" />
-              {t("edit")}
-            </Button>
-            <Button
-              className="h-10 rounded-full border border-[#d8e2e8] bg-white px-4 text-[#486782] hover:bg-[#eef3f6] disabled:cursor-not-allowed disabled:opacity-60"
-              disabled={!canChangeAssignment || reassignBusy}
-              onClick={onReassign}
-              type="button"
-            >
-              {reassignBusy ? (
-                <LoaderCircle className="size-4 animate-spin" />
-              ) : (
-                <Shuffle className="size-4" />
-              )}
-              {t("reassign")}
-            </Button>
-            <Button
-              className="h-10 rounded-full border border-[#f1d1d1] bg-[#fff2f2] px-4 text-[#b13d3d] hover:bg-[#fce5e5] disabled:cursor-not-allowed disabled:opacity-60"
-              disabled={!canDelete || deleteBusy}
-              onClick={onDelete}
-              type="button"
-            >
-              {deleteBusy ? (
-                <LoaderCircle className="size-4 animate-spin" />
-              ) : (
-                <Trash2 className="size-4" />
-              )}
-              {t("delete")}
-            </Button>
+          <div className="min-w-0">
+            <h3 className="break-words text-2xl font-bold tracking-tight text-[#23313a]">
+              {task.task_name}
+            </h3>
+            <p className="mt-3 break-words text-sm leading-7 text-[#6f7b85]">
+              {getTaskIntroText(task.task_intro, sharedT)}
+            </p>
           </div>
         </div>
 

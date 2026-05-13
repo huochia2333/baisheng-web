@@ -105,7 +105,7 @@ export function SalesmanTasksClient({
             value: viewModel.summary.completed,
           },
         ]}
-        metricsClassName="sm:grid-cols-2 xl:grid-cols-6"
+        metricsClassName="sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-6"
         metricsPlacement="below"
         title={t("header.title")}
       />
@@ -155,7 +155,7 @@ export function SalesmanTasksClient({
                 title={t("states.emptyTitle")}
               />
             ) : (
-              <div className="grid grid-cols-1 gap-5 xl:grid-cols-2">
+              <div className="grid grid-cols-1 gap-5 2xl:grid-cols-2">
                 {viewModel.tasksPagination.items.map((task) => (
                   <SalesmanTaskCard
                     attachmentBusyKey={viewModel.attachmentBusyKey}

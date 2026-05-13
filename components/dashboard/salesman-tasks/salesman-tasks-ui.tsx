@@ -82,8 +82,10 @@ export function SalesmanTaskCard({
         </div>
 
         <div>
-          <h3 className="text-2xl font-bold tracking-tight text-[#23313a]">{task.task_name}</h3>
-          <p className="mt-3 text-sm leading-7 text-[#6f7b85]">
+          <h3 className="break-words text-2xl font-bold tracking-tight text-[#23313a]">
+            {task.task_name}
+          </h3>
+          <p className="mt-3 break-words text-sm leading-7 text-[#6f7b85]">
             {getTaskIntroText(task.task_intro, sharedT)}
           </p>
         </div>
