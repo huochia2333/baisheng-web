@@ -1626,6 +1626,14 @@
         "noRecord": "No record yet",
         "unknownTaskType": "Unknown Task Type"
       },
+      "acceptance": {
+        "limited": "Up to {limit} people",
+        "unlimited": "Unlimited accepts",
+        "progressLimited": "{accepted}/{limit} accepted, {completed} completed",
+        "progressUnlimited": "{accepted} accepted, {completed} completed",
+        "remainingLimited": "{count} left",
+        "remainingUnlimited": "Unlimited"
+      },
       "attachmentCount": "{count} attachment(s)",
       "moreAttachments": "{count} more attachment(s)",
       "errors": {
@@ -1637,6 +1645,8 @@
           "targetRolesLocked": "This task has already been accepted, so target roles cannot be changed right now.",
           "taskTypeNameRequired": "Enter a task type name.",
           "commissionAmountInvalid": "The commission amount can be left blank. If filled, it must be a number that is 0 or above.",
+          "acceptanceLimitInvalid": "Enter a whole number above 0, or choose unlimited accepts.",
+          "acceptanceLimitBelowAccepted": "The accept limit cannot be lower than the number already accepted.",
           "authExpired": "Your sign-in has expired. Sign in again and try once more.",
           "noPermission": "This account cannot perform this action.",
           "taskNotFound": "The task no longer exists. Refresh the task list and try again.",
@@ -1652,6 +1662,8 @@
         "salesman": {
           "cannotAccept": "You cannot accept this task right now.",
           "alreadyAccepted": "This task was just accepted by someone else. Refresh to see the latest status.",
+          "alreadyAcceptedByMe": "You have already accepted this task. Continue from your own task progress.",
+          "acceptanceFull": "This task has no accepts left.",
           "cannotComplete": "You cannot complete this task right now.",
           "notAccepted": "This task cannot be marked as completed yet.",
           "cannotCreateReviewSubmission": "You cannot create a review submission for this task right now.",
@@ -1714,7 +1726,7 @@
       },
       "createDialog": {
         "title": "Create Task",
-        "description": "Choose one or more target roles. Matching internal members can see and accept the task. Attachments will be saved together with the task.",
+        "description": "Choose target roles and how many people can accept the task. Matching internal members can see it. Attachments will be saved together with the task.",
         "taskNameLabel": "Task Name",
         "taskNamePlaceholder": "For example: Follow up this week's client callback materials",
         "targetRolesLabel": "Target Roles",
@@ -1723,6 +1735,11 @@
         "taskTypePlaceholder": "Select a task type",
         "commissionAmountLabel": "Commission Amount (Optional)",
         "commissionAmountPlaceholder": "Leave blank if there is no reward; for example: 80",
+        "acceptanceLimitLabel": "Accept Limit",
+        "acceptanceLimitPlaceholder": "For example: 3",
+        "acceptanceModeLabel": "Accept Mode",
+        "acceptanceUnlimitedLabel": "Unlimited accepts",
+        "acceptanceHint": "Different members can accept the same task, submit their own work, and receive their own reward after approval.",
         "taskTypeHint": "The task type controls how the task is categorized and how related commissions are displayed. More types will be added later.",
         "taskIntroLabel": "Task Details",
         "taskIntroPlaceholder": "Add the background, goals, execution requirements, and any notes for this task.",
@@ -1761,6 +1778,8 @@
         "assignmentLabel": "Target Roles",
         "taskTypeLabel": "Task Type",
         "commissionAmountLabel": "Task Commission",
+        "acceptanceLimitLabel": "Accept Limit",
+        "acceptanceProgressLabel": "Accept Progress",
         "creatorLabel": "Creator",
         "assigneeLabel": "Assignee",
         "createdAtLabel": "Created At",
@@ -1833,6 +1852,7 @@
         "taskNameRequired": "Please enter a task name first.",
         "taskTypeRequired": "Please choose a task type.",
         "commissionAmountInvalid": "Leave commission blank when there is no reward, or enter a number that is 0 or above.",
+        "acceptanceLimitInvalid": "Enter a whole number above 0, or choose unlimited accepts.",
         "targetRolesRequiredForCreate": "Choose at least one target role.",
         "targetRolesRequiredForAssignment": "Choose at least one target role."
       }
@@ -1887,6 +1907,7 @@
         "taskScopeLabel": "Target Roles",
         "taskTypeLabel": "Task Type",
         "commissionAmountLabel": "Task Commission",
+        "acceptanceLimitLabel": "Accept Limit",
         "createdAtLabel": "Published At",
         "acceptedAtLabel": "Started At",
         "submittedAtLabel": "Submitted At",
@@ -1897,6 +1918,7 @@
         "submitReview": "Submit for Review",
         "resubmit": "Resubmit for Review",
         "complete": "Mark as Completed",
+        "fullyAccepted": "This task has no accepts left right now.",
         "takenByOthers": "This task is already being handled by another teammate.",
         "reviewingByMe": "Your submission is waiting for administrator review.",
         "reviewingByOthers": "Another teammate has already submitted this task for review.",

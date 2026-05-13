@@ -42,6 +42,8 @@ type TaskFormDialogProps = {
   description: string;
   feedback: PageFeedback;
   formState: CreateTaskFormState;
+  onAcceptanceLimitChange: (value: string) => void;
+  onAcceptanceUnlimitedChange: (value: boolean) => void;
   onCommissionAmountChange: (value: string) => void;
   onOpenChange: (open: boolean) => void;
   onTargetRoleToggle: (role: TaskTargetRole) => void;
@@ -68,6 +70,8 @@ type EditTaskDialogProps = Omit<TaskFormDialogProps, "description" | "submitLabe
 export function CreateTaskDialog({
   feedback,
   formState,
+  onAcceptanceLimitChange,
+  onAcceptanceUnlimitedChange,
   onCommissionAmountChange,
   onFilesChange,
   onOpenChange,
@@ -89,6 +93,8 @@ export function CreateTaskDialog({
       description={t("createDialog.description")}
       feedback={feedback}
       formState={formState}
+      onAcceptanceLimitChange={onAcceptanceLimitChange}
+      onAcceptanceUnlimitedChange={onAcceptanceUnlimitedChange}
       onCommissionAmountChange={onCommissionAmountChange}
       onFilesChange={onFilesChange}
       onOpenChange={onOpenChange}
@@ -112,6 +118,8 @@ export function CreateTaskDialog({
 export function EditTaskDialog({
   feedback,
   formState,
+  onAcceptanceLimitChange,
+  onAcceptanceUnlimitedChange,
   onCommissionAmountChange,
   onOpenChange,
   onTargetRoleToggle,
@@ -136,6 +144,8 @@ export function EditTaskDialog({
       description={t("editDialog.description")}
       feedback={feedback}
       formState={formState}
+      onAcceptanceLimitChange={onAcceptanceLimitChange}
+      onAcceptanceUnlimitedChange={onAcceptanceUnlimitedChange}
       onCommissionAmountChange={onCommissionAmountChange}
       onOpenChange={onOpenChange}
       onTargetRoleToggle={onTargetRoleToggle}
@@ -158,6 +168,8 @@ function TaskFormDialog({
   description,
   feedback,
   formState,
+  onAcceptanceLimitChange,
+  onAcceptanceUnlimitedChange,
   onCommissionAmountChange,
   onOpenChange,
   onTargetRoleToggle,
@@ -229,6 +241,8 @@ function TaskFormDialog({
         <TaskFormFields
           canChangeAssignment={canChangeAssignment}
           formState={formState}
+          onAcceptanceLimitChange={onAcceptanceLimitChange}
+          onAcceptanceUnlimitedChange={onAcceptanceUnlimitedChange}
           onCommissionAmountChange={onCommissionAmountChange}
           onTargetRoleToggle={onTargetRoleToggle}
           onTaskIntroChange={onTaskIntroChange}

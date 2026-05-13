@@ -23,6 +23,8 @@ import {
 } from "@/components/dashboard/dashboard-shared-ui";
 import {
   formatTaskCommissionMoney,
+  getTaskAcceptanceLimitLabel,
+  getTaskAcceptanceProgressLabel,
   getTaskAttachmentCountLabel,
   getTaskIntroText,
   getTaskMoreAttachmentsLabel,
@@ -97,6 +99,9 @@ export function TaskCard({
               <DataPill accent="gold">
                 {formatTaskCommissionMoney(task.commission_amount_rmb, locale)}
               </DataPill>
+              <DataPill accent="blue">
+                {getTaskAcceptanceProgressLabel(task, sharedT)}
+              </DataPill>
               {task.attachments.length > 0 ? (
                 <DataPill accent="blue">
                   <Paperclip className="size-3.5" />
@@ -166,6 +171,14 @@ export function TaskCard({
           <InfoTile
             label={t("commissionAmountLabel")}
             value={formatTaskCommissionMoney(task.commission_amount_rmb, locale)}
+          />
+          <InfoTile
+            label={t("acceptanceLimitLabel")}
+            value={getTaskAcceptanceLimitLabel(task, sharedT)}
+          />
+          <InfoTile
+            label={t("acceptanceProgressLabel")}
+            value={getTaskAcceptanceProgressLabel(task, sharedT)}
           />
           <InfoTile
             label={t("creatorLabel")}

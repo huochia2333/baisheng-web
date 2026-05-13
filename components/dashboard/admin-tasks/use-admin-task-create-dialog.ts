@@ -15,6 +15,7 @@ import {
 import { type getBrowserSupabaseClient } from "@/lib/supabase";
 
 import {
+  parseTaskAcceptanceLimitInput,
   parseTaskCommissionAmountInput,
   toAdminTaskErrorMessage,
   validateTaskDraft,
@@ -170,6 +171,8 @@ export function useAdminTaskCreateDialog({
         taskTypeCode: createFormState.taskTypeCode,
         commissionAmountRmb:
           parseTaskCommissionAmountInput(createFormState.commissionAmount) ?? 0,
+        acceptanceLimit: parseTaskAcceptanceLimitInput(createFormState.acceptanceLimit) ?? 1,
+        acceptanceUnlimited: createFormState.acceptanceUnlimited,
         createdByUserId: viewerId,
         targetRoles: createFormState.targetRoles,
       });

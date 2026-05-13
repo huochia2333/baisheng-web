@@ -97,6 +97,7 @@ baisheng-web/
 - `components/dashboard/dashboard-segmented-tabs.tsx` 统一承接板块内切换按钮；订单页“订单列表 / 汇率设置”、佣金页“普通佣金 / 任务佣金”和审核页多队列切换都应复用这一套视觉样式
 - `components/dashboard/dashboard-pill.tsx` 与 `components/dashboard/tasks/task-ui.tsx` 分别统一承接工作台标签、任务状态/目标角色展示、任务搜索筛选和信息块；任务相关板块不要在各自 UI 文件里再复制一套 pill、tile 或筛选控件
 - 工作台共享页头、指标卡、筛选面板、列表面板、移动导航和分页控件都需要保留小屏紧凑样式；新增板块不要只按桌面端密度堆叠信息
+- 2026-05-13 补充：工作台移动端顶部品牌名在 `AdminShell` 中独立成满宽标题行，移动导航由 `AdminShellNav` 使用自适应网格换行展示，不再依赖横向滚动或截断品牌名
 - `components/brand/brand-mark.tsx` 统一承接公司 Logo 展示；当前 Logo 源文件为 `public/images/pt5-logo.png`，浏览器图标由 `app/favicon.ico`、`app/icon.png` 和 `app/apple-icon.png` 承接；认证页和工作区样式入口都需要继续 `@source "../components/brand"`
 - `components/legal` 承接公开法律页和隐私/条款页脚链接，避免把 legal 展示继续堆进认证或“我的”核心文件
 - `lib/auth-metadata.ts`、`lib/value-normalizers.ts` 与 `lib/task-attachment-policy.ts` 分别承接角色/状态标准化、基础字符串/数字归一化、任务附件和提审附件的上传策略；新增查询、筛选或上传流程时优先复用这些 helper
@@ -195,19 +196,20 @@ baisheng-web/
 - `admin-task-form-sections.tsx`：拆出任务表单摘要卡、核心字段区和附件区，控制单文件长度并保持弹窗壳层纯粹
 - `admin-tasks-dialogs.tsx`：只保留目标角色调整弹窗；`admin-task-type-management-dialog.tsx` 单独承接任务类型管理弹窗
 - `admin-tasks-view-model-shared.ts`：集中放置任务页共享类型、筛选比较和输入样式常量
-- `lib/admin-tasks.ts`：保留管理员任务页查询、创建、编辑、目标角色调整、删除和页面数据编排，当前约 512 行；任务类型操作已拆到 `lib/admin-task-type-management.ts`
+- `lib/admin-tasks.ts`：保留管理员任务页查询、创建、编辑、目标角色调整、删除和页面数据编排，当前约 527 行；任务类型操作已拆到 `lib/admin-task-type-management.ts`
 - `admin-tasks-ui.tsx` 只保留管理员任务卡片和表单字段壳层；状态、目标角色、搜索/筛选和信息块统一复用 `components/dashboard/tasks/task-ui.tsx`
 - `lib/admin-tasks-types.ts`、`lib/admin-task-normalizers.ts`、`lib/admin-task-attachments.ts`、`lib/admin-task-type-management.ts`：分别承接任务类型定义、数据库行归一化、附件上传/读取、任务类型新增/编辑/停用，通用上传校验和存储清理由 `lib/task-attachment-policy.ts` 统一承接
+- `lib/task-acceptance-summary.ts`：集中读取同一任务的领取/完成人数汇总，供管理员任务板和内部成员任务中心复用，避免把领取次数统计分散到各自页面逻辑里
 - `admin-task-submission-media.tsx`、`use-admin-task-submission-media.ts`：单独承接历史已完成任务中的成员图片/视频成果读取、预览弹窗和下载动作
 - `lib/admin-task-submission-media.ts`：集中查询已完成任务的审核通过成果媒体，并为私有存储对象生成短期 signed URL
 - 管理员任务板头部指标只保留“进行中 / 审核中”两项，并移除状态筛选栏；任务卡片不再展示归属锁定说明文案
-- 任务按目标角色多选分发，目标角色限定为经理、运营、招聘、业务和财务；命中角色的内部成员都能看到待领取任务，领取后由第一个领取人负责，其他目标角色不再继续领取同一任务
+- 任务按目标角色多选分发，目标角色限定为经理、运营、招聘、业务和财务；管理员创建或编辑任务时可设置可领取次数，也可选择不限次数；同一个任务可由不同内部成员分别领取、提审、审核通过并生成各自的任务佣金
 - 管理员可在任务页弹窗中新增、编辑、停用任务类型；任务类型清空后不再保留内置默认类型，需要由管理员在 Web 端重新添加
 - 任务创建/编辑时佣金金额可留空；留空会按无奖励任务处理，不生成任务佣金记录，任务列表和审核列表统一显示“无奖励”
-- 任务操作权限已拆成“编辑 / 删除 / 调整目标角色”三类：已完成任务仅管理员可编辑/删除，任务领取后禁止再改目标角色；默认任务板只展示未完成任务，已完成任务统一收进“历史已完成任务”视图
+- 任务操作权限已拆成“编辑 / 删除 / 调整目标角色”三类：已完成任务仅管理员可编辑/删除，任务已有成员领取后禁止再改目标角色；默认任务板只展示未完成任务，已完成任务统一收进“历史已完成任务”视图
 - 管理员在“历史已完成任务”视图中可直接查看成员已通过审核的图片/视频成果，并按单个文件预览或下载原文件
-- 删除历史任务时会先读取关联的提审附件清单，再在任务删除后同步清理 `task-attachments` 和 `task-review-submissions` 两个存储桶中的对象，避免数据库级联删除后留下提审附件孤儿文件
-- 任务状态目前覆盖 `to_be_accepted -> accepted -> reviewing -> rejected/completed`，其中管理员发布附件仍记录在 `task_sub`，执行人提交审核成果则单独进入 `task_review_submissions` / `task_review_submission_assets`
+- 删除历史任务时会先读取关联的提审附件清单；删除带有多人领取记录的任务时，也会把其下成员提审附件一起纳入清理，再在任务删除后同步清理 `task-attachments` 和 `task-review-submissions` 两个存储桶中的对象，避免数据库级联删除后留下提审附件孤儿文件
+- 任务状态目前覆盖 `to_be_accepted -> accepted -> reviewing -> rejected/completed`；多人领取时，原任务保留发布信息和领取次数，每个领取成员会生成自己的处理记录，其中管理员发布附件仍记录在 `task_sub`，执行人提交审核成果则单独进入 `task_review_submissions` / `task_review_submission_assets`
 - 本轮 Supabase 迁移会清空现有任务、任务附件、任务提审、任务佣金和任务类型，并清理 `task-attachments`、`task-review-submissions` 两个存储桶中的旧任务文件；上线前需要确认这是预期的破坏性数据重置
 - 任务审核通过后会同步写入 `task_commission_record`，任务佣金与订单佣金并行展示，但不复用订单佣金表结构
 - 2026-05-13 补充：管理员和内部成员任务列表在常见桌面宽度下保持单列卡片，任务卡片的操作按钮不再挤压标题、标签和说明文字；统计卡片标签保持单行显示；佣金表格补充最小宽度，窄屏时横向滚动而不是压缩列内容。
@@ -222,9 +224,10 @@ baisheng-web/
 ### 内部任务接收端模块分层（2026-05-11）
 
 - `salesman-tasks-client.tsx`：只负责任务中心编排、指标展示和组件组装；当前组件名沿用历史目录，但页面已作为经理、运营、招聘、业务和财务共用的内部任务接收端
-- `use-salesman-tasks-page.ts`：负责路由筛选、分页、接取任务、上传成果、提交审核和附件打开动作
+- `use-salesman-tasks-page.ts`：负责路由筛选、分页、接取任务、上传成果、提交审核和附件打开动作；多人领取的可见任务过滤由数据层先处理，页面 hook 不直接统计其他成员的领取明细
 - `salesman-tasks-ui.tsx`：只保留内部成员任务卡片展示；搜索/筛选、状态/目标角色展示和信息块统一复用 `components/dashboard/tasks/task-ui.tsx`
 - `salesman-task-submit-dialog.tsx`：单独承接“提交审核 / 重新提交审核”弹窗与文件选择流程
+- `lib/salesman-tasks.ts` 当前约 577 行，本次新增字段后仍控制在 600 行以内；领取汇总读取已拆到 `lib/task-acceptance-summary.ts`
 
 ### `admin-reviews` 模块分层（2026-04-22）
 

@@ -9,6 +9,8 @@ export type CreateTaskFormState = {
   taskIntro: string;
   taskTypeCode: string;
   commissionAmount: string;
+  acceptanceLimit: string;
+  acceptanceUnlimited: boolean;
   targetRoles: TaskTargetRole[];
   files: File[];
 };
@@ -30,6 +32,8 @@ export function createEmptyTaskForm(
       defaultTaskType !== null
         ? formatOptionalTaskCommissionInput(defaultTaskType.defaultCommissionAmountRmb)
         : "",
+    acceptanceLimit: "1",
+    acceptanceUnlimited: false,
     targetRoles: [],
     files: [],
   };
@@ -47,6 +51,8 @@ export function createTaskFormFromTask(task: AdminTaskRow): CreateTaskFormState 
     taskIntro: task.task_intro ?? "",
     taskTypeCode: task.task_type_code,
     commissionAmount: formatOptionalTaskCommissionInput(task.commission_amount_rmb),
+    acceptanceLimit: String(Math.max(1, task.acceptance_limit)),
+    acceptanceUnlimited: task.acceptance_unlimited,
     targetRoles: task.target_roles,
     files: [],
   };
@@ -63,7 +69,7 @@ export function canDeleteTask(task: AdminTaskRow) {
 }
 
 export function canReassignTask(task: AdminTaskRow) {
-  return task.status === "to_be_accepted";
+  return task.status === "to_be_accepted" && task.accepted_count === 0;
 }
 
 export function formatTaskCommissionInput(value: number) {

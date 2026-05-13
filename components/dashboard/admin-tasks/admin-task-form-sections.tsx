@@ -64,6 +64,8 @@ export function TaskEditSummaryCard({
 export function TaskFormFields({
   canChangeAssignment,
   formState,
+  onAcceptanceLimitChange,
+  onAcceptanceUnlimitedChange,
   onCommissionAmountChange,
   onTargetRoleToggle,
   onTaskIntroChange,
@@ -75,6 +77,8 @@ export function TaskFormFields({
 }: {
   canChangeAssignment: boolean;
   formState: CreateTaskFormState;
+  onAcceptanceLimitChange: (value: string) => void;
+  onAcceptanceUnlimitedChange: (value: boolean) => void;
   onCommissionAmountChange: (value: string) => void;
   onTargetRoleToggle: (role: TaskTargetRole) => void;
   onTaskIntroChange: (value: string) => void;
@@ -141,6 +145,49 @@ export function TaskFormFields({
             value={formState.commissionAmount}
           />
         </FormField>
+      </div>
+
+      <div className="grid gap-5 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
+        <FormField label={t("createDialog.acceptanceLimitLabel")}>
+          <input
+            className={taskInputClassName}
+            disabled={pending || formState.acceptanceUnlimited}
+            inputMode="numeric"
+            min="1"
+            onChange={(event) => onAcceptanceLimitChange(event.target.value)}
+            placeholder={t("createDialog.acceptanceLimitPlaceholder")}
+            step="1"
+            type="number"
+            value={formState.acceptanceLimit}
+          />
+        </FormField>
+
+        <fieldset>
+          <legend className="mb-2 block text-sm font-semibold text-[#23313a]">
+            {t("createDialog.acceptanceModeLabel")}
+          </legend>
+          <label
+            className={[
+              "flex min-h-11 items-center gap-3 rounded-[16px] border px-3 py-2 text-sm font-medium transition",
+              formState.acceptanceUnlimited
+                ? "border-[#486782] bg-[#eef4f8] text-[#23313a]"
+                : "border-[#dfe6eb] bg-white text-[#60717d]",
+              pending ? "cursor-not-allowed opacity-60" : "cursor-pointer hover:bg-[#f8fbfd]",
+            ].join(" ")}
+          >
+            <input
+              checked={formState.acceptanceUnlimited}
+              className="size-4 accent-[#486782]"
+              disabled={pending}
+              onChange={(event) => onAcceptanceUnlimitedChange(event.target.checked)}
+              type="checkbox"
+            />
+            {t("createDialog.acceptanceUnlimitedLabel")}
+          </label>
+          <p className="mt-2 text-xs leading-6 text-[#7b858d]">
+            {t("createDialog.acceptanceHint")}
+          </p>
+        </fieldset>
       </div>
 
       {formState.taskTypeCode ? (

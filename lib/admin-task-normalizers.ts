@@ -41,6 +41,8 @@ export function normalizeTaskMainRecord(value: unknown): AdminTaskMainRow | null
 
   return {
     id,
+    parent_task_id:
+      "parent_task_id" in value ? normalizeNullableString(value.parent_task_id) : null,
     task_name: taskName,
     task_intro: "task_intro" in value ? normalizeNullableString(value.task_intro) : null,
     task_type_code: taskTypeCode,
@@ -49,6 +51,22 @@ export function normalizeTaskMainRecord(value: unknown): AdminTaskMainRow | null
       "commission_amount_rmb" in value
         ? normalizeNumericValue(value.commission_amount_rmb) ?? 0
         : 0,
+    acceptance_limit:
+      "acceptance_limit" in value ? normalizeInteger(value.acceptance_limit, 1) : 1,
+    acceptance_unlimited:
+      "acceptance_unlimited" in value ? value.acceptance_unlimited === true : false,
+    accepted_count:
+      "accepted_count" in value
+        ? normalizeInteger(value.accepted_count)
+        : "accepted_by_user_id" in value && normalizeNullableString(value.accepted_by_user_id)
+          ? 1
+          : 0,
+    completed_count:
+      "completed_count" in value
+        ? normalizeInteger(value.completed_count)
+        : status === "completed"
+          ? 1
+          : 0,
     created_by_user_id: createdByUserId,
     accepted_by_user_id:
       "accepted_by_user_id" in value ? normalizeNullableString(value.accepted_by_user_id) : null,

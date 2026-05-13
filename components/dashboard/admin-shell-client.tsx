@@ -99,7 +99,7 @@ export function AdminShellNav({ items, mode }: AdminShellNavProps) {
 
   if (mode === "mobile") {
     return (
-      <div className="flex w-max gap-1.5 sm:gap-2">
+      <nav className="grid w-full grid-cols-2 gap-2 min-[360px]:grid-cols-3 sm:grid-cols-4">
         {items.map((item) => {
           const Icon = NAV_ICONS[item.icon];
           const isActive = pathname === item.href;
@@ -115,7 +115,7 @@ export function AdminShellNav({ items, mode }: AdminShellNavProps) {
               onMouseEnter={() => prefetchRoute(item.href)}
               prefetch
               className={cn(
-                "inline-flex items-center gap-1.5 rounded-full px-3 py-2 text-xs whitespace-nowrap transition-colors sm:gap-2 sm:px-4 sm:py-2.5 sm:text-sm",
+                "inline-flex min-h-10 min-w-0 items-center justify-center gap-1.5 rounded-full px-2.5 py-2 text-center text-xs leading-tight transition-colors sm:gap-2 sm:px-3 sm:py-2.5 sm:text-sm",
                 isActive
                   ? "bg-[#486782] text-white shadow-[0_10px_20px_rgba(72,103,130,0.22)]"
                   : isPending
@@ -124,15 +124,15 @@ export function AdminShellNav({ items, mode }: AdminShellNavProps) {
               )}
             >
               {isPending ? (
-                <LoaderCircle className="size-4 animate-spin" />
+                <LoaderCircle className="size-4 shrink-0 animate-spin" />
               ) : (
-                <Icon className="size-4" />
+                <Icon className="size-4 shrink-0" />
               )}
-              {item.label}
+              <span className="min-w-0 break-words">{item.label}</span>
             </Link>
           );
         })}
-      </div>
+      </nav>
     );
   }
 

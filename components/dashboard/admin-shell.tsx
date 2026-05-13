@@ -75,17 +75,17 @@ export async function AdminShell({ children, config }: AdminShellProps) {
 
             <div className="flex min-h-screen min-w-0 flex-1 flex-col md:ml-[284px]">
               <header className="sticky top-0 z-10 border-b border-white/50 bg-[#faf9f7]/82 backdrop-blur">
-                <div className="mx-auto flex w-full max-w-[1600px] items-center justify-between px-3 py-3 sm:px-6 sm:py-4 lg:px-8">
+                <div className="mx-auto grid w-full max-w-[1600px] grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 gap-y-2 px-3 py-3 sm:flex sm:justify-between sm:px-6 sm:py-4 lg:px-8">
                   <div className="min-w-0">
                     <p className="font-label text-[10px] tracking-[0.16em] text-[#8e99a3] uppercase sm:text-[11px] sm:tracking-[0.2em]">
                       {workspace.workspaceLabel}
                     </p>
-                    <h1 className="truncate text-xl font-bold tracking-tight text-[#486782] sm:text-3xl">
+                    <h1 className="hidden text-xl font-bold tracking-tight text-[#486782] sm:block sm:text-3xl">
                       {t("brandTitle")}
                     </h1>
                   </div>
 
-                  <div className="flex items-center gap-2 sm:gap-3">
+                  <div className="flex items-center justify-end gap-2 sm:gap-3">
                     <LanguageToggle />
                     <WorkspaceHeaderActions
                       accountLabel={workspace.accountLabel}
@@ -94,9 +94,13 @@ export async function AdminShell({ children, config }: AdminShellProps) {
                       myHref={workspace.myHref}
                     />
                   </div>
+
+                  <h1 className="col-span-2 break-words text-2xl font-bold tracking-tight text-[#486782] sm:hidden">
+                    {t("brandTitle")}
+                  </h1>
                 </div>
 
-                <div className="overflow-x-auto px-3 pb-3 md:hidden">
+                <div className="px-3 pb-3 md:hidden">
                   <AdminShellNav items={workspace.navItems} mode="mobile" />
                 </div>
               </header>

@@ -17,6 +17,8 @@ import {
 } from "@/components/dashboard/dashboard-shared-ui";
 import {
   formatTaskCommissionMoney,
+  getTaskAcceptanceLimitLabel,
+  getTaskAcceptanceRemainingLabel,
   getTaskAttachmentCountLabel,
   getTaskIntroText,
   getTaskTargetRolesLabel,
@@ -57,6 +59,10 @@ export function SalesmanTaskCard({
   const isMine = task.accepted_by_user_id === viewerId;
   const targetLabel = getTaskTargetRolesLabel(task.target_roles, sharedT);
   const hasReviewFeedback = Boolean(task.review_reject_reason);
+  const canAccept =
+    task.status === "to_be_accepted"
+    && task.parent_task_id === null
+    && (task.acceptance_unlimited || task.accepted_count < task.acceptance_limit);
 
   return (
     <article className="rounded-[28px] border border-[#ebe7e1] bg-white p-6 shadow-[0_14px_30px_rgba(96,113,128,0.05)]">
@@ -72,6 +78,9 @@ export function SalesmanTaskCard({
           </DataPill>
           <DataPill accent="gold">
             {formatTaskCommissionMoney(task.commission_amount_rmb, locale)}
+          </DataPill>
+          <DataPill accent="blue">
+            {getTaskAcceptanceRemainingLabel(task, sharedT)}
           </DataPill>
           {task.attachments.length > 0 ? (
             <DataPill accent="blue">
@@ -98,6 +107,10 @@ export function SalesmanTaskCard({
           <InfoTile
             label={t("commissionAmountLabel")}
             value={formatTaskCommissionMoney(task.commission_amount_rmb, locale)}
+          />
+          <InfoTile
+            label={t("acceptanceLimitLabel")}
+            value={getTaskAcceptanceLimitLabel(task, sharedT)}
           />
           <InfoTile label={t("taskScopeLabel")} value={targetLabel} />
           <InfoTile label={t("createdAtLabel")} value={formatDateTime(task.created_at)} />
@@ -145,7 +158,7 @@ export function SalesmanTaskCard({
         ) : null}
 
         <div className="flex flex-wrap items-center gap-3">
-          {task.status === "to_be_accepted" ? (
+          {canAccept ? (
             <Button
               className="h-11 rounded-full bg-[#486782] px-5 text-white hover:bg-[#3e5f79] disabled:opacity-70"
               disabled={busy}
@@ -159,6 +172,10 @@ export function SalesmanTaskCard({
               )}
               {t("accept")}
             </Button>
+          ) : null}
+
+          {task.status === "to_be_accepted" && !canAccept ? (
+            <p className="text-sm leading-7 text-[#7b858d]">{t("fullyAccepted")}</p>
           ) : null}
 
           {(task.status === "accepted" || task.status === "rejected") && isMine ? (

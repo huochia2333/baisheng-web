@@ -66,11 +66,16 @@ export type AdminTaskAttachment = {
 
 export type AdminTaskMainRow = {
   id: string;
+  parent_task_id: string | null;
   task_name: string;
   task_intro: string | null;
   task_type_code: string;
   task_type_label: string | null;
   commission_amount_rmb: number;
+  acceptance_limit: number;
+  acceptance_unlimited: boolean;
+  accepted_count: number;
+  completed_count: number;
   created_by_user_id: string;
   accepted_by_user_id: string | null;
   scope: TaskScope;
@@ -119,6 +124,8 @@ export type CreateAdminTaskInput = {
   taskIntro?: string | null;
   taskTypeCode: string;
   commissionAmountRmb: number;
+  acceptanceLimit: number;
+  acceptanceUnlimited: boolean;
   createdByUserId: string;
   targetRoles: TaskTargetRole[];
 };
@@ -129,6 +136,8 @@ export type UpdateAdminTaskInput = {
   taskIntro?: string | null;
   taskTypeCode: string;
   commissionAmountRmb: number;
+  acceptanceLimit: number;
+  acceptanceUnlimited: boolean;
   targetRoles: TaskTargetRole[];
 };
 
@@ -139,10 +148,13 @@ export type UpdateAdminTaskAssignmentInput = {
 
 export type TaskMainRecord = {
   id: string;
+  parent_task_id: string | null;
   task_name: string | null;
   task_intro: string | null;
   task_type_code: string | null;
   commission_amount_rmb: number | string | null;
+  acceptance_limit: number | string | null;
+  acceptance_unlimited: boolean | null;
   created_by_user_id: string | null;
   accepted_by_user_id: string | null;
   scope: TaskScope | null;

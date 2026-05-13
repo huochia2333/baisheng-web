@@ -14,6 +14,8 @@ type TaskDraftLike = {
   taskName: string;
   taskTypeCode: string;
   commissionAmount: string;
+  acceptanceLimit: string;
+  acceptanceUnlimited: boolean;
   targetRoles: TaskTargetRole[];
 };
 
@@ -113,6 +115,72 @@ export function parseTaskCommissionAmountInput(value: string) {
   return Number.isFinite(parsedValue) ? parsedValue : null;
 }
 
+export function parseTaskAcceptanceLimitInput(value: string) {
+  const trimmedValue = value.trim();
+
+  if (!trimmedValue) {
+    return null;
+  }
+
+  const parsedValue = Number(trimmedValue);
+
+  return Number.isInteger(parsedValue) ? parsedValue : null;
+}
+
+export function getTaskAcceptanceProgressLabel(
+  task: {
+    acceptance_limit: number;
+    acceptance_unlimited: boolean;
+    accepted_count: number;
+    completed_count: number;
+  },
+  t: TranslateFn,
+) {
+  if (task.acceptance_unlimited) {
+    return t("acceptance.progressUnlimited", {
+      accepted: task.accepted_count,
+      completed: task.completed_count,
+    });
+  }
+
+  return t("acceptance.progressLimited", {
+    accepted: task.accepted_count,
+    completed: task.completed_count,
+    limit: task.acceptance_limit,
+  });
+}
+
+export function getTaskAcceptanceLimitLabel(
+  task: {
+    acceptance_limit: number;
+    acceptance_unlimited: boolean;
+  },
+  t: TranslateFn,
+) {
+  if (task.acceptance_unlimited) {
+    return t("acceptance.unlimited");
+  }
+
+  return t("acceptance.limited", { limit: task.acceptance_limit });
+}
+
+export function getTaskAcceptanceRemainingLabel(
+  task: {
+    acceptance_limit: number;
+    acceptance_unlimited: boolean;
+    accepted_count: number;
+  },
+  t: TranslateFn,
+) {
+  if (task.acceptance_unlimited) {
+    return t("acceptance.remainingUnlimited");
+  }
+
+  return t("acceptance.remainingLimited", {
+    count: Math.max(0, task.acceptance_limit - task.accepted_count),
+  });
+}
+
 export function getTaskAttachmentCountLabel(count: number, t: TranslateFn) {
   return t("attachmentCount", { count });
 }
@@ -159,6 +227,16 @@ export function validateTaskDraft(
 
   if (commissionAmount === null || commissionAmount < 0) {
     return t("validation.commissionAmountInvalid");
+  }
+
+  if (
+    !formState.acceptanceUnlimited
+    && (
+      parseTaskAcceptanceLimitInput(formState.acceptanceLimit) === null
+      || (parseTaskAcceptanceLimitInput(formState.acceptanceLimit) ?? 0) < 1
+    )
+  ) {
+    return t("validation.acceptanceLimitInvalid");
   }
 
   if (formState.targetRoles.length === 0) {
@@ -217,6 +295,14 @@ export function toAdminTaskErrorMessage(error: unknown, t: TranslateFn) {
 
   if (rawMessage.includes("task_main_commission_amount_nonnegative")) {
     return t("errors.admin.commissionAmountInvalid");
+  }
+
+  if (rawMessage.includes("task acceptance limit invalid")) {
+    return t("errors.admin.acceptanceLimitInvalid");
+  }
+
+  if (rawMessage.includes("task acceptance limit below accepted count")) {
+    return t("errors.admin.acceptanceLimitBelowAccepted");
   }
 
   if (rawMessage.includes("authenticated user is required")) {
@@ -280,6 +366,14 @@ export function toSalesmanTaskErrorMessage(error: unknown, t: TranslateFn) {
 
   if (rawMessage.includes("task is not available for acceptance")) {
     return t("errors.salesman.alreadyAccepted");
+  }
+
+  if (rawMessage.includes("current user already accepted this task")) {
+    return t("errors.salesman.alreadyAcceptedByMe");
+  }
+
+  if (rawMessage.includes("task acceptance limit reached")) {
+    return t("errors.salesman.acceptanceFull");
   }
 
   if (rawMessage.includes("current user cannot complete this task")) {

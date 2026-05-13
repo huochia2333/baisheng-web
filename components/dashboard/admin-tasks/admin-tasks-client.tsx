@@ -90,6 +90,10 @@ export function AdminTasksClient({
       <CreateTaskDialog
         feedback={viewModel.createDialogFeedback}
         formState={viewModel.createFormState}
+        onAcceptanceLimitChange={(value) => viewModel.updateCreateField("acceptanceLimit", value)}
+        onAcceptanceUnlimitedChange={(value) =>
+          viewModel.updateCreateField("acceptanceUnlimited", value)
+        }
         onFilesChange={viewModel.handleCreateFilesChange}
         onOpenChange={viewModel.handleCreateDialogOpenChange}
         onRemoveFile={viewModel.removeCreateFile}
@@ -108,6 +112,10 @@ export function AdminTasksClient({
       <EditTaskDialog
         feedback={viewModel.editDialogFeedback}
         formState={viewModel.editFormState}
+        onAcceptanceLimitChange={(value) => viewModel.updateEditField("acceptanceLimit", value)}
+        onAcceptanceUnlimitedChange={(value) =>
+          viewModel.updateEditField("acceptanceUnlimited", value)
+        }
         onOpenChange={viewModel.handleEditDialogOpenChange}
         onTargetRoleToggle={viewModel.handleEditTargetRoleToggle}
         onSubmit={() => void viewModel.handleEditTask()}

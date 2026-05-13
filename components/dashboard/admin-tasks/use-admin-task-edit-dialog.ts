@@ -13,6 +13,7 @@ import {
 import { type getBrowserSupabaseClient } from "@/lib/supabase";
 
 import {
+  parseTaskAcceptanceLimitInput,
   parseTaskCommissionAmountInput,
   toAdminTaskErrorMessage,
   validateTaskDraft,
@@ -50,6 +51,8 @@ export function useAdminTaskEditDialog({
     taskIntro: "",
     taskTypeCode: "",
     commissionAmount: "",
+    acceptanceLimit: "1",
+    acceptanceUnlimited: false,
     targetRoles: [],
     files: [],
   });
@@ -159,6 +162,8 @@ export function useAdminTaskEditDialog({
         taskTypeCode: editFormState.taskTypeCode,
         commissionAmountRmb:
           parseTaskCommissionAmountInput(editFormState.commissionAmount) ?? 0,
+        acceptanceLimit: parseTaskAcceptanceLimitInput(editFormState.acceptanceLimit) ?? 1,
+        acceptanceUnlimited: editFormState.acceptanceUnlimited,
         targetRoles: editFormState.targetRoles,
       });
 

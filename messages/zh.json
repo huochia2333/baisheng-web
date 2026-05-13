@@ -1626,6 +1626,14 @@
         "noRecord": "暂无记录",
         "unknownTaskType": "未命名任务类型"
       },
+      "acceptance": {
+        "limited": "最多 {limit} 人领取",
+        "unlimited": "不限领取次数",
+        "progressLimited": "已领取 {accepted}/{limit}，已完成 {completed}",
+        "progressUnlimited": "已领取 {accepted}，已完成 {completed}",
+        "remainingLimited": "剩余 {count} 次",
+        "remainingUnlimited": "不限次数"
+      },
       "attachmentCount": "{count} 个附件",
       "moreAttachments": "还有 {count} 个附件",
       "errors": {
@@ -1637,6 +1645,8 @@
           "targetRolesLocked": "这项任务已经有人领取，目标角色暂时不能再调整。",
           "taskTypeNameRequired": "请填写任务类型名称。",
           "commissionAmountInvalid": "佣金金额可不填；填写时需是不小于 0 的数字。",
+          "acceptanceLimitInvalid": "领取次数需填写为大于 0 的整数，或选择不限次数。",
+          "acceptanceLimitBelowAccepted": "领取次数不能少于已经领取的人数。",
           "authExpired": "登录状态已失效，请重新登录后再试。",
           "noPermission": "当前账号不能执行这个操作。",
           "taskNotFound": "任务不存在，建议先刷新任务列表。",
@@ -1652,6 +1662,8 @@
         "salesman": {
           "cannotAccept": "当前还不能接取这项任务。",
           "alreadyAccepted": "这项任务刚刚已经被接取了，请刷新后查看最新状态。",
+          "alreadyAcceptedByMe": "你已经领取过这项任务，可以在自己的任务进度里继续处理。",
+          "acceptanceFull": "这项任务的领取次数已经用完了。",
           "cannotComplete": "当前还不能完成这项任务。",
           "notAccepted": "这项任务当前还不能标记为完成。",
           "cannotCreateReviewSubmission": "当前还不能为这项任务创建提审记录。",
@@ -1714,7 +1726,7 @@
       },
       "createDialog": {
         "title": "新建任务",
-        "description": "选择一个或多个目标角色后，符合角色的内部成员都能看到并领取任务。附件会和任务一起保存。",
+        "description": "选择目标角色和领取次数后，符合角色的内部成员都能看到并领取任务。附件会和任务一起保存。",
         "taskNameLabel": "任务名称",
         "taskNamePlaceholder": "例如：跟进本周客户回访资料",
         "targetRolesLabel": "目标角色",
@@ -1723,6 +1735,11 @@
         "taskTypePlaceholder": "请选择任务类型",
         "commissionAmountLabel": "佣金金额（可不填）",
         "commissionAmountPlaceholder": "无奖励可留空；例如：80",
+        "acceptanceLimitLabel": "可领取次数",
+        "acceptanceLimitPlaceholder": "例如：3",
+        "acceptanceModeLabel": "领取方式",
+        "acceptanceUnlimitedLabel": "不限次数",
+        "acceptanceHint": "同一任务可由不同成员分别领取、提交成果并获得对应奖励。",
         "taskTypeHint": "当前任务类型会影响任务展示和后续佣金归类，后续会继续扩展更多类型。",
         "taskIntroLabel": "任务说明",
         "taskIntroPlaceholder": "补充任务背景、目标、执行要求和注意事项。",
@@ -1761,6 +1778,8 @@
         "assignmentLabel": "目标角色",
         "taskTypeLabel": "任务类型",
         "commissionAmountLabel": "任务佣金",
+        "acceptanceLimitLabel": "可领取次数",
+        "acceptanceProgressLabel": "领取进度",
         "creatorLabel": "创建人",
         "assigneeLabel": "领取人",
         "createdAtLabel": "创建时间",
@@ -1833,6 +1852,7 @@
         "taskNameRequired": "请先填写任务名称。",
         "taskTypeRequired": "请选择任务类型。",
         "commissionAmountInvalid": "佣金金额可不填；填写时需是不小于 0 的数字。",
+        "acceptanceLimitInvalid": "领取次数需填写为大于 0 的整数，或选择不限次数。",
         "targetRolesRequiredForCreate": "请选择至少一个目标角色。",
         "targetRolesRequiredForAssignment": "请选择至少一个目标角色。"
       }
@@ -1887,6 +1907,7 @@
         "taskScopeLabel": "目标角色",
         "taskTypeLabel": "任务类型",
         "commissionAmountLabel": "任务佣金",
+        "acceptanceLimitLabel": "可领取次数",
         "createdAtLabel": "发布时间",
         "acceptedAtLabel": "开始时间",
         "submittedAtLabel": "提交时间",
@@ -1897,6 +1918,7 @@
         "submitReview": "提交审核",
         "resubmit": "重新提交审核",
         "complete": "标记完成",
+        "fullyAccepted": "这项任务当前已经没有可领取次数。",
         "takenByOthers": "这项任务当前已有同事接手。",
         "reviewingByMe": "你已提交审核，正在等待管理员处理。",
         "reviewingByOthers": "这项任务已经被其他同事提交审核。",

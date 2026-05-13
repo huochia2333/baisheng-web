@@ -79,9 +79,10 @@ import {
   getDashboardQueryRange,
   MAX_DASHBOARD_QUERY_ROWS,
 } from "./dashboard-pagination";
+import { getTaskAcceptanceSummaryByTaskId } from "./task-acceptance-summary";
 
 const ADMIN_TASK_SELECT =
-  "id,task_name,task_intro,task_type_code,commission_amount_rmb,created_by_user_id,accepted_by_user_id,scope,team_id,status,created_at,accepted_at,submitted_at,reviewed_at,reviewed_by_user_id,review_reject_reason,completed_at";
+  "id,parent_task_id,task_name,task_intro,task_type_code,commission_amount_rmb,acceptance_limit,acceptance_unlimited,created_by_user_id,accepted_by_user_id,scope,team_id,status,created_at,accepted_at,submitted_at,reviewed_at,reviewed_by_user_id,review_reject_reason,completed_at";
 
 export async function getCurrentTaskViewerContext(
   supabase: SupabaseClient,
@@ -192,6 +193,9 @@ export async function getAdminTasks(
   }
 
   const taskIds = taskRows.map((task) => task.id);
+  const attachmentSourceTaskIds = Array.from(
+    new Set(taskRows.flatMap((task) => [task.id, task.parent_task_id].filter(Boolean))),
+  ) as string[];
   const userIds = Array.from(
     new Set(
       taskRows.flatMap((task) =>
@@ -203,11 +207,12 @@ export async function getAdminTasks(
   );
   const taskTypeCodes = Array.from(new Set(taskRows.map((task) => task.task_type_code)));
 
-  const [attachments, profiles, taskTypes, targetRoles] = await Promise.all([
-    getTaskAttachmentsByTaskIds(supabase, taskIds),
+  const [attachments, profiles, taskTypes, targetRoles, acceptanceSummaryByTaskId] = await Promise.all([
+    getTaskAttachmentsByTaskIds(supabase, attachmentSourceTaskIds),
     getTaskProfilesByUserIds(supabase, userIds),
     getTaskTypesByCodes(supabase, taskTypeCodes),
     getTaskTargetRolesByTaskIds(supabase, taskIds),
+    getTaskAcceptanceSummaryByTaskId(supabase, taskIds),
   ]);
 
   const attachmentsByTaskId = new Map<string, AdminTaskAttachment[]>();
@@ -236,18 +241,25 @@ export async function getAdminTasks(
     targetRolesByTaskId.set(targetRole.taskId, [targetRole.role]);
   });
 
-  return taskRows.map((task) => ({
-    ...task,
-    task_type_label:
-      taskTypeByCode.get(task.task_type_code)?.displayName ?? task.task_type_label,
-    creator: profileByUserId.get(task.created_by_user_id) ?? null,
-    accepted_by: task.accepted_by_user_id
-      ? profileByUserId.get(task.accepted_by_user_id) ?? null
-      : null,
-    team: null,
-    target_roles: targetRolesByTaskId.get(task.id) ?? [],
-    attachments: attachmentsByTaskId.get(task.id) ?? [],
-  }));
+  return taskRows.map((task) => {
+    const acceptanceSummary = acceptanceSummaryByTaskId.get(task.id);
+    const attachmentSourceTaskId = task.parent_task_id ?? task.id;
+
+    return {
+      ...task,
+      task_type_label:
+        taskTypeByCode.get(task.task_type_code)?.displayName ?? task.task_type_label,
+      creator: profileByUserId.get(task.created_by_user_id) ?? null,
+      accepted_by: task.accepted_by_user_id
+        ? profileByUserId.get(task.accepted_by_user_id) ?? null
+        : null,
+      team: null,
+      target_roles: targetRolesByTaskId.get(task.id) ?? [],
+      accepted_count: acceptanceSummary?.acceptedCount ?? task.accepted_count,
+      completed_count: acceptanceSummary?.completedCount ?? task.completed_count,
+      attachments: attachmentsByTaskId.get(attachmentSourceTaskId) ?? [],
+    };
+  });
 }
 
 export async function createAdminTask(
@@ -261,6 +273,8 @@ export async function createAdminTask(
       p_task_type_code: input.taskTypeCode,
       p_commission_amount_rmb: input.commissionAmountRmb,
       p_target_roles: input.targetRoles,
+      p_acceptance_limit: input.acceptanceLimit,
+      p_acceptance_unlimited: input.acceptanceUnlimited,
     }).returns<TaskMainRecord>(),
   );
 
@@ -292,6 +306,8 @@ export async function updateAdminTask(
       p_task_type_code: input.taskTypeCode,
       p_commission_amount_rmb: input.commissionAmountRmb,
       p_target_roles: input.targetRoles,
+      p_acceptance_limit: input.acceptanceLimit,
+      p_acceptance_unlimited: input.acceptanceUnlimited,
     }).returns<TaskMainRecord>(),
   );
 
