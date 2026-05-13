@@ -58,32 +58,9 @@ export async function updateAdminPersonAccount(
 
   const payload = normalizeAdminPersonAccountUpdatePayload(input);
   const preparedChange = await prepareAdminPersonAccountChange(supabase, payload);
-  const serviceSupabase = getSupabaseServiceRoleClient();
-  const authUser = await getTargetAuthUser(serviceSupabase, payload.targetUserId);
-  const previousAppMetadata = readAppMetadata(authUser);
-  const nextAppMetadata = {
-    ...previousAppMetadata,
-    role: payload.nextRole,
-    status: payload.nextStatus,
-  };
 
-  await updateTargetAuthMetadata(
-    serviceSupabase,
-    payload.targetUserId,
-    nextAppMetadata,
-  );
-
-  try {
-    await applyAdminPersonAccountChange(supabase, payload);
-  } catch (error) {
-    await rollbackTargetAuthMetadata(
-      serviceSupabase,
-      payload.targetUserId,
-      previousAppMetadata,
-    );
-
-    throw error;
-  }
+  await applyAdminPersonAccountChange(supabase, payload);
+  await syncTargetAuthMetadata(payload);
 
   const updatedPerson = await getAdminPersonRowById(supabase, preparedChange.target_user_id);
 
@@ -267,16 +244,20 @@ async function updateTargetAuthMetadata(
   }
 }
 
-async function rollbackTargetAuthMetadata(
-  serviceSupabase: SupabaseClient,
-  targetUserId: string,
-  appMetadata: Record<string, unknown>,
-) {
+async function syncTargetAuthMetadata(input: AdminPersonAccountUpdatePayload) {
   try {
-    await updateTargetAuthMetadata(serviceSupabase, targetUserId, appMetadata);
+    const serviceSupabase = getSupabaseServiceRoleClient();
+    const authUser = await getTargetAuthUser(serviceSupabase, input.targetUserId);
+    const previousAppMetadata = readAppMetadata(authUser);
+
+    await updateTargetAuthMetadata(serviceSupabase, input.targetUserId, {
+      ...previousAppMetadata,
+      role: input.nextRole,
+      status: input.nextStatus,
+    });
   } catch {
-    // The browser receives the original save failure; operational follow-up can
-    // compare Auth metadata with the account change log if this rollback fails.
+    // The database tables and custom access token hook are the source of truth.
+    // Auth metadata is kept as a compatibility cache when service credentials work.
   }
 }
 

@@ -245,6 +245,7 @@
     "referralNotFound": "The invite code does not exist. Please check and try again.",
     "referralMaxUses": "The invite code has reached its usage limit.",
     "referralExpired": "The invite code has expired. Please contact an administrator for a new one.",
+    "registrationFailed": "Registration could not be completed. Check the invite code or contact an administrator.",
     "userExists": "This email is already registered. Please sign in instead."
   },
   "ForgotPasswordForm": {

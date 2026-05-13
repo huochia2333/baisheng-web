@@ -25,6 +25,12 @@ import { AuthFeedback } from "./auth-feedback";
 import { AuthField } from "./auth-field";
 import { AuthPasswordField } from "./auth-password-field";
 import { getPasswordPolicyState } from "./auth-password-policy";
+import {
+  formatAuthError,
+  formatReferralCodeStatus,
+  getErrorMessage,
+  validateSignupReferralCode,
+} from "./register-form-validation";
 
 export function RegisterForm() {
   const router = useRouter();
@@ -72,6 +78,16 @@ export function RegisterForm() {
       typeof window !== "undefined" ? `${window.location.origin}/login` : undefined;
 
     try {
+      const referralCodeStatus = await validateSignupReferralCode(
+        supabase,
+        normalizedInviteCode,
+      );
+
+      if (referralCodeStatus !== "valid" && referralCodeStatus !== "unavailable") {
+        setError(formatReferralCodeStatus(referralCodeStatus, t));
+        return;
+      }
+
       const { data, error: signUpError } = await supabase.auth.signUp({
         email: email.trim(),
         password,
@@ -219,35 +235,4 @@ export function RegisterForm() {
       </button>
     </form>
   );
-}
-
-function formatAuthError(
-  message: string,
-  t: (key: string) => string,
-) {
-  if (message.includes("referral_code is required")) {
-    return t("referralRequired");
-  }
-
-  if (message.includes("referral_code does not exist")) {
-    return t("referralNotFound");
-  }
-
-  if (message.includes("referral_code has reached max_uses")) {
-    return t("referralMaxUses");
-  }
-
-  if (message.includes("referral_code has expired")) {
-    return t("referralExpired");
-  }
-
-  if (message.includes("User already registered")) {
-    return t("userExists");
-  }
-
-  return t("serviceUnavailable");
-}
-
-function getErrorMessage(error: unknown, fallback: string) {
-  return error instanceof Error ? error.message : fallback;
 }

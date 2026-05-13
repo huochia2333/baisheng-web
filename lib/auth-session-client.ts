@@ -27,13 +27,10 @@ function getRoleFromUser(user: User | null | undefined): AppRole | null {
 export function getRoleFromAuthSession(
   session: Pick<Session, "access_token" | "user"> | null | undefined,
 ): AppRole | null {
-  const fallbackRole = getRoleFromUser(session?.user);
-
-  if (fallbackRole) {
-    return fallbackRole;
-  }
-
-  return getAppRoleFromClaims(readAuthClaimsFromAccessToken(session?.access_token));
+  return (
+    getAppRoleFromClaims(readAuthClaimsFromAccessToken(session?.access_token)) ??
+    getRoleFromUser(session?.user)
+  );
 }
 
 export async function getRoleFromAuthClaims(
@@ -41,10 +38,6 @@ export async function getRoleFromAuthClaims(
   fallbackUser?: User | null,
 ): Promise<AppRole | null> {
   const fallbackRole = getRoleFromUser(fallbackUser);
-
-  if (fallbackRole) {
-    return fallbackRole;
-  }
 
   const { data, error } = await supabase.auth.getClaims();
 

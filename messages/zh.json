@@ -245,6 +245,7 @@
     "referralNotFound": "邀请码不存在，请确认后重新输入。",
     "referralMaxUses": "邀请码已达到使用上限。",
     "referralExpired": "邀请码已过期，请联系管理员获取新的邀请码。",
+    "registrationFailed": "注册没有完成，请确认邀请码后重试，或联系管理员处理。",
     "userExists": "该邮箱已注册，请直接登录。"
   },
   "ForgotPasswordForm": {
