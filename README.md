@@ -102,6 +102,7 @@ baisheng-web/
 - `components/brand/brand-mark.tsx` 统一承接公司 Logo 展示；当前 Logo 源文件为 `public/images/pt5-logo.png`，浏览器图标由 `app/favicon.ico`、`app/icon.png` 和 `app/apple-icon.png` 承接；认证页和工作区样式入口都需要继续 `@source "../components/brand"`
 - `components/legal` 承接公开法律页和隐私/条款页脚链接，避免把 legal 展示继续堆进认证或“我的”核心文件
 - `lib/auth-metadata.ts`、`lib/value-normalizers.ts` 与 `lib/task-attachment-policy.ts` 分别承接角色/状态标准化、基础字符串/数字归一化、任务附件和提审附件的上传策略；新增查询、筛选或上传流程时优先复用这些 helper
+- `lib/admin-task-assignees.ts` 承接管理员任务详情的承接人聚合查询；多人任务父任务只保留名额和进度，全部领取人从子任务行汇总后展示，避免把聚合逻辑塞回 `lib/admin-tasks.ts`
 - 单文件超过 `400-600` 行，或出现 3 个以上独立职责时，需要优先拆成 `queries`、`mutations`、`view-model hook`、`dialog`、`section/table` 或 `display-utils`
 - `output/playwright` 用于保留有价值的截图和报告，不存放长期无用的临时控制台垃圾
 

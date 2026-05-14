@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
+import { getTaskAcceptanceAssigneesByRootTaskId } from "./admin-task-assignees";
 import { getTaskAttachmentsByTaskIds } from "./admin-task-attachments";
 import {
   normalizeNullableString,
@@ -34,6 +35,7 @@ export type {
   AdminTaskStatusFilter,
   AdminTaskViewerContext,
   CreateAdminTaskInput,
+  TaskAcceptanceAssigneeSummary,
   TaskMainRecord,
   TaskProfileSummary,
   TaskScope,
@@ -193,6 +195,9 @@ export async function getAdminTasks(
   }
 
   const taskIds = taskRows.map((task) => task.id);
+  const rootTaskIds = Array.from(
+    new Set(taskRows.map((task) => task.parent_task_id ?? task.id)),
+  );
   const attachmentSourceTaskIds = Array.from(
     new Set(taskRows.flatMap((task) => [task.id, task.parent_task_id].filter(Boolean))),
   ) as string[];
@@ -207,12 +212,20 @@ export async function getAdminTasks(
   );
   const taskTypeCodes = Array.from(new Set(taskRows.map((task) => task.task_type_code)));
 
-  const [attachments, profiles, taskTypes, targetRoles, acceptanceSummaryByTaskId] = await Promise.all([
+  const [
+    attachments,
+    profiles,
+    taskTypes,
+    targetRoles,
+    acceptanceSummaryByTaskId,
+    acceptanceAssigneesByRootTaskId,
+  ] = await Promise.all([
     getTaskAttachmentsByTaskIds(supabase, attachmentSourceTaskIds),
     getTaskProfilesByUserIds(supabase, userIds),
     getTaskTypesByCodes(supabase, taskTypeCodes),
     getTaskTargetRolesByTaskIds(supabase, taskIds),
     getTaskAcceptanceSummaryByTaskId(supabase, taskIds),
+    getTaskAcceptanceAssigneesByRootTaskId(supabase, rootTaskIds),
   ]);
 
   const attachmentsByTaskId = new Map<string, AdminTaskAttachment[]>();
@@ -244,6 +257,7 @@ export async function getAdminTasks(
   return taskRows.map((task) => {
     const acceptanceSummary = acceptanceSummaryByTaskId.get(task.id);
     const attachmentSourceTaskId = task.parent_task_id ?? task.id;
+    const rootTaskId = task.parent_task_id ?? task.id;
 
     return {
       ...task,
@@ -258,6 +272,7 @@ export async function getAdminTasks(
       accepted_count: acceptanceSummary?.acceptedCount ?? task.accepted_count,
       completed_count: acceptanceSummary?.completedCount ?? task.completed_count,
       attachments: attachmentsByTaskId.get(attachmentSourceTaskId) ?? [],
+      acceptance_assignees: acceptanceAssigneesByRootTaskId.get(rootTaskId) ?? [],
     };
   });
 }

@@ -69,6 +69,7 @@ export function AdminTaskDetailDialog({
   const taskTypeLabel = getTaskTypeLabel(task.task_type_label, task.task_type_code, sharedT);
   const commissionLabel = formatTaskCommissionMoney(task.commission_amount_rmb, locale);
   const progressLabel = getTaskAcceptanceProgressLabel(task, sharedT);
+  const shouldShowAssigneeList = task.parent_task_id === null;
 
   return (
     <DashboardDialog
@@ -139,6 +140,51 @@ export function AdminTaskDetailDialog({
             <p className="mt-2 break-words text-sm leading-7 text-[#7b4f4f]">
               {task.review_reject_reason}
             </p>
+          </section>
+        ) : null}
+
+        {shouldShowAssigneeList ? (
+          <section className="space-y-3">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <p className="text-sm font-semibold text-[#23313a]">{t("assigneeListTitle")}</p>
+              <DataPill accent="blue">
+                {t("assigneeListCount", { count: task.acceptance_assignees.length })}
+              </DataPill>
+            </div>
+
+            {task.acceptance_assignees.length > 0 ? (
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                {task.acceptance_assignees.map((assignee) => (
+                  <div
+                    className="min-w-0 rounded-[18px] border border-[#e6ebef] bg-[#f8fbfc] p-4"
+                    key={assignee.accepted_task_id}
+                  >
+                    <p className="break-words text-sm font-semibold text-[#23313a]">
+                      {resolveTaskActorLabel(
+                        { name: assignee.name, email: assignee.email },
+                        assignee.user_id,
+                        sharedT,
+                      )}
+                    </p>
+                    {assignee.email ? (
+                      <p className="mt-1 break-all text-xs leading-5 text-[#6f7b85]">
+                        {assignee.email}
+                      </p>
+                    ) : null}
+                    <div className="mt-3 flex flex-wrap items-center gap-2">
+                      <TaskStatusPill status={assignee.task_status} />
+                      <span className="text-xs font-medium leading-5 text-[#6f7b85]">
+                        {t("assigneeAcceptedAtLabel")}: {formatDateTime(assignee.accepted_at)}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="rounded-[18px] bg-[#f7f5f2] px-4 py-3 text-sm leading-7 text-[#6f7b85]">
+                {t("assigneeListEmpty")}
+              </p>
+            )}
           </section>
         ) : null}
 

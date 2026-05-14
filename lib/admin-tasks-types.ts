@@ -64,6 +64,18 @@ export type AdminTaskAttachment = {
   created_at: string | null;
 };
 
+export type TaskAcceptanceAssigneeSummary = {
+  accepted_task_id: string;
+  root_task_id: string;
+  user_id: string;
+  name: string | null;
+  email: string | null;
+  task_status: TaskStatus;
+  accepted_at: string | null;
+  submitted_at: string | null;
+  completed_at: string | null;
+};
+
 export type AdminTaskMainRow = {
   id: string;
   parent_task_id: string | null;
@@ -96,6 +108,7 @@ export type AdminTaskRow = AdminTaskMainRow & {
   team: TaskTeamSummary | null;
   target_roles: TaskTargetRole[];
   attachments: AdminTaskAttachment[];
+  acceptance_assignees: TaskAcceptanceAssigneeSummary[];
 };
 
 export type AdminTasksPageData = {
