@@ -1,7 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { useEffect, useId, useRef } from "react";
+import { useEffect, useId, useRef, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
 
 import { X } from "lucide-react";
@@ -30,6 +30,10 @@ const DIALOG_FOCUSABLE_SELECTOR = [
   '[tabindex]:not([tabindex="-1"])',
 ].join(",");
 
+const subscribeToClientReady = () => () => {};
+const getClientReadySnapshot = () => true;
+const getServerReadySnapshot = () => false;
+
 export function DashboardDialog({
   open,
   onOpenChange,
@@ -40,13 +44,18 @@ export function DashboardDialog({
 }: DashboardDialogProps) {
   const titleId = useId();
   const descriptionId = useId();
-  const portalHost = typeof document === "undefined" ? null : document.body;
+  const clientReady = useSyncExternalStore(
+    subscribeToClientReady,
+    getClientReadySnapshot,
+    getServerReadySnapshot,
+  );
+  const portalHost = clientReady ? document.body : null;
   const dialogRef = useRef<HTMLDivElement | null>(null);
   const closeButtonRef = useRef<HTMLButtonElement | null>(null);
   const previousFocusedElementRef = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
-    if (!open) {
+    if (!open || !portalHost) {
       return;
     }
 
@@ -137,7 +146,7 @@ export function DashboardDialog({
       window.removeEventListener("keydown", handleKeyDown);
       previousFocusedElementRef.current?.focus();
     };
-  }, [onOpenChange, open]);
+  }, [onOpenChange, open, portalHost]);
 
   if (!portalHost) {
     return null;

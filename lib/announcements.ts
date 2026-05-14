@@ -38,6 +38,11 @@ export type AdminAnnouncementsPageData = {
   hasPermission: boolean;
 };
 
+type AnnouncementReaderContext = {
+  role: AppRole | null;
+  status: UserStatus | null;
+};
+
 const ANNOUNCEMENT_SELECT =
   "id,title,content,audience,status,created_by_user_id,created_at,updated_at,published_at";
 
@@ -55,13 +60,23 @@ export function canReadAnnouncements(
 export async function getVisibleAnnouncements(
   supabase: SupabaseClient,
   limit = 5,
+  context?: AnnouncementReaderContext,
 ) {
+  const { role, status } =
+    context ?? (await getCurrentSessionContext(supabase));
+
+  if (!canReadAnnouncements(role, status)) {
+    return [];
+  }
+
+  const audiences = getVisibleAnnouncementAudiences(role);
   const { from, to } = getDashboardQueryRange(limit);
   const { data, error } = await withRequestTimeout(
     supabase
       .from("announcements")
       .select(ANNOUNCEMENT_SELECT)
       .eq("status", "published")
+      .in("audience", audiences)
       .order("published_at", { ascending: false, nullsFirst: false })
       .order("created_at", { ascending: false })
       .range(from, to)
@@ -73,6 +88,16 @@ export async function getVisibleAnnouncements(
   }
 
   return data ?? [];
+}
+
+function getVisibleAnnouncementAudiences(
+  role: AppRole | null,
+): AnnouncementAudience[] {
+  if (role === "client") {
+    return ["all", "client"];
+  }
+
+  return ["all", "internal"];
 }
 
 export async function getAdminAnnouncementsPageData(

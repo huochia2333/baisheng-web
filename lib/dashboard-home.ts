@@ -42,7 +42,7 @@ export async function getDashboardHomePageData(
 
   const [profile, announcements] = await Promise.all([
     getHomeProfile(supabase, user.id),
-    getVisibleAnnouncements(supabase),
+    getVisibleAnnouncements(supabase, undefined, { role, status }),
   ]);
 
   return {

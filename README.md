@@ -98,6 +98,7 @@ baisheng-web/
 - `components/dashboard/dashboard-pill.tsx` 与 `components/dashboard/tasks/task-ui.tsx` 分别统一承接工作台标签、任务状态/目标角色展示、任务搜索筛选和信息块；任务相关板块不要在各自 UI 文件里再复制一套 pill、tile 或筛选控件
 - 工作台共享页头、指标卡、筛选面板、列表面板、移动导航和分页控件都需要保留小屏紧凑样式；新增板块不要只按桌面端密度堆叠信息
 - 2026-05-13 补充：工作台移动端顶部品牌名在 `AdminShell` 中独立成满宽标题行，移动导航由 `AdminShellNav` 使用自适应网格换行展示，不再依赖横向滚动或截断品牌名
+- 2026-05-14 补充：工作台移动端顶部的角色/中心标签在共享壳层保持单行显示，避免在窄屏被右侧按钮组挤成竖排。
 - `components/brand/brand-mark.tsx` 统一承接公司 Logo 展示；当前 Logo 源文件为 `public/images/pt5-logo.png`，浏览器图标由 `app/favicon.ico`、`app/icon.png` 和 `app/apple-icon.png` 承接；认证页和工作区样式入口都需要继续 `@source "../components/brand"`
 - `components/legal` 承接公开法律页和隐私/条款页脚链接，避免把 legal 展示继续堆进认证或“我的”核心文件
 - `lib/auth-metadata.ts`、`lib/value-normalizers.ts` 与 `lib/task-attachment-policy.ts` 分别承接角色/状态标准化、基础字符串/数字归一化、任务附件和提审附件的上传策略；新增查询、筛选或上传流程时优先复用这些 helper
@@ -131,6 +132,8 @@ baisheng-web/
 - 前端分层保持独立：`lib/announcements.ts` 负责公告查询和 mutation，`lib/dashboard-home.ts` 负责首页轻量数据，`components/dashboard/dashboard-home/*` 与 `components/dashboard/announcements/*` 分别承接首页和公告管理 UI
 - 2026-04-28 补充：工作区顶部公告按钮的最近公告和未读状态由 `components/dashboard/admin-shell.tsx` 在服务端准备初始数据，再交给 `workspace-header-actions` 渲染；客户端 hook 只负责刷新、已读和弹窗交互，避免首屏再等待浏览器端补取公告状态
 - 2026-05-06 补充：登录页公开公告读取使用 60 秒服务端缓存，并通过公开匿名客户端读取，避免未登录首屏反复等待同一条公告查询。
+- 2026-05-14 补充：工作区首页和顶部公告弹窗会按当前账号角色主动过滤公告发布对象；管理员管理页仍可维护全部公告，但管理员日常工作区只展示全员和内部公告，避免把客户公告送入已读确认流程。
+- 2026-05-14 补充：工作区公告弹窗复用的 `DashboardDialog` 会等浏览器端挂载完成后再创建 portal，避免有未读公告时服务端首屏和客户端第一帧不一致。
 - 本次没有把公告逻辑塞进已经超过 600 行的 `user-self-service.ts` 或 `dashboard-shared-my` 页面文件
 
 ## 界面文案约束（2026-04-27）
