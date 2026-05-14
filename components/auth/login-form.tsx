@@ -18,6 +18,12 @@ import { useSupabaseAuthSync } from "@/lib/use-supabase-auth-sync";
 
 import { AuthFeedback } from "./auth-feedback";
 import { AuthField } from "./auth-field";
+import {
+  isEmailNotConfirmedAuthError,
+  isInvalidCredentialsAuthError,
+  isInvalidEmailAuthError,
+  isTooFrequentAuthError,
+} from "./auth-error-messages";
 import { AuthPasswordField } from "./auth-password-field";
 
 export function LoginForm({
@@ -164,14 +170,20 @@ export function LoginForm({
 }
 
 function formatLoginError(error: unknown, t: (key: string) => string) {
-  const message = error instanceof Error ? error.message : "";
-
-  if (message.includes("Invalid login credentials")) {
+  if (isInvalidCredentialsAuthError(error)) {
     return t("invalidCredentials");
   }
 
-  if (message.includes("Email not confirmed")) {
+  if (isEmailNotConfirmedAuthError(error)) {
     return t("emailNotConfirmed");
+  }
+
+  if (isInvalidEmailAuthError(error)) {
+    return t("invalidEmail");
+  }
+
+  if (isTooFrequentAuthError(error)) {
+    return t("tooFrequent");
   }
 
   return t("serviceUnavailable");

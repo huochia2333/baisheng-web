@@ -28,7 +28,6 @@ import { getPasswordPolicyState } from "./auth-password-policy";
 import {
   formatAuthError,
   formatReferralCodeStatus,
-  getErrorMessage,
   validateSignupReferralCode,
 } from "./register-form-validation";
 
@@ -119,7 +118,7 @@ export function RegisterForm() {
         router.replace("/login?registered=1");
       });
     } catch (signUpError) {
-      setError(formatAuthError(getErrorMessage(signUpError, t("serviceUnavailable")), t));
+      setError(formatAuthError(signUpError, t));
     } finally {
       setSubmitting(false);
     }

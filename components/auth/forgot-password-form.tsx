@@ -13,6 +13,15 @@ import { useSupabaseAuthSync } from "@/lib/use-supabase-auth-sync";
 
 import { AuthFeedback } from "./auth-feedback";
 import { AuthField } from "./auth-field";
+import {
+  isAuthSessionMissingError,
+  isEmailDeliveryAuthError,
+  isInvalidEmailAuthError,
+  isSamePasswordAuthError,
+  isTooFrequentAuthError,
+  isUserNotFoundAuthError,
+  isWeakPasswordAuthError,
+} from "./auth-error-messages";
 import { AuthLoadingShell } from "./auth-loading-shell";
 import { AuthPasswordField } from "./auth-password-field";
 import { getPasswordPolicyState } from "./auth-password-policy";
@@ -76,12 +85,7 @@ export function ForgotPasswordForm() {
           return;
         }
 
-        setError(
-          formatForgotPasswordError(
-            getErrorMessage(sessionError, t("serviceUnavailable")),
-            t,
-          ),
-        );
+        setError(formatForgotPasswordError(sessionError, t));
       } finally {
         if (isMounted()) {
           setCheckingRecovery(false);
@@ -172,9 +176,7 @@ export function ForgotPasswordForm() {
         return;
       }
 
-      setError(
-        formatForgotPasswordError(getErrorMessage(resetError, t("serviceUnavailable")), t),
-      );
+      setError(formatForgotPasswordError(resetError, t));
     } finally {
       setSubmitting(false);
     }
@@ -222,9 +224,7 @@ export function ForgotPasswordForm() {
         router.replace("/login?passwordReset=1");
       });
     } catch (updateError) {
-      setError(
-        formatForgotPasswordError(getErrorMessage(updateError, t("serviceUnavailable")), t),
-      );
+      setError(formatForgotPasswordError(updateError, t));
     } finally {
       setSubmitting(false);
     }
@@ -342,14 +342,30 @@ function getRecoveryHint() {
 }
 
 function formatForgotPasswordError(
-  message: string,
+  error: unknown,
   t: (key: string) => string,
 ) {
-  if (message.includes("For security purposes")) {
+  if (isTooFrequentAuthError(error)) {
     return t("tooFrequent");
   }
 
-  if (message.includes("Auth session missing")) {
+  if (isWeakPasswordAuthError(error)) {
+    return t("weakPassword");
+  }
+
+  if (isSamePasswordAuthError(error)) {
+    return t("samePassword");
+  }
+
+  if (isInvalidEmailAuthError(error)) {
+    return t("invalidEmail");
+  }
+
+  if (isEmailDeliveryAuthError(error)) {
+    return t("emailDeliveryFailed");
+  }
+
+  if (isAuthSessionMissingError(error)) {
     return t("authSessionMissing");
   }
 
@@ -357,10 +373,5 @@ function formatForgotPasswordError(
 }
 
 function shouldMaskForgotPasswordError(error: unknown) {
-  const message = getErrorMessage(error, "");
-  return message.includes("User not found");
-}
-
-function getErrorMessage(error: unknown, fallback: string) {
-  return error instanceof Error ? error.message : fallback;
+  return isUserNotFoundAuthError(error);
 }

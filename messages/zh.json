@@ -168,7 +168,7 @@
   },
   "LoginPage": {
     "title": "登录",
-    "asideTitle": "统一入口，安全进入工作台",
+    "asideTitle": "统一入口<br></br>安全进入工作台",
     "asideDescription": "登录后根据账号权限进入对应工作台，继续处理公告、订单、推荐和协作事项。",
     "noteTitle": "账号安全",
     "noteDescription": "请使用本人账号登录。若发现权限或资料异常，请联系管理员核对。",
@@ -216,7 +216,9 @@
     "passwordResetNotice": "新密码已经更新完成，请使用新密码重新登录。",
     "serviceUnavailable": "当前服务暂时不可用，请稍后再试。",
     "invalidCredentials": "邮箱或密码不正确，请重新输入。",
-    "emailNotConfirmed": "邮箱尚未验证，请先完成邮箱验证。"
+    "emailNotConfirmed": "邮箱尚未验证，请先完成邮箱验证。",
+    "invalidEmail": "请填写有效的邮箱地址。",
+    "tooFrequent": "尝试次数过多，请稍后再登录。"
   },
   "RegisterForm": {
     "username": "用户名称",
@@ -228,8 +230,8 @@
     "inviteCodePlaceholder": "必填项",
     "password": "设置密码",
     "passwordPlaceholder": "包含字母与数字的 8 位以上密码",
-    "passwordHint": "至少 8 位，并同时包含字母和数字。",
-    "passwordReady": "密码格式符合要求。",
+    "passwordHint": "至少 8 位，并同时包含字母和数字；请避免使用姓名、生日或常见密码。",
+    "passwordReady": "基础格式符合要求，请确保不是常见或重复使用的密码。",
     "passwordPolicy": "密码至少需要 8 位，并同时包含字母和数字。",
     "showPassword": "显示密码",
     "hidePassword": "隐藏密码",
@@ -246,7 +248,12 @@
     "referralMaxUses": "邀请码已达到使用上限。",
     "referralExpired": "邀请码已过期，请联系管理员获取新的邀请码。",
     "registrationFailed": "注册没有完成，请确认邀请码后重试，或联系管理员处理。",
-    "userExists": "该邮箱已注册，请直接登录。"
+    "userExists": "该邮箱已注册，请直接登录。",
+    "weakPassword": "这个密码太常见，请换一个更安全的密码。",
+    "invalidEmail": "请填写有效的邮箱地址。",
+    "signupDisabled": "当前暂不开放自助注册，请联系管理员处理。",
+    "tooFrequent": "注册请求过于频繁，请稍后再试。",
+    "emailDeliveryFailed": "验证邮件没有发送成功，请确认邮箱可用，或联系管理员处理。"
   },
   "ForgotPasswordForm": {
     "recoverySuccess": "重置链接验证成功，请设置新的登录密码。",
@@ -256,8 +263,8 @@
     "passwordMismatch": "两次输入的新密码不一致，请重新确认。",
     "newPassword": "新密码",
     "newPasswordPlaceholder": "请输入新的登录密码",
-    "passwordHint": "至少 8 位，并同时包含字母和数字。",
-    "passwordReady": "密码格式符合要求。",
+    "passwordHint": "至少 8 位，并同时包含字母和数字；请避免使用姓名、生日或常见密码。",
+    "passwordReady": "基础格式符合要求，请确保不是常见或重复使用的密码。",
     "passwordPolicy": "新密码至少需要 8 位，并同时包含字母和数字。",
     "showPassword": "显示密码",
     "hidePassword": "隐藏密码",
@@ -274,7 +281,11 @@
     "backToLogin": "返回登录",
     "userNotFound": "没有找到这个邮箱对应的账户。",
     "tooFrequent": "请求过于频繁，请稍后再试。",
-    "authSessionMissing": "重置链接已失效，请重新发送一封重置邮件。"
+    "authSessionMissing": "重置链接已失效，请重新发送一封重置邮件。",
+    "weakPassword": "这个新密码太常见，请换一个更安全的密码。",
+    "samePassword": "新密码不能和当前密码相同。",
+    "invalidEmail": "请填写有效的邮箱地址。",
+    "emailDeliveryFailed": "重置邮件没有发送成功，请确认邮箱可用，或联系管理员处理。"
   },
   "DashboardShell": {
     "brandTitle": "柏盛管理系统",
@@ -570,6 +581,8 @@
       "offlineSuccess": "公告已下线。",
       "deleteSuccess": "公告已删除。",
       "deleteConfirm": "确认删除公告“{title}”？删除后无法恢复。",
+      "notFoundError": "这条公告不存在，建议刷新列表后再试。",
+      "permissionError": "当前账号没有权限处理这条公告。",
       "unknownError": "公告操作失败，请稍后再试。"
     },
     "noPermissionTitle": "无法管理公告",

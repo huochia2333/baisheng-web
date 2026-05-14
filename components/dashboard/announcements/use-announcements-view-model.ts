@@ -41,7 +41,9 @@ type UseAdminAnnouncementsViewModelOptions = {
     deleteSuccess: string;
     missingContent: string;
     missingTitle: string;
+    notFoundError: string;
     offlineSuccess: string;
+    permissionError: string;
     publishSuccess: string;
     unknownError: string;
     updateSuccess: string;
@@ -98,11 +100,11 @@ export function useAdminAnnouncementsViewModel({
 
         setPageFeedback({
           tone: "error",
-          message: toAnnouncementErrorMessage(error, copy.unknownError),
+          message: toAnnouncementErrorMessage(error, copy),
         });
       }
     },
-    [applyPageData, copy.unknownError, supabase],
+    [applyPageData, copy, supabase],
   );
 
   useWorkspaceSyncEffect(refreshAnnouncements);
@@ -196,17 +198,13 @@ export function useAdminAnnouncementsViewModel({
     } catch (error) {
       setDialogFeedback({
         tone: "error",
-        message: toAnnouncementErrorMessage(error, copy.unknownError),
+        message: toAnnouncementErrorMessage(error, copy),
       });
     } finally {
       setSubmitPending(false);
     }
   }, [
-    copy.createSuccess,
-    copy.missingContent,
-    copy.missingTitle,
-    copy.unknownError,
-    copy.updateSuccess,
+    copy,
     editingAnnouncement,
     formState,
     submitPending,
@@ -240,13 +238,13 @@ export function useAdminAnnouncementsViewModel({
       } catch (error) {
         setPageFeedback({
           tone: "error",
-          message: toAnnouncementErrorMessage(error, copy.unknownError),
+          message: toAnnouncementErrorMessage(error, copy),
         });
       } finally {
         setPendingAction(null);
       }
     },
-    [copy.publishSuccess, copy.unknownError, pendingAction, supabase],
+    [copy, pendingAction, supabase],
   );
 
   const handleTakeOffline = useCallback(
@@ -276,13 +274,13 @@ export function useAdminAnnouncementsViewModel({
       } catch (error) {
         setPageFeedback({
           tone: "error",
-          message: toAnnouncementErrorMessage(error, copy.unknownError),
+          message: toAnnouncementErrorMessage(error, copy),
         });
       } finally {
         setPendingAction(null);
       }
     },
-    [copy.offlineSuccess, copy.unknownError, pendingAction, supabase],
+    [copy, pendingAction, supabase],
   );
 
   const handleDelete = useCallback(
@@ -309,7 +307,7 @@ export function useAdminAnnouncementsViewModel({
       } catch (error) {
         setPageFeedback({
           tone: "error",
-          message: toAnnouncementErrorMessage(error, copy.unknownError),
+          message: toAnnouncementErrorMessage(error, copy),
         });
       } finally {
         setPendingAction(null);

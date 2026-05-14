@@ -1,5 +1,15 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
+import {
+  getErrorMessage,
+  isEmailDeliveryAuthError,
+  isInvalidEmailAuthError,
+  isSignupDisabledAuthError,
+  isTooFrequentAuthError,
+  isUserAlreadyRegisteredAuthError,
+  isWeakPasswordAuthError,
+} from "./auth-error-messages";
+
 type SignupReferralCodeStatus =
   | "valid"
   | "required"
@@ -48,9 +58,11 @@ export function formatReferralCodeStatus(
 }
 
 export function formatAuthError(
-  message: string,
+  error: unknown,
   t: (key: string) => string,
 ) {
+  const message = getErrorMessage(error, "");
+
   if (message.includes("referral_code is required")) {
     return t("referralRequired");
   }
@@ -67,8 +79,28 @@ export function formatAuthError(
     return t("referralExpired");
   }
 
-  if (message.includes("User already registered")) {
+  if (isUserAlreadyRegisteredAuthError(error)) {
     return t("userExists");
+  }
+
+  if (isWeakPasswordAuthError(error)) {
+    return t("weakPassword");
+  }
+
+  if (isInvalidEmailAuthError(error)) {
+    return t("invalidEmail");
+  }
+
+  if (isSignupDisabledAuthError(error)) {
+    return t("signupDisabled");
+  }
+
+  if (isTooFrequentAuthError(error)) {
+    return t("tooFrequent");
+  }
+
+  if (isEmailDeliveryAuthError(error)) {
+    return t("emailDeliveryFailed");
   }
 
   if (message.includes("Database error saving new user")) {
@@ -76,10 +108,6 @@ export function formatAuthError(
   }
 
   return t("serviceUnavailable");
-}
-
-export function getErrorMessage(error: unknown, fallback: string) {
-  return error instanceof Error ? error.message : fallback;
 }
 
 function normalizeSignupReferralCodeStatus(

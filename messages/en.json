@@ -216,7 +216,9 @@
     "passwordResetNotice": "Your password has been updated. Please sign in again with the new password.",
     "serviceUnavailable": "The service is temporarily unavailable. Please try again later.",
     "invalidCredentials": "The email or password is incorrect. Please try again.",
-    "emailNotConfirmed": "Your email has not been verified yet. Please verify it first."
+    "emailNotConfirmed": "Your email has not been verified yet. Please verify it first.",
+    "invalidEmail": "Enter a valid email address.",
+    "tooFrequent": "Too many sign-in attempts. Please try again later."
   },
   "RegisterForm": {
     "username": "Name",
@@ -228,8 +230,8 @@
     "inviteCodePlaceholder": "Required",
     "password": "Create Password",
     "passwordPlaceholder": "Use at least 8 characters with letters and numbers",
-    "passwordHint": "Use at least 8 characters with both letters and numbers.",
-    "passwordReady": "Password format looks good.",
+    "passwordHint": "Use at least 8 characters with both letters and numbers. Avoid names, birthdays, and common passwords.",
+    "passwordReady": "The basic format looks good. Make sure this is not a common or reused password.",
     "passwordPolicy": "Use at least 8 characters with both letters and numbers.",
     "showPassword": "Show password",
     "hidePassword": "Hide password",
@@ -246,7 +248,12 @@
     "referralMaxUses": "The invite code has reached its usage limit.",
     "referralExpired": "The invite code has expired. Please contact an administrator for a new one.",
     "registrationFailed": "Registration could not be completed. Check the invite code or contact an administrator.",
-    "userExists": "This email is already registered. Please sign in instead."
+    "userExists": "This email is already registered. Please sign in instead.",
+    "weakPassword": "This password is too common. Please choose a stronger one.",
+    "invalidEmail": "Enter a valid email address.",
+    "signupDisabled": "Self-service registration is not available right now. Contact an administrator.",
+    "tooFrequent": "Too many registration attempts. Please try again later.",
+    "emailDeliveryFailed": "The verification email could not be sent. Confirm the email can receive messages or contact an administrator."
   },
   "ForgotPasswordForm": {
     "recoverySuccess": "The reset link has been verified. Please set a new password.",
@@ -256,8 +263,8 @@
     "passwordMismatch": "The two passwords do not match. Please confirm again.",
     "newPassword": "New Password",
     "newPasswordPlaceholder": "Enter your new password",
-    "passwordHint": "Use at least 8 characters with both letters and numbers.",
-    "passwordReady": "Password format looks good.",
+    "passwordHint": "Use at least 8 characters with both letters and numbers. Avoid names, birthdays, and common passwords.",
+    "passwordReady": "The basic format looks good. Make sure this is not a common or reused password.",
     "passwordPolicy": "Use at least 8 characters with both letters and numbers.",
     "showPassword": "Show password",
     "hidePassword": "Hide password",
@@ -274,7 +281,11 @@
     "backToLogin": "Back to Sign In",
     "userNotFound": "No account was found for this email address.",
     "tooFrequent": "Too many requests. Please try again later.",
-    "authSessionMissing": "The reset link has expired. Please request a new reset email."
+    "authSessionMissing": "The reset link has expired. Please request a new reset email.",
+    "weakPassword": "This new password is too common. Please choose a stronger one.",
+    "samePassword": "The new password must be different from the current one.",
+    "invalidEmail": "Enter a valid email address.",
+    "emailDeliveryFailed": "The reset email could not be sent. Confirm the email can receive messages or contact an administrator."
   },
   "DashboardShell": {
     "brandTitle": "Baisheng Management System",
@@ -570,6 +581,8 @@
       "offlineSuccess": "Announcement taken offline.",
       "deleteSuccess": "Announcement deleted.",
       "deleteConfirm": "Delete announcement \"{title}\"? This cannot be undone.",
+      "notFoundError": "This announcement no longer exists. Refresh the list and try again.",
+      "permissionError": "This account does not have permission to manage this announcement.",
       "unknownError": "Announcement action failed. Please try again later."
     },
     "noPermissionTitle": "Cannot manage announcements",

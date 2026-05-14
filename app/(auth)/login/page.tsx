@@ -37,7 +37,9 @@ export default async function LoginPage({
         copy={authShellCopy}
         mode="login"
         asideDescription={t("asideDescription")}
-        asideTitle={t("asideTitle")}
+        asideTitle={t.rich("asideTitle", {
+          br: () => <br />,
+        })}
         footerLinkHref="/register"
         footerLinkLabel={t("footerLinkLabel")}
         footerPrompt={t("footerPrompt")}

@@ -90,8 +90,8 @@ export function AuthShell({
                 </div>
               </div>
 
-              <div className="max-w-[360px] space-y-8">
-                <h1 className="max-w-[9ch] text-balance text-[56px] leading-[1.08] font-bold tracking-[-0.04em]">
+              <div className="max-w-[420px] space-y-8">
+                <h1 className="max-w-[420px] text-balance text-[56px] leading-[1.08] font-bold tracking-normal">
                   {asideTitle}
                 </h1>
                 <p className="max-w-[330px] text-[16px] leading-8 text-[#66727d]">

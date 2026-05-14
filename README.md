@@ -447,3 +447,9 @@ Supabase Auth 建议配置：
 - 当前实现使用腾讯云 `ImageModeration` 的 `FileContent` 入参：Edge Function 先读取 Supabase 私有图片并转为 Base64，再提交给腾讯云，避免依赖图片公网直链。
 - Function secrets 需要配置 `TENCENT_SECRET_ID`、`TENCENT_SECRET_KEY`、`TENCENT_IMAGE_BIZ_TYPE`，可选配置 `TENCENT_IMAGE_REGION`，默认区域为 `ap-guangzhou`，默认 BizType 为 `personal_photo_review`。
 - 腾讯云返回 `Pass` 时系统自动通过照片；返回 `Review`、`Block`、调用失败或密钥未配置时，照片继续进入人工审核。
+## 2026-05-13 认证错误提示补充
+
+- 注册、登录和重置密码页面新增可识别的 Supabase Auth 错误提示：常见或泄露密码、无效邮箱、请求过于频繁、邮箱已注册、邮箱未验证、自助注册关闭、邮件发送失败、重置链接失效以及新旧密码相同等情况会显示对应的日常语言提示。
+- 注册和重置密码的密码提示补充“避免姓名、生日或常见密码”，用于配合线上已开启的泄露密码保护；无法明确归类的认证错误仍保留统一兜底提示，并在后续排查时按日志再补充映射。
+- 认证页左侧大标题统一加宽标题区，减少桌面宽度下中文词组被拆开的情况。
+- 公告管理操作错误补充“公告不存在”和“没有权限”的日常语言提示，并屏蔽数据库、网络和状态码类原始错误。
