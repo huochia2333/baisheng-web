@@ -6,6 +6,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
   ArrowLeftRight,
+  ChevronDown,
   ClipboardClock,
   ClipboardList,
   GitBranchPlus,
@@ -63,7 +64,9 @@ export function AdminShellNav({ items, mode }: AdminShellNavProps) {
   const pathname = usePathname();
   const router = useRouter();
   const [pendingHref, setPendingHref] = useState<string | null>(null);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const resolvedPendingHref = pendingHref === pathname ? null : pendingHref;
+  const activeItem = items.find((item) => item.href === pathname) ?? items[0] ?? null;
 
   useEffect(() => {
     items.forEach((item) => {
@@ -98,41 +101,83 @@ export function AdminShellNav({ items, mode }: AdminShellNavProps) {
   };
 
   if (mode === "mobile") {
-    return (
-      <nav className="grid w-full grid-cols-2 gap-2 min-[360px]:grid-cols-3 sm:grid-cols-4">
-        {items.map((item) => {
-          const Icon = NAV_ICONS[item.icon];
-          const isActive = pathname === item.href;
-          const isPending = resolvedPendingHref === item.href && !isActive;
+    if (!activeItem) {
+      return null;
+    }
 
-          return (
-            <Link
-              aria-busy={isPending || undefined}
-              key={item.href}
-              href={item.href}
-              onClick={(event) => handleNavClick(event, item.href)}
-              onFocus={() => prefetchRoute(item.href)}
-              onMouseEnter={() => prefetchRoute(item.href)}
-              prefetch
-              className={cn(
-                "inline-flex min-h-10 min-w-0 items-center justify-center gap-1.5 rounded-full px-2.5 py-2 text-center text-xs leading-tight transition-colors sm:gap-2 sm:px-3 sm:py-2.5 sm:text-sm",
-                isActive
-                  ? "bg-[#486782] text-white shadow-[0_10px_20px_rgba(72,103,130,0.22)]"
-                  : isPending
-                    ? "bg-[#dbe6ee] text-[#36536a] shadow-[0_10px_20px_rgba(72,103,130,0.12)]"
-                  : "bg-white/80 text-[#486782] hover:bg-[#edf1f4]",
-              )}
-            >
-              {isPending ? (
-                <LoaderCircle className="size-4 shrink-0 animate-spin" />
-              ) : (
-                <Icon className="size-4 shrink-0" />
-              )}
-              <span className="min-w-0 break-words">{item.label}</span>
-            </Link>
-          );
-        })}
-      </nav>
+    const ActiveIcon = NAV_ICONS[activeItem.icon];
+    const activeIsPending = resolvedPendingHref === activeItem.href;
+
+    return (
+      <div className="relative">
+        <button
+          aria-expanded={mobileMenuOpen}
+          aria-label={activeItem.label}
+          className="flex min-h-12 w-full items-center justify-between gap-3 rounded-[18px] border border-white/90 bg-white/88 px-4 py-3 text-left text-[#486782] shadow-[0_12px_28px_rgba(72,103,130,0.1)] backdrop-blur transition-colors hover:bg-[#f2f5f7]"
+          onClick={() => setMobileMenuOpen((value) => !value)}
+          type="button"
+        >
+          <span className="flex min-w-0 items-center gap-2.5">
+            {activeIsPending ? (
+              <LoaderCircle className="size-4 shrink-0 animate-spin" />
+            ) : (
+              <ActiveIcon className="size-4 shrink-0" />
+            )}
+            <span className="min-w-0 truncate text-sm font-semibold">
+              {activeItem.label}
+            </span>
+          </span>
+          <ChevronDown
+            className={cn(
+              "size-4 shrink-0 transition-transform",
+              mobileMenuOpen ? "rotate-180" : "rotate-0",
+            )}
+          />
+        </button>
+
+        {mobileMenuOpen ? (
+          <nav className="absolute left-0 right-0 top-[calc(100%+0.5rem)] z-30 max-h-[62vh] overflow-y-auto rounded-[22px] border border-white/90 bg-[#fbfaf8]/98 p-2 shadow-[0_22px_50px_rgba(35,49,58,0.2)] backdrop-blur">
+            <div className="grid gap-1.5">
+              {items.map((item) => {
+                const Icon = NAV_ICONS[item.icon];
+                const isActive = pathname === item.href;
+                const isPending = resolvedPendingHref === item.href && !isActive;
+
+                return (
+                  <Link
+                    aria-busy={isPending || undefined}
+                    aria-current={isActive ? "page" : undefined}
+                    key={item.href}
+                    href={item.href}
+                    onClick={(event) => {
+                      handleNavClick(event, item.href);
+                      setMobileMenuOpen(false);
+                    }}
+                    onFocus={() => prefetchRoute(item.href)}
+                    onMouseEnter={() => prefetchRoute(item.href)}
+                    prefetch
+                    className={cn(
+                      "flex min-h-11 min-w-0 items-center gap-3 rounded-2xl px-3.5 py-2.5 text-sm transition-colors",
+                      isActive
+                        ? "bg-[#486782] text-white shadow-[0_10px_20px_rgba(72,103,130,0.18)]"
+                        : isPending
+                          ? "bg-[#dbe6ee] text-[#36536a]"
+                          : "text-[#486782] hover:bg-[#eef3f6]",
+                    )}
+                  >
+                    {isPending ? (
+                      <LoaderCircle className="size-4 shrink-0 animate-spin" />
+                    ) : (
+                      <Icon className="size-4 shrink-0" />
+                    )}
+                    <span className="min-w-0 truncate font-medium">{item.label}</span>
+                  </Link>
+                );
+              })}
+            </div>
+          </nav>
+        ) : null}
+      </div>
     );
   }
 

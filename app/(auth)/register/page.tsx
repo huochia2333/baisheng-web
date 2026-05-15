@@ -27,8 +27,10 @@ export default async function RegisterPage({
     getTranslations("RegisterPage"),
     getAuthShellCopy(),
   ]);
-  const initialInviteCode = firstSearchParam(params.ref);
-  const initialBusinessBoard = firstSearchParam(params.board);
+  const initialInviteCode = buildInitialInviteCode(
+    firstSearchParam(params.ref),
+    firstSearchParam(params.board),
+  );
 
   return (
     <ScopedIntlProvider namespaces={["LanguageToggle", "RegisterForm"]}>
@@ -47,10 +49,7 @@ export default async function RegisterPage({
         noteDescription={t("noteDescription")}
         noteTitle={t("noteTitle")}
       >
-        <RegisterForm
-          initialBusinessBoard={initialBusinessBoard}
-          initialInviteCode={initialInviteCode}
-        />
+        <RegisterForm initialInviteCode={initialInviteCode} />
 
         <div className="mt-8 rounded-[26px] border border-[#d5dde3] bg-[#eff4f7] p-5 text-sm text-[#627380] shadow-[0_14px_34px_rgba(115,127,139,0.07)] sm:hidden">
           <p className="mb-2 font-semibold text-[#33424d]">{t("mobileNoteTitle")}</p>
@@ -63,4 +62,33 @@ export default async function RegisterPage({
 
 function firstSearchParam(value: string | string[] | undefined) {
   return Array.isArray(value) ? value[0] : value;
+}
+
+function buildInitialInviteCode(
+  referralCode: string | undefined,
+  businessBoard: string | undefined,
+) {
+  const normalizedCode = referralCode?.trim().toUpperCase();
+
+  if (!normalizedCode || /-[TD]$/i.test(normalizedCode)) {
+    return normalizedCode;
+  }
+
+  const suffix = getInviteCodeBoardSuffix(businessBoard);
+
+  return suffix ? `${normalizedCode}-${suffix}` : normalizedCode;
+}
+
+function getInviteCodeBoardSuffix(value: string | undefined) {
+  const normalized = value?.trim().toLowerCase();
+
+  if (normalized === "tourism") {
+    return "T";
+  }
+
+  if (normalized === "dropshipping") {
+    return "D";
+  }
+
+  return null;
 }

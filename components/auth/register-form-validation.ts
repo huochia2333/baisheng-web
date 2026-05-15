@@ -26,11 +26,9 @@ type SignupReferralCodeValidationResult =
 export async function validateSignupReferralCode(
   supabase: SupabaseClient,
   referralCode: string,
-  businessBoard: string | null,
 ): Promise<SignupReferralCodeValidationResult> {
   const { data, error } = await supabase.rpc("validate_signup_referral_code", {
     _signup_referral_code: referralCode,
-    _business_board: businessBoard,
   });
 
   if (error) {

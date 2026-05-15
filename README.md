@@ -47,12 +47,12 @@
 - `/[role]` 会自动重定向到对应的 `/[role]/home`
 - 越权访问不会再改写到其他工作台，而是直接展示访问错误页
 - 角色导航只展示当前已启用模块；已知但未授权的同工作台模块会展示访问错误页，而不是继续显示占位入口
-- 2026-05-14 补充：业务员的订单和人员入口会再按“旅游服务类 / 传统 dropshipping 类”授权过滤；没有 dropshipping 授权时不显示业务员客户管理入口。
-- 2026-05-15 补充：管理员人员管理的“调整账号”弹窗可给客户标记“零售 / 批发”并修改标记；人员列表只展示标记结果。业务员可见业务改为短标签堆叠显示，避免“旅游服务类 / 传统 dropshipping 类”在表格内横向挤压。
-- 2026-05-15 补充：推荐关系新增 `business_referrals + business_board` 方案，旅游服务和 Dropshipping 推荐树互相隔离；旧注册推荐关系回填为旅游服务板块，已有客户标记回填为 Dropshipping 板块关系。
-- 2026-05-15 补充：旧推荐关系表已完成收口迁移；注册邀请、团队客户统计、旅游业务推荐佣金和人员资料关联都改读 `business_referrals`，旧 `user_referrals` 表在最新迁移中删除。
-- 2026-05-15 补充：注册链接支持 `ref` 和 `board` 参数；业务员在“我的”页可按旅游业务 / 一件代发业务复制不同注册链接，系统会按链接参数写入对应推荐树。
-- 2026-05-15 补充：推荐树页面只展示当前账号可查看的业务板块；客户“我的”页不主动展示一件代发开通入口或状态，避免向未进入该板块的客户暴露业务信息。
+- 2026-05-14 补充：业务员的订单和人员入口会再按“零售 / 批发”授权过滤；没有批发授权时不显示业务员客户管理入口。
+- 2026-05-15 补充：管理员人员管理的“调整账号”弹窗可给客户标记“零售 / 批发”并修改标记；人员列表只展示标记结果。业务员可见业务改为短标签堆叠显示，避免“零售 / 批发”在表格内横向挤压。
+- 2026-05-15 补充：推荐关系新增 `business_referrals + business_board` 方案，零售和批发推荐树互相隔离；旧注册推荐关系回填为零售板块，已有客户标记回填为批发板块关系。
+- 2026-05-15 补充：旧推荐关系表已完成收口迁移；注册邀请、团队客户统计、零售推荐佣金和人员资料关联都改读 `business_referrals`，旧 `user_referrals` 表在最新迁移中删除。
+- 2026-05-15 补充：注册链接只展示邀请码入口，不在注册页暴露业务类型选择；业务员在“我的”页复制的零售 / 批发注册链接会把板块写进完整邀请码，后端按邀请码解析并写入对应推荐树。
+- 2026-05-15 补充：推荐树页面只展示当前账号可查看的业务板块；客户“我的”页不主动展示批发开通入口或状态，避免向未进入该板块的客户暴露业务信息。
 
 ## 目录结构
 
@@ -104,14 +104,15 @@ baisheng-web/
 - `components/dashboard/dashboard-segmented-tabs.tsx` 统一承接板块内切换按钮；订单页“订单列表 / 汇率设置”、佣金页“普通佣金 / 任务佣金”和审核页多队列切换都应复用这一套视觉样式
 - `components/dashboard/dashboard-pill.tsx` 与 `components/dashboard/tasks/task-ui.tsx` 分别统一承接工作台标签、任务状态/目标角色展示、任务搜索筛选和信息块；任务相关板块不要在各自 UI 文件里再复制一套 pill、tile 或筛选控件
 - 工作台共享页头、指标卡、筛选面板、列表面板、移动导航和分页控件都需要保留小屏紧凑样式；新增板块不要只按桌面端密度堆叠信息
-- 2026-05-13 补充：工作台移动端顶部品牌名在 `AdminShell` 中独立成满宽标题行，移动导航由 `AdminShellNav` 使用自适应网格换行展示，不再依赖横向滚动或截断品牌名
+- 2026-05-13 补充：工作台移动端顶部品牌名在 `AdminShell` 中独立成满宽标题行，移动导航由 `AdminShellNav` 承接。
+- 2026-05-15 补充：工作台移动端导航默认只展示当前板块，点击后再展开板块列表，避免管理员等多入口角色在顶部堆满按钮。
 - 2026-05-14 补充：工作台移动端顶部的角色/中心标签在共享壳层保持单行显示，避免在窄屏被右侧按钮组挤成竖排。
 - `components/brand/brand-mark.tsx` 统一承接公司 Logo 展示；当前 Logo 源文件为 `public/images/pt5-logo.png`，浏览器图标由 `app/favicon.ico`、`app/icon.png` 和 `app/apple-icon.png` 承接；认证页和工作区样式入口都需要继续 `@source "../components/brand"`
 - `components/legal` 承接公开法律页和隐私/条款页脚链接，避免把 legal 展示继续堆进认证或“我的”核心文件
 - `lib/auth-metadata.ts`、`lib/value-normalizers.ts` 与 `lib/task-attachment-policy.ts` 分别承接角色/状态标准化、基础字符串/数字归一化、任务附件和提审附件的上传策略；新增查询、筛选或上传流程时优先复用这些 helper
 - `lib/admin-task-assignees.ts` 承接管理员任务详情的承接人聚合查询；多人任务父任务只保留名额和进度，全部领取人从子任务行汇总后展示，避免把聚合逻辑塞回 `lib/admin-tasks.ts`
 - `lib/admin-people-customer-type-mutations.ts` 承接管理员客户标记保存逻辑，`components/dashboard/admin-people/use-admin-customer-type-mark.ts` 承接“调整账号”弹窗里的客户标记草稿和保存；人员管理核心 view-model 不再继续堆客户标记 mutation 细节。
-- `lib/referrals.ts` 承接推荐树的板块参数解析和查询；`components/dashboard/referrals/referrals-client.tsx` 只负责旅游服务 / Dropshipping 切换、刷新和树展示组装，实际关系隔离由数据库 `business_referrals.business_board` 保障。
+- `lib/referrals.ts` 承接推荐树的板块参数解析和查询；`components/dashboard/referrals/referrals-client.tsx` 只负责零售 / 批发切换、刷新和树展示组装，实际关系隔离由数据库 `business_referrals.business_board` 保障。
 - 单文件超过 `400-600` 行，或出现 3 个以上独立职责时，需要优先拆成 `queries`、`mutations`、`view-model hook`、`dialog`、`section/table` 或 `display-utils`
 - `output/playwright` 用于保留有价值的截图和报告，不存放长期无用的临时控制台垃圾
 
@@ -183,11 +184,11 @@ baisheng-web/
 - `admin-orders-client-config.ts`：放置 orders 视图配置、过滤器比较和表单字段联动规则
 - `admin-orders-copy.ts`、`admin-orders-display.ts`、`admin-orders-form.ts`、`admin-orders-details.ts`、`admin-orders-errors.ts`、`admin-orders-permissions.ts`：分别承接文案映射、显示格式化、表单解析、详情展开、错误映射和权限判断
 - `admin-orders-form-dialog.tsx`、`admin-orders-details-dialog.tsx`、`admin-orders-dialog-ui.tsx`：拆出订单表单弹窗、详情弹窗以及弹窗共享 UI
-- 2026-05-14 补充：订单大类展示为“代理采购类 / 服务订单 / 一件代发类”；代理采购类和服务订单继续归入旅游业务口径，一件代发类作为传统 dropshipping 业务入口。当前只调整订单分类和明细归属，暂不实现一件代发报价、服务费或佣金规则。
-- 2026-05-14 补充：管理员人员管理可为业务员勾选可见业务板块；业务员订单页会按授权只显示旅游服务类、传统 dropshipping 类或两者对应的订单类型，新建订单和订单用户选项也使用同一范围。
+- 2026-05-14 补充：订单大类展示为“代理采购类 / 服务订单 / 批发类”；代理采购类和服务订单继续归入零售口径，批发类作为批发业务入口。当前只调整订单分类和明细归属，暂不实现批发报价、服务费或佣金规则。
+- 2026-05-14 补充：管理员人员管理可为业务员勾选可见业务板块；业务员订单页会按授权只显示零售、批发或两者对应的订单类型，新建订单和订单用户选项也使用同一范围。
 - `lib/admin-orders-business-scope.ts` 承接订单业务板块范围计算，避免把业务员板块授权逻辑继续堆进 `lib/admin-orders.ts`。
-- 2026-05-14 补充：`lib/admin-orders.ts` 已收敛为轻量导出门面；订单类型、用户选项、成本读取、补充明细、保存/删除、页面数据组装和查看权限分别拆到 `admin-orders-options.ts`、`admin-orders-costs.ts`、`admin-orders-supplementary.ts`、`admin-orders-mutations.ts`、`admin-orders-page-data.ts`、`admin-orders-viewer.ts` 与 `admin-orders-types.ts`，后续一件代发报价或佣金规则不要再塞回门面文件。
-- 2026-05-15 补充：代理采购类订单的补充信息区标题统一显示为“代理采购信息”，避免继续用“采购/代发信息”混淆一件代发板块。
+- 2026-05-14 补充：`lib/admin-orders.ts` 已收敛为轻量导出门面；订单类型、用户选项、成本读取、补充明细、保存/删除、页面数据组装和查看权限分别拆到 `admin-orders-options.ts`、`admin-orders-costs.ts`、`admin-orders-supplementary.ts`、`admin-orders-mutations.ts`、`admin-orders-page-data.ts`、`admin-orders-viewer.ts` 与 `admin-orders-types.ts`，后续批发报价或佣金规则不要再塞回门面文件。
+- 2026-05-15 补充：代理采购类订单的补充信息区标题统一显示为“代理采购信息”，避免继续用“采购/批发信息”混淆批发板块。
 - 2026-04-28 补充：订单采购/服务补充明细改为通过“创建类别”添加双输入行，左侧填写类别名称，右侧填写对应内容，不再要求用户手写“项目: 内容”格式
 - 2026-05-06 补充：管理员汇率设置整合到 `/admin/orders?tab=exchange-rates`，左侧导航不再单独展示管理员汇率入口；旧 `/admin/exchange-rates` 会跳转到订单页的汇率设置标签
 - 2026-05-06 补充：新建订单默认使用 `USD -> CNY`，当日汇率自动填入且不能手动修改；缺少当日汇率时会阻止创建订单，已创建订单编辑时币种、当日汇率和公司成交汇率保持原值
@@ -200,7 +201,7 @@ baisheng-web/
 - 业务员工作台新增 `/salesman/people`，只展示当前业务员名下的客户，并允许把客户标记为“零售”或“批发”。
 - 2026-05-15 补充：业务员客户列表只展示当前标记，调整“零售 / 批发”统一放在“调整标记”弹窗里，不在表格行内直接下拉保存。
 - 客户标记仅供内部管理使用，不展示给客户；管理员人员管理页只读展示业务员对客户的标记和标记人。
-- 业务员客户管理属于传统 dropshipping 板块能力；业务员没有 dropshipping 授权时，左侧导航不显示该入口，直接访问也只显示无权限提示。
+- 业务员客户管理属于批发板块能力；业务员没有批发授权时，左侧导航不显示该入口，直接访问也只显示无权限提示。
 - 数据读取和保存分别由 `lib/salesman-people.ts`、`lib/salesman-people-mutations.ts` 承接，前端 UI 放在 `components/dashboard/salesman-people/`；管理员人员管理没有承载业务员保存逻辑。
 
 ### 自动汇率与订单规则（2026-05-06）

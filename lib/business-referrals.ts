@@ -98,10 +98,31 @@ export function buildBoardInviteLink({
     return "";
   }
 
+  const boardReferralCode = buildBoardReferralCode({ board, referralCode });
+
+  if (!boardReferralCode) {
+    return "";
+  }
+
   const params = new URLSearchParams({
-    board,
-    ref: referralCode,
+    ref: boardReferralCode,
   });
 
   return `${origin}/register?${params.toString()}`;
+}
+
+function buildBoardReferralCode({
+  board,
+  referralCode,
+}: {
+  board: SalesmanBusinessBoard;
+  referralCode: string;
+}) {
+  const normalizedReferralCode = referralCode.trim().toUpperCase();
+
+  if (!normalizedReferralCode) {
+    return "";
+  }
+
+  return `${normalizedReferralCode}-${board === "tourism" ? "T" : "D"}`;
 }

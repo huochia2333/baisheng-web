@@ -228,11 +228,6 @@
     "email": "电子邮箱",
     "inviteCode": "邀请码",
     "inviteCodePlaceholder": "必填项",
-    "businessBoard": "业务类型",
-    "businessBoardAuto": "按邀请码自动判断",
-    "businessBoardTourism": "旅游业务",
-    "businessBoardDropshipping": "一件代发业务",
-    "businessBoardHint": "如果推荐人同时负责两类业务，请选择本次注册要进入的业务。",
     "password": "设置密码",
     "passwordPlaceholder": "包含字母与数字的 8 位以上密码",
     "passwordHint": "至少 8 位，并同时包含字母和数字；请避免使用姓名、生日或常见密码。",
@@ -252,9 +247,9 @@
     "referralNotFound": "邀请码不存在，请确认后重新输入。",
     "referralMaxUses": "邀请码已达到使用上限。",
     "referralExpired": "邀请码已过期，请联系管理员获取新的邀请码。",
-    "referralBusinessBoardRequired": "该邀请码可用于多个业务，请先选择业务类型。",
-    "referralBusinessBoardInvalid": "请选择有效的业务类型。",
-    "referralBusinessBoardForbidden": "该邀请码不能用于所选业务，请确认业务类型或更换邀请码。",
+    "referralBusinessBoardRequired": "请使用推荐人发送的专属注册链接或完整邀请码。",
+    "referralBusinessBoardInvalid": "邀请码格式不正确，请确认后重新输入。",
+    "referralBusinessBoardForbidden": "这个邀请码暂时不能用于本次注册，请联系推荐人确认。",
     "registrationFailed": "注册没有完成，请确认邀请码后重试，或联系管理员处理。",
     "userExists": "该邮箱已注册，请直接登录。",
     "weakPassword": "这个密码太常见，请换一个更安全的密码。",
@@ -714,28 +709,28 @@
     "changePassword": "修改密码",
     "copyInviteCode": "复制邀请码",
     "businessInviteTitle": "业务邀请链接",
-    "businessInviteDescription": "按业务类型复制注册链接，新客户会进入对应的推荐关系。",
+    "businessInviteDescription": "按零售或批发复制注册链接，新客户会进入对应的推荐关系。",
     "businessReferralLoading": "正在读取业务权限...",
-    "businessReferralTourism": "旅游业务",
-    "businessReferralDropshipping": "一件代发业务",
+    "businessReferralTourism": "零售",
+    "businessReferralDropshipping": "批发",
     "businessInviteCopyBoardLink": "复制{board}注册链接",
     "businessInviteCopied": "{board}注册链接已复制。",
     "businessInviteCopyFailed": "注册链接复制失败，请稍后再试。",
     "businessInviteNoCode": "当前账号还没有可用的邀请码。",
     "businessInviteNoAccess": "当前账号还没有可用的业务邀请权限。",
     "businessReferralUnavailable": "当前服务暂时不可用，请稍后再试。",
-    "dropshippingActivationTitle": "开通一件代发业务",
-    "dropshippingActivationDescription": "如需开展一件代发业务，请填写对应业务员的邀请码。",
-    "dropshippingInvitePlaceholder": "填写一件代发业务员邀请码",
+    "dropshippingActivationTitle": "开通批发",
+    "dropshippingActivationDescription": "如需开展批发，请填写对应业务员的邀请码。",
+    "dropshippingInvitePlaceholder": "填写批发业务员邀请码",
     "dropshippingActivationSubmit": "提交邀请码",
     "dropshippingActivationSubmitting": "提交中...",
-    "dropshippingActivationSuccess": "一件代发业务已开通。",
-    "dropshippingAlreadyLinked": "已开通一件代发业务。",
-    "dropshippingActivationRequired": "请填写一件代发业务员邀请码。",
+    "dropshippingActivationSuccess": "批发已开通。",
+    "dropshippingAlreadyLinked": "已开通批发。",
+    "dropshippingActivationRequired": "请填写批发业务员邀请码。",
     "dropshippingActivationNotFound": "邀请码不存在，请确认后重新输入。",
     "dropshippingActivationMaxUses": "邀请码已达到使用上限。",
     "dropshippingActivationExpired": "邀请码已过期，请联系业务员确认。",
-    "dropshippingActivationForbidden": "该邀请码不能用于一件代发业务，请更换对应业务员的邀请码。",
+    "dropshippingActivationForbidden": "该邀请码不能用于批发，请更换对应业务员的邀请码。",
     "dropshippingActivationSelfReferral": "不能使用自己的邀请码开通业务。",
     "dropshippingActivationNoPermission": "当前账号不能执行此操作。",
     "refreshProfile": "刷新资料",
@@ -935,13 +930,13 @@
     },
     "categories": {
       "purchase": "代理采购类",
-      "dropshipping": "一件代发类",
+      "dropshipping": "批发类",
       "service": "服务订单"
     },
     "subtypes": {
       "purchase": {
         "sourcing": "货源采购",
-        "dropshipping": "一件代发",
+        "dropshipping": "批发",
         "touristShopping": "旅游购物",
         "groupBuying": "团购"
       },
@@ -965,8 +960,8 @@
       "orderingUser": "订单客户",
       "orderStatus": "订单状态",
       "orderType": "订单类型",
-      "purchaseSubtype": "采购/代发小类",
-      "purchaseDetails": "采购/代发明细",
+      "purchaseSubtype": "采购/批发小类",
+      "purchaseDetails": "采购/批发明细",
       "serviceSubtype": "服务小类",
       "serviceDiscount": "订单折扣",
       "serviceDetails": "服务订单明细"
@@ -996,7 +991,7 @@
       "orderEntryUser": "请选择订单录入员",
       "orderingUser": "请选择订单客户",
       "orderType": "请选择订单类型",
-      "purchaseSubtype": "请选择采购/代发小类",
+      "purchaseSubtype": "请选择采购/批发小类",
       "serviceSubtype": "请选择服务小类",
       "serviceDiscount": "请选择订单折扣"
     },
@@ -1010,7 +1005,7 @@
     "errors": {
       "duplicateOrderNumber": "订单编号生成冲突，请稍后重试。",
       "exchangeRateMissing": "今天的汇率还没有准备好，请先让管理员获取当日汇率。",
-      "invalidForeignKeys": "请选择有效的订单录入员、订单客户、订单类型，以及对应的采购、代发或服务信息选项。",
+      "invalidForeignKeys": "请选择有效的订单录入员、订单客户、订单类型，以及对应的采购、批发或服务信息选项。",
       "cannotCreate": "你没有创建该订单的权限。",
       "cannotUpdate": "你没有修改该订单的权限。",
       "updatedScopeNotAllowed": "更新后的订单范围超出了你的可操作范围。",
@@ -1020,8 +1015,8 @@
     },
     "purchaseSection": {
       "title": "代理采购信息",
-      "createDescription": "当前订单类型需要继续填写采购或一件代发补充信息。点击“创建类别”添加一行，左侧填写类别名称，右侧填写对应内容。",
-      "editDescription": "当前订单类型可直接修改采购或一件代发补充信息。点击“创建类别”添加一行，左侧填写类别名称，右侧填写对应内容。",
+      "createDescription": "当前订单类型需要继续填写采购或批发补充信息。点击“创建类别”添加一行，左侧填写类别名称，右侧填写对应内容。",
+      "editDescription": "当前订单类型可直接修改采购或批发补充信息。点击“创建类别”添加一行，左侧填写类别名称，右侧填写对应内容。",
       "loading": "加载中"
     },
     "serviceSection": {
@@ -1054,10 +1049,10 @@
       },
       "supplementary": {
         "loading": "加载中",
-        "empty": "当前订单还没有对应的采购、代发或服务表单内容。",
-        "purchaseForm": "采购/代发表单",
+        "empty": "当前订单还没有对应的采购、批发或服务表单内容。",
+        "purchaseForm": "采购/批发表单",
         "serviceForm": "服务订单表单",
-        "purchaseSubtype": "采购/代发小类",
+        "purchaseSubtype": "采购/批发小类",
         "serviceSubtype": "服务小类",
         "sourceForm": "来源表单",
         "discount": "订单折扣",
@@ -1342,8 +1337,8 @@
       "title": "推荐树"
     },
     "boards": {
-      "tourism": "旅游服务",
-      "dropshipping": "Dropshipping"
+      "tourism": "零售",
+      "dropshipping": "批发"
     },
     "summary": {
       "visibleEdges": "可见关系",
@@ -2201,12 +2196,12 @@
       "wholesale": "批发"
     },
     "businessBoards": {
-      "tourism": "旅游服务类",
-      "dropshipping": "传统 dropshipping 类"
+      "tourism": "零售",
+      "dropshipping": "批发"
     },
     "businessBoardShortLabels": {
-      "tourism": "旅游",
-      "dropshipping": "代发"
+      "tourism": "零售",
+      "dropshipping": "批发"
     },
     "fallback": {
       "unnamedUser": "未命名人员",
@@ -2246,7 +2241,7 @@
     },
     "states": {
       "noPermissionTitle": "没有客户管理权限",
-      "noPermissionDescription": "只有开通传统 dropshipping 类权限的正常业务员账号可以查看和标记自己的客户。"
+      "noPermissionDescription": "只有开通批发权限的正常业务员账号可以查看和标记自己的客户。"
     },
     "filters": {
       "search": "搜索客户",

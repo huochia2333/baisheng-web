@@ -228,11 +228,6 @@
     "email": "Email",
     "inviteCode": "Invite Code",
     "inviteCodePlaceholder": "Required",
-    "businessBoard": "Business Type",
-    "businessBoardAuto": "Decide by invite code",
-    "businessBoardTourism": "Travel Business",
-    "businessBoardDropshipping": "Dropshipping Business",
-    "businessBoardHint": "If the referrer handles both businesses, choose which business this account should join.",
     "password": "Create Password",
     "passwordPlaceholder": "Use at least 8 characters with letters and numbers",
     "passwordHint": "Use at least 8 characters with both letters and numbers. Avoid names, birthdays, and common passwords.",
@@ -252,9 +247,9 @@
     "referralNotFound": "The invite code does not exist. Please check and try again.",
     "referralMaxUses": "The invite code has reached its usage limit.",
     "referralExpired": "The invite code has expired. Please contact an administrator for a new one.",
-    "referralBusinessBoardRequired": "This invite code can be used for more than one business. Choose a business type first.",
-    "referralBusinessBoardInvalid": "Choose a valid business type.",
-    "referralBusinessBoardForbidden": "This invite code cannot be used for the selected business. Check the business type or use another invite code.",
+    "referralBusinessBoardRequired": "Use the dedicated registration link or full invite code from your referrer.",
+    "referralBusinessBoardInvalid": "The invite code format is not correct. Please check and try again.",
+    "referralBusinessBoardForbidden": "This invite code cannot be used for this registration. Please confirm with your referrer.",
     "registrationFailed": "Registration could not be completed. Check the invite code or contact an administrator.",
     "userExists": "This email is already registered. Please sign in instead.",
     "weakPassword": "This password is too common. Please choose a stronger one.",
@@ -714,28 +709,28 @@
     "changePassword": "Change Password",
     "copyInviteCode": "Copy Invite Code",
     "businessInviteTitle": "Business Invite Links",
-    "businessInviteDescription": "Copy a registration link by business type so new clients enter the matching referral relationship.",
+    "businessInviteDescription": "Copy a retail or wholesale registration link so new clients enter the matching referral relationship.",
     "businessReferralLoading": "Loading business access...",
-    "businessReferralTourism": "Travel Business",
-    "businessReferralDropshipping": "Dropshipping Business",
+    "businessReferralTourism": "Retail",
+    "businessReferralDropshipping": "Wholesale",
     "businessInviteCopyBoardLink": "Copy {board} Link",
     "businessInviteCopied": "{board} registration link copied.",
     "businessInviteCopyFailed": "The registration link could not be copied. Please try again later.",
     "businessInviteNoCode": "This account does not have an invite code yet.",
     "businessInviteNoAccess": "This account does not have any available business invite access.",
     "businessReferralUnavailable": "The service is temporarily unavailable. Please try again later.",
-    "dropshippingActivationTitle": "Open Dropshipping Business",
-    "dropshippingActivationDescription": "To start dropshipping, enter the invite code from the salesperson for that business.",
-    "dropshippingInvitePlaceholder": "Enter dropshipping salesperson invite code",
+    "dropshippingActivationTitle": "Open Wholesale",
+    "dropshippingActivationDescription": "To start wholesale, enter the invite code from the salesperson for that business.",
+    "dropshippingInvitePlaceholder": "Enter wholesale salesperson invite code",
     "dropshippingActivationSubmit": "Submit Code",
     "dropshippingActivationSubmitting": "Submitting...",
-    "dropshippingActivationSuccess": "Dropshipping business has been opened.",
-    "dropshippingAlreadyLinked": "Dropshipping business is already open.",
-    "dropshippingActivationRequired": "Enter a dropshipping salesperson invite code.",
+    "dropshippingActivationSuccess": "Wholesale has been opened.",
+    "dropshippingAlreadyLinked": "Wholesale is already open.",
+    "dropshippingActivationRequired": "Enter a wholesale salesperson invite code.",
     "dropshippingActivationNotFound": "The invite code does not exist. Please check and try again.",
     "dropshippingActivationMaxUses": "The invite code has reached its usage limit.",
     "dropshippingActivationExpired": "The invite code has expired. Please confirm with the salesperson.",
-    "dropshippingActivationForbidden": "This invite code cannot be used for dropshipping. Use the correct salesperson invite code.",
+    "dropshippingActivationForbidden": "This invite code cannot be used for wholesale. Use the correct salesperson invite code.",
     "dropshippingActivationSelfReferral": "You cannot use your own invite code.",
     "dropshippingActivationNoPermission": "This account cannot perform this action.",
     "refreshProfile": "Refresh Profile",
@@ -935,13 +930,13 @@
     },
     "categories": {
       "purchase": "Agent Purchase",
-      "dropshipping": "Dropshipping",
+      "dropshipping": "Wholesale",
       "service": "Service Order"
     },
     "subtypes": {
       "purchase": {
         "sourcing": "Sourcing",
-        "dropshipping": "Dropshipping",
+        "dropshipping": "Wholesale",
         "touristShopping": "Tourist Shopping",
         "groupBuying": "Group Buying"
       },
@@ -965,8 +960,8 @@
       "orderingUser": "Ordering User",
       "orderStatus": "Order Status",
       "orderType": "Order Type",
-      "purchaseSubtype": "Purchase / Dropshipping Subtype",
-      "purchaseDetails": "Purchase / Dropshipping Details",
+      "purchaseSubtype": "Purchase / Wholesale Subtype",
+      "purchaseDetails": "Purchase / Wholesale Details",
       "serviceSubtype": "Service Subtype",
       "serviceDiscount": "Order Discount",
       "serviceDetails": "Service Details"
@@ -996,7 +991,7 @@
       "orderEntryUser": "Select an order entry user",
       "orderingUser": "Select an ordering user",
       "orderType": "Select an order type",
-      "purchaseSubtype": "Select a purchase or dropshipping subtype",
+      "purchaseSubtype": "Select a purchase or wholesale subtype",
       "serviceSubtype": "Select a service subtype",
       "serviceDiscount": "Select an order discount"
     },
@@ -1010,7 +1005,7 @@
     "errors": {
       "duplicateOrderNumber": "Order number generation conflicted. Please try again later.",
       "exchangeRateMissing": "Today's exchange rate is not ready. Ask an administrator to fetch it first.",
-      "invalidForeignKeys": "Select a valid order owner, customer, order type, and matching purchase, dropshipping, or service options.",
+      "invalidForeignKeys": "Select a valid order owner, customer, order type, and matching purchase, wholesale, or service options.",
       "cannotCreate": "You do not have permission to create this order.",
       "cannotUpdate": "You do not have permission to update this order.",
       "updatedScopeNotAllowed": "The updated order scope is outside your allowed range.",
@@ -1020,8 +1015,8 @@
     },
     "purchaseSection": {
       "title": "Agency Purchase Details",
-      "createDescription": "This order type needs purchase or dropshipping details. Add rows, then enter the category name on the left and the matching content on the right.",
-      "editDescription": "Update purchase or dropshipping details by entering the category name on the left and the matching content on the right.",
+      "createDescription": "This order type needs purchase or wholesale details. Add rows, then enter the category name on the left and the matching content on the right.",
+      "editDescription": "Update purchase or wholesale details by entering the category name on the left and the matching content on the right.",
       "loading": "loading"
     },
     "serviceSection": {
@@ -1054,10 +1049,10 @@
       },
       "supplementary": {
         "loading": "loading",
-        "empty": "This order does not have related purchase, dropshipping, or service details yet.",
-        "purchaseForm": "Purchase / Dropshipping Form",
+        "empty": "This order does not have related purchase, wholesale, or service details yet.",
+        "purchaseForm": "Purchase / Wholesale Form",
         "serviceForm": "Service Order Form",
-        "purchaseSubtype": "Purchase / Dropshipping Subtype",
+        "purchaseSubtype": "Purchase / Wholesale Subtype",
         "serviceSubtype": "Service Subtype",
         "sourceForm": "Source Form",
         "discount": "Order Discount",
@@ -1342,8 +1337,8 @@
       "title": "Referral Tree"
     },
     "boards": {
-      "tourism": "Tourism",
-      "dropshipping": "Dropshipping"
+      "tourism": "Retail",
+      "dropshipping": "Wholesale"
     },
     "summary": {
       "visibleEdges": "Visible Links",
@@ -2201,12 +2196,12 @@
       "wholesale": "Wholesale"
     },
     "businessBoards": {
-      "tourism": "Tourism Services",
-      "dropshipping": "Traditional Dropshipping"
+      "tourism": "Retail",
+      "dropshipping": "Wholesale"
     },
     "businessBoardShortLabels": {
-      "tourism": "Tourism",
-      "dropshipping": "Dropship"
+      "tourism": "Retail",
+      "dropshipping": "Wholesale"
     },
     "fallback": {
       "unnamedUser": "Unnamed Person",
@@ -2246,7 +2241,7 @@
     },
     "states": {
       "noPermissionTitle": "No Customer Management Access",
-      "noPermissionDescription": "Only active sales accounts with traditional dropshipping access can review and mark their own customers."
+      "noPermissionDescription": "Only active sales accounts with wholesale access can review and mark their own customers."
     },
     "filters": {
       "search": "Search Customers",
