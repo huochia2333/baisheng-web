@@ -138,6 +138,14 @@ export function getNextOrderFormState<Key extends keyof OrderFormState>(
     nextState.transactionRate = deriveTransactionRateValue(String(value));
   }
 
+  if (key === "orderType") {
+    nextState.purchaseSubtype = "";
+    nextState.purchaseDetails = "";
+    nextState.serviceSubtype = "";
+    nextState.serviceDiscount = "";
+    nextState.serviceDetails = "";
+  }
+
   if (key === "serviceSubtype") {
     const presetCost = getServiceSubtypeCostPreset(String(value));
 

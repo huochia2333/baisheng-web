@@ -480,10 +480,10 @@
       "title": "团队管理",
       "description": "这里会承接团队成员、状态统计和组织协作信息，并逐步按不同角色补齐对应操作能力。"
     },
-    "people": {
-      "title": "人员管理",
-      "description": "管理员在这里查看人员账号，调整账号身份和启用状态。推荐关系和团队归属仍在对应板块单独维护。"
-    },
+      "people": {
+        "title": "人员管理",
+        "description": "这里按账号身份展示可处理的人员或客户信息。推荐关系和团队归属仍在对应板块单独维护。"
+      },
     "commission": {
       "title": "佣金中心",
       "description": "这里将整合佣金规则、结算明细、发放进度和异常记录，后续会继续细化成财务与业务岗位的专属界面。"
@@ -901,7 +901,8 @@
       "no": "否"
     },
     "categories": {
-      "purchase": "采购订单",
+      "purchase": "代理采购类",
+      "dropshipping": "一件代发类",
       "service": "服务订单"
     },
     "subtypes": {
@@ -931,8 +932,8 @@
       "orderingUser": "订单客户",
       "orderStatus": "订单状态",
       "orderType": "订单类型",
-      "purchaseSubtype": "采购小类",
-      "purchaseDetails": "采购订单明细",
+      "purchaseSubtype": "采购/代发小类",
+      "purchaseDetails": "采购/代发明细",
       "serviceSubtype": "服务小类",
       "serviceDiscount": "订单折扣",
       "serviceDetails": "服务订单明细"
@@ -962,7 +963,7 @@
       "orderEntryUser": "请选择订单录入员",
       "orderingUser": "请选择订单客户",
       "orderType": "请选择订单类型",
-      "purchaseSubtype": "请选择采购小类",
+      "purchaseSubtype": "请选择采购/代发小类",
       "serviceSubtype": "请选择服务小类",
       "serviceDiscount": "请选择订单折扣"
     },
@@ -976,7 +977,7 @@
     "errors": {
       "duplicateOrderNumber": "订单编号生成冲突，请稍后重试。",
       "exchangeRateMissing": "今天的汇率还没有准备好，请先让管理员获取当日汇率。",
-      "invalidForeignKeys": "请选择有效的订单录入员、订单客户、订单类型，以及对应的采购或服务信息选项。",
+      "invalidForeignKeys": "请选择有效的订单录入员、订单客户、订单类型，以及对应的采购、代发或服务信息选项。",
       "cannotCreate": "你没有创建该订单的权限。",
       "cannotUpdate": "你没有修改该订单的权限。",
       "updatedScopeNotAllowed": "更新后的订单范围超出了你的可操作范围。",
@@ -985,9 +986,9 @@
       "orderNotFound": "没有找到对应订单。"
     },
     "purchaseSection": {
-      "title": "采购订单信息",
-      "createDescription": "当前订单类型为采购订单，请继续填写采购补充信息。点击“创建类别”添加一行，左侧填写类别名称，右侧填写对应内容。",
-      "editDescription": "当前订单类型为采购订单，可直接修改采购补充信息。点击“创建类别”添加一行，左侧填写类别名称，右侧填写对应内容。",
+      "title": "代理采购信息",
+      "createDescription": "当前订单类型需要继续填写采购或一件代发补充信息。点击“创建类别”添加一行，左侧填写类别名称，右侧填写对应内容。",
+      "editDescription": "当前订单类型可直接修改采购或一件代发补充信息。点击“创建类别”添加一行，左侧填写类别名称，右侧填写对应内容。",
       "loading": "加载中"
     },
     "serviceSection": {
@@ -1020,10 +1021,10 @@
       },
       "supplementary": {
         "loading": "加载中",
-        "empty": "当前订单还没有对应的采购单或服务单表单内容。",
-        "purchaseForm": "采购订单表单",
+        "empty": "当前订单还没有对应的采购、代发或服务表单内容。",
+        "purchaseForm": "采购/代发表单",
         "serviceForm": "服务订单表单",
-        "purchaseSubtype": "采购小类",
+        "purchaseSubtype": "采购/代发小类",
         "serviceSubtype": "服务小类",
         "sourceForm": "来源表单",
         "discount": "订单折扣",
@@ -1306,6 +1307,10 @@
     "header": {
       "badge": "推荐关系网络",
       "title": "推荐树"
+    },
+    "boards": {
+      "tourism": "旅游服务",
+      "dropshipping": "Dropshipping"
     },
     "summary": {
       "visibleEdges": "可见关系",
@@ -2092,6 +2097,8 @@
         "account": "账号",
         "role": "身份",
         "status": "账号状态",
+        "businessAccess": "业务权限",
+        "customerType": "客户标记",
         "city": "城市",
         "relation": "关系摘要",
         "createdAt": "创建时间",
@@ -2099,7 +2106,8 @@
       },
       "referrer": "推荐人：{value}",
       "team": "团队：{value}",
-      "directReferrals": "直接推荐 {count} 人"
+      "directReferrals": "直接推荐 {count} 人",
+      "customerTypeMarkedBy": "标记人：{value}"
     },
     "logs": {
       "eyebrow": "调整记录",
@@ -2123,6 +2131,11 @@
       "currentStatus": "当前状态",
       "nextRole": "调整为身份",
       "nextStatus": "调整为状态",
+      "customerType": "客户标记",
+      "customerTypeHint": "当前标记：{value}。这个标记只用于内部区分零售客户和批发客户。",
+      "customerTypePlaceholder": "请选择客户标记",
+      "businessAccess": "可见业务",
+      "businessAccessHint": "只影响业务员可查看和可处理的业务板块，不改变推荐关系或团队归属。",
       "note": "备注",
       "notePlaceholder": "填写本次调整原因，方便后续核对",
       "effectHint": "角色和状态变化会在目标账号下次登录或刷新登录状态后完全生效。",
@@ -2150,6 +2163,18 @@
       "inactive": "未启用",
       "suspended": "已停用"
     },
+    "customerTypes": {
+      "retail": "零售",
+      "wholesale": "批发"
+    },
+    "businessBoards": {
+      "tourism": "旅游服务类",
+      "dropshipping": "传统 dropshipping 类"
+    },
+    "businessBoardShortLabels": {
+      "tourism": "旅游",
+      "dropshipping": "代发"
+    },
     "fallback": {
       "unnamedUser": "未命名人员",
       "notProvided": "待补充",
@@ -2157,17 +2182,89 @@
       "noTeam": "未加入团队"
     },
     "feedback": {
-      "saved": "账号调整已保存。目标账号下次登录或刷新登录状态后会看到新的权限。"
+      "saved": "账号调整已保存。目标账号下次登录或刷新登录状态后会看到新的权限。",
+      "customerTypeSaved": "客户标记已保存。"
     },
     "errors": {
       "forbidden": "当前账号不能调整人员账号。",
-      "invalidInput": "请选择有效的身份和账号状态。",
+      "invalidInput": "请选择有效的身份、账号状态和业务权限。",
       "lastAdmin": "系统必须保留至少一个正常启用的管理员账号。",
-      "noChange": "账号身份和状态没有变化。",
+      "noChange": "账号身份、状态和业务权限没有变化。",
       "notFound": "没有找到要调整的人员账号。",
       "selfChange": "不能在这里调整自己的身份或状态。",
       "serviceUnavailable": "账号调整暂时没有保存成功，请稍后再试。",
       "unknown": "账号调整暂时没有保存成功，请稍后再试。"
+    }
+  },
+  "SalesmanPeople": {
+    "metadata": {
+      "title": "客户管理"
+    },
+    "header": {
+      "badge": "业务员客户",
+      "title": "客户管理",
+      "description": "这里展示你名下的客户，并可以把客户标记为零售或批发。"
+    },
+    "summary": {
+      "total": "客户总数",
+      "retail": "零售客户",
+      "wholesale": "批发客户",
+      "unmarked": "待标记"
+    },
+    "states": {
+      "noPermissionTitle": "没有客户管理权限",
+      "noPermissionDescription": "只有开通传统 dropshipping 类权限的正常业务员账号可以查看和标记自己的客户。"
+    },
+    "filters": {
+      "search": "搜索客户",
+      "searchPlaceholder": "搜索姓名、手机号、邮箱、城市"
+    },
+    "directory": {
+      "eyebrow": "客户目录",
+      "title": "我的客户",
+      "description": "客户标记仅供内部管理使用，不会展示给客户。",
+      "emptyTitle": "没有符合条件的客户",
+      "emptyDescription": "请调整搜索内容后再查看，或先确认是否已经有关联客户。",
+      "columns": {
+        "customer": "客户",
+        "city": "城市",
+        "currentType": "客户标记",
+        "markedAt": "标记时间",
+        "actions": "操作"
+      },
+      "currentType": "当前：{value}"
+    },
+    "dialog": {
+      "title": "调整 {name}",
+      "description": "客户标记只用于内部管理，不会展示给客户。",
+      "currentType": "当前标记",
+      "nextType": "调整为标记",
+      "typePlaceholder": "请选择客户标记"
+    },
+    "customerTypes": {
+      "retail": "零售",
+      "wholesale": "批发"
+    },
+    "actions": {
+      "adjust": "调整标记",
+      "cancel": "取消",
+      "save": "保存标记",
+      "saving": "保存中..."
+    },
+    "fallback": {
+      "unnamedCustomer": "未命名客户",
+      "notProvided": "待补充",
+      "unmarked": "未标记"
+    },
+    "feedback": {
+      "saved": "客户标记已保存。"
+    },
+    "errors": {
+      "forbidden": "当前账号不能标记客户。",
+      "invalidInput": "请选择有效的客户标记。",
+      "notFound": "没有找到可标记的客户。",
+      "serviceUnavailable": "客户标记暂时没有保存成功，请稍后再试。",
+      "unknown": "客户标记暂时没有保存成功，请稍后再试。"
     }
   },
   "TeamManagement": {

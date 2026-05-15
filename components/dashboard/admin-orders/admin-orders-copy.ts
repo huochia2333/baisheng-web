@@ -36,6 +36,7 @@ type OrderFieldKey =
 
 export type OrdersUiCopy = {
   categories: {
+    dropshipping: string;
     purchase: string;
     service: string;
   };
@@ -83,6 +84,7 @@ export type OrdersUiCopy = {
 export function createOrdersUiCopy(t: OrdersUiTranslator): OrdersUiCopy {
   return {
     categories: {
+      dropshipping: t("categories.dropshipping"),
       purchase: t("categories.purchase"),
       service: t("categories.service"),
     },

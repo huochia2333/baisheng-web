@@ -10,6 +10,7 @@ import {
   isAdminPeopleStatus,
   type AdminPersonAccountUpdatePayload,
 } from "@/lib/admin-people";
+import { normalizeSalesmanBusinessBoards } from "@/lib/salesman-business-access";
 import { getServerSupabaseClient } from "@/lib/supabase-server";
 
 const STATUS_BY_ERROR_CODE = {
@@ -58,6 +59,9 @@ function normalizeRequestPayload(value: unknown): AdminPersonAccountUpdatePayloa
     targetUserId: typeof value.targetUserId === "string" ? value.targetUserId : "",
     nextRole: value.nextRole,
     nextStatus: value.nextStatus,
+    salesmanBusinessBoards: normalizeSalesmanBusinessBoards(
+      value.salesmanBusinessBoards,
+    ),
     note: typeof value.note === "string" ? value.note : null,
   };
 }

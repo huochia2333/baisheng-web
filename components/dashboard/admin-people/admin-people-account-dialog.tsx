@@ -7,8 +7,10 @@ import { DashboardDialog } from "@/components/dashboard/dashboard-dialog";
 import { PageBanner } from "@/components/dashboard/dashboard-shared-ui";
 import { Button } from "@/components/ui/button";
 import { type AdminPersonRow } from "@/lib/admin-people";
+import type { SalesmanBusinessBoard } from "@/lib/salesman-business-access";
 
 import {
+  getCustomerTypeLabel,
   getPersonContact,
   getPersonDisplayName,
   getRoleLabel,
@@ -19,11 +21,19 @@ import type { useAdminPeopleViewModel } from "./use-admin-people-view-model";
 type AdminPeopleViewModel = ReturnType<typeof useAdminPeopleViewModel>;
 
 export function AdminPeopleAccountDialog({
+  businessBoardLabels,
+  businessBoardOptions,
   canSaveDraft,
+  customerTypeLabels,
+  customerTypeOptions,
+  draftBusinessBoards,
+  draftCustomerType,
   draftNote,
   draftRole,
   draftStatus,
   onClose,
+  onDraftBusinessBoardChange,
+  onDraftCustomerTypeChange,
   onDraftNoteChange,
   onDraftRoleChange,
   onDraftStatusChange,
@@ -38,11 +48,22 @@ export function AdminPeopleAccountDialog({
   statusLabels,
   statusOptions,
 }: {
+  businessBoardLabels: AdminPeopleViewModel["businessBoardLabels"];
+  businessBoardOptions: AdminPeopleViewModel["businessBoardOptions"];
   canSaveDraft: boolean;
+  customerTypeLabels: AdminPeopleViewModel["customerTypeLabels"];
+  customerTypeOptions: AdminPeopleViewModel["customerTypeOptions"];
+  draftBusinessBoards: AdminPeopleViewModel["draftBusinessBoards"];
+  draftCustomerType: AdminPeopleViewModel["draftCustomerType"];
   draftNote: string;
   draftRole: string;
   draftStatus: string;
   onClose: () => void;
+  onDraftBusinessBoardChange: (
+    board: SalesmanBusinessBoard,
+    checked: boolean,
+  ) => void;
+  onDraftCustomerTypeChange: (value: string) => void;
   onDraftNoteChange: (value: string) => void;
   onDraftRoleChange: (value: string) => void;
   onDraftStatusChange: (value: string) => void;
@@ -171,6 +192,73 @@ export function AdminPeopleAccountDialog({
               </select>
             </label>
           </div>
+
+          {draftRole === "client" ? (
+            <div className="rounded-[22px] border border-[#e4e9ed] bg-white p-5">
+              <p className="text-sm font-semibold text-[#23313a]">
+                {t("dialog.customerType")}
+              </p>
+              <p className="mt-1 text-xs leading-6 text-[#6a7680]">
+                {t("dialog.customerTypeHint", {
+                  value: getCustomerTypeLabel(
+                    person.customer_type,
+                    customerTypeLabels,
+                    t("fallback.notProvided"),
+                  ),
+                })}
+              </p>
+              <label className="mt-4 block">
+                <span className="mb-2 block text-[11px] font-semibold tracking-[0.16em] text-[#88939b] uppercase">
+                  {t("dialog.customerType")}
+                </span>
+                <select
+                  className="h-12 w-full rounded-[18px] border border-[#dfe5ea] bg-white px-4 text-sm text-[#23313a] outline-none transition focus:border-[#bfd2e1] focus:ring-4 focus:ring-[#bfd2e1]/30"
+                  disabled={selectedPersonIsCurrentViewer || saving}
+                  onChange={(event) =>
+                    onDraftCustomerTypeChange(event.target.value)
+                  }
+                  value={draftCustomerType}
+                >
+                  <option value="">{t("dialog.customerTypePlaceholder")}</option>
+                  {customerTypeOptions.map((customerType) => (
+                    <option key={customerType} value={customerType}>
+                      {customerTypeLabels[customerType]}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </div>
+          ) : null}
+
+          {draftRole === "salesman" ? (
+            <div className="rounded-[22px] border border-[#e4e9ed] bg-white p-5">
+              <p className="text-sm font-semibold text-[#23313a]">
+                {t("dialog.businessAccess")}
+              </p>
+              <p className="mt-1 text-xs leading-6 text-[#6a7680]">
+                {t("dialog.businessAccessHint")}
+              </p>
+              <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                {businessBoardOptions.map((board) => (
+                  <label
+                    className="flex min-h-12 items-center gap-3 rounded-[18px] border border-[#dfe5ea] bg-[#f8faf9] px-4 py-3 text-sm font-semibold text-[#23313a]"
+                    key={board}
+                  >
+                    <input
+                      checked={draftBusinessBoards.includes(board)}
+                      className="size-4 accent-[#486782]"
+                      disabled={selectedPersonIsCurrentViewer || saving}
+                      onChange={(event) =>
+                        onDraftBusinessBoardChange(board, event.target.checked)
+                      }
+                      type="checkbox"
+                    />
+                    {businessBoardLabels[board]}
+                  </label>
+                ))}
+              </div>
+            </div>
+          ) : null}
 
           <label className="block">
             <span className="mb-2 block text-[11px] font-semibold tracking-[0.16em] text-[#88939b] uppercase">

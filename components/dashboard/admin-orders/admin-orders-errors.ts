@@ -38,6 +38,10 @@ export function toOrderErrorMessage(
     return copy.errors.updatedScopeNotAllowed;
   }
 
+  if (rawMessage.includes("salesman_order_board_forbidden")) {
+    return copy.errors.updatedScopeNotAllowed;
+  }
+
   if (rawMessage.includes("current user cannot delete this order")) {
     return copy.errors.cannotDelete;
   }

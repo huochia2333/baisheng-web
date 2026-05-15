@@ -11,6 +11,12 @@ import {
 } from "./admin-people";
 import { getSupabaseServiceRoleClient } from "./supabase-admin-server";
 import { withRequestTimeout } from "./request-timeout";
+import {
+  areSalesmanBusinessBoardsEqual,
+  isSalesmanBusinessBoard,
+  uniqueSalesmanBusinessBoards,
+  type SalesmanBusinessBoard,
+} from "./salesman-business-access";
 import { getCurrentSessionContext } from "./user-self-service";
 
 export type AdminPeopleUpdateErrorCode =
@@ -57,12 +63,40 @@ export async function updateAdminPersonAccount(
   }
 
   const payload = normalizeAdminPersonAccountUpdatePayload(input);
-  const preparedChange = await prepareAdminPersonAccountChange(supabase, payload);
+  const currentPerson = await getAdminPersonRowById(supabase, payload.targetUserId);
 
-  await applyAdminPersonAccountChange(supabase, payload);
-  await syncTargetAuthMetadata(payload);
+  if (!currentPerson) {
+    throw new AdminPeopleMutationError("notFound");
+  }
 
-  const updatedPerson = await getAdminPersonRowById(supabase, preparedChange.target_user_id);
+  const accountWillChange =
+    currentPerson.role !== payload.nextRole ||
+    currentPerson.status !== payload.nextStatus;
+  const businessBoards = normalizePayloadBusinessBoards(payload);
+  const businessAccessWillChange =
+    currentPerson.role === "salesman" ||
+    payload.nextRole === "salesman"
+      ? !areSalesmanBusinessBoardsEqual(
+          currentPerson.salesman_business_boards,
+          businessBoards,
+        )
+      : false;
+
+  if (!accountWillChange && !businessAccessWillChange) {
+    throw new AdminPeopleMutationError("noChange");
+  }
+
+  if (accountWillChange) {
+    await prepareAdminPersonAccountChange(supabase, payload);
+    await applyAdminPersonAccountChange(supabase, payload);
+    await syncTargetAuthMetadata(payload);
+  }
+
+  if (currentPerson.role === "salesman" || payload.nextRole === "salesman") {
+    await setSalesmanBusinessAccess(supabase, payload.targetUserId, businessBoards);
+  }
+
+  const updatedPerson = await getAdminPersonRowById(supabase, payload.targetUserId);
 
   if (!updatedPerson) {
     throw new AdminPeopleMutationError("notFound");
@@ -107,6 +141,9 @@ export function getAdminPeopleUpdateErrorCode(
 
   if (
     message.includes("admin_people_invalid_input") ||
+    message.includes("admin_people_invalid_business_access") ||
+    message.includes("admin_people_business_access_requires_salesman") ||
+    message.includes("admin_people_customer_type_requires_client") ||
     message.includes("admin_people_role_not_found") ||
     message.includes("invalid input")
   ) {
@@ -148,8 +185,37 @@ function normalizeAdminPersonAccountUpdatePayload(
     targetUserId,
     nextRole: input.nextRole,
     nextStatus: input.nextStatus,
+    salesmanBusinessBoards:
+      input.salesmanBusinessBoards === null ||
+      input.salesmanBusinessBoards === undefined
+        ? null
+        : normalizeInputBusinessBoards(input.salesmanBusinessBoards),
     note,
   };
+}
+
+function normalizeInputBusinessBoards(
+  value: unknown,
+): SalesmanBusinessBoard[] {
+  if (!Array.isArray(value) || !value.every(isSalesmanBusinessBoard)) {
+    throw new AdminPeopleMutationError("invalidInput");
+  }
+
+  return uniqueSalesmanBusinessBoards(value);
+}
+
+function normalizePayloadBusinessBoards(
+  input: AdminPersonAccountUpdatePayload,
+): SalesmanBusinessBoard[] {
+  if (input.nextRole !== "salesman") {
+    return [];
+  }
+
+  if (!input.salesmanBusinessBoards) {
+    return ["tourism"];
+  }
+
+  return uniqueSalesmanBusinessBoards(input.salesmanBusinessBoards);
 }
 
 async function prepareAdminPersonAccountChange(
@@ -190,6 +256,26 @@ async function applyAdminPersonAccountChange(
       _next_role: input.nextRole,
       _next_status: input.nextStatus,
       _note: input.note ?? null,
+    }),
+    {
+      timeoutMs: ADMIN_PEOPLE_MUTATION_TIMEOUT_MS,
+    },
+  );
+
+  if (error) {
+    throw error;
+  }
+}
+
+async function setSalesmanBusinessAccess(
+  supabase: SupabaseClient,
+  targetUserId: string,
+  businessBoards: SalesmanBusinessBoard[],
+) {
+  const { error } = await withRequestTimeout(
+    supabase.rpc("admin_set_salesman_business_access", {
+      _salesman_user_id: targetUserId,
+      _business_boards: businessBoards,
     }),
     {
       timeoutMs: ADMIN_PEOPLE_MUTATION_TIMEOUT_MS,

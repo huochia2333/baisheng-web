@@ -77,6 +77,7 @@ export function useAdminOrdersViewModel({
   const canViewOrderCosts = viewConfig.allowCost && serverCanViewOrderCosts;
   const canCreateOrders =
     viewConfig.allowCreate &&
+    canViewOrders &&
     canCreateOrderByRole(currentViewerRole, currentViewerStatus);
   const canEditOrders =
     viewConfig.allowEdit &&
@@ -106,6 +107,7 @@ export function useAdminOrdersViewModel({
 
   const canOpenCreateDialog =
     canCreateOrders &&
+    orderTypeOptions.length > 0 &&
     (!viewConfig.limitOrderingUsersToClients || orderingUserOptions.length > 0);
 
   const userLabelById = useMemo(() => {

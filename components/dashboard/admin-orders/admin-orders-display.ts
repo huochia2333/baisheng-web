@@ -73,6 +73,10 @@ export function getOrderTypeMetaFromCategory(
     return { label: copy.categories.purchase, tone: "blue" as const };
   }
 
+  if (normalizedCategory === "dropshipping") {
+    return { label: copy.categories.dropshipping, tone: "gold" as const };
+  }
+
   if (normalizedCategory === "service") {
     return { label: copy.categories.service, tone: "green" as const };
   }

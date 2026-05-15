@@ -37,6 +37,7 @@ export function AdminPeopleClient({
         <>
           <AdminPeopleDirectorySection
             currentViewerId={viewModel.currentViewerId}
+            customerTypeLabels={viewModel.customerTypeLabels}
             filteredPeople={viewModel.filteredPeople}
             locale={locale}
             onAdjustPerson={viewModel.openAccountDialog}
@@ -60,11 +61,19 @@ export function AdminPeopleClient({
           />
 
           <AdminPeopleAccountDialog
+            businessBoardLabels={viewModel.businessBoardLabels}
+            businessBoardOptions={viewModel.businessBoardOptions}
             canSaveDraft={viewModel.canSaveDraft}
+            customerTypeLabels={viewModel.customerTypeLabels}
+            customerTypeOptions={viewModel.customerTypeOptions}
+            draftBusinessBoards={viewModel.draftBusinessBoards}
+            draftCustomerType={viewModel.draftCustomerType}
             draftNote={viewModel.draftNote}
             draftRole={viewModel.draftRole}
             draftStatus={viewModel.draftStatus}
             onClose={viewModel.closeAccountDialog}
+            onDraftBusinessBoardChange={viewModel.handleDraftBusinessBoardChange}
+            onDraftCustomerTypeChange={viewModel.handleDraftCustomerTypeChange}
             onDraftNoteChange={viewModel.setDraftNote}
             onDraftRoleChange={viewModel.handleDraftRoleChange}
             onDraftStatusChange={viewModel.handleDraftStatusChange}

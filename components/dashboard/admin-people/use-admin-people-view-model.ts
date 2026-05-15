@@ -9,12 +9,18 @@ import {
   ADMIN_PEOPLE_STATUS_OPTIONS,
   isAdminPeopleRole,
   isAdminPeopleStatus,
-  type AdminPeopleChangeLogRow,
   type AdminPeoplePageData,
   type AdminPeopleRole,
   type AdminPeopleStatus,
   type AdminPersonRow,
 } from "@/lib/admin-people";
+import {
+  SALESMAN_BUSINESS_BOARD_OPTIONS,
+  areSalesmanBusinessBoardsEqual,
+  uniqueSalesmanBusinessBoards,
+  type SalesmanBusinessBoard,
+  type SalesmanBusinessBoardLabels,
+} from "@/lib/salesman-business-access";
 
 import {
   getPersonDisplayName,
@@ -22,18 +28,14 @@ import {
   type AdminPeopleRoleLabels,
   type AdminPeopleStatusLabels,
 } from "./admin-people-display";
+import {
+  normalizeAdminPeopleErrorCode,
+  readAdminPeopleUpdateResponse,
+  type AdminPeopleFeedback,
+} from "./admin-people-view-model-utils";
+import { useAdminCustomerTypeMark } from "./use-admin-customer-type-mark";
 
 type FilterValue<T extends string> = T | "all";
-type Feedback = {
-  tone: "error" | "success" | "info";
-  message: string;
-};
-
-type UpdateResponse = {
-  person?: AdminPersonRow;
-  recentChanges?: AdminPeopleChangeLogRow[];
-  error?: string;
-};
 
 export function useAdminPeopleViewModel({
   initialData,
@@ -43,7 +45,7 @@ export function useAdminPeopleViewModel({
   const t = useTranslations("AdminPeople");
   const [people, setPeople] = useState(initialData.people);
   const [recentChanges, setRecentChanges] = useState(initialData.recentChanges);
-  const [feedback, setFeedback] = useState<Feedback | null>(null);
+  const [feedback, setFeedback] = useState<AdminPeopleFeedback | null>(null);
   const [searchText, setSearchText] = useState("");
   const [roleFilter, setRoleFilter] =
     useState<FilterValue<AdminPeopleRole>>("all");
@@ -52,6 +54,9 @@ export function useAdminPeopleViewModel({
   const [selectedPerson, setSelectedPerson] = useState<AdminPersonRow | null>(null);
   const [draftRole, setDraftRole] = useState<AdminPeopleRole>("client");
   const [draftStatus, setDraftStatus] = useState<AdminPeopleStatus>("inactive");
+  const [draftBusinessBoards, setDraftBusinessBoards] = useState<
+    SalesmanBusinessBoard[]
+  >(["tourism"]);
   const [draftNote, setDraftNote] = useState("");
   const [saving, setSaving] = useState(false);
 
@@ -76,6 +81,18 @@ export function useAdminPeopleViewModel({
     }),
     [t],
   );
+
+  const businessBoardLabels = useMemo<SalesmanBusinessBoardLabels>(
+    () => ({
+      dropshipping: t("businessBoards.dropshipping"),
+      tourism: t("businessBoards.tourism"),
+    }),
+    [t],
+  );
+  const customerTypeEditor = useAdminCustomerTypeMark({
+    setFeedback,
+    setPeople,
+  });
 
   const summary = useMemo(() => {
     const activeCount = people.filter((person) => person.status === "active").length;
@@ -116,9 +133,18 @@ export function useAdminPeopleViewModel({
   const dialogOpen = selectedPerson !== null;
   const selectedPersonIsCurrentViewer =
     selectedPerson?.user_id === initialData.currentViewerId;
-  const hasDraftChange =
+  const accountWillChange =
     selectedPerson !== null &&
     (selectedPerson.role !== draftRole || selectedPerson.status !== draftStatus);
+  const businessAccessWillChange =
+    selectedPerson !== null &&
+    isDraftBusinessAccessChanged(selectedPerson, draftRole, draftBusinessBoards);
+  const customerTypeWillChange = customerTypeEditor.customerTypeWillChange(
+    selectedPerson,
+    draftRole,
+  );
+  const hasDraftChange =
+    accountWillChange || businessAccessWillChange || customerTypeWillChange;
   const canSaveDraft =
     dialogOpen && hasDraftChange && !selectedPersonIsCurrentViewer && !saving;
 
@@ -127,6 +153,12 @@ export function useAdminPeopleViewModel({
     setSelectedPerson(person);
     setDraftRole(person.role ?? "client");
     setDraftStatus(person.status);
+    setDraftBusinessBoards(
+      person.role === "salesman" && person.salesman_business_boards.length > 0
+        ? person.salesman_business_boards
+        : ["tourism"],
+    );
+    customerTypeEditor.openCustomerTypeDraft(person);
     setDraftNote("");
   };
 
@@ -141,7 +173,23 @@ export function useAdminPeopleViewModel({
   const handleDraftRoleChange = (value: string) => {
     if (isAdminPeopleRole(value)) {
       setDraftRole(value);
+      if (value === "salesman" && draftBusinessBoards.length === 0) {
+        setDraftBusinessBoards(["tourism"]);
+      }
     }
+  };
+
+  const handleDraftBusinessBoardChange = (
+    board: SalesmanBusinessBoard,
+    checked: boolean,
+  ) => {
+    setDraftBusinessBoards((currentBoards) => {
+      const nextBoards = checked
+        ? [...currentBoards, board]
+        : currentBoards.filter((currentBoard) => currentBoard !== board);
+
+      return uniqueSalesmanBusinessBoards(nextBoards);
+    });
   };
 
   const handleDraftStatusChange = (value: string) => {
@@ -167,50 +215,77 @@ export function useAdminPeopleViewModel({
     setFeedback(null);
 
     try {
-      const response = await fetch("/api/admin/people/account", {
-        body: JSON.stringify({
-          targetUserId: selectedPerson.user_id,
-          nextRole: draftRole,
-          nextStatus: draftStatus,
-          note: draftNote,
-        }),
-        headers: {
-          "Content-Type": "application/json",
-        },
-        method: "POST",
-      });
-      const result = await readUpdateResponse(response);
+      let latestPerson = selectedPerson;
+      let savedAccountChange = false;
+      let savedCustomerType = false;
 
-      if (!response.ok) {
-        setFeedback({
-          tone: "error",
-          message: t(`errors.${normalizeErrorCode(result.error)}`),
+      if (accountWillChange || businessAccessWillChange) {
+        const response = await fetch("/api/admin/people/account", {
+          body: JSON.stringify({
+            targetUserId: selectedPerson.user_id,
+            nextRole: draftRole,
+            nextStatus: draftStatus,
+            salesmanBusinessBoards:
+              draftRole === "salesman" ? draftBusinessBoards : [],
+            note: draftNote,
+          }),
+          headers: {
+            "Content-Type": "application/json",
+          },
+          method: "POST",
         });
-        return;
+        const result = await readAdminPeopleUpdateResponse(response);
+
+        if (!response.ok) {
+          setFeedback({
+            tone: "error",
+            message: t(`errors.${normalizeAdminPeopleErrorCode(result.error)}`),
+          });
+          return;
+        }
+
+        if (!result.person) {
+          setFeedback({
+            tone: "error",
+            message: t("errors.unknown"),
+          });
+          return;
+        }
+
+        latestPerson = result.person;
+        savedAccountChange = true;
+
+        setPeople((currentPeople) =>
+          currentPeople.map((person) =>
+            person.user_id === result.person?.user_id ? result.person : person,
+          ),
+        );
+
+        if (result.recentChanges) {
+          setRecentChanges(result.recentChanges);
+        }
       }
 
-      if (!result.person) {
-        setFeedback({
-          tone: "error",
-          message: t("errors.unknown"),
-        });
-        return;
-      }
+      if (customerTypeWillChange) {
+        const updatedPerson =
+          await customerTypeEditor.saveCustomerTypeChange(latestPerson);
 
-      setPeople((currentPeople) =>
-        currentPeople.map((person) =>
-          person.user_id === result.person?.user_id ? result.person : person,
-        ),
-      );
+        if (!updatedPerson) {
+          return;
+        }
 
-      if (result.recentChanges) {
-        setRecentChanges(result.recentChanges);
+        latestPerson = updatedPerson;
+        savedCustomerType = true;
       }
 
       setSelectedPerson(null);
       setFeedback({
         tone: "success",
-        message: t("feedback.saved"),
+        message: savedAccountChange
+          ? t("feedback.saved")
+          : savedCustomerType
+            ? t("feedback.customerTypeSaved")
+            : t("feedback.saved"),
       });
     } catch {
       setFeedback({
@@ -226,6 +301,13 @@ export function useAdminPeopleViewModel({
     canSaveDraft,
     currentViewerId: initialData.currentViewerId,
     dialogOpen,
+    businessBoardLabels,
+    businessBoardOptions: SALESMAN_BUSINESS_BOARD_OPTIONS,
+    customerTypeWillChange,
+    customerTypeLabels: customerTypeEditor.customerTypeLabels,
+    customerTypeOptions: customerTypeEditor.customerTypeOptions,
+    draftCustomerType: customerTypeEditor.draftCustomerType,
+    draftBusinessBoards,
     draftNote,
     draftRole,
     draftStatus,
@@ -247,6 +329,9 @@ export function useAdminPeopleViewModel({
     statusOptions: ADMIN_PEOPLE_STATUS_OPTIONS,
     summary,
     closeAccountDialog,
+    handleDraftCustomerTypeChange:
+      customerTypeEditor.handleDraftCustomerTypeChange,
+    handleDraftBusinessBoardChange,
     handleDraftRoleChange,
     handleDraftStatusChange,
     handleRoleFilterChange,
@@ -258,76 +343,18 @@ export function useAdminPeopleViewModel({
   };
 }
 
-async function readUpdateResponse(response: Response): Promise<UpdateResponse> {
-  try {
-    const value: unknown = await response.json();
-
-    if (!isRecord(value)) {
-      return {};
-    }
-
-    return {
-      error: typeof value.error === "string" ? value.error : undefined,
-      person: isAdminPersonRow(value.person) ? value.person : undefined,
-      recentChanges: normalizeChangeLogs(value.recentChanges),
-    };
-  } catch {
-    return {};
-  }
-}
-
-function normalizeErrorCode(value: string | undefined) {
-  switch (value) {
-    case "forbidden":
-    case "invalidInput":
-    case "lastAdmin":
-    case "noChange":
-    case "notFound":
-    case "selfChange":
-    case "serviceUnavailable":
-      return value;
-    default:
-      return "unknown";
-  }
-}
-
-function normalizeChangeLogs(value: unknown) {
-  if (!Array.isArray(value)) {
-    return undefined;
-  }
-
-  return value.filter(isAdminPeopleChangeLogRow);
-}
-
-function isAdminPersonRow(value: unknown): value is AdminPersonRow {
-  if (!isRecord(value)) {
+function isDraftBusinessAccessChanged(
+  selectedPerson: AdminPersonRow,
+  draftRole: AdminPeopleRole,
+  draftBusinessBoards: SalesmanBusinessBoard[],
+) {
+  if (selectedPerson.role !== "salesman" && draftRole !== "salesman") {
     return false;
   }
 
-  return (
-    typeof value.user_id === "string" &&
-    (value.role === null || isAdminPeopleRole(value.role)) &&
-    isAdminPeopleStatus(value.status) &&
-    typeof value.created_at === "string"
-  );
-}
+  const currentBoards =
+    selectedPerson.role === "salesman" ? selectedPerson.salesman_business_boards : [];
+  const nextBoards = draftRole === "salesman" ? draftBusinessBoards : [];
 
-function isAdminPeopleChangeLogRow(
-  value: unknown,
-): value is AdminPeopleChangeLogRow {
-  if (!isRecord(value)) {
-    return false;
-  }
-
-  return (
-    typeof value.id === "string" &&
-    typeof value.target_user_id === "string" &&
-    (value.next_role === null || isAdminPeopleRole(value.next_role)) &&
-    isAdminPeopleStatus(value.next_status) &&
-    typeof value.created_at === "string"
-  );
-}
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null;
+  return !areSalesmanBusinessBoardsEqual(currentBoards, nextBoards);
 }

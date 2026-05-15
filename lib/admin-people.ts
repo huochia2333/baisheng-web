@@ -11,6 +11,10 @@ import {
   normalizeInteger,
   normalizeOptionalString,
 } from "./value-normalizers";
+import {
+  normalizeSalesmanBusinessBoards,
+  type SalesmanBusinessBoard,
+} from "./salesman-business-access";
 
 export const ADMIN_PEOPLE_ROLE_OPTIONS = [
   "administrator",
@@ -30,6 +34,12 @@ export const ADMIN_PEOPLE_STATUS_OPTIONS = [
 
 export type AdminPeopleRole = (typeof ADMIN_PEOPLE_ROLE_OPTIONS)[number];
 export type AdminPeopleStatus = (typeof ADMIN_PEOPLE_STATUS_OPTIONS)[number];
+export type CustomerTypeMark = "retail" | "wholesale";
+
+export const CUSTOMER_TYPE_MARK_OPTIONS = [
+  "retail",
+  "wholesale",
+] as const satisfies readonly CustomerTypeMark[];
 
 export type AdminPersonRow = {
   user_id: string;
@@ -48,6 +58,11 @@ export type AdminPersonRow = {
   direct_referral_count: number;
   latest_change_at: string | null;
   created_at: string;
+  customer_type: CustomerTypeMark | null;
+  customer_type_marked_by_user_id: string | null;
+  customer_type_marked_by_name: string | null;
+  customer_type_marked_at: string | null;
+  salesman_business_boards: SalesmanBusinessBoard[];
 };
 
 export type AdminPeopleChangeLogRow = {
@@ -77,6 +92,7 @@ export type AdminPersonAccountUpdatePayload = {
   targetUserId: string;
   nextRole: AdminPeopleRole;
   nextStatus: AdminPeopleStatus;
+  salesmanBusinessBoards?: SalesmanBusinessBoard[] | null;
   note?: string | null;
 };
 
@@ -95,6 +111,10 @@ export function isAdminPeopleRole(value: unknown): value is AdminPeopleRole {
 
 export function isAdminPeopleStatus(value: unknown): value is AdminPeopleStatus {
   return normalizeUserStatus(value) !== null;
+}
+
+export function isCustomerTypeMark(value: unknown): value is CustomerTypeMark {
+  return value === "retail" || value === "wholesale";
 }
 
 export async function getAdminPeoplePageData(
@@ -210,7 +230,22 @@ function normalizeAdminPersonRow(value: unknown): AdminPersonRow | null {
     direct_referral_count: normalizeInteger(value.direct_referral_count),
     latest_change_at: normalizeOptionalString(value.latest_change_at),
     created_at: createdAt,
+    customer_type: normalizeCustomerTypeMark(value.customer_type),
+    customer_type_marked_by_user_id: normalizeOptionalString(
+      value.customer_type_marked_by_user_id,
+    ),
+    customer_type_marked_by_name: normalizeOptionalString(
+      value.customer_type_marked_by_name,
+    ),
+    customer_type_marked_at: normalizeOptionalString(value.customer_type_marked_at),
+    salesman_business_boards: normalizeSalesmanBusinessBoards(
+      value.salesman_business_boards,
+    ),
   };
+}
+
+function normalizeCustomerTypeMark(value: unknown): CustomerTypeMark | null {
+  return isCustomerTypeMark(value) ? value : null;
 }
 
 function normalizeAdminPeopleChangeLogRows(

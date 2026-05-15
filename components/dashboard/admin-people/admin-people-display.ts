@@ -1,11 +1,16 @@
 import type { AppRole } from "@/lib/auth-routing";
 import type { UserStatus } from "@/lib/user-self-service";
-import type { AdminPersonRow } from "@/lib/admin-people";
+import type { AdminPersonRow, CustomerTypeMark } from "@/lib/admin-people";
 import type { Locale } from "@/lib/locale";
+import type {
+  SalesmanBusinessBoard,
+  SalesmanBusinessBoardLabels,
+} from "@/lib/salesman-business-access";
 import { normalizeSearchText } from "@/lib/value-normalizers";
 
 export type AdminPeopleRoleLabels = Record<AppRole, string>;
 export type AdminPeopleStatusLabels = Record<UserStatus, string>;
+export type CustomerTypeLabels = Record<CustomerTypeMark, string>;
 
 export function getPersonDisplayName(person: AdminPersonRow, fallback: string) {
   return person.name ?? person.email ?? person.phone ?? fallback;
@@ -45,6 +50,36 @@ export function getStatusLabel(
   fallback: string,
 ) {
   return status ? labels[status] : fallback;
+}
+
+export function getCustomerTypeLabel(
+  value: CustomerTypeMark | null,
+  labels: CustomerTypeLabels,
+  fallback: string,
+) {
+  return value ? labels[value] : fallback;
+}
+
+export function getSalesmanBusinessAccessLabel(
+  boards: readonly SalesmanBusinessBoard[],
+  labels: SalesmanBusinessBoardLabels,
+  fallback: string,
+) {
+  if (boards.length === 0) {
+    return fallback;
+  }
+
+  return boards.map((board) => labels[board]).join(" / ");
+}
+
+export function getSalesmanBusinessAccessItems(
+  boards: readonly SalesmanBusinessBoard[],
+  labels: SalesmanBusinessBoardLabels,
+) {
+  return boards.map((board) => ({
+    board,
+    label: labels[board],
+  }));
 }
 
 export function formatPeopleDate(
@@ -87,5 +122,8 @@ export function personMatchesSearch(person: AdminPersonRow, searchText: string) 
     person.referrer_name,
     person.referrer_email,
     person.team_name,
+    person.customer_type,
+    person.customer_type_marked_by_name,
+    ...person.salesman_business_boards,
   ].some((value) => normalizeSearchText(value).includes(normalizedSearch));
 }

@@ -26,6 +26,7 @@ import {
   getOrderUserOptionLabel,
   type OrderFormState,
 } from "./admin-orders-utils";
+import { isPurchaseDetailsCategory } from "./admin-orders-form";
 import {
   fieldInputClassName,
   OrderField,
@@ -108,6 +109,17 @@ export function OrderFormDialog({
       orderTypeOptions.find((option) => option.id === formState.orderType)?.category ?? null
     );
   }, [formState.orderType, orderTypeOptions]);
+  const visiblePurchaseOrderTypeOptions = useMemo(() => {
+    if (selectedOrderCategory === "dropshipping") {
+      return purchaseOrderTypeOptions.filter(
+        (option) => option.business_subcategory === "dropshipping",
+      );
+    }
+
+    return purchaseOrderTypeOptions.filter(
+      (option) => option.business_subcategory !== "dropshipping",
+    );
+  }, [purchaseOrderTypeOptions, selectedOrderCategory]);
   const isFormBusy = pending || supplementaryLoading;
 
   return (
@@ -307,7 +319,7 @@ export function OrderFormDialog({
             {t("hints.autoTimestamps")}
           </div>
 
-          {selectedOrderCategory === "purchase" ? (
+          {isPurchaseDetailsCategory(selectedOrderCategory) ? (
             <div className="md:col-span-2">
               <OrderSupplementaryFormSection
                 description={
@@ -332,7 +344,7 @@ export function OrderFormDialog({
                       value={formState.purchaseSubtype}
                     >
                       <option value="">{t("select.purchaseSubtype")}</option>
-                      {purchaseOrderTypeOptions.map((option) => (
+                      {visiblePurchaseOrderTypeOptions.map((option) => (
                         <option key={option.id} value={option.id}>
                           {formatPurchaseOrderSubtype(option.business_subcategory, orderUiCopy)}
                         </option>

@@ -15,9 +15,15 @@ import { ScopedIntlProvider } from "@/components/i18n/scoped-intl-provider";
 import { LanguageToggle } from "@/components/i18n/language-toggle";
 import {
   getWorkspaceNavHref,
+  type WorkspaceNavItem,
   type WorkspaceRouteConfig,
 } from "@/lib/workspace-config";
 import { getServerSupabaseClient } from "@/lib/supabase-server";
+import {
+  getCurrentSalesmanBusinessBoards,
+  salesmanBusinessBoardsInclude,
+  type SalesmanBusinessBoard,
+} from "@/lib/salesman-business-access";
 import {
   EMPTY_WORKSPACE_ANNOUNCEMENTS_STATE,
   getWorkspaceAnnouncementsState,
@@ -41,11 +47,12 @@ type AdminShellProps = {
 };
 
 export async function AdminShell({ children, config }: AdminShellProps) {
-  const [t, initialAnnouncementsState] = await Promise.all([
+  const [t, initialAnnouncementsState, salesmanBusinessBoards] = await Promise.all([
     getTranslations("DashboardShell"),
     getInitialWorkspaceAnnouncementsState(),
+    getSalesmanShellBusinessBoards(config),
   ]);
-  const workspace = getWorkspaceConfig(config, t);
+  const workspace = getWorkspaceConfig(config, t, salesmanBusinessBoards);
 
   return (
     <ScopedIntlProvider namespaces={["DashboardShell", "LanguageToggle"]}>
@@ -128,14 +135,18 @@ async function getInitialWorkspaceAnnouncementsState() {
 function getWorkspaceConfig(
   config: WorkspaceRouteConfig,
   t: Translator,
+  salesmanBusinessBoards: readonly SalesmanBusinessBoard[],
 ): WorkspaceConfig {
   const roleKey = config.routeSegment;
+  const navItems = config.navItems.filter((item) =>
+    canShowWorkspaceNavItem(config, item, salesmanBusinessBoards),
+  );
 
   return {
     accountLabel: t(`roles.${roleKey}.accountLabel`),
     initials: config.initials,
     myHref: getWorkspaceNavHref(config, "my"),
-    navItems: config.navItems.map((item) => ({
+    navItems: navItems.map((item) => ({
       href: getWorkspaceNavHref(config, item.segment),
       icon: item.segment,
       label: t(`nav.${item.labelKey}`),
@@ -144,4 +155,40 @@ function getWorkspaceConfig(
     title: t(`roles.${roleKey}.title`),
     workspaceLabel: t(`roles.${roleKey}.workspaceLabel`),
   };
+}
+
+async function getSalesmanShellBusinessBoards(
+  config: WorkspaceRouteConfig,
+): Promise<SalesmanBusinessBoard[]> {
+  if (config.routeSegment !== "salesman") {
+    return [];
+  }
+
+  try {
+    const supabase = await getServerSupabaseClient();
+
+    return await getCurrentSalesmanBusinessBoards(supabase);
+  } catch {
+    return [];
+  }
+}
+
+function canShowWorkspaceNavItem(
+  config: WorkspaceRouteConfig,
+  item: WorkspaceNavItem,
+  salesmanBusinessBoards: readonly SalesmanBusinessBoard[],
+) {
+  if (config.routeSegment !== "salesman") {
+    return true;
+  }
+
+  if (item.segment === "orders") {
+    return salesmanBusinessBoards.length > 0;
+  }
+
+  if (item.segment === "people") {
+    return salesmanBusinessBoardsInclude(salesmanBusinessBoards, "dropshipping");
+  }
+
+  return true;
 }

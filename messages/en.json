@@ -482,7 +482,7 @@
     },
     "people": {
       "title": "People Management",
-      "description": "Administrators can review user accounts and adjust account role or status here. Referral relationships and team membership remain in their own sections."
+      "description": "This area shows the people or customer records available to the current account. Referral relationships and team membership remain in their own sections."
     },
     "commission": {
       "title": "Commission Center",
@@ -901,7 +901,8 @@
       "no": "No"
     },
     "categories": {
-      "purchase": "Purchase Order",
+      "purchase": "Agent Purchase",
+      "dropshipping": "Dropshipping",
       "service": "Service Order"
     },
     "subtypes": {
@@ -931,8 +932,8 @@
       "orderingUser": "Ordering User",
       "orderStatus": "Order Status",
       "orderType": "Order Type",
-      "purchaseSubtype": "Purchase Subtype",
-      "purchaseDetails": "Purchase Details",
+      "purchaseSubtype": "Purchase / Dropshipping Subtype",
+      "purchaseDetails": "Purchase / Dropshipping Details",
       "serviceSubtype": "Service Subtype",
       "serviceDiscount": "Order Discount",
       "serviceDetails": "Service Details"
@@ -962,7 +963,7 @@
       "orderEntryUser": "Select an order entry user",
       "orderingUser": "Select an ordering user",
       "orderType": "Select an order type",
-      "purchaseSubtype": "Select a purchase subtype",
+      "purchaseSubtype": "Select a purchase or dropshipping subtype",
       "serviceSubtype": "Select a service subtype",
       "serviceDiscount": "Select an order discount"
     },
@@ -976,7 +977,7 @@
     "errors": {
       "duplicateOrderNumber": "Order number generation conflicted. Please try again later.",
       "exchangeRateMissing": "Today's exchange rate is not ready. Ask an administrator to fetch it first.",
-      "invalidForeignKeys": "Select a valid order owner, customer, order type, and matching purchase or service options.",
+      "invalidForeignKeys": "Select a valid order owner, customer, order type, and matching purchase, dropshipping, or service options.",
       "cannotCreate": "You do not have permission to create this order.",
       "cannotUpdate": "You do not have permission to update this order.",
       "updatedScopeNotAllowed": "The updated order scope is outside your allowed range.",
@@ -985,9 +986,9 @@
       "orderNotFound": "The order could not be found."
     },
     "purchaseSection": {
-      "title": "Purchase Order Details",
-      "createDescription": "This order type is a purchase order. Add detail rows, then enter the category name on the left and the matching content on the right.",
-      "editDescription": "This order type is a purchase order. Update detail rows by entering the category name on the left and the matching content on the right.",
+      "title": "Agency Purchase Details",
+      "createDescription": "This order type needs purchase or dropshipping details. Add rows, then enter the category name on the left and the matching content on the right.",
+      "editDescription": "Update purchase or dropshipping details by entering the category name on the left and the matching content on the right.",
       "loading": "loading"
     },
     "serviceSection": {
@@ -1020,10 +1021,10 @@
       },
       "supplementary": {
         "loading": "loading",
-        "empty": "This order does not have a related purchase or service form yet.",
-        "purchaseForm": "Purchase Order Form",
+        "empty": "This order does not have related purchase, dropshipping, or service details yet.",
+        "purchaseForm": "Purchase / Dropshipping Form",
         "serviceForm": "Service Order Form",
-        "purchaseSubtype": "Purchase Subtype",
+        "purchaseSubtype": "Purchase / Dropshipping Subtype",
         "serviceSubtype": "Service Subtype",
         "sourceForm": "Source Form",
         "discount": "Order Discount",
@@ -1306,6 +1307,10 @@
     "header": {
       "badge": "Referral Network",
       "title": "Referral Tree"
+    },
+    "boards": {
+      "tourism": "Tourism",
+      "dropshipping": "Dropshipping"
     },
     "summary": {
       "visibleEdges": "Visible Links",
@@ -2092,6 +2097,8 @@
         "account": "Account",
         "role": "Role",
         "status": "Account Status",
+        "businessAccess": "Business Access",
+        "customerType": "Customer Mark",
         "city": "City",
         "relation": "Relationship Summary",
         "createdAt": "Created",
@@ -2099,7 +2106,8 @@
       },
       "referrer": "Referrer: {value}",
       "team": "Team: {value}",
-      "directReferrals": "{count} direct referrals"
+      "directReferrals": "{count} direct referrals",
+      "customerTypeMarkedBy": "Marked by: {value}"
     },
     "logs": {
       "eyebrow": "Audit Records",
@@ -2123,6 +2131,11 @@
       "currentStatus": "Current Status",
       "nextRole": "New Role",
       "nextStatus": "New Status",
+      "customerType": "Customer Mark",
+      "customerTypeHint": "Current mark: {value}. This mark is only used internally to distinguish retail and wholesale customers.",
+      "customerTypePlaceholder": "Choose a customer mark",
+      "businessAccess": "Visible Business",
+      "businessAccessHint": "This only controls the business boards a sales account can view and handle. It does not change referrals or team membership.",
       "note": "Note",
       "notePlaceholder": "Add a reason so the change is easy to review later",
       "effectHint": "Role and status changes fully apply after the target account signs in again or refreshes the session.",
@@ -2150,6 +2163,18 @@
       "inactive": "Not Enabled",
       "suspended": "Suspended"
     },
+    "customerTypes": {
+      "retail": "Retail",
+      "wholesale": "Wholesale"
+    },
+    "businessBoards": {
+      "tourism": "Tourism Services",
+      "dropshipping": "Traditional Dropshipping"
+    },
+    "businessBoardShortLabels": {
+      "tourism": "Tourism",
+      "dropshipping": "Dropship"
+    },
     "fallback": {
       "unnamedUser": "Unnamed Person",
       "notProvided": "Pending",
@@ -2157,17 +2182,89 @@
       "noTeam": "No team"
     },
     "feedback": {
-      "saved": "Account adjustment saved. The target account will see the new access after the next sign-in or session refresh."
+      "saved": "Account adjustment saved. The target account will see the new access after the next sign-in or session refresh.",
+      "customerTypeSaved": "Customer mark saved."
     },
     "errors": {
       "forbidden": "The current account cannot adjust people accounts.",
-      "invalidInput": "Choose a valid role and account status.",
+      "invalidInput": "Choose a valid role, account status, and business access.",
       "lastAdmin": "The system must keep at least one active administrator account.",
-      "noChange": "The account role and status did not change.",
+      "noChange": "The account role, status, and business access did not change.",
       "notFound": "The person account could not be found.",
       "selfChange": "You cannot adjust your own role or status here.",
       "serviceUnavailable": "The account adjustment could not be saved. Please try again later.",
       "unknown": "The account adjustment could not be saved. Please try again later."
+    }
+  },
+  "SalesmanPeople": {
+    "metadata": {
+      "title": "Customer Management"
+    },
+    "header": {
+      "badge": "Sales Customers",
+      "title": "Customer Management",
+      "description": "Review your customers and mark them as retail or wholesale for internal use."
+    },
+    "summary": {
+      "total": "Total Customers",
+      "retail": "Retail Customers",
+      "wholesale": "Wholesale Customers",
+      "unmarked": "Unmarked"
+    },
+    "states": {
+      "noPermissionTitle": "No Customer Management Access",
+      "noPermissionDescription": "Only active sales accounts with traditional dropshipping access can review and mark their own customers."
+    },
+    "filters": {
+      "search": "Search Customers",
+      "searchPlaceholder": "Search name, phone, email, or city"
+    },
+    "directory": {
+      "eyebrow": "Customer Directory",
+      "title": "My Customers",
+      "description": "Customer marks are for internal management only and are not shown to customers.",
+      "emptyTitle": "No customers match these filters",
+      "emptyDescription": "Adjust the search text, or confirm that customers are already linked to you.",
+      "columns": {
+        "customer": "Customer",
+        "city": "City",
+        "currentType": "Customer Mark",
+        "markedAt": "Marked At",
+        "actions": "Actions"
+      },
+      "currentType": "Current: {value}"
+    },
+    "dialog": {
+      "title": "Adjust {name}",
+      "description": "Customer marks are only used internally and are not shown to customers.",
+      "currentType": "Current Mark",
+      "nextType": "New Mark",
+      "typePlaceholder": "Choose a customer mark"
+    },
+    "customerTypes": {
+      "retail": "Retail",
+      "wholesale": "Wholesale"
+    },
+    "actions": {
+      "adjust": "Adjust Mark",
+      "cancel": "Cancel",
+      "save": "Save Mark",
+      "saving": "Saving..."
+    },
+    "fallback": {
+      "unnamedCustomer": "Unnamed Customer",
+      "notProvided": "Pending",
+      "unmarked": "Unmarked"
+    },
+    "feedback": {
+      "saved": "Customer mark saved."
+    },
+    "errors": {
+      "forbidden": "The current account cannot mark customers.",
+      "invalidInput": "Choose a valid customer mark.",
+      "notFound": "The customer could not be found.",
+      "serviceUnavailable": "The customer mark could not be saved. Please try again later.",
+      "unknown": "The customer mark could not be saved. Please try again later."
     }
   },
   "TeamManagement": {

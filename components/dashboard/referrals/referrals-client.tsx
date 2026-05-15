@@ -2,10 +2,13 @@
 
 import { useCallback, useMemo, useState } from "react";
 
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import {
   GitBranchPlus,
   Network,
+  Package,
+  Plane,
   ShieldAlert,
   UsersRound,
 } from "lucide-react";
@@ -13,6 +16,7 @@ import {
 import { useLocale } from "@/components/i18n/locale-provider";
 import {
   getReferralsPageData,
+  type ReferralBusinessBoard,
   type ReferralsPageData,
 } from "@/lib/referrals";
 import { getBrowserSupabaseClient } from "@/lib/supabase";
@@ -24,6 +28,7 @@ import {
   PageBanner,
   type NoticeTone,
 } from "@/components/dashboard/dashboard-shared-ui";
+import { DashboardSegmentedTabs } from "@/components/dashboard/dashboard-segmented-tabs";
 import { DashboardSectionHeader } from "@/components/dashboard/dashboard-section-header";
 import { DashboardListSection } from "@/components/dashboard/dashboard-section-panel";
 import { useWorkspaceSyncEffect } from "@/components/dashboard/workspace-session-provider";
@@ -44,6 +49,9 @@ export function ReferralsClient({
   initialData: ReferralsPageData;
 }) {
   const supabase = getBrowserSupabaseClient();
+  const pathname = usePathname();
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const t = useTranslations("Referrals");
   const sharedT = useTranslations("DashboardShared");
   const { locale } = useLocale();
@@ -53,6 +61,11 @@ export function ReferralsClient({
     [sharedT],
   );
 
+  const [selectedBoard, setSelectedBoard] =
+    useState<ReferralBusinessBoard>(initialData.businessBoard);
+  const [pendingBoard, setPendingBoard] = useState<ReferralBusinessBoard | null>(
+    null,
+  );
   const [canViewReferrals, setCanViewReferrals] = useState(initialData.canViewReferrals);
   const [pageFeedback, setPageFeedback] = useState<PageFeedback>(null);
   const [edges, setEdges] = useState(initialData.edges);
@@ -65,11 +78,86 @@ export function ReferralsClient({
   const [searchText, setSearchText] = useState("");
 
   const applyPageData = useCallback((pageData: ReferralsPageData) => {
+    setSelectedBoard(pageData.businessBoard);
     setCanViewReferrals(pageData.canViewReferrals);
     setEdges(pageData.edges);
     setCurrentViewerId(pageData.currentViewerId);
     setCurrentViewerRole(pageData.currentViewerRole);
   }, []);
+
+  const boardTabs = useMemo(
+    () => [
+      {
+        icon: <Plane className="size-4" />,
+        key: "tourism" as const,
+        label: t("boards.tourism"),
+      },
+      {
+        icon: <Package className="size-4" />,
+        key: "dropshipping" as const,
+        label: t("boards.dropshipping"),
+      },
+    ],
+    [t],
+  );
+
+  const loadBoardData = useCallback(
+    async (businessBoard: ReferralBusinessBoard) => {
+      if (!supabase) {
+        return;
+      }
+
+      setPendingBoard(businessBoard);
+
+      try {
+        const nextPageData = await getReferralsPageData(supabase, {
+          businessBoard,
+        });
+
+        applyPageData(nextPageData);
+        setPageFeedback(null);
+      } catch (error) {
+        setPageFeedback({
+          tone: "error",
+          message: toReferralErrorMessage(error, copy, sharedCopy),
+        });
+      } finally {
+        setPendingBoard(null);
+      }
+    },
+    [applyPageData, copy, sharedCopy, supabase],
+  );
+
+  const handleBoardChange = useCallback(
+    (businessBoard: ReferralBusinessBoard) => {
+      if (businessBoard === selectedBoard || pendingBoard) {
+        return;
+      }
+
+      const nextSearchParams = new URLSearchParams(searchParams.toString());
+
+      if (businessBoard === "tourism") {
+        nextSearchParams.delete("board");
+      } else {
+        nextSearchParams.set("board", businessBoard);
+      }
+
+      const queryString = nextSearchParams.toString();
+      router.replace(queryString ? `${pathname}?${queryString}` : pathname, {
+        scroll: false,
+      });
+      setSearchText("");
+      void loadBoardData(businessBoard);
+    },
+    [
+      loadBoardData,
+      pathname,
+      pendingBoard,
+      router,
+      searchParams,
+      selectedBoard,
+    ],
+  );
 
   const refreshReferrals = useCallback(
     async ({ isMounted }: { isMounted: () => boolean }) => {
@@ -78,7 +166,9 @@ export function ReferralsClient({
       }
 
       try {
-        const nextPageData = await getReferralsPageData(supabase);
+        const nextPageData = await getReferralsPageData(supabase, {
+          businessBoard: selectedBoard,
+        });
 
         if (!isMounted()) {
           return;
@@ -97,7 +187,7 @@ export function ReferralsClient({
         });
       }
     },
-    [applyPageData, copy, sharedCopy, supabase],
+    [applyPageData, copy, selectedBoard, sharedCopy, supabase],
   );
 
   useWorkspaceSyncEffect(refreshReferrals);
@@ -126,6 +216,14 @@ export function ReferralsClient({
       {pageFeedback ? (
         <PageBanner tone={pageFeedback.tone}>{pageFeedback.message}</PageBanner>
       ) : null}
+
+      <DashboardSegmentedTabs
+        className="sm:w-auto"
+        onChange={handleBoardChange}
+        options={boardTabs}
+        pendingValue={pendingBoard}
+        value={selectedBoard}
+      />
 
       <DashboardSectionHeader
         badge={t("header.badge")}

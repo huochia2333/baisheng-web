@@ -21,19 +21,16 @@ import {
 } from "@/components/dashboard/dashboard-section-panel";
 import { DashboardSectionHeader } from "@/components/dashboard/dashboard-section-header";
 import { EmptyState } from "@/components/dashboard/dashboard-shared-ui";
-import { Button } from "@/components/ui/button";
 import type { AdminPeopleChangeLogRow, AdminPersonRow } from "@/lib/admin-people";
 import type { Locale } from "@/lib/locale";
 import { cn } from "@/lib/utils";
 
 import {
   formatPeopleDate,
-  getPersonContact,
-  getPersonDisplayName,
-  getPersonRelationSummary,
   getRoleLabel,
   getStatusLabel,
 } from "./admin-people-display";
+import { PeopleTable } from "./admin-people-table";
 import type { useAdminPeopleViewModel } from "./use-admin-people-view-model";
 
 type AdminPeopleViewModel = ReturnType<typeof useAdminPeopleViewModel>;
@@ -103,6 +100,7 @@ export function AdminPeopleNoPermissionSection() {
 
 export function AdminPeopleDirectorySection({
   currentViewerId,
+  customerTypeLabels,
   filteredPeople,
   locale,
   onAdjustPerson,
@@ -118,6 +116,7 @@ export function AdminPeopleDirectorySection({
   statusOptions,
 }: {
   currentViewerId: string | null;
+  customerTypeLabels: AdminPeopleViewModel["customerTypeLabels"];
   filteredPeople: AdminPersonRow[];
   locale: Locale;
   onAdjustPerson: (person: AdminPersonRow) => void;
@@ -196,6 +195,7 @@ export function AdminPeopleDirectorySection({
         ) : (
           <PeopleTable
             currentViewerId={currentViewerId}
+            customerTypeLabels={customerTypeLabels}
             locale={locale}
             onAdjustPerson={onAdjustPerson}
             people={filteredPeople}
@@ -285,112 +285,5 @@ export function AdminPeopleRecentChangesSection({
         </DashboardTableFrame>
       )}
     </DashboardListSection>
-  );
-}
-
-function PeopleTable({
-  currentViewerId,
-  locale,
-  onAdjustPerson,
-  people,
-  roleLabels,
-  statusLabels,
-}: {
-  currentViewerId: string | null;
-  locale: Locale;
-  onAdjustPerson: (person: AdminPersonRow) => void;
-  people: AdminPersonRow[];
-  roleLabels: AdminPeopleViewModel["roleLabels"];
-  statusLabels: AdminPeopleViewModel["statusLabels"];
-}) {
-  const t = useTranslations("AdminPeople");
-  const fallback = t("fallback.notProvided");
-
-  return (
-    <DashboardTableFrame>
-      <table className="min-w-[1080px] w-full text-left text-sm">
-        <thead className="bg-[#f6f4f0] text-xs font-semibold text-[#66727d]">
-          <tr>
-            <th className="px-4 py-3">{t("directory.columns.account")}</th>
-            <th className="px-4 py-3">{t("directory.columns.role")}</th>
-            <th className="px-4 py-3">{t("directory.columns.status")}</th>
-            <th className="px-4 py-3">{t("directory.columns.city")}</th>
-            <th className="px-4 py-3">{t("directory.columns.relation")}</th>
-            <th className="px-4 py-3">{t("directory.columns.createdAt")}</th>
-            <th className="px-4 py-3">{t("directory.columns.actions")}</th>
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-[#eee9e1]">
-          {people.map((person) => {
-            const relation = getPersonRelationSummary(person, {
-              noReferrer: t("fallback.noReferrer"),
-              noTeam: t("fallback.noTeam"),
-            });
-            const isCurrentViewer = person.user_id === currentViewerId;
-
-            return (
-              <tr key={person.user_id} className="align-top">
-                <td className="px-4 py-4">
-                  <p className="font-semibold text-[#23313a]">
-                    {getPersonDisplayName(person, t("fallback.unnamedUser"))}
-                  </p>
-                  <p className="mt-1 text-xs text-[#7b858d]">
-                    {getPersonContact(person, fallback)}
-                  </p>
-                </td>
-                <td className="px-4 py-4">
-                  <span className="inline-flex rounded-full bg-[#eef3f6] px-3 py-1 text-xs font-semibold text-[#486782]">
-                    {getRoleLabel(person.role, roleLabels, fallback)}
-                  </span>
-                </td>
-                <td className="px-4 py-4">
-                  <StatusChip
-                    label={statusLabels[person.status]}
-                    status={person.status}
-                  />
-                </td>
-                <td className="px-4 py-4 text-[#53616d]">{person.city ?? fallback}</td>
-                <td className="px-4 py-4 text-[#53616d]">
-                  <p>{t("directory.referrer", { value: relation.referrer })}</p>
-                  <p className="mt-1">{t("directory.team", { value: relation.team })}</p>
-                  <p className="mt-1 text-xs text-[#7b858d]">
-                    {t("directory.directReferrals", {
-                      count: person.direct_referral_count,
-                    })}
-                  </p>
-                </td>
-                <td className="px-4 py-4 text-[#53616d]">
-                  {formatPeopleDate(person.created_at, locale, fallback)}
-                </td>
-                <td className="px-4 py-4">
-                  <Button
-                    className="h-9 rounded-full bg-[#486782] px-4 text-white hover:bg-[#3e5f79] disabled:bg-[#d9dee2] disabled:text-[#7c8790]"
-                    disabled={isCurrentViewer}
-                    onClick={() => onAdjustPerson(person)}
-                  >
-                    {isCurrentViewer ? t("actions.currentAccount") : t("actions.adjust")}
-                  </Button>
-                </td>
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
-    </DashboardTableFrame>
-  );
-}
-
-function StatusChip({ label, status }: { label: string; status: string }) {
-  return (
-    <span
-      className={cn(
-        "inline-flex rounded-full px-3 py-1 text-xs font-semibold",
-        status === "active" && "bg-[#e8f4ec] text-[#4c7259]",
-        status === "inactive" && "bg-[#fff5db] text-[#9a6a07]",
-        status === "suspended" && "bg-[#fbe6e6] text-[#b13d3d]",
-      )}
-    >
-      {label}
-    </span>
   );
 }

@@ -40,6 +40,7 @@ export type WorkspaceOrdersPageMode = "admin" | "salesman" | "client";
 export type WorkspaceCommissionPageMode = "admin" | "salesman";
 export type WorkspaceExchangeRatesMode = "manage" | "readonly";
 export type WorkspaceTasksPageMode = "admin" | "staff";
+export type WorkspacePeoplePageMode = "admin" | "salesman";
 
 export type WorkspaceNavItem = {
   segment: WorkspaceNavSegment;
@@ -52,7 +53,7 @@ export type WorkspacePageVariants = {
   exchangeRates?: WorkspaceExchangeRatesMode;
   feedback?: true;
   orders?: WorkspaceOrdersPageMode;
-  people?: true;
+  people?: WorkspacePeoplePageMode;
   records?: true;
   referrals?: true;
   reviews?: true;
@@ -103,6 +104,7 @@ const recruiterNavItems = [
 const sharedNavItems = [
   { segment: "home", labelKey: "home" },
   { segment: "orders", labelKey: "orders" },
+  { segment: "people", labelKey: "people" },
   { segment: "referrals", labelKey: "referrals" },
   { segment: "team", labelKey: "team" },
   { segment: "commission", labelKey: "commission" },
@@ -136,7 +138,7 @@ const WORKSPACE_ROUTE_CONFIG_BY_SEGMENT = {
       exchangeRates: "manage",
       feedback: true,
       orders: "admin",
-      people: true,
+      people: "admin",
       records: true,
       referrals: true,
       reviews: true,
@@ -213,6 +215,7 @@ const WORKSPACE_ROUTE_CONFIG_BY_SEGMENT = {
       commission: "salesman",
       exchangeRates: "readonly",
       orders: "salesman",
+      people: "salesman",
       referrals: true,
       tasks: "staff",
       team: true,

@@ -1,7 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 import { withRequestTimeout } from "./request-timeout";
-import type { AdminOrderRow } from "./admin-orders";
+import type { AdminOrderRow } from "./admin-orders-types";
 
 export const ADMIN_ORDER_SELECT =
   "id,order_number,original_currency,amount,daily_exchange_rate,transaction_rate,rmb_amount,order_entry_user,ordering_user,order_status,order_type,created_at,reviewed_at,deleted_at";
@@ -10,6 +10,7 @@ export type AdminOrderOverviewFilters = {
   orderEntryUserIds?: string[];
   orderNumber?: string;
   orderStatus?: string;
+  orderTypeIds?: string[];
   orderingUserIds?: string[];
 };
 
@@ -94,6 +95,10 @@ function applyAdminOrderOverviewFilters<TQuery extends AdminOrderFilterQuery<TQu
 
   if (filters?.orderEntryUserIds && filters.orderEntryUserIds.length > 0) {
     nextQuery = nextQuery.in("order_entry_user", filters.orderEntryUserIds);
+  }
+
+  if (filters?.orderTypeIds && filters.orderTypeIds.length > 0) {
+    nextQuery = nextQuery.in("order_type", filters.orderTypeIds);
   }
 
   if (filters?.orderingUserIds && filters.orderingUserIds.length > 0) {

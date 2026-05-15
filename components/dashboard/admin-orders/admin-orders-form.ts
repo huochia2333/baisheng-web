@@ -153,7 +153,7 @@ export function parseCreateOrderForm(
 
   const orderCategory = orderCategoryByTypeId.get(formState.orderType.trim()) ?? null;
 
-  if (orderCategory === "purchase") {
+  if (isPurchaseDetailsCategory(orderCategory)) {
     const purchaseSubtype = formState.purchaseSubtype.trim();
 
     if (!purchaseSubtype) {
@@ -327,6 +327,10 @@ function parseBaseOrderForm(
       orderType,
     },
   };
+}
+
+export function isPurchaseDetailsCategory(category: string | null | undefined) {
+  return category === "purchase" || category === "dropshipping";
 }
 
 function stringifyOrderDetailsForTextarea(value: AdminOrderDetailValue) {

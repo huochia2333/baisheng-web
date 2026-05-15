@@ -6,11 +6,19 @@ import {
 } from "./auth-metadata";
 import { withRequestTimeout } from "./request-timeout";
 import {
+  isSalesmanBusinessBoard,
+  type SalesmanBusinessBoard,
+} from "./salesman-business-access";
+import {
   getCurrentSessionContext,
   type AppRole,
   type UserStatus,
 } from "./user-self-service";
 import { normalizeOptionalString } from "./value-normalizers";
+
+export const DEFAULT_REFERRALS_BUSINESS_BOARD = "tourism";
+
+export type ReferralBusinessBoard = SalesmanBusinessBoard;
 
 export type ReferralTreeScope =
   | "global"
@@ -44,10 +52,15 @@ export type ReferralTreeViewerContext = {
 };
 
 export type ReferralsPageData = {
+  businessBoard: ReferralBusinessBoard;
   canViewReferrals: boolean;
   currentViewerId: string | null;
   currentViewerRole: AppRole | null;
   edges: ReferralTreeEdge[];
+};
+
+type ReferralsPageOptions = {
+  businessBoard?: ReferralBusinessBoard;
 };
 
 export async function getCurrentReferralTreeViewerContext(
@@ -75,11 +88,14 @@ export function canReadReferralTreeByRole(
 
 export async function getReferralsPageData(
   supabase: SupabaseClient,
+  options: ReferralsPageOptions = {},
 ): Promise<ReferralsPageData> {
+  const businessBoard = options.businessBoard ?? DEFAULT_REFERRALS_BUSINESS_BOARD;
   const viewer = await getCurrentReferralTreeViewerContext(supabase);
 
   if (!viewer) {
     return {
+      businessBoard,
       canViewReferrals: false,
       currentViewerId: null,
       currentViewerRole: null,
@@ -90,18 +106,24 @@ export async function getReferralsPageData(
   const canViewReferrals = canReadReferralTreeByRole(viewer.role, viewer.status);
 
   return {
+    businessBoard,
     canViewReferrals,
     currentViewerId: viewer.user.id,
     currentViewerRole: viewer.role,
-    edges: canViewReferrals ? await getReferralTreeEdges(supabase) : [],
+    edges: canViewReferrals
+      ? await getReferralTreeEdges(supabase, businessBoard)
+      : [],
   };
 }
 
 export async function getReferralTreeEdges(
   supabase: SupabaseClient,
+  businessBoard: ReferralBusinessBoard = DEFAULT_REFERRALS_BUSINESS_BOARD,
 ): Promise<ReferralTreeEdge[]> {
   const { data, error } = await withRequestTimeout(
-    supabase.rpc("get_referral_tree_edges"),
+    supabase.rpc("get_referral_tree_edges", {
+      _business_board: businessBoard,
+    }),
   );
 
   if (error) {
@@ -115,6 +137,17 @@ export async function getReferralTreeEdges(
   return data
     .map((item) => normalizeReferralTreeEdge(item))
     .filter((item): item is ReferralTreeEdge => item !== null);
+}
+
+export function parseReferralBusinessBoardSearchParams(
+  searchParams: Record<string, string | string[] | undefined>,
+): ReferralBusinessBoard {
+  const rawValue = searchParams.board;
+  const value = Array.isArray(rawValue) ? rawValue[0] : rawValue;
+
+  return isSalesmanBusinessBoard(value)
+    ? value
+    : DEFAULT_REFERRALS_BUSINESS_BOARD;
 }
 
 function normalizeReferralTreeEdge(value: unknown): ReferralTreeEdge | null {
