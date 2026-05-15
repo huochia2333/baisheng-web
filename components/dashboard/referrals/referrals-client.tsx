@@ -67,6 +67,9 @@ export function ReferralsClient({
     null,
   );
   const [canViewReferrals, setCanViewReferrals] = useState(initialData.canViewReferrals);
+  const [availableBoards, setAvailableBoards] = useState(
+    initialData.availableBoards,
+  );
   const [pageFeedback, setPageFeedback] = useState<PageFeedback>(null);
   const [edges, setEdges] = useState(initialData.edges);
   const [currentViewerId, setCurrentViewerId] = useState<string | null>(
@@ -78,6 +81,7 @@ export function ReferralsClient({
   const [searchText, setSearchText] = useState("");
 
   const applyPageData = useCallback((pageData: ReferralsPageData) => {
+    setAvailableBoards(pageData.availableBoards);
     setSelectedBoard(pageData.businessBoard);
     setCanViewReferrals(pageData.canViewReferrals);
     setEdges(pageData.edges);
@@ -86,19 +90,18 @@ export function ReferralsClient({
   }, []);
 
   const boardTabs = useMemo(
-    () => [
-      {
-        icon: <Plane className="size-4" />,
-        key: "tourism" as const,
-        label: t("boards.tourism"),
-      },
-      {
-        icon: <Package className="size-4" />,
-        key: "dropshipping" as const,
-        label: t("boards.dropshipping"),
-      },
-    ],
-    [t],
+    () =>
+      availableBoards.map((board) => ({
+        icon:
+          board === "tourism" ? (
+            <Plane className="size-4" />
+          ) : (
+            <Package className="size-4" />
+          ),
+        key: board,
+        label: t(`boards.${board}`),
+      })),
+    [availableBoards, t],
   );
 
   const loadBoardData = useCallback(
@@ -130,7 +133,11 @@ export function ReferralsClient({
 
   const handleBoardChange = useCallback(
     (businessBoard: ReferralBusinessBoard) => {
-      if (businessBoard === selectedBoard || pendingBoard) {
+      if (
+        businessBoard === selectedBoard ||
+        pendingBoard ||
+        !availableBoards.includes(businessBoard)
+      ) {
         return;
       }
 
@@ -151,6 +158,7 @@ export function ReferralsClient({
     },
     [
       loadBoardData,
+      availableBoards,
       pathname,
       pendingBoard,
       router,
@@ -217,13 +225,15 @@ export function ReferralsClient({
         <PageBanner tone={pageFeedback.tone}>{pageFeedback.message}</PageBanner>
       ) : null}
 
-      <DashboardSegmentedTabs
-        className="sm:w-auto"
-        onChange={handleBoardChange}
-        options={boardTabs}
-        pendingValue={pendingBoard}
-        value={selectedBoard}
-      />
+      {boardTabs.length > 1 ? (
+        <DashboardSegmentedTabs
+          className="sm:w-auto"
+          onChange={handleBoardChange}
+          options={boardTabs}
+          pendingValue={pendingBoard}
+          value={selectedBoard}
+        />
+      ) : null}
 
       <DashboardSectionHeader
         badge={t("header.badge")}

@@ -15,7 +15,10 @@ type SignupReferralCodeStatus =
   | "required"
   | "not_found"
   | "max_uses"
-  | "expired";
+  | "expired"
+  | "business_board_required"
+  | "business_board_invalid"
+  | "business_board_forbidden";
 type SignupReferralCodeValidationResult =
   | SignupReferralCodeStatus
   | "unavailable";
@@ -23,9 +26,11 @@ type SignupReferralCodeValidationResult =
 export async function validateSignupReferralCode(
   supabase: SupabaseClient,
   referralCode: string,
+  businessBoard: string | null,
 ): Promise<SignupReferralCodeValidationResult> {
   const { data, error } = await supabase.rpc("validate_signup_referral_code", {
     _signup_referral_code: referralCode,
+    _business_board: businessBoard,
   });
 
   if (error) {
@@ -54,6 +59,12 @@ export function formatReferralCodeStatus(
       return t("referralMaxUses");
     case "expired":
       return t("referralExpired");
+    case "business_board_required":
+      return t("referralBusinessBoardRequired");
+    case "business_board_invalid":
+      return t("referralBusinessBoardInvalid");
+    case "business_board_forbidden":
+      return t("referralBusinessBoardForbidden");
   }
 }
 
@@ -77,6 +88,18 @@ export function formatAuthError(
 
   if (message.includes("referral_code has expired")) {
     return t("referralExpired");
+  }
+
+  if (message.includes("referral_business_board_required")) {
+    return t("referralBusinessBoardRequired");
+  }
+
+  if (message.includes("referral_business_board_invalid")) {
+    return t("referralBusinessBoardInvalid");
+  }
+
+  if (message.includes("referral_business_board_forbidden")) {
+    return t("referralBusinessBoardForbidden");
   }
 
   if (isUserAlreadyRegisteredAuthError(error)) {
@@ -119,6 +142,9 @@ function normalizeSignupReferralCodeStatus(
     case "not_found":
     case "max_uses":
     case "expired":
+    case "business_board_required":
+    case "business_board_invalid":
+    case "business_board_forbidden":
       return value;
     default:
       return "not_found";

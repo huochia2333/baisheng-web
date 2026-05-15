@@ -23,6 +23,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 import type { DashboardMyCopy } from "./dashboard-shared-my-copy";
+import { DashboardBusinessReferralPanel } from "./dashboard-business-referral-panel";
 import type { DashboardSharedMyState } from "./use-dashboard-shared-my-state";
 
 type DashboardSharedMySectionsProps = {
@@ -283,6 +284,11 @@ function AccountCenterSection({
           {copy.refreshProfile}
         </Button>
       </div>
+
+      <DashboardBusinessReferralPanel
+        referralCode={account.referralCode}
+        role={account.role}
+      />
     </SectionShell>
   );
 }

@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   ArrowRight,
+  BriefcaseBusiness,
   Check,
   KeyRound,
   Mail,
@@ -31,7 +32,17 @@ import {
   validateSignupReferralCode,
 } from "./register-form-validation";
 
-export function RegisterForm() {
+type SignupBusinessBoard = "" | "tourism" | "dropshipping";
+
+type RegisterFormProps = {
+  initialBusinessBoard?: string | null;
+  initialInviteCode?: string | null;
+};
+
+export function RegisterForm({
+  initialBusinessBoard = null,
+  initialInviteCode = null,
+}: RegisterFormProps) {
   const router = useRouter();
   const t = useTranslations("RegisterForm");
   const [submitting, setSubmitting] = useState(false);
@@ -39,7 +50,12 @@ export function RegisterForm() {
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
-  const [inviteCode, setInviteCode] = useState("");
+  const [inviteCode, setInviteCode] = useState(
+    normalizeInitialInviteCode(initialInviteCode),
+  );
+  const [businessBoard, setBusinessBoard] = useState<SignupBusinessBoard>(
+    normalizeInitialBusinessBoard(initialBusinessBoard),
+  );
   const [password, setPassword] = useState("");
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const passwordPolicy = getPasswordPolicyState(password);
@@ -73,6 +89,7 @@ export function RegisterForm() {
     }
 
     const normalizedInviteCode = inviteCode.trim().toUpperCase();
+    const selectedBusinessBoard = businessBoard || null;
     const redirectUrl =
       typeof window !== "undefined" ? `${window.location.origin}/login` : undefined;
 
@@ -80,6 +97,7 @@ export function RegisterForm() {
       const referralCodeStatus = await validateSignupReferralCode(
         supabase,
         normalizedInviteCode,
+        selectedBusinessBoard,
       );
 
       if (referralCodeStatus !== "valid" && referralCodeStatus !== "unavailable") {
@@ -96,6 +114,9 @@ export function RegisterForm() {
             name: name.trim(),
             phone: phone.trim(),
             referral_code: normalizedInviteCode,
+            ...(selectedBusinessBoard
+              ? { business_board: selectedBusinessBoard }
+              : {}),
           },
         },
       });
@@ -177,6 +198,33 @@ export function RegisterForm() {
         value={inviteCode}
       />
 
+      <label className="flex flex-col gap-2">
+        <span className="pl-1 font-label text-[11px] font-semibold tracking-[0.18em] text-[#5d7388] uppercase">
+          {t("businessBoard")}
+        </span>
+        <div className="group relative">
+          <span className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4 text-[#98a3ad] transition-colors group-focus-within:text-[#486783]">
+            <BriefcaseBusiness className="size-4" />
+          </span>
+          <select
+            className="h-[52px] w-full rounded-[22px] border border-[#ece9e4] bg-[#f2efeb]/90 pl-12 pr-10 text-[15px] text-[#22303a] shadow-[inset_0_1px_0_rgba(255,255,255,0.86)] transition-all focus:border-[#bfd2e1] focus:bg-white focus:ring-4 focus:ring-[#bfd2e1]/45 focus:outline-none disabled:cursor-wait disabled:opacity-80"
+            disabled={submitting}
+            name="businessBoard"
+            onChange={(event) =>
+              setBusinessBoard(normalizeInitialBusinessBoard(event.target.value))
+            }
+            value={businessBoard}
+          >
+            <option value="">{t("businessBoardAuto")}</option>
+            <option value="tourism">{t("businessBoardTourism")}</option>
+            <option value="dropshipping">{t("businessBoardDropshipping")}</option>
+          </select>
+        </div>
+        <span className="pl-1 text-xs leading-5 text-[#8b959d]">
+          {t("businessBoardHint")}
+        </span>
+      </label>
+
       <AuthPasswordField
         autoComplete="new-password"
         disabled={submitting}
@@ -234,4 +282,18 @@ export function RegisterForm() {
       </button>
     </form>
   );
+}
+
+function normalizeInitialInviteCode(value: string | null | undefined) {
+  return value?.trim().toUpperCase() ?? "";
+}
+
+function normalizeInitialBusinessBoard(
+  value: string | null | undefined,
+): SignupBusinessBoard {
+  const normalized = value?.trim().toLowerCase();
+
+  return normalized === "tourism" || normalized === "dropshipping"
+    ? normalized
+    : "";
 }

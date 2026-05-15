@@ -95,8 +95,8 @@ export function createDashboardSharedMyViewModel({
     normalizeOptionalString(profile?.email) ??
     normalizeOptionalString(authUser?.email) ??
     copy.pendingValue;
-  const displayReferralCode =
-    normalizeOptionalString(profile?.referral_code) ?? copy.pendingReferralCode;
+  const referralCode = normalizeOptionalString(profile?.referral_code);
+  const displayReferralCode = referralCode ?? copy.pendingReferralCode;
   const displayLastLogin = formatDateTime(authUser?.last_sign_in_at, locale);
   const displayStatus = mapUserStatus(profile?.status, sharedCopy);
   const hasActiveVip =
@@ -171,6 +171,8 @@ export function createDashboardSharedMyViewModel({
     photoStatus,
     profile,
     profileStats,
+    referralCode,
+    role: bundle?.role ?? null,
     verificationStatus,
     videoAssets,
     videoStatus,

@@ -16,12 +16,19 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-export default async function RegisterPage() {
-  const [, t, authShellCopy] = await Promise.all([
+export default async function RegisterPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ board?: string | string[]; ref?: string | string[] }>;
+}) {
+  const [, params, t, authShellCopy] = await Promise.all([
     redirectAuthenticatedUserToWorkspace(),
+    searchParams,
     getTranslations("RegisterPage"),
     getAuthShellCopy(),
   ]);
+  const initialInviteCode = firstSearchParam(params.ref);
+  const initialBusinessBoard = firstSearchParam(params.board);
 
   return (
     <ScopedIntlProvider namespaces={["LanguageToggle", "RegisterForm"]}>
@@ -40,7 +47,10 @@ export default async function RegisterPage() {
         noteDescription={t("noteDescription")}
         noteTitle={t("noteTitle")}
       >
-        <RegisterForm />
+        <RegisterForm
+          initialBusinessBoard={initialBusinessBoard}
+          initialInviteCode={initialInviteCode}
+        />
 
         <div className="mt-8 rounded-[26px] border border-[#d5dde3] bg-[#eff4f7] p-5 text-sm text-[#627380] shadow-[0_14px_34px_rgba(115,127,139,0.07)] sm:hidden">
           <p className="mb-2 font-semibold text-[#33424d]">{t("mobileNoteTitle")}</p>
@@ -49,4 +59,8 @@ export default async function RegisterPage() {
       </AuthShell>
     </ScopedIntlProvider>
   );
+}
+
+function firstSearchParam(value: string | string[] | undefined) {
+  return Array.isArray(value) ? value[0] : value;
 }

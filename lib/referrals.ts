@@ -7,6 +7,7 @@ import {
 import { withRequestTimeout } from "./request-timeout";
 import {
   isSalesmanBusinessBoard,
+  normalizeSalesmanBusinessBoards,
   type SalesmanBusinessBoard,
 } from "./salesman-business-access";
 import {
@@ -52,6 +53,7 @@ export type ReferralTreeViewerContext = {
 };
 
 export type ReferralsPageData = {
+  availableBoards: ReferralBusinessBoard[];
   businessBoard: ReferralBusinessBoard;
   canViewReferrals: boolean;
   currentViewerId: string | null;
@@ -95,6 +97,7 @@ export async function getReferralsPageData(
 
   if (!viewer) {
     return {
+      availableBoards: [],
       businessBoard,
       canViewReferrals: false,
       currentViewerId: null,
@@ -103,17 +106,45 @@ export async function getReferralsPageData(
     };
   }
 
-  const canViewReferrals = canReadReferralTreeByRole(viewer.role, viewer.status);
+  const availableBoards = await getCurrentReferralBusinessBoards(supabase);
+  const resolvedBusinessBoard = resolveReferralBusinessBoard(
+    businessBoard,
+    availableBoards,
+  );
+  const canViewReferrals =
+    canReadReferralTreeByRole(viewer.role, viewer.status) &&
+    availableBoards.includes(resolvedBusinessBoard);
 
   return {
-    businessBoard,
+    availableBoards,
+    businessBoard: resolvedBusinessBoard,
     canViewReferrals,
     currentViewerId: viewer.user.id,
     currentViewerRole: viewer.role,
     edges: canViewReferrals
-      ? await getReferralTreeEdges(supabase, businessBoard)
+      ? await getReferralTreeEdges(supabase, resolvedBusinessBoard)
       : [],
   };
+}
+
+export async function getCurrentReferralBusinessBoards(
+  supabase: SupabaseClient,
+): Promise<ReferralBusinessBoard[]> {
+  const { data, error } = await withRequestTimeout(
+    supabase.rpc("get_current_referral_business_boards"),
+  );
+
+  if (error || !Array.isArray(data)) {
+    return [];
+  }
+
+  return normalizeSalesmanBusinessBoards(
+    data.map((item) =>
+      typeof item === "object" && item !== null && "business_board" in item
+        ? item.business_board
+        : null,
+    ),
+  );
 }
 
 export async function getReferralTreeEdges(
@@ -148,6 +179,17 @@ export function parseReferralBusinessBoardSearchParams(
   return isSalesmanBusinessBoard(value)
     ? value
     : DEFAULT_REFERRALS_BUSINESS_BOARD;
+}
+
+function resolveReferralBusinessBoard(
+  requestedBoard: ReferralBusinessBoard,
+  availableBoards: readonly ReferralBusinessBoard[],
+): ReferralBusinessBoard {
+  if (availableBoards.includes(requestedBoard)) {
+    return requestedBoard;
+  }
+
+  return availableBoards[0] ?? DEFAULT_REFERRALS_BUSINESS_BOARD;
 }
 
 function normalizeReferralTreeEdge(value: unknown): ReferralTreeEdge | null {
