@@ -5,6 +5,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   type BusinessCategoryOption,
   createAdminOrder,
+  type ServiceFeeTypeOption,
 } from "@/lib/admin-orders";
 import {
   findLatestCnyExchangeRate,
@@ -17,6 +18,7 @@ import {
   applyOrderExchangeRateToOrderForm,
   parseCreateOrderForm,
   getDefaultOrderCurrency,
+  getDefaultServiceFeeTypeId,
   type OrderFormState,
   type OrdersUiCopy,
 } from "./admin-orders-utils";
@@ -37,6 +39,7 @@ export function useAdminOrderCreateDialog({
   currentViewerId,
   orderCategoryByTypeId,
   orderTypeOptions,
+  serviceFeeTypeOptions,
   ordersUiCopy,
   refreshOrdersRoute,
   setPageFeedback,
@@ -50,6 +53,7 @@ export function useAdminOrderCreateDialog({
   currentViewerId: string | null;
   orderCategoryByTypeId: Map<string, string | null>;
   orderTypeOptions: BusinessCategoryOption[];
+  serviceFeeTypeOptions: ServiceFeeTypeOption[];
   ordersUiCopy: OrdersUiCopy;
   refreshOrdersRoute: () => void;
   setPageFeedback: PageFeedbackSetter;
@@ -69,6 +73,10 @@ export function useAdminOrderCreateDialog({
     () => getDefaultOrderCurrency(orderCurrencyRates),
     [orderCurrencyRates],
   );
+  const defaultServiceFeeType = useMemo(
+    () => getDefaultServiceFeeTypeId(serviceFeeTypeOptions),
+    [serviceFeeTypeOptions],
+  );
 
   useEffect(() => {
     if (createDialogOpen) {
@@ -82,6 +90,7 @@ export function useAdminOrderCreateDialog({
           originalCurrency: current.originalCurrency || defaultOriginalCurrency,
           orderEntryUser: current.orderEntryUser || (currentViewerId ?? ""),
           orderType: current.orderType || (orderTypeOptions[0]?.id ?? ""),
+          serviceFeeType: current.serviceFeeType || defaultServiceFeeType,
         },
         orderCurrencyRates,
       ),
@@ -90,6 +99,7 @@ export function useAdminOrderCreateDialog({
     createDialogOpen,
     currentViewerId,
     defaultOriginalCurrency,
+    defaultServiceFeeType,
     orderTypeOptions,
     orderCurrencyRates,
   ]);
@@ -107,6 +117,7 @@ export function useAdminOrderCreateDialog({
           originalCurrency: defaultOriginalCurrency,
           orderEntryUser: currentViewerId ?? "",
           orderType: orderTypeOptions[0]?.id ?? "",
+          serviceFeeType: defaultServiceFeeType,
         }),
         orderCurrencyRates,
       ),
@@ -116,6 +127,7 @@ export function useAdminOrderCreateDialog({
     canOpenCreateDialog,
     currentViewerId,
     defaultOriginalCurrency,
+    defaultServiceFeeType,
     orderTypeOptions,
     setPageFeedback,
     orderCurrencyRates,
@@ -140,7 +152,9 @@ export function useAdminOrderCreateDialog({
     <Key extends keyof OrderFormState>(key: Key, value: OrderFormState[Key]) => {
       setCreateDialogFeedback(null);
       setCreateFormState((current) => {
-        const nextState = getNextOrderFormState(current, key, value);
+        const nextState = getNextOrderFormState(current, key, value, {
+          defaultServiceFeeType,
+        });
 
         if (key !== "originalCurrency") {
           return nextState;
@@ -149,7 +163,7 @@ export function useAdminOrderCreateDialog({
         return applyOrderExchangeRateToOrderForm(nextState, orderCurrencyRates);
       });
     },
-    [orderCurrencyRates],
+    [defaultServiceFeeType, orderCurrencyRates],
   );
 
   const handleCreateOrder = useCallback(async () => {
@@ -195,6 +209,7 @@ export function useAdminOrderCreateDialog({
             originalCurrency: defaultOriginalCurrency,
             orderEntryUser: currentViewerId ?? "",
             orderType: orderTypeOptions[0]?.id ?? "",
+            serviceFeeType: defaultServiceFeeType,
           }),
           orderCurrencyRates,
         ),
@@ -220,6 +235,7 @@ export function useAdminOrderCreateDialog({
     createPending,
     currentViewerId,
     defaultOriginalCurrency,
+    defaultServiceFeeType,
     orderCategoryByTypeId,
     orderTypeOptions,
     ordersUiCopy,

@@ -23,12 +23,14 @@ export {
   applyOrderFormDefaults,
   createOrderFormState,
   createOrderFormStateFromOrder,
+  getDefaultServiceFeeTypeId,
   parseCreateOrderForm,
   type OrderFormState,
 } from "./admin-orders-form";
 export {
   applyOrderExchangeRateToOrderForm,
   buildOrderCurrencyOptions,
+  deriveRmbAmountValue,
   deriveTransactionRateValue,
   getDefaultOrderCurrency,
   type OrderCurrencyOption,

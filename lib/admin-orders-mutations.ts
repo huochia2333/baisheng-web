@@ -2,6 +2,10 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 
 import { ADMIN_ORDER_SELECT } from "./admin-orders-query";
 import { getAdminOrderCosts, canViewOrderCosts } from "./admin-orders-costs";
+import {
+  getAdminOrderServiceFees,
+  mergeAdminOrdersWithServiceFees,
+} from "./admin-orders-service-fees";
 import { getCurrentOrderViewerContext } from "./admin-orders-viewer";
 import { withRequestTimeout } from "./request-timeout";
 import type {
@@ -86,17 +90,31 @@ async function getAdminOrderById(
 
   const viewer = await getCurrentOrderViewerContext(supabase);
 
+  const [orderWithServiceFees] = mergeAdminOrdersWithServiceFees(
+    [
+      {
+        ...data,
+        cost_amount: null,
+        service_fee_amount: null,
+        service_fee_ratio: null,
+        service_fee_type_id: null,
+      },
+    ],
+    await getAdminOrderServiceFees(supabase, [orderId]),
+  );
+
+  if (!orderWithServiceFees) {
+    return null;
+  }
+
   if (!viewer || !canViewOrderCosts(viewer.role, viewer.status)) {
-    return {
-      ...data,
-      cost_amount: null,
-    };
+    return orderWithServiceFees;
   }
 
   const [costData] = await getAdminOrderCosts(supabase, [orderId]);
 
   return {
-    ...data,
+    ...orderWithServiceFees,
     cost_amount: costData?.cost_amount ?? null,
   };
 }

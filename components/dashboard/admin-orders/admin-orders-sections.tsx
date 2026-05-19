@@ -264,11 +264,12 @@ export const OrdersTableSection = memo(function OrdersTableSection({
             />
           }
         >
-            <table className="min-w-[960px] w-full table-fixed border-collapse">
+            <table className="min-w-[1120px] w-full table-fixed border-collapse">
               <thead className="bg-[#f7f5f2]">
                 <tr className="border-b border-[#efebe5]">
                   <OrderHeaderCell>{t("table.orderNumber")}</OrderHeaderCell>
                   <OrderHeaderCell>{t("table.rmbAmount")}</OrderHeaderCell>
+                  <OrderHeaderCell>{t("table.serviceFee")}</OrderHeaderCell>
                   {canViewOrderCosts ? <OrderHeaderCell>{t("table.costAmount")}</OrderHeaderCell> : null}
                   {showOrderEntryColumn ? (
                     <OrderHeaderCell>{t("table.orderEntryUser")}</OrderHeaderCell>
@@ -299,6 +300,7 @@ export const OrdersTableSection = memo(function OrdersTableSection({
                   >
                     <OrderValueCell strong value={order.order_number} />
                     <OrderValueCell value={formatMoneyValue(order.rmb_amount, locale)} />
+                    <OrderValueCell value={formatMoneyValue(order.service_fee_amount, locale)} />
                     {canViewOrderCosts ? (
                       <OrderValueCell value={formatMoneyValue(order.cost_amount, locale)} />
                     ) : null}

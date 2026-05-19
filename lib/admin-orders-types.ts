@@ -2,6 +2,7 @@ import type { User } from "@supabase/supabase-js";
 
 import type { DashboardPaginationState } from "./dashboard-pagination";
 import type { ExchangeRateRow } from "./exchange-rates";
+import type { ServiceFeeTypeOption } from "./service-fee-types";
 import type { AppRole, UserStatus } from "./user-self-service";
 
 export type AdminOrderRow = {
@@ -20,6 +21,9 @@ export type AdminOrderRow = {
   reviewed_at: string | null;
   deleted_at: string | null;
   cost_amount: number | string | null;
+  service_fee_amount: number | string | null;
+  service_fee_ratio: number | string | null;
+  service_fee_type_id: string | null;
 };
 
 export type OrderUserOption = {
@@ -74,6 +78,9 @@ export type AdminOrderSupplementaryDetail =
       subtype: string | null;
       discountId: string;
       discountRatio: number | string | null;
+      serviceFeeAmount: number | string | null;
+      serviceFeeRatio: number | string | null;
+      serviceFeeTypeId: string | null;
       details: AdminOrderDetailValue;
     };
 
@@ -87,6 +94,7 @@ export type CreateAdminOrderSupplementaryInput =
       kind: "service";
       subtypeId: string;
       discountId: string;
+      serviceFeeTypeId: string;
       details: AdminOrderDetailValue;
     };
 
@@ -148,6 +156,7 @@ export type AdminOrdersPageData = {
   pagination: DashboardPaginationState;
   purchaseOrderTypeOptions: PurchaseOrderTypeOption[];
   orderCurrencyRates: ExchangeRateRow[];
+  serviceFeeTypeOptions: ServiceFeeTypeOption[];
   serviceOrderTypeOptions: ServiceOrderTypeOption[];
   summary: {
     completed: number;

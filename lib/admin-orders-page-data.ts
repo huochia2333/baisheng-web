@@ -15,8 +15,13 @@ import {
   getOrderTypeOptions,
   getOrderUserOptions,
   getPurchaseOrderTypeOptions,
+  getServiceFeeTypeOptions,
   getServiceOrderTypeOptions,
 } from "./admin-orders-options";
+import {
+  getAdminOrderServiceFees,
+  mergeAdminOrdersWithServiceFees,
+} from "./admin-orders-service-fees";
 import {
   canReadOrderByRole,
   canReadOrderCostByRole,
@@ -112,6 +117,7 @@ export async function getAdminOrdersPageData(
     purchaseOrderTypeOptions,
     serviceOrderTypeOptions,
     orderDiscountOptions,
+    serviceFeeTypeOptions,
     orderCurrencyRates,
   ] = await Promise.all([
     getOrderUserOptions(supabase),
@@ -119,6 +125,7 @@ export async function getAdminOrdersPageData(
     getPurchaseOrderTypeOptions(supabase),
     getServiceOrderTypeOptions(supabase),
     getOrderDiscountTypeOptions(supabase),
+    getServiceFeeTypeOptions(supabase),
     getLatestCnyExchangeRates(supabase),
   ]);
   const orderTypeOptions = filterOrderTypeOptionsForBusinessScope(
@@ -144,6 +151,7 @@ export async function getAdminOrdersPageData(
       orders: [],
       pagination: getDashboardPaginationState(0, requestedPage, pageSize),
       purchaseOrderTypeOptions,
+      serviceFeeTypeOptions,
       serviceOrderTypeOptions,
       summary: {
         completed: 0,
@@ -218,6 +226,7 @@ export async function getAdminOrdersPageData(
       orders: [],
       pagination,
       purchaseOrderTypeOptions,
+      serviceFeeTypeOptions,
       serviceOrderTypeOptions,
       summary: {
         completed: completedOrdersCount,
@@ -234,13 +243,17 @@ export async function getAdminOrdersPageData(
     filters: orderFilters,
     range: getDashboardQueryRangeForPage(pagination.page, pagination.pageSize),
   });
-  const orderCosts =
-    canViewOrderCosts && orders.length > 0
-      ? await getAdminOrderCosts(
-          supabase,
-          orders.map((order) => order.id),
-        )
-      : [];
+  const orderIds = orders.map((order) => order.id);
+  const [orderCosts, orderServiceFees] = await Promise.all([
+    canViewOrderCosts && orderIds.length > 0
+      ? getAdminOrderCosts(supabase, orderIds)
+      : Promise.resolve([]),
+    getAdminOrderServiceFees(supabase, orderIds),
+  ]);
+  const ordersWithServiceFees = mergeAdminOrdersWithServiceFees(
+    orders,
+    orderServiceFees,
+  );
 
   return {
     canViewOrderCosts,
@@ -252,9 +265,12 @@ export async function getAdminOrdersPageData(
     matchedOrdersCount,
     orderDiscountOptions,
     orderTypeOptions,
-    orders: canViewOrderCosts ? mergeAdminOrdersWithCosts(orders, orderCosts) : orders,
+    orders: canViewOrderCosts
+      ? mergeAdminOrdersWithCosts(ordersWithServiceFees, orderCosts)
+      : ordersWithServiceFees,
     pagination,
     purchaseOrderTypeOptions,
+    serviceFeeTypeOptions,
     serviceOrderTypeOptions,
     summary: {
       completed: completedOrdersCount,
@@ -288,6 +304,7 @@ function createEmptyAdminOrdersPageData(options: {
     orders: [],
     pagination: getDashboardPaginationState(0, options.page, options.pageSize),
     purchaseOrderTypeOptions: [],
+    serviceFeeTypeOptions: [],
     serviceOrderTypeOptions: [],
     summary: {
       completed: 0,

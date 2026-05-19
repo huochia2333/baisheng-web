@@ -834,7 +834,7 @@
     },
     "tabs": {
       "orders": "Order List",
-      "exchange-rates": "FX Settings"
+      "exchange-rates": "Order Settings"
     },
     "modes": {
       "admin": {
@@ -897,6 +897,7 @@
     "table": {
       "orderNumber": "Order Number",
       "rmbAmount": "RMB Total",
+      "serviceFee": "Service Fee",
       "costAmount": "Order Cost",
       "orderEntryUser": "Order Entry User",
       "orderingUser": "Ordering User",
@@ -908,6 +909,41 @@
       "editDescription": "Saving changes overwrites the current order information and updates the order details.",
       "saveChanges": "Save Changes",
       "editTitle": "Edit Order"
+    },
+    "settings": {
+      "serviceFees": {
+        "badge": "Service Fee",
+        "title": "Service Fee Settings",
+        "description": "Service orders calculate their service fee from the rates managed here.",
+        "summaryLabel": "Available Rates",
+        "createLabel": "New Service Fee Rate",
+        "inputPlaceholder": "Example: 10",
+        "add": "Add Rate",
+        "edit": "Edit",
+        "save": "Save",
+        "cancel": "Cancel",
+        "delete": "Delete",
+        "deleteConfirm": "Delete this service fee rate? Rates used by orders cannot be deleted.",
+        "createSuccess": "Service fee rate added.",
+        "updateSuccess": "Service fee rate updated.",
+        "deleteSuccess": "Service fee rate deleted.",
+        "emptyTitle": "No Service Fee Rates",
+        "emptyDescription": "Add a rate so service orders can use it.",
+        "table": {
+          "rate": "Service Fee Rate",
+          "actions": "Actions"
+        },
+        "validation": {
+          "invalid": "Enter a valid service fee rate.",
+          "range": "The service fee rate must be greater than 0 and no more than 100%."
+        },
+        "errors": {
+          "duplicate": "This service fee rate already exists.",
+          "inUse": "This service fee rate is used by existing orders and cannot be deleted.",
+          "permission": "The current account cannot change service fee rates.",
+          "unknown": "Service fee rate save failed. Please try again later."
+        }
+      }
     }
   },
   "OrdersUI": {
@@ -964,6 +1000,7 @@
       "purchaseDetails": "Purchase / Wholesale Details",
       "serviceSubtype": "Service Subtype",
       "serviceDiscount": "Order Discount",
+      "serviceFeeType": "Service Fee Rate",
       "serviceDetails": "Service Details"
     },
     "placeholders": {
@@ -971,7 +1008,7 @@
       "amount": "Enter the total amount",
       "dailyExchangeRate": "Filled from the selected currency",
       "transactionRate": "Calculated automatically from the exchange rate value",
-      "rmbAmount": "Enter the RMB total",
+      "rmbAmount": "Calculated from amount and exchange rate",
       "costAmount": "Enter the internal cost, or leave blank"
     },
     "detailPairs": {
@@ -982,9 +1019,11 @@
     },
     "hints": {
       "transactionRate": "Auto = exchange rate value * 0.99",
+      "autoRmbAmount": "RMB total is calculated from total amount and exchange rate value and cannot be edited.",
       "lockedOrderEntryUser": "Orders created from this page are automatically assigned to the current salesperson.",
       "autoDailyExchangeRate": "The exchange rate value is filled automatically and cannot be edited.",
       "lockedCurrencyAndRates": "The currency and exchange rates stay fixed after the order is created.",
+      "serviceFeeLocked": "Service fee rates are managed by administrators. The default rate is used here.",
       "autoTimestamps": "After creation, the system writes the created time automatically. After editing, the system updates the latest modified time automatically."
     },
     "select": {
@@ -994,7 +1033,8 @@
       "orderType": "Select an order type",
       "purchaseSubtype": "Select a purchase or wholesale subtype",
       "serviceSubtype": "Select a service subtype",
-      "serviceDiscount": "Select an order discount"
+      "serviceDiscount": "Select an order discount",
+      "serviceFeeType": "Select a service fee rate"
     },
     "validation": {
       "selectPrompt": "Please select {label}.",
@@ -1005,7 +1045,7 @@
     },
     "errors": {
       "duplicateOrderNumber": "Order number generation conflicted. Please try again later.",
-      "exchangeRateMissing": "The selected currency does not have an exchange rate yet. Add it in FX settings first.",
+      "exchangeRateMissing": "The selected currency does not have an exchange rate yet. Add it in order settings first.",
       "invalidForeignKeys": "Select a valid order owner, customer, order type, and matching purchase, wholesale, or service options.",
       "cannotCreate": "You do not have permission to create this order.",
       "cannotUpdate": "You do not have permission to update this order.",
@@ -1040,6 +1080,7 @@
         "originalCurrency": "Original Currency",
         "amount": "Total Amount",
         "rmbAmount": "RMB Total",
+        "serviceFee": "Service Fee",
         "costAmount": "Order Cost",
         "dailyExchangeRate": "Exchange Rate Value",
         "transactionRate": "Transaction Rate",
@@ -1057,6 +1098,8 @@
         "serviceSubtype": "Service Subtype",
         "sourceForm": "Source Form",
         "discount": "Order Discount",
+        "serviceFeeRate": "Service Fee Rate",
+        "serviceFee": "Service Fee",
         "noMoreDetails": "There are no additional details in the linked form yet."
       }
     }

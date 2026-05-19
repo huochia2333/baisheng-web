@@ -1,6 +1,7 @@
 import { type AdminOrdersFilters } from "@/lib/admin-orders";
 
 import {
+  deriveRmbAmountValue,
   deriveTransactionRateValue,
   getServiceSubtypeCostPreset,
   type OrderFormState,
@@ -128,6 +129,9 @@ export function getNextOrderFormState<Key extends keyof OrderFormState>(
   current: OrderFormState,
   key: Key,
   value: OrderFormState[Key],
+  options: {
+    defaultServiceFeeType?: string;
+  } = {},
 ) {
   const nextState = {
     ...current,
@@ -136,6 +140,17 @@ export function getNextOrderFormState<Key extends keyof OrderFormState>(
 
   if (key === "dailyExchangeRate") {
     nextState.transactionRate = deriveTransactionRateValue(String(value));
+    nextState.rmbAmount = deriveRmbAmountValue(
+      nextState.amount,
+      nextState.dailyExchangeRate,
+    );
+  }
+
+  if (key === "amount") {
+    nextState.rmbAmount = deriveRmbAmountValue(
+      nextState.amount,
+      nextState.dailyExchangeRate,
+    );
   }
 
   if (key === "orderType") {
@@ -143,6 +158,7 @@ export function getNextOrderFormState<Key extends keyof OrderFormState>(
     nextState.purchaseDetails = "";
     nextState.serviceSubtype = "";
     nextState.serviceDiscount = "";
+    nextState.serviceFeeType = options.defaultServiceFeeType ?? "";
     nextState.serviceDetails = "";
   }
 

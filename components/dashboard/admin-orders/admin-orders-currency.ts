@@ -66,8 +66,10 @@ export function getDefaultOrderCurrency(orderCurrencyRates: ExchangeRateRow[]) {
 export function applyOrderExchangeRateToOrderForm<
   FormState extends {
     originalCurrency: string;
+    amount: string;
     dailyExchangeRate: string;
     transactionRate: string;
+    rmbAmount: string;
   },
 >(formState: FormState, orderCurrencyRates: ExchangeRateRow[]): FormState {
   const rate = findLatestCnyExchangeRate(
@@ -80,6 +82,7 @@ export function applyOrderExchangeRateToOrderForm<
     ...formState,
     dailyExchangeRate,
     transactionRate: deriveTransactionRateValue(dailyExchangeRate),
+    rmbAmount: deriveRmbAmountValue(formState.amount, dailyExchangeRate),
   };
 }
 
@@ -94,6 +97,21 @@ export function deriveTransactionRateValue(
 
   const derived = (parsed * 0.99).toFixed(6);
   return derived.replace(/\.?0+$/, "");
+}
+
+export function deriveRmbAmountValue(
+  amount: number | string | null | undefined,
+  dailyExchangeRate: number | string | null | undefined,
+) {
+  const parsedAmount = parseNumericValue(amount);
+  const parsedRate = parseNumericValue(dailyExchangeRate);
+
+  if (parsedAmount === null || parsedRate === null) {
+    return "";
+  }
+
+  const derived = Math.round((parsedAmount * parsedRate + Number.EPSILON) * 100) / 100;
+  return derived.toFixed(2).replace(/\.?0+$/, "");
 }
 
 function getOrderedCurrencyCodes(

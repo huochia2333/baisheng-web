@@ -5,6 +5,7 @@ import {
   normalizeUserStatus,
 } from "./auth-metadata";
 import { withRequestTimeout } from "./request-timeout";
+import { getServiceFeeTypes } from "./service-fee-types";
 import type {
   BusinessCategoryOption,
   OrderDiscountTypeOption,
@@ -125,3 +126,5 @@ export async function getOrderDiscountTypeOptions(
 
   return data ?? [];
 }
+
+export const getServiceFeeTypeOptions = getServiceFeeTypes;

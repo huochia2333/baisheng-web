@@ -21,7 +21,7 @@
 - `app/(auth)`：公开页与认证页，包含 `/`、`/login`、`/register`、`/forgot-password`、`/privacy`、`/terms`、`/help`
 - `app/(workspace)/[workspace]/home`：各角色登录后的默认首页，展示北京时间问候和当前角色可见公告
 - `app/(workspace)/[workspace]/my`：各角色共享“我的”个人资料页面入口
-- `app/(workspace)/[workspace]/[section]`：按角色动态装配公告管理、订单、推荐树、团队、人员管理、操作记录、佣金、任务、审核、反馈管理等页面；管理员汇率设置整合在订单页内
+- `app/(workspace)/[workspace]/[section]`：按角色动态装配公告管理、订单、推荐树、团队、人员管理、操作记录、佣金、任务、审核、反馈管理等页面；管理员订单数设置整合在订单页内
 - `app/forbidden.tsx`：统一承接越权访问时的访问错误页
 - `app/error.tsx`、`app/global-error.tsx`：统一承接页面异常，使用不依赖接口或翻译上下文的日常语言兜底文案
 - `proxy.ts`：会话同步、登录保护、工作台访问前置校验
@@ -34,7 +34,7 @@
 
 | 角色 | 默认入口 | 当前重点模块 |
 | --- | --- | --- |
-| `administrator` | `/admin/home` | `home`、`announcements`、`orders`（含汇率设置）、`referrals`、`team`、`people`、`records`、`commission`、`tasks`、`reviews`、`feedback` |
+| `administrator` | `/admin/home` | `home`、`announcements`、`orders`（含订单数设置）、`referrals`、`team`、`people`、`records`、`commission`、`tasks`、`reviews`、`feedback` |
 | `salesman` | `/salesman/home` | `home`、`orders`、`people`、`referrals`、`team`、`commission`、`exchange-rates`、`tasks` |
 | `client` | `/client/home` | `home`、`orders`、`referrals` |
 | `manager` | `/manager/home` | `home`、`referrals`、`team`、`tasks` |
@@ -101,7 +101,7 @@ baisheng-web/
 - `lib/ai-assistant` 承接柏盛管理系统助手提示词、请求类型和 DeepSeek 服务端流式调用；当前只做工作台问答引导，不读取或改动订单、人员、任务等业务数据；`assistant-workspace-context.ts` 从工作台配置整理当前角色入口和近期业务规则，避免助手继续维护旧入口清单
 - `components/dashboard/dashboard-section-header.tsx` 统一承接各业务板块页头；新增订单、任务、团队、佣金、汇率、审核、公告、推荐树等板块时，优先复用它传入标题、说明、指标和操作按钮，避免在业务 Client/Page 中重复堆页头布局
 - `components/dashboard/dashboard-section-panel.tsx` 统一承接筛选面板、列表面板、列表标题和表格外框；新增带筛选或清单的板块时，优先复用它保持间距、边框、阴影和响应式结构一致
-- `components/dashboard/dashboard-segmented-tabs.tsx` 统一承接板块内切换按钮；订单页“订单列表 / 汇率设置”、佣金页“普通佣金 / 任务佣金”和审核页多队列切换都应复用这一套视觉样式
+- `components/dashboard/dashboard-segmented-tabs.tsx` 统一承接板块内切换按钮；订单页“订单列表 / 订单数设置”、佣金页“普通佣金 / 任务佣金”和审核页多队列切换都应复用这一套视觉样式
 - `components/dashboard/dashboard-pill.tsx` 与 `components/dashboard/tasks/task-ui.tsx` 分别统一承接工作台标签、任务状态/目标角色展示、任务搜索筛选和信息块；任务相关板块不要在各自 UI 文件里再复制一套 pill、tile 或筛选控件
 - 工作台共享页头、指标卡、筛选面板、列表面板、移动导航和分页控件都需要保留小屏紧凑样式；新增板块不要只按桌面端密度堆叠信息
 - 2026-05-13 补充：工作台移动端顶部品牌名在 `AdminShell` 中独立成满宽标题行，移动导航由 `AdminShellNav` 承接。
@@ -184,16 +184,17 @@ baisheng-web/
 - `admin-orders-client-config.ts`：放置 orders 视图配置、过滤器比较和表单字段联动规则
 - `admin-orders-copy.ts`、`admin-orders-display.ts`、`admin-orders-form.ts`、`admin-orders-details.ts`、`admin-orders-errors.ts`、`admin-orders-permissions.ts`：分别承接文案映射、显示格式化、表单解析、详情展开、错误映射和权限判断
 - `admin-orders-form-dialog.tsx`、`admin-orders-details-dialog.tsx`、`admin-orders-dialog-ui.tsx`：拆出订单表单弹窗、详情弹窗以及弹窗共享 UI
-- 2026-05-14 补充：订单大类展示为“零售类 / 服务订单 / 批发类”；零售类和服务订单继续归入零售口径，批发类作为批发业务入口。当前只调整订单分类和明细归属，暂不实现批发报价、服务费或佣金规则。
+- 2026-05-14 补充：订单大类展示为“零售类 / 服务订单 / 批发类”；零售类和服务订单继续归入零售口径，批发类作为批发业务入口。当前只调整订单分类和明细归属，批发报价规则暂不在本模块实现。
 - 2026-05-14 补充：管理员人员管理可为业务员勾选可见业务板块；业务员订单页会按授权只显示零售、批发或两者对应的订单类型，新建订单和订单用户选项也使用同一范围。
 - `lib/admin-orders-business-scope.ts` 承接订单业务板块范围计算，避免把业务员板块授权逻辑继续堆进 `lib/admin-orders.ts`。
 - 2026-05-14 补充：`lib/admin-orders.ts` 已收敛为轻量导出门面；订单类型、用户选项、成本读取、补充明细、保存/删除、页面数据组装和查看权限分别拆到 `admin-orders-options.ts`、`admin-orders-costs.ts`、`admin-orders-supplementary.ts`、`admin-orders-mutations.ts`、`admin-orders-page-data.ts`、`admin-orders-viewer.ts` 与 `admin-orders-types.ts`，后续批发报价或佣金规则不要再塞回门面文件。
 - 2026-05-15 补充：零售类订单的补充信息区标题统一显示为“零售信息”，避免继续用“采购/批发信息”混淆批发板块。
 - 2026-05-19 补充：新建订单的原始货币改为从当前可用的汇率币种中选择，选择后汇率等值和公司成交汇率自动填入并保持只读；相关币种联动拆到 `admin-orders-currency.ts` 和 `admin-orders-currency-fields.tsx`，避免继续扩张订单表单弹窗。
+- 2026-05-19 补充：服务订单会记录服务费率并在订单列表、详情中展示服务费；管理员可在订单页“订单数设置”维护服务费率，非管理员创建服务订单时沿用默认费率且不能手动修改。订单表单的人民币总计改为按“金额总计 * 汇率等值”自动计算并锁定，数据库保存时也会重新计算避免手动传值。订单补充表单拆到 `admin-orders-supplementary-form-sections.tsx`，服务费设置拆到 `admin-orders-service-fee-settings.tsx` 与 `admin-orders-service-fee-settings-utils.ts`。
 - 2026-04-28 补充：订单采购/服务补充明细改为通过“创建类别”添加双输入行，左侧填写类别名称，右侧填写对应内容，不再要求用户手写“项目: 内容”格式
-- 2026-05-06 补充：管理员汇率设置整合到 `/admin/orders?tab=exchange-rates`，左侧导航不再单独展示管理员汇率入口；旧 `/admin/exchange-rates` 会跳转到订单页的汇率设置标签
+- 2026-05-06 补充：管理员订单数设置整合到 `/admin/orders?tab=exchange-rates`，左侧导航不再单独展示管理员汇率入口；旧 `/admin/exchange-rates` 会跳转到订单页的订单数设置标签
 - 2026-05-06 补充：新建订单优先选中当前可用的 `USD -> CNY`；如果没有 USD 汇率，则使用当前可选币种中的第一项。汇率等值自动填入且不能手动修改；缺少汇率时会阻止创建订单，已创建订单编辑时币种、汇率等值和公司成交汇率保持原值
-- 2026-05-06 补充：订单页内“订单列表 / 汇率设置”切换使用本地即时反馈，点击后先切换页面内容并显示加载状态，再同步地址栏参数，避免用户感觉按钮没有响应
+- 2026-05-06 补充：订单页内“订单列表 / 订单数设置”切换使用本地即时反馈，点击后先切换页面内容并显示加载状态，再同步地址栏参数，避免用户感觉按钮没有响应
 - 2026-05-13 补充：业务员订单页文案改为直接描述可执行动作和当前状态，不再使用解释前因后果的说明句。
 - `admin-orders-utils.ts`：只保留 barrel re-export，不再承载实际业务实现
 
@@ -207,11 +208,11 @@ baisheng-web/
 
 ### 自动汇率与订单规则（2026-05-06）
 
-- 汇率同步配置由 Supabase 的 `exchange_rate_sync_settings` 和 `exchange_rate_sync_pairs` 承接，默认每天获取 `USD -> CNY`；管理员可以在订单页的“汇率设置”标签中开关自动获取、增删每天获取的币种，并一次手动获取多个币种
+- 汇率同步配置由 Supabase 的 `exchange_rate_sync_settings` 和 `exchange_rate_sync_pairs` 承接，默认每天获取 `USD -> CNY`；管理员可以在订单页的“订单数设置”标签中开关自动获取、增删每天获取的币种，并一次手动获取多个币种
 - 自动获取由 Supabase `pg_cron` 每天 UTC `01:30` 调用 `exchange-rate-sync` Edge Function，对应北京时间 `09:30`
 - `exchange-rate-sync` 使用 ExchangeRate-API Standard endpoint，从 `{base}` 读取 `conversion_rates.CNY`；API key 只通过 Supabase secret `EXCHANGE_RATE_API_KEY` 配置，不进入前端代码和仓库
 - 管理员手动获取会先校验当前登录令牌中的管理员身份，再由 Edge Function 使用服务端 secret 请求汇率接口，前端不会接触真实 API key
-- 订单保存 RPC 会在数据库端重新按 `原币 -> CNY` 取汇率，优先使用当天记录，若当天未获取则回退到汇率设置中的最新有效记录；`rmb_amount` 仍按现有业务方式录入，不自动计算
+- 订单保存 RPC 会在数据库端重新按 `原币 -> CNY` 取汇率，优先使用当天记录，若当天未获取则回退到订单数设置中的最新有效记录；人民币总计按订单金额和保存时的汇率自动计算，前端不再允许手动修改
 - 本次拆分新增 `exchange-rate-sync-section.tsx` 和 `use-exchange-rate-sync-settings.ts` 承接汇率设置 UI 与动作，订单页只负责标签组合，避免把自动汇率状态继续堆进订单或汇率核心 Client 文件
 
 ### `admin-tasks` 模块分层（2026-05-11）

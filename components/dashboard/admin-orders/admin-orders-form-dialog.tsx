@@ -10,32 +10,27 @@ import {
   type OrderDiscountTypeOption,
   type OrderUserOption,
   type PurchaseOrderTypeOption,
+  type ServiceFeeTypeOption,
   type ServiceOrderTypeOption,
 } from "@/lib/admin-orders";
-import { useLocale } from "@/components/i18n/locale-provider";
 
 import { PageBanner } from "../dashboard-shared-ui";
 import { DashboardDialog } from "../dashboard-dialog";
 import { Button } from "../../ui/button";
 import {
   createOrdersUiCopy,
-  formatDiscountRatioValue,
-  formatPurchaseOrderSubtype,
-  formatServiceOrderSubtype,
   getOrderTypeMetaFromCategory,
   getOrderUserOptionLabel,
   type OrderCurrencyOption,
   type OrderFormState,
 } from "./admin-orders-utils";
-import { isPurchaseDetailsCategory } from "./admin-orders-form";
 import { OrderCurrencyRateFields } from "./admin-orders-currency-fields";
 import { getOrderStatusOptions } from "./admin-orders-status-options";
 import {
   fieldInputClassName,
   OrderField,
-  OrderSupplementaryFormSection,
 } from "./admin-orders-dialog-ui";
-import { OrderDetailPairsInput } from "./admin-orders-detail-pairs-input";
+import { OrderSupplementaryFormSections } from "./admin-orders-supplementary-form-sections";
 import { type PageFeedback } from "./admin-orders-view-model-shared";
 
 export function OrderFormDialog({
@@ -43,6 +38,7 @@ export function OrderFormDialog({
   title,
   description,
   submitLabel,
+  canManageServiceFee,
   showCostField,
   feedback,
   currencyOptions,
@@ -55,6 +51,7 @@ export function OrderFormDialog({
   orderingUserOptions,
   orderUserOptions,
   purchaseOrderTypeOptions,
+  serviceFeeTypeOptions,
   serviceOrderTypeOptions,
   supplementaryLoading = false,
   lockCurrencyField = false,
@@ -68,6 +65,7 @@ export function OrderFormDialog({
   title: string;
   description: string;
   submitLabel: string;
+  canManageServiceFee: boolean;
   showCostField: boolean;
   feedback?: PageFeedback;
   currencyOptions: OrderCurrencyOption[];
@@ -80,6 +78,7 @@ export function OrderFormDialog({
   orderUserOptions: OrderUserOption[];
   orderingUserOptions?: OrderUserOption[];
   purchaseOrderTypeOptions: PurchaseOrderTypeOption[];
+  serviceFeeTypeOptions: ServiceFeeTypeOption[];
   serviceOrderTypeOptions: ServiceOrderTypeOption[];
   supplementaryLoading?: boolean;
   lockCurrencyField?: boolean;
@@ -94,7 +93,6 @@ export function OrderFormDialog({
 }) {
   const effectiveOrderEntryUserOptions = orderEntryUserOptions ?? orderUserOptions;
   const effectiveOrderingUserOptions = orderingUserOptions ?? orderUserOptions;
-  const { locale } = useLocale();
   const t = useTranslations("OrdersUI");
   const orderUiCopy = useMemo(() => createOrdersUiCopy(t), [t]);
   const orderStatusOptions = getOrderStatusOptions(t);
@@ -173,14 +171,15 @@ export function OrderFormDialog({
           <OrderField label={t("fields.rmbAmount")} required>
             <input
               className={fieldInputClassName}
-              disabled={isFormBusy}
+              disabled
               min="0"
-              onChange={(event) => onFieldChange("rmbAmount", event.target.value)}
               placeholder={t("placeholders.rmbAmount")}
+              readOnly
               step="0.01"
               type="number"
               value={formState.rmbAmount}
             />
+            <p className="mt-2 text-xs text-[#7b8790]">{t("hints.autoRmbAmount")}</p>
           </OrderField>
 
           {showCostField ? (
@@ -270,123 +269,19 @@ export function OrderFormDialog({
             {t("hints.autoTimestamps")}
           </div>
 
-          {isPurchaseDetailsCategory(selectedOrderCategory) ? (
-            <div className="md:col-span-2">
-              <OrderSupplementaryFormSection
-                description={
-                  mode === "create"
-                    ? t("purchaseSection.createDescription")
-                    : t("purchaseSection.editDescription")
-                }
-                title={t("purchaseSection.title")}
-              >
-                {supplementaryLoading ? (
-                  <div className="flex items-center gap-3 rounded-[18px] border border-[#ebe7e1] bg-white px-4 py-3 text-sm text-[#60707d]">
-                    <LoaderCircle className="size-4 animate-spin" />
-                    {t("purchaseSection.loading")}
-                  </div>
-                ) : null}
-                <div className="grid gap-5 md:grid-cols-2">
-                  <OrderField label={t("fields.purchaseSubtype")} required>
-                    <select
-                      className={fieldInputClassName}
-                      disabled={isFormBusy}
-                      onChange={(event) => onFieldChange("purchaseSubtype", event.target.value)}
-                      value={formState.purchaseSubtype}
-                    >
-                      <option value="">{t("select.purchaseSubtype")}</option>
-                      {visiblePurchaseOrderTypeOptions.map((option) => (
-                        <option key={option.id} value={option.id}>
-                          {formatPurchaseOrderSubtype(option.business_subcategory, orderUiCopy)}
-                        </option>
-                      ))}
-                    </select>
-                  </OrderField>
-                </div>
-
-                <OrderField label={t("fields.purchaseDetails")}>
-                  <OrderDetailPairsInput
-                    copy={{
-                      addLabel: t("detailPairs.add"),
-                      namePlaceholder: t("detailPairs.namePlaceholder"),
-                      removeLabel: t("detailPairs.remove"),
-                      valuePlaceholder: t("detailPairs.valuePlaceholder"),
-                    }}
-                    disabled={isFormBusy}
-                    onChange={(nextValue) => onFieldChange("purchaseDetails", nextValue)}
-                    value={formState.purchaseDetails}
-                  />
-                </OrderField>
-              </OrderSupplementaryFormSection>
-            </div>
-          ) : null}
-
-          {selectedOrderCategory === "service" ? (
-            <div className="md:col-span-2">
-              <OrderSupplementaryFormSection
-                description={
-                  mode === "create"
-                    ? t("serviceSection.createDescription")
-                    : t("serviceSection.editDescription")
-                }
-                title={t("serviceSection.title")}
-              >
-                {supplementaryLoading ? (
-                  <div className="flex items-center gap-3 rounded-[18px] border border-[#ebe7e1] bg-white px-4 py-3 text-sm text-[#60707d]">
-                    <LoaderCircle className="size-4 animate-spin" />
-                    {t("serviceSection.loading")}
-                  </div>
-                ) : null}
-                <div className="grid gap-5 md:grid-cols-2">
-                  <OrderField label={t("fields.serviceSubtype")} required>
-                    <select
-                      className={fieldInputClassName}
-                      disabled={isFormBusy}
-                      onChange={(event) => onFieldChange("serviceSubtype", event.target.value)}
-                      value={formState.serviceSubtype}
-                    >
-                      <option value="">{t("select.serviceSubtype")}</option>
-                      {serviceOrderTypeOptions.map((option) => (
-                        <option key={option.id} value={option.id}>
-                          {formatServiceOrderSubtype(option.business_subcategory, orderUiCopy)}
-                        </option>
-                      ))}
-                    </select>
-                  </OrderField>
-
-                  <OrderField label={t("fields.serviceDiscount")} required>
-                    <select
-                      className={fieldInputClassName}
-                      disabled={isFormBusy}
-                      onChange={(event) => onFieldChange("serviceDiscount", event.target.value)}
-                      value={formState.serviceDiscount}
-                    >
-                      <option value="">{t("select.serviceDiscount")}</option>
-                      {orderDiscountOptions.map((option) => (
-                        <option key={option.id} value={option.id}>
-                          {formatDiscountRatioValue(option.discount_ratio, locale, orderUiCopy)}
-                        </option>
-                      ))}
-                    </select>
-                  </OrderField>
-                </div>
-
-                <OrderField label={t("fields.serviceDetails")}>
-                  <OrderDetailPairsInput
-                    copy={{
-                      addLabel: t("detailPairs.add"),
-                      namePlaceholder: t("detailPairs.namePlaceholder"),
-                      removeLabel: t("detailPairs.remove"),
-                      valuePlaceholder: t("detailPairs.valuePlaceholder"),
-                    }}
-                    disabled={isFormBusy}
-                    onChange={(nextValue) => onFieldChange("serviceDetails", nextValue)}
-                    value={formState.serviceDetails}
-                  />
-                </OrderField>
-              </OrderSupplementaryFormSection>
-            </div>
-          ) : null}
+          <OrderSupplementaryFormSections
+            canManageServiceFee={canManageServiceFee}
+            formState={formState}
+            isFormBusy={isFormBusy}
+            mode={mode}
+            orderDiscountOptions={orderDiscountOptions}
+            purchaseOrderTypeOptions={visiblePurchaseOrderTypeOptions}
+            selectedOrderCategory={selectedOrderCategory}
+            serviceFeeTypeOptions={serviceFeeTypeOptions}
+            serviceOrderTypeOptions={serviceOrderTypeOptions}
+            supplementaryLoading={supplementaryLoading}
+            onFieldChange={onFieldChange}
+          />
         </div>
       </div>
     </DashboardDialog>

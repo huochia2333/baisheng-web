@@ -17,6 +17,7 @@ export type {
   ServiceOrderTypeOption,
   UpdateAdminOrderInput,
 } from "./admin-orders-types";
+export type { ServiceFeeTypeOption } from "./service-fee-types";
 
 export {
   getAdminOrderCosts,
@@ -34,6 +35,7 @@ export {
   getOrderTypeOptions,
   getOrderUserOptions,
   getPurchaseOrderTypeOptions,
+  getServiceFeeTypeOptions,
   getServiceOrderTypeOptions,
 } from "./admin-orders-options";
 export {

@@ -2,7 +2,7 @@
 
 import { memo } from "react";
 
-import { ArrowLeftRight, ReceiptText } from "lucide-react";
+import { ReceiptText, SlidersHorizontal } from "lucide-react";
 import { useTranslations } from "next-intl";
 
 import { DashboardSegmentedTabs } from "@/components/dashboard/dashboard-segmented-tabs";
@@ -21,7 +21,7 @@ const tabs = [
     key: "orders",
   },
   {
-    icon: ArrowLeftRight,
+    icon: SlidersHorizontal,
     key: "exchange-rates",
   },
 ] as const;

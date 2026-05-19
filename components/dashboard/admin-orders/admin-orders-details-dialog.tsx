@@ -198,6 +198,7 @@ export function OrderDetailsDialog({
             <OrderDetailCard label={t("details.fields.originalCurrency")} value={formatCurrencyCode(order.original_currency)} />
             <OrderDetailCard label={t("details.fields.amount")} value={formatMoneyValue(order.amount, locale)} />
             <OrderDetailCard label={t("details.fields.rmbAmount")} value={formatMoneyValue(order.rmb_amount, locale)} />
+            <OrderDetailCard label={t("details.fields.serviceFee")} value={formatMoneyValue(order.service_fee_amount, locale)} />
             {canViewCost ? (
               <OrderDetailCard label={t("details.fields.costAmount")} value={formatMoneyValue(order.cost_amount, locale)} />
             ) : null}
@@ -297,10 +298,20 @@ function OrderSupplementaryDetailsSection({
         <OrderDetailCard label={t("details.supplementary.sourceForm")} value={formTitle} />
         <OrderDetailCard label={subtypeLabel} value={subtypeValue} />
         {detail.kind === "service" ? (
-          <OrderDetailCard
-            label={t("details.supplementary.discount")}
-            value={formatDiscountRatioValue(detail.discountRatio, locale, orderUiCopy)}
-          />
+          <>
+            <OrderDetailCard
+              label={t("details.supplementary.discount")}
+              value={formatDiscountRatioValue(detail.discountRatio, locale, orderUiCopy)}
+            />
+            <OrderDetailCard
+              label={t("details.supplementary.serviceFeeRate")}
+              value={formatDiscountRatioValue(detail.serviceFeeRatio, locale, orderUiCopy)}
+            />
+            <OrderDetailCard
+              label={t("details.supplementary.serviceFee")}
+              value={formatMoneyValue(detail.serviceFeeAmount, locale)}
+            />
+          </>
         ) : null}
 
         {detailItems.length > 0 ? (

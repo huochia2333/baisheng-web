@@ -21,6 +21,7 @@ type ServiceOrderRecord = {
   order_overview_id: string;
   order_type: string;
   order_discount: string;
+  service_fee_type: string;
   order_details: AdminOrderDetailValue;
 };
 
@@ -30,6 +31,10 @@ type ServiceOrderTypeRecord = {
 
 type OrderDiscountTypeRecord = {
   discount_ratio: number | string | null;
+};
+
+type ServiceFeeTypeRecord = {
+  fee_ratio: number | string | null;
 };
 
 export async function getAdminOrderSupplementaryDetail(
@@ -53,7 +58,7 @@ export async function getAdminOrderSupplementaryDetail(
     withRequestTimeout(
       supabase
         .from("service_order")
-        .select("order_overview_id,order_type,order_discount,order_details")
+        .select("order_overview_id,order_type,order_discount,service_fee_type,order_details")
         .eq("order_overview_id", overview.id)
         .maybeSingle<ServiceOrderRecord>(),
     ),
@@ -90,7 +95,8 @@ export async function getAdminOrderSupplementaryDetail(
   }
 
   if (serviceResult.data) {
-    const [serviceTypeResult, discountTypeResult] = await Promise.all([
+    const [serviceTypeResult, discountTypeResult, serviceFeeTypeResult] =
+      await Promise.all([
       withRequestTimeout(
         supabase
           .from("service_order_type")
@@ -105,6 +111,13 @@ export async function getAdminOrderSupplementaryDetail(
           .eq("id", serviceResult.data.order_discount)
           .maybeSingle<OrderDiscountTypeRecord>(),
       ),
+      withRequestTimeout(
+        supabase
+          .from("service_fee_type")
+          .select("fee_ratio")
+          .eq("id", serviceResult.data.service_fee_type)
+          .maybeSingle<ServiceFeeTypeRecord>(),
+      ),
     ]);
 
     if (serviceTypeResult.error) {
@@ -115,6 +128,10 @@ export async function getAdminOrderSupplementaryDetail(
       throw discountTypeResult.error;
     }
 
+    if (serviceFeeTypeResult.error) {
+      throw serviceFeeTypeResult.error;
+    }
+
     return {
       kind: "service",
       orderNumber: overview.order_number,
@@ -122,11 +139,63 @@ export async function getAdminOrderSupplementaryDetail(
       subtype: serviceTypeResult.data?.business_subcategory ?? null,
       discountId: serviceResult.data.order_discount,
       discountRatio: discountTypeResult.data?.discount_ratio ?? null,
+      serviceFeeAmount: calculateServiceFeeAmount(
+        await getOrderRmbAmount(supabase, overview.id),
+        serviceFeeTypeResult.data?.fee_ratio ?? null,
+      ),
+      serviceFeeRatio: serviceFeeTypeResult.data?.fee_ratio ?? null,
+      serviceFeeTypeId: serviceResult.data.service_fee_type,
       details: serviceResult.data.order_details,
     };
   }
 
   return null;
+}
+
+async function getOrderRmbAmount(
+  supabase: SupabaseClient,
+  orderId: string,
+): Promise<number | string | null> {
+  const { data, error } = await withRequestTimeout(
+    supabase
+      .from("order_overview")
+      .select("rmb_amount")
+      .eq("id", orderId)
+      .maybeSingle<{ rmb_amount: number | string | null }>(),
+  );
+
+  if (error) {
+    throw error;
+  }
+
+  return data?.rmb_amount ?? null;
+}
+
+function calculateServiceFeeAmount(
+  rmbAmount: number | string | null,
+  serviceFeeRatio: number | string | null,
+) {
+  const amount = parseNumericValue(rmbAmount);
+  const ratio = parseNumericValue(serviceFeeRatio);
+
+  if (amount === null || ratio === null) {
+    return null;
+  }
+
+  return Math.round(amount * ratio * 100) / 100;
+}
+
+function parseNumericValue(value: number | string | null | undefined) {
+  if (typeof value === "number") {
+    return Number.isFinite(value) ? value : null;
+  }
+
+  if (typeof value !== "string") {
+    return null;
+  }
+
+  const parsed = Number(value.trim());
+  return Number.isFinite(parsed) ? parsed : null;
 }
 
 async function getOrderOverviewReference(

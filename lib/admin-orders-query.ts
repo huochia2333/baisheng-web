@@ -53,6 +53,9 @@ export async function queryAdminOrders(
   return (data ?? []).map((item) => ({
     ...item,
     cost_amount: null,
+    service_fee_amount: null,
+    service_fee_ratio: null,
+    service_fee_type_id: null,
   }));
 }
 

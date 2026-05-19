@@ -31,6 +31,7 @@ type OrderFieldKey =
   | "rmbAmount"
   | "serviceDetails"
   | "serviceDiscount"
+  | "serviceFeeType"
   | "serviceSubtype"
   | "transactionRate";
 
@@ -120,6 +121,7 @@ export function createOrdersUiCopy(t: OrdersUiTranslator): OrdersUiCopy {
       rmbAmount: t("fields.rmbAmount"),
       serviceDetails: t("fields.serviceDetails"),
       serviceDiscount: t("fields.serviceDiscount"),
+      serviceFeeType: t("fields.serviceFeeType"),
       serviceSubtype: t("fields.serviceSubtype"),
       transactionRate: t("fields.transactionRate"),
     },

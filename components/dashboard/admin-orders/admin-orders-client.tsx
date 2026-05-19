@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo, useOptimistic, useTransition } from "react";
+import { useCallback, useMemo, useOptimistic, useState, useTransition } from "react";
 
 import { ReceiptText, ShieldAlert } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
@@ -10,12 +10,12 @@ import { type AdminOrdersPageData } from "@/lib/admin-orders";
 import { type ExchangeRatesPageData } from "@/lib/exchange-rates";
 
 import { EmptyState, PageBanner } from "@/components/dashboard/dashboard-shared-ui";
-import { ExchangeRatesClient } from "@/components/dashboard/exchange-rates/exchange-rates-client";
 
 import {
   OrdersHeaderSection,
   OrdersTableSection,
 } from "./admin-orders-sections";
+import { AdminOrderSettingsClient } from "./admin-order-settings-client";
 import { type OrdersClientMode } from "./admin-orders-client-config";
 import {
   AdminOrdersTabs,
@@ -41,7 +41,16 @@ export function AdminOrdersClient({
   const pathname = usePathname();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const viewModel = useAdminOrdersViewModel({ initialData, mode });
+  const [serviceFeeTypeOptions, setServiceFeeTypeOptions] = useState(
+    initialData.serviceFeeTypeOptions,
+  );
+  const viewModel = useAdminOrdersViewModel({
+    initialData: {
+      ...initialData,
+      serviceFeeTypeOptions,
+    },
+    mode,
+  });
   const canShowTabs = mode === "admin" && initialExchangeRatesData !== null;
   const routeActiveTab: AdminOrdersTab =
     canShowTabs && searchParams.get("tab") === "exchange-rates"
@@ -104,11 +113,10 @@ export function AdminOrdersClient({
       ) : null}
 
       {activeTab === "exchange-rates" && initialExchangeRatesData ? (
-        <ExchangeRatesClient
-          embedded
-          homeHref="/admin/orders"
-          initialData={initialExchangeRatesData}
-          mode="manage"
+        <AdminOrderSettingsClient
+          initialExchangeRatesData={initialExchangeRatesData}
+          initialServiceFeeTypes={serviceFeeTypeOptions}
+          onServiceFeeTypesChange={setServiceFeeTypeOptions}
         />
       ) : (
         <>
@@ -170,6 +178,7 @@ export function AdminOrdersClient({
       )}
 
       <OrderFormDialog
+        canManageServiceFee={mode === "admin"}
         currencyOptions={orderCurrencyOptions}
         description={viewModel.viewConfig.createDescription}
         feedback={viewModel.createDialogFeedback}
@@ -185,6 +194,7 @@ export function AdminOrdersClient({
         orderingUserOptions={viewModel.orderingUserOptions}
         pending={viewModel.createPending}
         purchaseOrderTypeOptions={viewModel.purchaseOrderTypeOptions}
+        serviceFeeTypeOptions={viewModel.serviceFeeTypeOptions}
         serviceOrderTypeOptions={viewModel.serviceOrderTypeOptions}
         showCostField={viewModel.canViewOrderCosts}
         submitLabel={viewModel.viewConfig.createTitle}
@@ -195,6 +205,7 @@ export function AdminOrdersClient({
       />
 
       <OrderFormDialog
+        canManageServiceFee={mode === "admin"}
         currencyOptions={orderCurrencyOptions}
         description={t("dialogs.editDescription")}
         feedback={viewModel.editDialogFeedback}
@@ -208,6 +219,7 @@ export function AdminOrdersClient({
         orderUserOptions={viewModel.userOptions}
         pending={viewModel.editPending}
         purchaseOrderTypeOptions={viewModel.purchaseOrderTypeOptions}
+        serviceFeeTypeOptions={viewModel.serviceFeeTypeOptions}
         serviceOrderTypeOptions={viewModel.serviceOrderTypeOptions}
         showCostField={viewModel.canViewOrderCosts}
         supplementaryLoading={viewModel.editSupplementaryLoading}
