@@ -11,6 +11,7 @@ export type CreateTaskFormState = {
   commissionAmount: string;
   acceptanceLimit: string;
   acceptanceUnlimited: boolean;
+  reviewRequiresAttachment: boolean;
   targetRoles: TaskTargetRole[];
   files: File[];
 };
@@ -34,6 +35,7 @@ export function createEmptyTaskForm(
         : "",
     acceptanceLimit: "1",
     acceptanceUnlimited: false,
+    reviewRequiresAttachment: true,
     targetRoles: [],
     files: [],
   };
@@ -53,6 +55,7 @@ export function createTaskFormFromTask(task: AdminTaskRow): CreateTaskFormState 
     commissionAmount: formatOptionalTaskCommissionInput(task.commission_amount_rmb),
     acceptanceLimit: String(Math.max(1, task.acceptance_limit)),
     acceptanceUnlimited: task.acceptance_unlimited,
+    reviewRequiresAttachment: task.review_requires_attachment,
     targetRoles: task.target_roles,
     files: [],
   };

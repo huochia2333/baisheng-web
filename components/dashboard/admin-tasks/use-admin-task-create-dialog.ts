@@ -173,6 +173,7 @@ export function useAdminTaskCreateDialog({
           parseTaskCommissionAmountInput(createFormState.commissionAmount) ?? 0,
         acceptanceLimit: parseTaskAcceptanceLimitInput(createFormState.acceptanceLimit) ?? 1,
         acceptanceUnlimited: createFormState.acceptanceUnlimited,
+        reviewRequiresAttachment: createFormState.reviewRequiresAttachment,
         createdByUserId: viewerId,
         targetRoles: createFormState.targetRoles,
       });

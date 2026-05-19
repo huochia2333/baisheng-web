@@ -84,7 +84,7 @@ import {
 import { getTaskAcceptanceSummaryByTaskId } from "./task-acceptance-summary";
 
 const ADMIN_TASK_SELECT =
-  "id,parent_task_id,task_name,task_intro,task_type_code,commission_amount_rmb,acceptance_limit,acceptance_unlimited,created_by_user_id,accepted_by_user_id,scope,team_id,status,created_at,accepted_at,submitted_at,reviewed_at,reviewed_by_user_id,review_reject_reason,completed_at";
+  "id,parent_task_id,task_name,task_intro,task_type_code,commission_amount_rmb,acceptance_limit,acceptance_unlimited,review_requires_attachment,created_by_user_id,accepted_by_user_id,scope,team_id,status,created_at,accepted_at,submitted_at,reviewed_at,reviewed_by_user_id,review_reject_reason,completed_at";
 
 export async function getCurrentTaskViewerContext(
   supabase: SupabaseClient,
@@ -290,6 +290,7 @@ export async function createAdminTask(
       p_target_roles: input.targetRoles,
       p_acceptance_limit: input.acceptanceLimit,
       p_acceptance_unlimited: input.acceptanceUnlimited,
+      p_review_requires_attachment: input.reviewRequiresAttachment,
     }).returns<TaskMainRecord>(),
   );
 
@@ -323,6 +324,7 @@ export async function updateAdminTask(
       p_target_roles: input.targetRoles,
       p_acceptance_limit: input.acceptanceLimit,
       p_acceptance_unlimited: input.acceptanceUnlimited,
+      p_review_requires_attachment: input.reviewRequiresAttachment,
     }).returns<TaskMainRecord>(),
   );
 

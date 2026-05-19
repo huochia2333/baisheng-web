@@ -185,6 +185,15 @@ export function getTaskAttachmentCountLabel(count: number, t: TranslateFn) {
   return t("attachmentCount", { count });
 }
 
+export function getTaskReviewRequirementLabel(
+  reviewRequiresAttachment: boolean,
+  t: TranslateFn,
+) {
+  return reviewRequiresAttachment
+    ? t("reviewRequirementRequiresAttachment")
+    : t("reviewRequirementNoteOnly");
+}
+
 export function getTaskMoreAttachmentsLabel(count: number, t: TranslateFn) {
   return t("moreAttachments", { count });
 }
@@ -394,6 +403,10 @@ export function toSalesmanTaskErrorMessage(error: unknown, t: TranslateFn) {
 
   if (rawMessage.includes("task review submission assets are required")) {
     return t("errors.salesman.reviewAssetsRequired");
+  }
+
+  if (rawMessage.includes("task review submission note is required")) {
+    return t("errors.salesman.reviewNoteRequired");
   }
 
   if (rawMessage.includes("task review submission not found")) {

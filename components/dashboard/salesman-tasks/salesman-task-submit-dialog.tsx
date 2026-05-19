@@ -52,6 +52,7 @@ export function SalesmanTaskSubmitDialog({
 }) {
   const t = useTranslations("Tasks.salesman.submitDialog");
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const requiresAttachment = task?.review_requires_attachment ?? true;
 
   return (
     <DashboardDialog
@@ -83,7 +84,7 @@ export function SalesmanTaskSubmitDialog({
       }
       description={
         task
-          ? t("description", {
+          ? t(requiresAttachment ? "description" : "descriptionNoteOnly", {
               taskName: task.task_name,
             })
           : undefined
@@ -104,9 +105,10 @@ export function SalesmanTaskSubmitDialog({
 
         <label className="block">
           <span className="mb-2 block text-sm font-semibold text-[#23313a]">
-            {t("noteLabel")}
+            {requiresAttachment ? t("noteLabel") : t("noteRequiredLabel")}
           </span>
           <textarea
+            aria-required={!requiresAttachment}
             className="min-h-[140px] w-full rounded-[22px] border border-[#dfe5ea] bg-white px-4 py-3 text-sm leading-7 text-[#23313a] outline-none transition focus:border-[#bfd2e1] focus:ring-4 focus:ring-[#bfd2e1]/30"
             onChange={(event) => onNoteChange(event.target.value)}
             placeholder={t("notePlaceholder")}
@@ -115,7 +117,9 @@ export function SalesmanTaskSubmitDialog({
         </label>
 
         <div>
-          <p className="mb-2 text-sm font-semibold text-[#23313a]">{t("filesLabel")}</p>
+          <p className="mb-2 text-sm font-semibold text-[#23313a]">
+            {requiresAttachment ? t("filesLabel") : t("filesOptionalLabel")}
+          </p>
           <input
             className="hidden"
             multiple
@@ -139,13 +143,21 @@ export function SalesmanTaskSubmitDialog({
             <div>
               <p className="text-sm font-semibold text-[#23313a]">{t("filesCta")}</p>
               <p className="mt-2 text-xs leading-6 text-[#6f7b85]">
-                {t("filesHint", {
-                  maxFiles: TASK_REVIEW_SUBMISSION_MAX_FILES,
-                  imageMaxPerFile: formatFileSize(IMAGE_UPLOAD_MAX_SIZE_BYTES),
-                  videoMaxPerFile: formatFileSize(VIDEO_UPLOAD_MAX_SIZE_BYTES),
-                  otherMaxPerFile: formatFileSize(OTHER_UPLOAD_MAX_SIZE_BYTES),
-                  maxTotal: formatFileSize(TASK_REVIEW_SUBMISSION_MAX_TOTAL_SIZE_BYTES),
-                })}
+                {requiresAttachment
+                  ? t("filesHint", {
+                      maxFiles: TASK_REVIEW_SUBMISSION_MAX_FILES,
+                      imageMaxPerFile: formatFileSize(IMAGE_UPLOAD_MAX_SIZE_BYTES),
+                      videoMaxPerFile: formatFileSize(VIDEO_UPLOAD_MAX_SIZE_BYTES),
+                      otherMaxPerFile: formatFileSize(OTHER_UPLOAD_MAX_SIZE_BYTES),
+                      maxTotal: formatFileSize(TASK_REVIEW_SUBMISSION_MAX_TOTAL_SIZE_BYTES),
+                    })
+                  : t("filesOptionalHint", {
+                      maxFiles: TASK_REVIEW_SUBMISSION_MAX_FILES,
+                      imageMaxPerFile: formatFileSize(IMAGE_UPLOAD_MAX_SIZE_BYTES),
+                      videoMaxPerFile: formatFileSize(VIDEO_UPLOAD_MAX_SIZE_BYTES),
+                      otherMaxPerFile: formatFileSize(OTHER_UPLOAD_MAX_SIZE_BYTES),
+                      maxTotal: formatFileSize(TASK_REVIEW_SUBMISSION_MAX_TOTAL_SIZE_BYTES),
+                    })}
               </p>
             </div>
           </button>
@@ -175,7 +187,9 @@ export function SalesmanTaskSubmitDialog({
               ))}
             </div>
           ) : (
-            <p className="mt-3 text-sm leading-7 text-[#6f7b85]">{t("filesEmpty")}</p>
+            <p className="mt-3 text-sm leading-7 text-[#6f7b85]">
+              {requiresAttachment ? t("filesEmpty") : t("filesOptionalEmpty")}
+            </p>
           )}
         </div>
       </div>

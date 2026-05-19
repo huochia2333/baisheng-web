@@ -67,6 +67,7 @@ export function TaskFormFields({
   onAcceptanceLimitChange,
   onAcceptanceUnlimitedChange,
   onCommissionAmountChange,
+  onReviewRequiresAttachmentChange,
   onTargetRoleToggle,
   onTaskIntroChange,
   onTaskNameChange,
@@ -80,6 +81,7 @@ export function TaskFormFields({
   onAcceptanceLimitChange: (value: string) => void;
   onAcceptanceUnlimitedChange: (value: boolean) => void;
   onCommissionAmountChange: (value: string) => void;
+  onReviewRequiresAttachmentChange: (value: boolean) => void;
   onTargetRoleToggle: (role: TaskTargetRole) => void;
   onTaskIntroChange: (value: string) => void;
   onTaskNameChange: (value: string) => void;
@@ -147,7 +149,7 @@ export function TaskFormFields({
         </FormField>
       </div>
 
-      <div className="grid gap-5 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
+      <div className="grid gap-5 lg:grid-cols-3">
         <FormField label={t("createDialog.acceptanceLimitLabel")}>
           <input
             className={taskInputClassName}
@@ -186,6 +188,35 @@ export function TaskFormFields({
           </label>
           <p className="mt-2 text-xs leading-6 text-[#7b858d]">
             {t("createDialog.acceptanceHint")}
+          </p>
+        </fieldset>
+
+        <fieldset>
+          <legend className="mb-2 block text-sm font-semibold text-[#23313a]">
+            {t("createDialog.reviewRequirementLabel")}
+          </legend>
+          <label
+            className={[
+              "flex min-h-11 items-center gap-3 rounded-[16px] border px-3 py-2 text-sm font-medium transition",
+              formState.reviewRequiresAttachment
+                ? "border-[#486782] bg-[#eef4f8] text-[#23313a]"
+                : "border-[#dfe6eb] bg-white text-[#60717d]",
+              pending ? "cursor-not-allowed opacity-60" : "cursor-pointer hover:bg-[#f8fbfd]",
+            ].join(" ")}
+          >
+            <input
+              checked={formState.reviewRequiresAttachment}
+              className="size-4 accent-[#486782]"
+              disabled={pending}
+              onChange={(event) => onReviewRequiresAttachmentChange(event.target.checked)}
+              type="checkbox"
+            />
+            {t("createDialog.reviewRequiresAttachmentLabel")}
+          </label>
+          <p className="mt-2 text-xs leading-6 text-[#7b858d]">
+            {formState.reviewRequiresAttachment
+              ? t("createDialog.reviewRequiresAttachmentHint")
+              : t("createDialog.reviewNoteOnlyHint")}
           </p>
         </fieldset>
       </div>

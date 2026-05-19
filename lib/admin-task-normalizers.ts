@@ -55,6 +55,8 @@ export function normalizeTaskMainRecord(value: unknown): AdminTaskMainRow | null
       "acceptance_limit" in value ? normalizeInteger(value.acceptance_limit, 1) : 1,
     acceptance_unlimited:
       "acceptance_unlimited" in value ? value.acceptance_unlimited === true : false,
+    review_requires_attachment:
+      "review_requires_attachment" in value ? value.review_requires_attachment !== false : true,
     accepted_count:
       "accepted_count" in value
         ? normalizeInteger(value.accepted_count)

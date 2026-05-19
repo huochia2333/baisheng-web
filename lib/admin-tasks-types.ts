@@ -86,6 +86,7 @@ export type AdminTaskMainRow = {
   commission_amount_rmb: number;
   acceptance_limit: number;
   acceptance_unlimited: boolean;
+  review_requires_attachment: boolean;
   accepted_count: number;
   completed_count: number;
   created_by_user_id: string;
@@ -139,6 +140,7 @@ export type CreateAdminTaskInput = {
   commissionAmountRmb: number;
   acceptanceLimit: number;
   acceptanceUnlimited: boolean;
+  reviewRequiresAttachment: boolean;
   createdByUserId: string;
   targetRoles: TaskTargetRole[];
 };
@@ -151,6 +153,7 @@ export type UpdateAdminTaskInput = {
   commissionAmountRmb: number;
   acceptanceLimit: number;
   acceptanceUnlimited: boolean;
+  reviewRequiresAttachment: boolean;
   targetRoles: TaskTargetRole[];
 };
 
@@ -168,6 +171,7 @@ export type TaskMainRecord = {
   commission_amount_rmb: number | string | null;
   acceptance_limit: number | string | null;
   acceptance_unlimited: boolean | null;
+  review_requires_attachment: boolean | null;
   created_by_user_id: string | null;
   accepted_by_user_id: string | null;
   scope: TaskScope | null;

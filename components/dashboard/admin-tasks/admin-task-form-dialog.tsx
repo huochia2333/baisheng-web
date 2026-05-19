@@ -46,6 +46,7 @@ type TaskFormDialogProps = {
   onAcceptanceUnlimitedChange: (value: boolean) => void;
   onCommissionAmountChange: (value: string) => void;
   onOpenChange: (open: boolean) => void;
+  onReviewRequiresAttachmentChange: (value: boolean) => void;
   onTargetRoleToggle: (role: TaskTargetRole) => void;
   onSubmit: () => void;
   onTaskIntroChange: (value: string) => void;
@@ -75,6 +76,7 @@ export function CreateTaskDialog({
   onCommissionAmountChange,
   onFilesChange,
   onOpenChange,
+  onReviewRequiresAttachmentChange,
   onRemoveFile,
   onTargetRoleToggle,
   onSubmit,
@@ -98,6 +100,7 @@ export function CreateTaskDialog({
       onCommissionAmountChange={onCommissionAmountChange}
       onFilesChange={onFilesChange}
       onOpenChange={onOpenChange}
+      onReviewRequiresAttachmentChange={onReviewRequiresAttachmentChange}
       onRemoveFile={onRemoveFile}
       onTargetRoleToggle={onTargetRoleToggle}
       onSubmit={onSubmit}
@@ -122,6 +125,7 @@ export function EditTaskDialog({
   onAcceptanceUnlimitedChange,
   onCommissionAmountChange,
   onOpenChange,
+  onReviewRequiresAttachmentChange,
   onTargetRoleToggle,
   onSubmit,
   onTaskIntroChange,
@@ -148,6 +152,7 @@ export function EditTaskDialog({
       onAcceptanceUnlimitedChange={onAcceptanceUnlimitedChange}
       onCommissionAmountChange={onCommissionAmountChange}
       onOpenChange={onOpenChange}
+      onReviewRequiresAttachmentChange={onReviewRequiresAttachmentChange}
       onTargetRoleToggle={onTargetRoleToggle}
       onSubmit={onSubmit}
       onTaskIntroChange={onTaskIntroChange}
@@ -172,6 +177,7 @@ function TaskFormDialog({
   onAcceptanceUnlimitedChange,
   onCommissionAmountChange,
   onOpenChange,
+  onReviewRequiresAttachmentChange,
   onTargetRoleToggle,
   onSubmit,
   onTaskIntroChange,
@@ -244,6 +250,7 @@ function TaskFormDialog({
           onAcceptanceLimitChange={onAcceptanceLimitChange}
           onAcceptanceUnlimitedChange={onAcceptanceUnlimitedChange}
           onCommissionAmountChange={onCommissionAmountChange}
+          onReviewRequiresAttachmentChange={onReviewRequiresAttachmentChange}
           onTargetRoleToggle={onTargetRoleToggle}
           onTaskIntroChange={onTaskIntroChange}
           onTaskNameChange={onTaskNameChange}

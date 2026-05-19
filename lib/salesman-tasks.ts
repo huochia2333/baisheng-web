@@ -29,7 +29,7 @@ import {
 import { getTaskAcceptanceSummaryByTaskId } from "./task-acceptance-summary";
 
 const TASK_SELECT =
-  "id,parent_task_id,task_name,task_intro,task_type_code,commission_amount_rmb,acceptance_limit,acceptance_unlimited,created_by_user_id,accepted_by_user_id,scope,team_id,status,created_at,accepted_at,submitted_at,reviewed_at,reviewed_by_user_id,review_reject_reason,completed_at";
+  "id,parent_task_id,task_name,task_intro,task_type_code,commission_amount_rmb,acceptance_limit,acceptance_unlimited,review_requires_attachment,created_by_user_id,accepted_by_user_id,scope,team_id,status,created_at,accepted_at,submitted_at,reviewed_at,reviewed_by_user_id,review_reject_reason,completed_at";
 const TASK_ATTACHMENT_SELECT =
   "id,task_id,task_attachment_storage_path,file_size_bytes,original_name,bucket_name,mime_type,uploaded_by_user_id,created_at";
 
@@ -79,6 +79,7 @@ type TaskMainRecord = {
   commission_amount_rmb: number | string | null;
   acceptance_limit: number | string | null;
   acceptance_unlimited: boolean | null;
+  review_requires_attachment: boolean | null;
   created_by_user_id: string | null;
   accepted_by_user_id: string | null;
   scope: TaskScope | null;
@@ -482,6 +483,8 @@ function normalizeTaskMainRecord(value: unknown): AdminTaskMainRow | null {
       "acceptance_limit" in value ? normalizeInteger(value.acceptance_limit, 1) : 1,
     acceptance_unlimited:
       "acceptance_unlimited" in value ? value.acceptance_unlimited === true : false,
+    review_requires_attachment:
+      "review_requires_attachment" in value ? value.review_requires_attachment !== false : true,
     accepted_count:
       "accepted_count" in value
         ? normalizeInteger(value.accepted_count)

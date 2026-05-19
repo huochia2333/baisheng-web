@@ -23,6 +23,7 @@ import {
   getTaskAcceptanceProgressLabel,
   getTaskAttachmentCountLabel,
   getTaskIntroText,
+  getTaskReviewRequirementLabel,
   getTaskTargetRolesLabel,
   getTaskTypeLabel,
 } from "@/components/dashboard/tasks/tasks-display";
@@ -82,6 +83,9 @@ export function TaskCard({
               {targetRolesLabel}
             </DataPill>
             <DataPill accent="blue">{taskTypeLabel}</DataPill>
+            <DataPill accent="blue">
+              {getTaskReviewRequirementLabel(task.review_requires_attachment, sharedT)}
+            </DataPill>
             {task.attachments.length > 0 ? (
               <DataPill accent="blue">
                 <Paperclip className="size-3.5" />
@@ -146,9 +150,13 @@ export function TaskCard({
           </p>
         </div>
 
-        <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
           <InfoTile label={t("commissionAmountLabel")} value={commissionLabel} />
           <InfoTile label={t("acceptanceProgressLabel")} value={progressLabel} />
+          <InfoTile
+            label={t("reviewRequirementLabel")}
+            value={getTaskReviewRequirementLabel(task.review_requires_attachment, sharedT)}
+          />
           <InfoTile label={t("createdAtLabel")} value={formatDateTime(task.created_at)} />
         </div>
       </div>

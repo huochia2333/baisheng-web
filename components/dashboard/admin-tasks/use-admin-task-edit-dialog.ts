@@ -53,6 +53,7 @@ export function useAdminTaskEditDialog({
     commissionAmount: "",
     acceptanceLimit: "1",
     acceptanceUnlimited: false,
+    reviewRequiresAttachment: true,
     targetRoles: [],
     files: [],
   });
@@ -164,6 +165,7 @@ export function useAdminTaskEditDialog({
           parseTaskCommissionAmountInput(editFormState.commissionAmount) ?? 0,
         acceptanceLimit: parseTaskAcceptanceLimitInput(editFormState.acceptanceLimit) ?? 1,
         acceptanceUnlimited: editFormState.acceptanceUnlimited,
+        reviewRequiresAttachment: editFormState.reviewRequiresAttachment,
         targetRoles: editFormState.targetRoles,
       });
 

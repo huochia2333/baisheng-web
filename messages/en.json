@@ -1681,6 +1681,8 @@
         "remainingUnlimited": "Unlimited"
       },
       "attachmentCount": "{count} attachment(s)",
+      "reviewRequirementRequiresAttachment": "Files required",
+      "reviewRequirementNoteOnly": "Note only",
       "moreAttachments": "{count} more attachment(s)",
       "errors": {
         "admin": {
@@ -1715,6 +1717,7 @@
           "cannotCreateReviewSubmission": "You cannot create a review submission for this task right now.",
           "cannotSubmitReview": "You cannot submit this task for review right now.",
           "reviewAssetsRequired": "Upload at least one submission file before sending the task for review.",
+          "reviewNoteRequired": "Add a submission note first.",
           "reviewSubmissionMissing": "The review submission draft is missing. Reopen the dialog and try again.",
           "reviewSubmissionInvalid": "The current review submission draft is no longer valid. Reopen the dialog and try again.",
           "reviewFilesRequired": "Please choose at least one submission file.",
@@ -1786,6 +1789,10 @@
         "acceptanceModeLabel": "Accept Mode",
         "acceptanceUnlimitedLabel": "Unlimited accepts",
         "acceptanceHint": "Different members can accept the same task, submit their own work, and receive their own reward after approval.",
+        "reviewRequirementLabel": "Submission Requirement",
+        "reviewRequiresAttachmentLabel": "Files are required for review",
+        "reviewRequiresAttachmentHint": "When this is on, the submitter must upload at least one file before review.",
+        "reviewNoteOnlyHint": "When this is off, the submitter can send the task for review with a note, and may still add files.",
         "taskTypeHint": "The task type controls how the task is categorized and how related commissions are displayed. More types will be added later.",
         "taskIntroLabel": "Task Details",
         "taskIntroPlaceholder": "Add the background, goals, execution requirements, and any notes for this task.",
@@ -1830,6 +1837,7 @@
         "commissionAmountLabel": "Task Commission",
         "acceptanceLimitLabel": "Accept Limit",
         "acceptanceProgressLabel": "Accept Progress",
+        "reviewRequirementLabel": "Submission Requirement",
         "creatorLabel": "Creator",
         "assigneeLabel": "Assignee",
         "createdAtLabel": "Created At",
@@ -1962,6 +1970,7 @@
         "taskTypeLabel": "Task Type",
         "commissionAmountLabel": "Task Commission",
         "acceptanceLimitLabel": "Accept Limit",
+        "reviewRequirementLabel": "Submission Requirement",
         "createdAtLabel": "Published At",
         "acceptedAtLabel": "Started At",
         "submittedAtLabel": "Submitted At",
@@ -1984,16 +1993,21 @@
       "submitDialog": {
         "title": "Submit Task Review",
         "description": "Upload the completion files for \"{taskName}\". After submission, the task will move into the administrator review queue.",
+        "descriptionNoteOnly": "Add a note for \"{taskName}\". After submission, the task will move into the administrator review queue.",
         "cancel": "Cancel",
         "submit": "Submit for Review",
         "resubmit": "Resubmit for Review",
         "rejectReasonLabel": "Previous Reject Reason",
         "noteLabel": "Submission Note",
+        "noteRequiredLabel": "Submission Note (Required)",
         "notePlaceholder": "Add a short note for the reviewer, such as what was delivered or any points worth checking.",
         "filesLabel": "Submission Files",
+        "filesOptionalLabel": "Additional Files (Optional)",
         "filesCta": "Choose files to upload",
         "filesHint": "You can upload up to {maxFiles} files. Images must stay below {imageMaxPerFile}, videos must stay below {videoMaxPerFile}, other files must stay within {otherMaxPerFile}, and the total must stay within {maxTotal}.",
-        "filesEmpty": "No submission files selected yet."
+        "filesOptionalHint": "This task can be submitted with a note only. If you add files, you can upload up to {maxFiles}; images must stay below {imageMaxPerFile}, videos below {videoMaxPerFile}, other files within {otherMaxPerFile}, and the total within {maxTotal}.",
+        "filesEmpty": "No submission files selected yet.",
+        "filesOptionalEmpty": "Files are not required for this task. Add a note to submit it for review."
       }
     }
   },

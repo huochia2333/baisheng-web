@@ -21,6 +21,7 @@ import {
   getTaskAcceptanceRemainingLabel,
   getTaskAttachmentCountLabel,
   getTaskIntroText,
+  getTaskReviewRequirementLabel,
   getTaskTargetRolesLabel,
   getTaskTypeLabel,
 } from "@/components/dashboard/tasks/tasks-display";
@@ -82,6 +83,9 @@ export function SalesmanTaskCard({
           <DataPill accent="blue">
             {getTaskAcceptanceRemainingLabel(task, sharedT)}
           </DataPill>
+          <DataPill accent="blue">
+            {getTaskReviewRequirementLabel(task.review_requires_attachment, sharedT)}
+          </DataPill>
           {task.attachments.length > 0 ? (
             <DataPill accent="blue">
               <Paperclip className="size-3.5" />
@@ -111,6 +115,10 @@ export function SalesmanTaskCard({
           <InfoTile
             label={t("acceptanceLimitLabel")}
             value={getTaskAcceptanceLimitLabel(task, sharedT)}
+          />
+          <InfoTile
+            label={t("reviewRequirementLabel")}
+            value={getTaskReviewRequirementLabel(task.review_requires_attachment, sharedT)}
           />
           <InfoTile label={t("taskScopeLabel")} value={targetLabel} />
           <InfoTile label={t("createdAtLabel")} value={formatDateTime(task.created_at)} />

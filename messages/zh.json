@@ -1681,6 +1681,8 @@
         "remainingUnlimited": "不限次数"
       },
       "attachmentCount": "{count} 个附件",
+      "reviewRequirementRequiresAttachment": "提交需上传文件",
+      "reviewRequirementNoteOnly": "提交仅需备注",
       "moreAttachments": "还有 {count} 个附件",
       "errors": {
         "admin": {
@@ -1715,6 +1717,7 @@
           "cannotCreateReviewSubmission": "当前还不能为这项任务创建提审记录。",
           "cannotSubmitReview": "当前还不能提交这项任务进入审核。",
           "reviewAssetsRequired": "请至少上传一个提交文件后再发起审核。",
+          "reviewNoteRequired": "请先填写提交备注。",
           "reviewSubmissionMissing": "任务提审草稿不存在，请重新打开提审弹窗后再试。",
           "reviewSubmissionInvalid": "当前任务提审草稿已失效，请重新打开提审弹窗后再试。",
           "reviewFilesRequired": "请先选择至少一个提交文件。",
@@ -1786,6 +1789,10 @@
         "acceptanceModeLabel": "领取方式",
         "acceptanceUnlimitedLabel": "不限次数",
         "acceptanceHint": "同一任务可由不同成员分别领取、提交成果并获得对应奖励。",
+        "reviewRequirementLabel": "提交要求",
+        "reviewRequiresAttachmentLabel": "提交时必须上传文件",
+        "reviewRequiresAttachmentHint": "开启后，提交人至少上传一个文件才能发起审核。",
+        "reviewNoteOnlyHint": "关闭后，提交人填写备注即可发起审核，也可以补充上传文件。",
         "taskTypeHint": "当前任务类型会影响任务展示和后续佣金归类，后续会继续扩展更多类型。",
         "taskIntroLabel": "任务说明",
         "taskIntroPlaceholder": "补充任务背景、目标、执行要求和注意事项。",
@@ -1830,6 +1837,7 @@
         "commissionAmountLabel": "任务佣金",
         "acceptanceLimitLabel": "可领取次数",
         "acceptanceProgressLabel": "领取进度",
+        "reviewRequirementLabel": "提交要求",
         "creatorLabel": "创建人",
         "assigneeLabel": "领取人",
         "createdAtLabel": "创建时间",
@@ -1962,6 +1970,7 @@
         "taskTypeLabel": "任务类型",
         "commissionAmountLabel": "任务佣金",
         "acceptanceLimitLabel": "可领取次数",
+        "reviewRequirementLabel": "提交要求",
         "createdAtLabel": "发布时间",
         "acceptedAtLabel": "开始时间",
         "submittedAtLabel": "提交时间",
@@ -1984,16 +1993,21 @@
       "submitDialog": {
         "title": "提交任务审核",
         "description": "请为“{taskName}”上传完成成果。提交后，这项任务会进入管理员审核队列。",
+        "descriptionNoteOnly": "请为“{taskName}”填写本次完成情况。提交后，这项任务会进入管理员审核队列。",
         "cancel": "取消",
         "submit": "提交审核",
         "resubmit": "重新提交审核",
         "rejectReasonLabel": "上次拒绝原因",
         "noteLabel": "提交说明",
+        "noteRequiredLabel": "提交备注（必填）",
         "notePlaceholder": "补充本次提交完成了什么、管理员重点看什么，或其他需要说明的内容。",
         "filesLabel": "提交文件",
+        "filesOptionalLabel": "补充文件（可选）",
         "filesCta": "点击选择要上传的文件",
         "filesHint": "最多上传 {maxFiles} 个文件，图片需小于 {imageMaxPerFile}，视频需小于 {videoMaxPerFile}，其他文件不超过 {otherMaxPerFile}，总计不超过 {maxTotal}。",
-        "filesEmpty": "暂未选择任何提交文件。"
+        "filesOptionalHint": "这项任务可以只填备注提交。若要补充文件，最多 {maxFiles} 个，图片需小于 {imageMaxPerFile}，视频需小于 {videoMaxPerFile}，其他文件不超过 {otherMaxPerFile}，总计不超过 {maxTotal}。",
+        "filesEmpty": "暂未选择任何提交文件。",
+        "filesOptionalEmpty": "这项任务不强制上传文件，填写备注后即可提交。"
       }
     }
   },

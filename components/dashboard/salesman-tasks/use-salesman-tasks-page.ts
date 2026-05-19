@@ -28,6 +28,7 @@ import {
   removeStoredTaskReviewSubmissionAssets,
   submitTaskReview,
   uploadTaskReviewSubmissionAssets,
+  validateTaskReviewSubmissionFiles,
 } from "@/lib/task-reviews";
 import {
   normalizeSearchText,
@@ -365,6 +366,22 @@ export function useSalesmanTasksPage({
       return;
     }
 
+    try {
+      validateTaskReviewSubmissionFiles(submitDialogFiles, {
+        requireFiles: submitDialogTask.review_requires_attachment,
+      });
+
+      if (!submitDialogTask.review_requires_attachment && !submitDialogNote.trim()) {
+        throw new Error("task review submission note is required");
+      }
+    } catch (error) {
+      setSubmitDialogFeedback({
+        tone: "error",
+        message: toSalesmanTaskErrorMessage(error, sharedT),
+      });
+      return;
+    }
+
     setSubmitDialogPending(true);
     setSubmitDialogFeedback(null);
     setPageFeedback(null);
@@ -386,6 +403,7 @@ export function useSalesmanTasksPage({
         submissionId: draft.id,
         uploadedByUserId: viewerId,
         files: submitDialogFiles,
+        requireFiles: submitDialogTask.review_requires_attachment,
       });
 
       uploadedAssets = assets;

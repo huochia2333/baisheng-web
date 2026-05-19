@@ -21,6 +21,7 @@ import {
   getTaskAcceptanceProgressLabel,
   getTaskAttachmentCountLabel,
   getTaskIntroText,
+  getTaskReviewRequirementLabel,
   getTaskTargetRolesLabel,
   getTaskTypeLabel,
   resolveTaskActorLabel,
@@ -88,6 +89,9 @@ export function AdminTaskDetailDialog({
             <DataPill accent="blue">{taskTypeLabel}</DataPill>
             <DataPill accent="gold">{commissionLabel}</DataPill>
             <DataPill accent="blue">{progressLabel}</DataPill>
+            <DataPill accent="blue">
+              {getTaskReviewRequirementLabel(task.review_requires_attachment, sharedT)}
+            </DataPill>
             {task.attachments.length > 0 ? (
               <DataPill accent="blue">
                 <Paperclip className="size-3.5" />
@@ -118,6 +122,10 @@ export function AdminTaskDetailDialog({
               value={getTaskAcceptanceLimitLabel(task, sharedT)}
             />
             <InfoTile label={t("acceptanceProgressLabel")} value={progressLabel} />
+            <InfoTile
+              label={t("reviewRequirementLabel")}
+              value={getTaskReviewRequirementLabel(task.review_requires_attachment, sharedT)}
+            />
             <InfoTile
               label={t("creatorLabel")}
               value={resolveTaskActorLabel(task.creator, task.created_by_user_id, sharedT)}

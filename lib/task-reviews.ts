@@ -220,13 +220,16 @@ export async function uploadTaskReviewSubmissionAssets(
     submissionId: string;
     uploadedByUserId: string;
     files: File[];
+    requireFiles?: boolean;
   },
 ) {
+  validateTaskReviewSubmissionFiles(options.files, {
+    requireFiles: options.requireFiles ?? true,
+  });
+
   if (options.files.length === 0) {
     return [];
   }
-
-  validateTaskReviewSubmissionFiles(options.files);
 
   const uploadedObjects: Array<Pick<TaskReviewSubmissionAsset, "bucket_name" | "task_attachment_storage_path">> = [];
 
@@ -401,10 +404,15 @@ export async function getTaskReviewSubmissionAssetSignedUrl(
   return data.signedUrl;
 }
 
-export function validateTaskReviewSubmissionFiles(files: File[]) {
+export function validateTaskReviewSubmissionFiles(
+  files: File[],
+  options: {
+    requireFiles?: boolean;
+  } = {},
+) {
   validateTaskAttachmentFiles({
     files,
-    requireFiles: true,
+    requireFiles: options.requireFiles ?? true,
     errorCodes: {
       countExceeded: "task_review_submission_attachments_count_exceeded",
       empty: "task_review_submission_attachment_empty",

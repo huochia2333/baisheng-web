@@ -94,6 +94,9 @@ export function AdminTasksClient({
         onAcceptanceUnlimitedChange={(value) =>
           viewModel.updateCreateField("acceptanceUnlimited", value)
         }
+        onReviewRequiresAttachmentChange={(value) =>
+          viewModel.updateCreateField("reviewRequiresAttachment", value)
+        }
         onFilesChange={viewModel.handleCreateFilesChange}
         onOpenChange={viewModel.handleCreateDialogOpenChange}
         onRemoveFile={viewModel.removeCreateFile}
@@ -115,6 +118,9 @@ export function AdminTasksClient({
         onAcceptanceLimitChange={(value) => viewModel.updateEditField("acceptanceLimit", value)}
         onAcceptanceUnlimitedChange={(value) =>
           viewModel.updateEditField("acceptanceUnlimited", value)
+        }
+        onReviewRequiresAttachmentChange={(value) =>
+          viewModel.updateEditField("reviewRequiresAttachment", value)
         }
         onOpenChange={viewModel.handleEditDialogOpenChange}
         onTargetRoleToggle={viewModel.handleEditTargetRoleToggle}
