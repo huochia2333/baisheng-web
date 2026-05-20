@@ -2,7 +2,6 @@ import {
   type AdminOrderRow,
   type AdminOrderSupplementaryDetail,
   type CreateAdminOrderInput,
-  type ServiceFeeTypeOption,
 } from "@/lib/admin-orders";
 
 import { normalizeOptionalString } from "../dashboard-shared-ui";
@@ -38,7 +37,6 @@ export type OrderFormState = {
   purchaseDetails: string;
   serviceSubtype: string;
   serviceDiscount: string;
-  serviceFeeType: string;
   serviceDetails: string;
 };
 
@@ -46,7 +44,6 @@ export function createOrderFormState(defaults?: {
   originalCurrency?: string;
   orderEntryUser?: string;
   orderType?: string;
-  serviceFeeType?: string;
 }): OrderFormState {
   return {
     originalCurrency: defaults?.originalCurrency ?? "",
@@ -63,7 +60,6 @@ export function createOrderFormState(defaults?: {
     purchaseDetails: "",
     serviceSubtype: "",
     serviceDiscount: "",
-    serviceFeeType: defaults?.serviceFeeType ?? "",
     serviceDetails: "",
   };
 }
@@ -95,10 +91,6 @@ export function createOrderFormStateFromOrder(
       supplementaryDetail?.kind === "service" ? supplementaryDetail.subtypeId : "",
     serviceDiscount:
       supplementaryDetail?.kind === "service" ? supplementaryDetail.discountId : "",
-    serviceFeeType:
-      supplementaryDetail?.kind === "service"
-        ? (supplementaryDetail.serviceFeeTypeId ?? "")
-        : "",
     serviceDetails:
       supplementaryDetail?.kind === "service"
         ? stringifyOrderDetailsForTextarea(supplementaryDetail.details)
@@ -171,7 +163,6 @@ export function parseCreateOrderForm(
   if (orderCategory === "service") {
     const serviceSubtype = formState.serviceSubtype.trim();
     const serviceDiscount = formState.serviceDiscount.trim();
-    const serviceFeeType = formState.serviceFeeType.trim();
 
     if (!serviceSubtype) {
       return {
@@ -184,13 +175,6 @@ export function parseCreateOrderForm(
       return {
         ok: false,
         message: copy.validation.selectPrompt(copy.fields.serviceDiscount),
-      };
-    }
-
-    if (!serviceFeeType) {
-      return {
-        ok: false,
-        message: copy.validation.selectPrompt(copy.fields.serviceFeeType),
       };
     }
 
@@ -212,7 +196,6 @@ export function parseCreateOrderForm(
           kind: "service",
           subtypeId: serviceSubtype,
           discountId: serviceDiscount,
-          serviceFeeTypeId: serviceFeeType,
           details: serviceDetails,
         },
       },
@@ -327,8 +310,4 @@ function parseBaseOrderForm(
 
 export function isPurchaseDetailsCategory(category: string | null | undefined) {
   return category === "purchase" || category === "dropshipping";
-}
-
-export function getDefaultServiceFeeTypeId(options: ServiceFeeTypeOption[]) {
-  return options[0]?.id ?? "";
 }

@@ -2,41 +2,29 @@
 
 import { useMemo, useState } from "react";
 
-import {
-  LoaderCircle,
-  PencilLine,
-  Percent,
-  Plus,
-  Save,
-  Trash2,
-  X,
-} from "lucide-react";
+import { Percent } from "lucide-react";
 import { useTranslations } from "next-intl";
 
 import {
-  createServiceFeeType,
-  deleteServiceFeeType,
   updateServiceFeeType,
   type ServiceFeeTypeOption,
 } from "@/lib/service-fee-types";
 import { getBrowserSupabaseClient } from "@/lib/supabase";
-
-import { Button } from "../../ui/button";
-import { DashboardSectionHeader } from "../dashboard-section-header";
-import {
-  DashboardSectionPanel,
-  DashboardTableFrame,
-  dashboardFilterInputClassName,
-} from "../dashboard-section-panel";
-import { EmptyState, PageBanner, type NoticeTone } from "../dashboard-shared-ui";
-import { formatDiscountRatioValue } from "./admin-orders-utils";
 import { useLocale } from "@/components/i18n/locale-provider";
+
+import { DashboardSectionHeader } from "../dashboard-section-header";
+import { PageBanner, type NoticeTone } from "../dashboard-shared-ui";
+import {
+  getServiceFeeRowsByScope,
+  sortServiceFeeRows,
+} from "./admin-orders-service-fee-display";
 import {
   formatRatioForInput,
   parseServiceFeeInput,
-  sortServiceFeeRows,
   toServiceFeeErrorMessage,
 } from "./admin-orders-service-fee-settings-utils";
+import { AdminOrdersServiceFeeTierSection } from "./admin-orders-service-fee-tier-section";
+import { formatDiscountRatioValue } from "./admin-orders-utils";
 
 type PageFeedback = { tone: NoticeTone; message: string } | null;
 
@@ -53,48 +41,31 @@ export function AdminOrdersServiceFeeSettings({
   const [rows, setRows] = useState<ServiceFeeTypeOption[]>(() =>
     sortServiceFeeRows(initialRows),
   );
-  const [newValue, setNewValue] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editValue, setEditValue] = useState("");
   const [pendingAction, setPendingAction] = useState<string | null>(null);
   const [feedback, setFeedback] = useState<PageFeedback>(null);
-  const canSubmitNewValue = newValue.trim().length > 0 && pendingAction === null;
-  const serviceFeeSummary = useMemo(() => {
-    if (rows.length === 0) {
-      return "-";
-    }
 
-    return rows
-      .map((row) => formatDiscountRatioValue(row.fee_ratio, locale))
-      .join(" / ");
-  }, [locale, rows]);
-
-  async function handleCreate() {
-    if (!supabase || pendingAction !== null) {
-      return;
-    }
-
-    const parsed = parseServiceFeeInput(newValue);
-
-    if (!parsed.ok) {
-      setFeedback({ tone: "error", message: t(parsed.messageKey) });
-      return;
-    }
-
-    setPendingAction("create");
-    setFeedback(null);
-
-    try {
-      const created = await createServiceFeeType(supabase, parsed.value);
-      setRows((current) => applyRowsChange(sortServiceFeeRows([...current, created]), onRowsChange));
-      setNewValue("");
-      setFeedback({ tone: "success", message: t("settings.serviceFees.createSuccess") });
-    } catch (error) {
-      setFeedback({ tone: "error", message: toServiceFeeErrorMessage(error, t) });
-    } finally {
-      setPendingAction(null);
-    }
-  }
+  const retailRows = useMemo(
+    () => getServiceFeeRowsByScope(rows, "retail"),
+    [rows],
+  );
+  const wholesaleRows = useMemo(
+    () => getServiceFeeRowsByScope(rows, "wholesale"),
+    [rows],
+  );
+  const serviceRows = useMemo(
+    () => getServiceFeeRowsByScope(rows, "service"),
+    [rows],
+  );
+  const serviceFeeSummary = useMemo(
+    () => ({
+      retail: summarizeRateRange(retailRows, locale),
+      wholesale: summarizeRateRange(wholesaleRows, locale),
+      service: summarizeRateRange(serviceRows, locale),
+    }),
+    [locale, retailRows, serviceRows, wholesaleRows],
+  );
 
   async function handleSave(row: ServiceFeeTypeOption) {
     if (!supabase || pendingAction !== null) {
@@ -113,45 +84,14 @@ export function AdminOrdersServiceFeeSettings({
 
     try {
       const updated = await updateServiceFeeType(supabase, row.id, parsed.value);
-      setRows((current) =>
-        applyRowsChange(
-          sortServiceFeeRows(
-            current.map((item) => (item.id === updated.id ? updated : item)),
-          ),
-          onRowsChange,
-        ),
+      const nextRows = sortServiceFeeRows(
+        rows.map((item) => (item.id === updated.id ? updated : item)),
       );
+      setRows(nextRows);
+      onRowsChange?.(nextRows);
       setEditingId(null);
       setEditValue("");
       setFeedback({ tone: "success", message: t("settings.serviceFees.updateSuccess") });
-    } catch (error) {
-      setFeedback({ tone: "error", message: toServiceFeeErrorMessage(error, t) });
-    } finally {
-      setPendingAction(null);
-    }
-  }
-
-  async function handleDelete(row: ServiceFeeTypeOption) {
-    if (!supabase || pendingAction !== null) {
-      return;
-    }
-
-    if (!window.confirm(t("settings.serviceFees.deleteConfirm"))) {
-      return;
-    }
-
-    setPendingAction(`delete:${row.id}`);
-    setFeedback(null);
-
-    try {
-      await deleteServiceFeeType(supabase, row.id);
-      setRows((current) =>
-        applyRowsChange(
-          current.filter((item) => item.id !== row.id),
-          onRowsChange,
-        ),
-      );
-      setFeedback({ tone: "success", message: t("settings.serviceFees.deleteSuccess") });
     } catch (error) {
       setFeedback({ tone: "error", message: toServiceFeeErrorMessage(error, t) });
     } finally {
@@ -170,170 +110,108 @@ export function AdminOrdersServiceFeeSettings({
     setEditValue("");
   }
 
+  const tierCopy = {
+    actions: t("settings.serviceFees.table.actions"),
+    cancel: t("settings.serviceFees.cancel"),
+    edit: t("settings.serviceFees.edit"),
+    empty: t("settings.serviceFees.emptyDescription"),
+    rate: t("settings.serviceFees.table.rate"),
+    rule: t("settings.serviceFees.table.rule"),
+    save: t("settings.serviceFees.save"),
+    tier: t("settings.serviceFees.table.tier"),
+  };
+
   return (
     <section className="flex flex-col gap-5">
       <DashboardSectionHeader
         badge={t("settings.serviceFees.badge")}
         badgeIcon={<Percent className="size-3.5" />}
-        contentClassName="max-w-2xl"
+        contentClassName="max-w-3xl"
         description={t("settings.serviceFees.description")}
         metrics={[
           {
             accent: "green",
             icon: <Percent className="size-5" />,
-            key: "fees",
-            label: t("settings.serviceFees.summaryLabel"),
-            value: serviceFeeSummary,
+            key: "retail",
+            label: t("settings.serviceFees.retail.summaryLabel"),
+            value: serviceFeeSummary.retail,
+          },
+          {
+            accent: "blue",
+            icon: <Percent className="size-5" />,
+            key: "wholesale",
+            label: t("settings.serviceFees.wholesale.summaryLabel"),
+            value: serviceFeeSummary.wholesale,
+          },
+          {
+            accent: "gold",
+            icon: <Percent className="size-5" />,
+            key: "service",
+            label: t("settings.serviceFees.service.summaryLabel"),
+            value: serviceFeeSummary.service,
           },
         ]}
+        metricsClassName="md:grid-cols-3"
         title={t("settings.serviceFees.title")}
       />
 
       {feedback ? <PageBanner tone={feedback.tone}>{feedback.message}</PageBanner> : null}
 
-      <DashboardSectionPanel className="p-4 sm:p-6">
-        <div className="flex flex-col gap-3 md:flex-row md:items-end">
-          <label className="flex-1 text-sm font-semibold text-[#33424c]">
-            {t("settings.serviceFees.createLabel")}
-            <input
-              className={`${dashboardFilterInputClassName} mt-2`}
-              inputMode="decimal"
-              onChange={(event) => setNewValue(event.target.value)}
-              placeholder={t("settings.serviceFees.inputPlaceholder")}
-              value={newValue}
-            />
-          </label>
-          <Button
-            className="h-11 rounded-full bg-[#486782] px-5 text-white hover:bg-[#3e5f79]"
-            disabled={!canSubmitNewValue}
-            onClick={handleCreate}
-            type="button"
-          >
-            {pendingAction === "create" ? (
-              <LoaderCircle className="size-4 animate-spin" />
-            ) : (
-              <Plus className="size-4" />
-            )}
-            {t("settings.serviceFees.add")}
-          </Button>
-        </div>
-      </DashboardSectionPanel>
+      <AdminOrdersServiceFeeTierSection
+        copy={tierCopy}
+        description={t("settings.serviceFees.retail.description")}
+        editValue={editValue}
+        editingId={editingId}
+        locale={locale}
+        pendingAction={pendingAction}
+        rows={retailRows}
+        title={t("settings.serviceFees.retail.title")}
+        onCancelEditing={cancelEditing}
+        onEditValueChange={setEditValue}
+        onSave={(row) => void handleSave(row)}
+        onStartEditing={startEditing}
+      />
 
-      <DashboardTableFrame>
-        {rows.length === 0 ? (
-          <div className="p-6">
-            <EmptyState
-              description={t("settings.serviceFees.emptyDescription")}
-              icon={<Percent className="size-6" />}
-              title={t("settings.serviceFees.emptyTitle")}
-            />
-          </div>
-        ) : (
-          <table className="min-w-[640px] w-full table-fixed border-collapse">
-            <thead className="bg-[#f7f5f2]">
-              <tr className="border-b border-[#efebe5]">
-                <th className="px-5 py-4 text-left font-label text-[11px] font-semibold tracking-[0.18em] text-[#7d8890] uppercase">
-                  {t("settings.serviceFees.table.rate")}
-                </th>
-                <th className="px-5 py-4 text-right font-label text-[11px] font-semibold tracking-[0.18em] text-[#7d8890] uppercase">
-                  {t("settings.serviceFees.table.actions")}
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {rows.map((row) => {
-                const isEditing = editingId === row.id;
-                const isSaving = pendingAction === `edit:${row.id}`;
-                const isDeleting = pendingAction === `delete:${row.id}`;
+      <AdminOrdersServiceFeeTierSection
+        copy={tierCopy}
+        description={t("settings.serviceFees.wholesale.description")}
+        editValue={editValue}
+        editingId={editingId}
+        locale={locale}
+        pendingAction={pendingAction}
+        rows={wholesaleRows}
+        title={t("settings.serviceFees.wholesale.title")}
+        onCancelEditing={cancelEditing}
+        onEditValueChange={setEditValue}
+        onSave={(row) => void handleSave(row)}
+        onStartEditing={startEditing}
+      />
 
-                return (
-                  <tr
-                    className="border-b border-[#efebe5] last:border-b-0"
-                    key={row.id}
-                  >
-                    <td className="px-5 py-4 text-sm font-semibold text-[#23313a]">
-                      {isEditing ? (
-                        <input
-                          className={dashboardFilterInputClassName}
-                          inputMode="decimal"
-                          onChange={(event) => setEditValue(event.target.value)}
-                          value={editValue}
-                        />
-                      ) : (
-                        formatDiscountRatioValue(row.fee_ratio, locale)
-                      )}
-                    </td>
-                    <td className="px-5 py-4">
-                      <div className="flex flex-wrap justify-end gap-2">
-                        {isEditing ? (
-                          <>
-                            <Button
-                              disabled={pendingAction !== null}
-                              onClick={() => void handleSave(row)}
-                              type="button"
-                              variant="outline"
-                            >
-                              {isSaving ? (
-                                <LoaderCircle className="size-4 animate-spin" />
-                              ) : (
-                                <Save className="size-4" />
-                              )}
-                              {t("settings.serviceFees.save")}
-                            </Button>
-                            <Button
-                              disabled={pendingAction !== null}
-                              onClick={cancelEditing}
-                              type="button"
-                              variant="outline"
-                            >
-                              <X className="size-4" />
-                              {t("settings.serviceFees.cancel")}
-                            </Button>
-                          </>
-                        ) : (
-                          <>
-                            <Button
-                              disabled={pendingAction !== null}
-                              onClick={() => startEditing(row)}
-                              type="button"
-                              variant="outline"
-                            >
-                              <PencilLine className="size-4" />
-                              {t("settings.serviceFees.edit")}
-                            </Button>
-                            <Button
-                              className="border-[#efd6d6] bg-white text-[#b13d3d] hover:bg-[#fff4f4]"
-                              disabled={pendingAction !== null}
-                              onClick={() => void handleDelete(row)}
-                              type="button"
-                              variant="outline"
-                            >
-                              {isDeleting ? (
-                                <LoaderCircle className="size-4 animate-spin" />
-                              ) : (
-                                <Trash2 className="size-4" />
-                              )}
-                              {t("settings.serviceFees.delete")}
-                            </Button>
-                          </>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        )}
-      </DashboardTableFrame>
+      <AdminOrdersServiceFeeTierSection
+        copy={tierCopy}
+        description={t("settings.serviceFees.service.description")}
+        editValue={editValue}
+        editingId={editingId}
+        locale={locale}
+        pendingAction={pendingAction}
+        rows={serviceRows}
+        title={t("settings.serviceFees.service.title")}
+        onCancelEditing={cancelEditing}
+        onEditValueChange={setEditValue}
+        onSave={(row) => void handleSave(row)}
+        onStartEditing={startEditing}
+      />
     </section>
   );
 }
 
-function applyRowsChange(
+function summarizeRateRange(
   rows: ServiceFeeTypeOption[],
-  onRowsChange?: (rows: ServiceFeeTypeOption[]) => void,
+  locale: Parameters<typeof formatDiscountRatioValue>[1],
 ) {
-  onRowsChange?.(rows);
-  return rows;
+  const uniqueRates = Array.from(
+    new Set(rows.map((row) => formatDiscountRatioValue(row.fee_ratio, locale))),
+  );
+
+  return uniqueRates.length > 0 ? uniqueRates.join(" / ") : "-";
 }

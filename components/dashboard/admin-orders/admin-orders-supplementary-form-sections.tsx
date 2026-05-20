@@ -8,7 +8,6 @@ import { useTranslations } from "next-intl";
 import {
   type OrderDiscountTypeOption,
   type PurchaseOrderTypeOption,
-  type ServiceFeeTypeOption,
   type ServiceOrderTypeOption,
 } from "@/lib/admin-orders";
 import { useLocale } from "@/components/i18n/locale-provider";
@@ -29,14 +28,12 @@ import {
 } from "./admin-orders-utils";
 
 type OrderSupplementaryFormSectionsProps = {
-  canManageServiceFee: boolean;
   formState: OrderFormState;
   isFormBusy: boolean;
   mode: "create" | "edit";
   orderDiscountOptions: OrderDiscountTypeOption[];
   purchaseOrderTypeOptions: PurchaseOrderTypeOption[];
   selectedOrderCategory: string | null;
-  serviceFeeTypeOptions: ServiceFeeTypeOption[];
   serviceOrderTypeOptions: ServiceOrderTypeOption[];
   supplementaryLoading: boolean;
   onFieldChange: <Key extends keyof OrderFormState>(
@@ -46,21 +43,19 @@ type OrderSupplementaryFormSectionsProps = {
 };
 
 export function OrderSupplementaryFormSections({
-  canManageServiceFee,
   formState,
   isFormBusy,
   mode,
   orderDiscountOptions,
   purchaseOrderTypeOptions,
   selectedOrderCategory,
-  serviceFeeTypeOptions,
   serviceOrderTypeOptions,
   supplementaryLoading,
   onFieldChange,
 }: OrderSupplementaryFormSectionsProps) {
   if (isPurchaseDetailsCategory(selectedOrderCategory)) {
     return (
-      <div className="md:col-span-2">
+      <div>
         <PurchaseSupplementaryFormSection
           formState={formState}
           isFormBusy={isFormBusy}
@@ -75,14 +70,12 @@ export function OrderSupplementaryFormSections({
 
   if (selectedOrderCategory === "service") {
     return (
-      <div className="md:col-span-2">
+      <div>
         <ServiceSupplementaryFormSection
-          canManageServiceFee={canManageServiceFee}
           formState={formState}
           isFormBusy={isFormBusy}
           mode={mode}
           orderDiscountOptions={orderDiscountOptions}
-          serviceFeeTypeOptions={serviceFeeTypeOptions}
           serviceOrderTypeOptions={serviceOrderTypeOptions}
           supplementaryLoading={supplementaryLoading}
           onFieldChange={onFieldChange}
@@ -160,23 +153,19 @@ function PurchaseSupplementaryFormSection({
 }
 
 function ServiceSupplementaryFormSection({
-  canManageServiceFee,
   formState,
   isFormBusy,
   mode,
   orderDiscountOptions,
-  serviceFeeTypeOptions,
   serviceOrderTypeOptions,
   supplementaryLoading,
   onFieldChange,
 }: Pick<
   OrderSupplementaryFormSectionsProps,
-  | "canManageServiceFee"
   | "formState"
   | "isFormBusy"
   | "mode"
   | "orderDiscountOptions"
-  | "serviceFeeTypeOptions"
   | "serviceOrderTypeOptions"
   | "supplementaryLoading"
   | "onFieldChange"
@@ -229,26 +218,6 @@ function ServiceSupplementaryFormSection({
           </select>
         </OrderField>
 
-        <OrderField label={t("fields.serviceFeeType")} required>
-          <select
-            className={fieldInputClassName}
-            disabled={isFormBusy || !canManageServiceFee}
-            onChange={(event) => onFieldChange("serviceFeeType", event.target.value)}
-            value={formState.serviceFeeType}
-          >
-            <option value="">{t("select.serviceFeeType")}</option>
-            {serviceFeeTypeOptions.map((option) => (
-              <option key={option.id} value={option.id}>
-                {formatDiscountRatioValue(option.fee_ratio, locale, orderUiCopy)}
-              </option>
-            ))}
-          </select>
-          {!canManageServiceFee ? (
-            <p className="mt-2 text-xs text-[#7b8790]">
-              {t("hints.serviceFeeLocked")}
-            </p>
-          ) : null}
-        </OrderField>
       </div>
 
       <OrderField label={t("fields.serviceDetails")}>

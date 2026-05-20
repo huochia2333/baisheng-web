@@ -37,6 +37,7 @@ import {
   type OrdersUiCopy,
 } from "./admin-orders-utils";
 import { OrderDetailCard } from "./admin-orders-dialog-ui";
+import { OrderServiceFeeSummaryCard } from "./admin-orders-service-fee-preview";
 
 export function OrderDetailsDialog({
   canDelete,
@@ -198,7 +199,14 @@ export function OrderDetailsDialog({
             <OrderDetailCard label={t("details.fields.originalCurrency")} value={formatCurrencyCode(order.original_currency)} />
             <OrderDetailCard label={t("details.fields.amount")} value={formatMoneyValue(order.amount, locale)} />
             <OrderDetailCard label={t("details.fields.rmbAmount")} value={formatMoneyValue(order.rmb_amount, locale)} />
-            <OrderDetailCard label={t("details.fields.serviceFee")} value={formatMoneyValue(order.service_fee_amount, locale)} />
+            <OrderServiceFeeSummaryCard
+              amount={order.service_fee_amount}
+              className="md:col-span-2"
+              description={t("serviceFeePreview.savedHint")}
+              rate={order.service_fee_ratio}
+              tier={order.service_fee_type_name}
+              title={t("details.fields.serviceFee")}
+            />
             {canViewCost ? (
               <OrderDetailCard label={t("details.fields.costAmount")} value={formatMoneyValue(order.cost_amount, locale)} />
             ) : null}
@@ -302,14 +310,6 @@ function OrderSupplementaryDetailsSection({
             <OrderDetailCard
               label={t("details.supplementary.discount")}
               value={formatDiscountRatioValue(detail.discountRatio, locale, orderUiCopy)}
-            />
-            <OrderDetailCard
-              label={t("details.supplementary.serviceFeeRate")}
-              value={formatDiscountRatioValue(detail.serviceFeeRatio, locale, orderUiCopy)}
-            />
-            <OrderDetailCard
-              label={t("details.supplementary.serviceFee")}
-              value={formatMoneyValue(detail.serviceFeeAmount, locale)}
             />
           </>
         ) : null}

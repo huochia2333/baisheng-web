@@ -178,7 +178,6 @@ export function AdminOrdersClient({
       )}
 
       <OrderFormDialog
-        canManageServiceFee={mode === "admin"}
         currencyOptions={orderCurrencyOptions}
         description={viewModel.viewConfig.createDescription}
         feedback={viewModel.createDialogFeedback}
@@ -187,6 +186,7 @@ export function AdminOrdersClient({
         lockOrderEntryUser={viewModel.viewConfig.lockOrderEntryToCurrentViewer}
         mode="create"
         open={viewModel.createDialogOpen}
+        serviceFeePreview={viewModel.createServiceFeePreview}
         orderDiscountOptions={viewModel.orderDiscountOptions}
         orderEntryUserOptions={viewModel.orderEntryUserOptions}
         orderTypeOptions={viewModel.orderTypeOptions}
@@ -194,7 +194,6 @@ export function AdminOrdersClient({
         orderingUserOptions={viewModel.orderingUserOptions}
         pending={viewModel.createPending}
         purchaseOrderTypeOptions={viewModel.purchaseOrderTypeOptions}
-        serviceFeeTypeOptions={viewModel.serviceFeeTypeOptions}
         serviceOrderTypeOptions={viewModel.serviceOrderTypeOptions}
         showCostField={viewModel.canViewOrderCosts}
         submitLabel={viewModel.viewConfig.createTitle}
@@ -205,7 +204,6 @@ export function AdminOrdersClient({
       />
 
       <OrderFormDialog
-        canManageServiceFee={mode === "admin"}
         currencyOptions={orderCurrencyOptions}
         description={t("dialogs.editDescription")}
         feedback={viewModel.editDialogFeedback}
@@ -219,7 +217,7 @@ export function AdminOrdersClient({
         orderUserOptions={viewModel.userOptions}
         pending={viewModel.editPending}
         purchaseOrderTypeOptions={viewModel.purchaseOrderTypeOptions}
-        serviceFeeTypeOptions={viewModel.serviceFeeTypeOptions}
+        serviceFeePreview={viewModel.editServiceFeePreview}
         serviceOrderTypeOptions={viewModel.serviceOrderTypeOptions}
         showCostField={viewModel.canViewOrderCosts}
         supplementaryLoading={viewModel.editSupplementaryLoading}

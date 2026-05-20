@@ -1,29 +1,30 @@
 "use client";
 
-import { useCallback, useState, useRef } from "react";
+import { useCallback, useEffect, useState, useRef } from "react";
 
 import {
   getAdminOrderSupplementaryDetail,
   updateAdminOrder,
   type AdminOrderRow,
-  type ServiceFeeTypeOption,
 } from "@/lib/admin-orders";
+import { previewOrderServiceFeeType } from "@/lib/service-fee-types";
 import { getBrowserSupabaseClient } from "@/lib/supabase";
 
 import {
   createOrderFormState,
   createOrderFormStateFromOrder,
-  getDefaultServiceFeeTypeId,
   parseCreateOrderForm,
   type OrderFormState,
   type OrdersUiCopy,
 } from "./admin-orders-utils";
 import { getNextOrderFormState } from "./admin-orders-client-config";
+import { parseNumericValue } from "./admin-orders-display";
 import {
   type OrdersTranslator,
   type PageFeedback,
   type PageFeedbackSetter,
 } from "./admin-orders-view-model-shared";
+import { type OrderServiceFeePreviewState } from "./admin-orders-service-fee-preview";
 import { toOrderErrorMessage } from "./admin-orders-errors";
 import { type DashboardSharedCopy } from "../dashboard-shared-ui";
 
@@ -31,7 +32,6 @@ export function useAdminOrderEditDialog({
   canEditOrders,
   clearSelectedOrder,
   orderCategoryByTypeId,
-  serviceFeeTypeOptions,
   ordersUiCopy,
   refreshOrdersRoute,
   setPageFeedback,
@@ -42,7 +42,6 @@ export function useAdminOrderEditDialog({
   canEditOrders: boolean;
   clearSelectedOrder: () => void;
   orderCategoryByTypeId: Map<string, string | null>;
-  serviceFeeTypeOptions: ServiceFeeTypeOption[];
   ordersUiCopy: OrdersUiCopy;
   refreshOrdersRoute: () => void;
   setPageFeedback: PageFeedbackSetter;
@@ -62,8 +61,10 @@ export function useAdminOrderEditDialog({
   const [editFormState, setEditFormState] = useState<OrderFormState>(() =>
     createOrderFormState(),
   );
+  const [editServiceFeePreview, setEditServiceFeePreview] =
+    useState<OrderServiceFeePreviewState>({ feeType: null, status: "idle" });
   const editSupplementaryLoadTokenRef = useRef(0);
-  const defaultServiceFeeType = getDefaultServiceFeeTypeId(serviceFeeTypeOptions);
+  const editServiceFeePreviewTokenRef = useRef(0);
 
   const openEditDialog = useCallback(
     (order: AdminOrderRow) => {
@@ -132,14 +133,57 @@ export function useAdminOrderEditDialog({
   const updateEditFormField = useCallback(
     <Key extends keyof OrderFormState>(key: Key, value: OrderFormState[Key]) => {
       setEditDialogFeedback(null);
-      setEditFormState((current) =>
-        getNextOrderFormState(current, key, value, {
-          defaultServiceFeeType,
-        }),
-      );
+      setEditFormState((current) => getNextOrderFormState(current, key, value));
     },
-    [defaultServiceFeeType],
+    [],
   );
+
+  useEffect(() => {
+    if (
+      !editDialogOpen ||
+      !supabase ||
+      !editFormState.orderType ||
+      !editFormState.orderingUser
+    ) {
+      editServiceFeePreviewTokenRef.current += 1;
+      setEditServiceFeePreview({ feeType: null, status: "idle" });
+      return;
+    }
+
+    const previewToken = editServiceFeePreviewTokenRef.current + 1;
+    editServiceFeePreviewTokenRef.current = previewToken;
+    const rmbAmount = parseNumericValue(editFormState.rmbAmount) ?? 0;
+
+    setEditServiceFeePreview({ feeType: null, status: "loading" });
+
+    void previewOrderServiceFeeType(supabase, {
+      existingOrderNumber: editOriginalOrderNumber,
+      orderType: editFormState.orderType,
+      orderingUser: editFormState.orderingUser,
+      rmbAmount,
+    })
+      .then((feeType) => {
+        if (editServiceFeePreviewTokenRef.current !== previewToken) {
+          return;
+        }
+
+        setEditServiceFeePreview({ feeType, status: "ready" });
+      })
+      .catch(() => {
+        if (editServiceFeePreviewTokenRef.current !== previewToken) {
+          return;
+        }
+
+        setEditServiceFeePreview({ feeType: null, status: "error" });
+      });
+  }, [
+    editDialogOpen,
+    editFormState.orderType,
+    editFormState.orderingUser,
+    editFormState.rmbAmount,
+    editOriginalOrderNumber,
+    supabase,
+  ]);
 
   const handleEditOrder = useCallback(async () => {
     if (!supabase || editPending || !editOriginalOrderNumber || !canEditOrders) {
@@ -206,6 +250,7 @@ export function useAdminOrderEditDialog({
     editDialogOpen,
     editFormState,
     editPending,
+    editServiceFeePreview,
     editSupplementaryLoading,
     handleEditDialogOpenChange,
     handleEditOrder,

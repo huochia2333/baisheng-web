@@ -4,7 +4,7 @@ import { withRequestTimeout } from "./request-timeout";
 import type { AdminOrderRow } from "./admin-orders-types";
 
 export const ADMIN_ORDER_SELECT =
-  "id,order_number,original_currency,amount,daily_exchange_rate,transaction_rate,rmb_amount,order_entry_user,ordering_user,order_status,order_type,created_at,reviewed_at,deleted_at";
+  "id,order_number,original_currency,amount,daily_exchange_rate,transaction_rate,rmb_amount,order_entry_user,ordering_user,order_status,order_type,created_at,reviewed_at,deleted_at,service_fee_type_id:service_fee_type";
 
 export type AdminOrderOverviewFilters = {
   orderEntryUserIds?: string[];
@@ -55,7 +55,8 @@ export async function queryAdminOrders(
     cost_amount: null,
     service_fee_amount: null,
     service_fee_ratio: null,
-    service_fee_type_id: null,
+    service_fee_type_id: item.service_fee_type_id ?? null,
+    service_fee_type_name: null,
   }));
 }
 

@@ -37,6 +37,11 @@ type ServiceFeeTypeRecord = {
   fee_ratio: number | string | null;
 };
 
+type OrderSupplementaryOverviewReference = OrderOverviewReference & {
+  rmb_amount: number | string | null;
+  service_fee_type: string | null;
+};
+
 export async function getAdminOrderSupplementaryDetail(
   supabase: SupabaseClient,
   orderNumber: string,
@@ -95,6 +100,8 @@ export async function getAdminOrderSupplementaryDetail(
   }
 
   if (serviceResult.data) {
+    const serviceFeeTypeId =
+      overview.service_fee_type ?? serviceResult.data.service_fee_type;
     const [serviceTypeResult, discountTypeResult, serviceFeeTypeResult] =
       await Promise.all([
       withRequestTimeout(
@@ -111,13 +118,15 @@ export async function getAdminOrderSupplementaryDetail(
           .eq("id", serviceResult.data.order_discount)
           .maybeSingle<OrderDiscountTypeRecord>(),
       ),
-      withRequestTimeout(
-        supabase
-          .from("service_fee_type")
-          .select("fee_ratio")
-          .eq("id", serviceResult.data.service_fee_type)
-          .maybeSingle<ServiceFeeTypeRecord>(),
-      ),
+      serviceFeeTypeId
+        ? withRequestTimeout(
+            supabase
+              .from("service_fee_type")
+              .select("fee_ratio")
+              .eq("id", serviceFeeTypeId)
+              .maybeSingle<ServiceFeeTypeRecord>(),
+          )
+        : Promise.resolve({ data: null, error: null }),
     ]);
 
     if (serviceTypeResult.error) {
@@ -140,35 +149,16 @@ export async function getAdminOrderSupplementaryDetail(
       discountId: serviceResult.data.order_discount,
       discountRatio: discountTypeResult.data?.discount_ratio ?? null,
       serviceFeeAmount: calculateServiceFeeAmount(
-        await getOrderRmbAmount(supabase, overview.id),
+        overview.rmb_amount,
         serviceFeeTypeResult.data?.fee_ratio ?? null,
       ),
       serviceFeeRatio: serviceFeeTypeResult.data?.fee_ratio ?? null,
-      serviceFeeTypeId: serviceResult.data.service_fee_type,
+      serviceFeeTypeId,
       details: serviceResult.data.order_details,
     };
   }
 
   return null;
-}
-
-async function getOrderRmbAmount(
-  supabase: SupabaseClient,
-  orderId: string,
-): Promise<number | string | null> {
-  const { data, error } = await withRequestTimeout(
-    supabase
-      .from("order_overview")
-      .select("rmb_amount")
-      .eq("id", orderId)
-      .maybeSingle<{ rmb_amount: number | string | null }>(),
-  );
-
-  if (error) {
-    throw error;
-  }
-
-  return data?.rmb_amount ?? null;
 }
 
 function calculateServiceFeeAmount(
@@ -201,7 +191,7 @@ function parseNumericValue(value: number | string | null | undefined) {
 async function getOrderOverviewReference(
   supabase: SupabaseClient,
   orderNumber: string,
-): Promise<OrderOverviewReference | null> {
+): Promise<OrderSupplementaryOverviewReference | null> {
   const normalizedOrderNumber = orderNumber.trim();
 
   if (!normalizedOrderNumber) {
@@ -211,9 +201,9 @@ async function getOrderOverviewReference(
   const { data, error } = await withRequestTimeout(
     supabase
       .from("order_overview")
-      .select("id,order_number")
+      .select("id,order_number,rmb_amount,service_fee_type")
       .eq("order_number", normalizedOrderNumber)
-      .maybeSingle<OrderOverviewReference>(),
+      .maybeSingle<OrderSupplementaryOverviewReference>(),
   );
 
   if (error) {

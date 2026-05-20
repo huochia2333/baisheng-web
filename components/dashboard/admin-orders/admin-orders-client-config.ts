@@ -129,9 +129,6 @@ export function getNextOrderFormState<Key extends keyof OrderFormState>(
   current: OrderFormState,
   key: Key,
   value: OrderFormState[Key],
-  options: {
-    defaultServiceFeeType?: string;
-  } = {},
 ) {
   const nextState = {
     ...current,
@@ -158,7 +155,6 @@ export function getNextOrderFormState<Key extends keyof OrderFormState>(
     nextState.purchaseDetails = "";
     nextState.serviceSubtype = "";
     nextState.serviceDiscount = "";
-    nextState.serviceFeeType = options.defaultServiceFeeType ?? "";
     nextState.serviceDetails = "";
   }
 

@@ -2,11 +2,26 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 
 import { withRequestTimeout } from "./request-timeout";
 
-const SERVICE_FEE_TYPE_SELECT = "id,fee_ratio";
+const SERVICE_FEE_TYPE_SELECT =
+  "id,fee_code,fee_scope,display_name,rule_description,fee_ratio,sort_order";
+
+export type ServiceFeeScope = "retail" | "wholesale" | "service";
 
 export type ServiceFeeTypeOption = {
   id: string;
+  fee_code: string;
+  fee_scope: ServiceFeeScope;
+  display_name: string;
+  rule_description: string;
   fee_ratio: number | string;
+  sort_order: number;
+};
+
+export type OrderServiceFeePreviewInput = {
+  existingOrderNumber?: string | null;
+  orderType: string;
+  orderingUser: string;
+  rmbAmount: number;
 };
 
 export async function getServiceFeeTypes(
@@ -16,7 +31,7 @@ export async function getServiceFeeTypes(
     supabase
       .from("service_fee_type")
       .select(SERVICE_FEE_TYPE_SELECT)
-      .order("fee_ratio", { ascending: false })
+      .order("sort_order", { ascending: true })
       .returns<ServiceFeeTypeOption[]>(),
   );
 
@@ -25,25 +40,6 @@ export async function getServiceFeeTypes(
   }
 
   return data ?? [];
-}
-
-export async function createServiceFeeType(
-  supabase: SupabaseClient,
-  feeRatio: number,
-): Promise<ServiceFeeTypeOption> {
-  const { data, error } = await withRequestTimeout(
-    supabase
-      .from("service_fee_type")
-      .insert({ fee_ratio: feeRatio })
-      .select(SERVICE_FEE_TYPE_SELECT)
-      .single<ServiceFeeTypeOption>(),
-  );
-
-  if (error) {
-    throw error;
-  }
-
-  return data;
 }
 
 export async function updateServiceFeeType(
@@ -67,18 +63,24 @@ export async function updateServiceFeeType(
   return data;
 }
 
-export async function deleteServiceFeeType(
+export async function previewOrderServiceFeeType(
   supabase: SupabaseClient,
-  id: string,
-): Promise<void> {
-  const { error } = await withRequestTimeout(
+  input: OrderServiceFeePreviewInput,
+): Promise<ServiceFeeTypeOption | null> {
+  const { data, error } = await withRequestTimeout(
     supabase
-      .from("service_fee_type")
-      .delete()
-      .eq("id", id),
+      .rpc("preview_order_service_fee_type", {
+        p_existing_order_number: input.existingOrderNumber ?? null,
+        p_order_type: input.orderType,
+        p_ordering_user: input.orderingUser,
+        p_rmb_amount: input.rmbAmount,
+      })
+      .maybeSingle<ServiceFeeTypeOption>(),
   );
 
   if (error) {
     throw error;
   }
+
+  return data ?? null;
 }

@@ -34,12 +34,32 @@ export function OrderSupplementaryFormSection({
   children: ReactNode;
 }) {
   return (
-    <section className="rounded-[24px] border border-[#ebe7e1] bg-[#f9f7f4] p-5 shadow-[0_10px_24px_rgba(96,113,128,0.05)]">
+    <section className="rounded-[28px] border border-[#ebe7e1] bg-[#f9f7f4] p-5 shadow-[0_10px_24px_rgba(96,113,128,0.05)] sm:p-6">
       <div className="mb-5">
         <h3 className="text-lg font-semibold text-[#23313a]">{title}</h3>
         <p className="mt-2 text-sm leading-7 text-[#66717a]">{description}</p>
       </div>
       <div className="space-y-5">{children}</div>
+    </section>
+  );
+}
+
+export function OrderFormSection({
+  title,
+  description,
+  children,
+}: {
+  title: string;
+  description: string;
+  children: ReactNode;
+}) {
+  return (
+    <section className="rounded-[28px] border border-[#ebe7e1] bg-[#f9f7f4] p-5 shadow-[0_10px_24px_rgba(96,113,128,0.05)] sm:p-6">
+      <div className="mb-5">
+        <h3 className="text-lg font-semibold text-[#23313a]">{title}</h3>
+        <p className="mt-2 text-sm leading-7 text-[#66717a]">{description}</p>
+      </div>
+      {children}
     </section>
   );
 }
@@ -72,4 +92,4 @@ export function OrderDetailCard({
 }
 
 export const fieldInputClassName =
-  "h-12 w-full rounded-[18px] border border-[#e1ddd7] bg-[#fbfaf8] px-4 text-[15px] text-[#23313a] outline-none transition focus:border-[#bfd2e1] focus:ring-4 focus:ring-[#bfd2e1]/30 disabled:cursor-not-allowed disabled:opacity-70";
+  "h-12 w-full rounded-[18px] border border-[#ebe7e1] bg-white px-4 text-[15px] text-[#23313a] shadow-[0_8px_18px_rgba(96,113,128,0.04)] outline-none transition focus:border-[#bfd2e1] focus:ring-4 focus:ring-[#bfd2e1]/30 disabled:cursor-not-allowed disabled:opacity-70";

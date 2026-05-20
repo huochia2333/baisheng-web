@@ -914,23 +914,31 @@
       "serviceFees": {
         "badge": "Service Fee",
         "title": "Service Fee Settings",
-        "description": "Service orders calculate their service fee from the rates managed here.",
-        "summaryLabel": "Available Rates",
-        "createLabel": "New Service Fee Rate",
-        "inputPlaceholder": "Example: 10",
-        "add": "Add Rate",
+        "description": "Retail, wholesale, and service-order fees are managed as fixed tiers. Each tier can be adjusted separately, and orders match the tier automatically when saved.",
+        "retail": {
+          "title": "Retail Service Fee Settings",
+          "description": "Retail orders match the customer's retail-order status: new customers use the new-customer tier for three months from their first retail order; customers who pay the 200 USD annual fee use the annual-fee tier; other returning customers use the standard tier.",
+          "summaryLabel": "Retail Service Fee"
+        },
+        "wholesale": {
+          "title": "Wholesale Service Fee Settings",
+          "description": "Wholesale orders match the customer's wholesale-order status: new customers use the new-customer tier for three months from their first wholesale order; after that, customers keep the lower rate when the last 30 days of orders reach $20000, otherwise they use the standard tier or the VIP tier when they pay the wholesale VIP annual fee.",
+          "summaryLabel": "Wholesale Service Fee"
+        },
+        "service": {
+          "title": "Service Order Fee Settings",
+          "description": "Service orders use this fee when saved. After adjustment, the order list and details show service fees with the new rate.",
+          "summaryLabel": "Service Order Fee"
+        },
         "edit": "Edit",
         "save": "Save",
         "cancel": "Cancel",
-        "delete": "Delete",
-        "deleteConfirm": "Delete this service fee rate? Rates used by orders cannot be deleted.",
-        "createSuccess": "Service fee rate added.",
-        "updateSuccess": "Service fee rate updated.",
-        "deleteSuccess": "Service fee rate deleted.",
-        "emptyTitle": "No Service Fee Rates",
-        "emptyDescription": "Add a rate so service orders can use it.",
+        "updateSuccess": "Service fee tier updated.",
+        "emptyDescription": "No service fee tiers are available yet.",
         "table": {
-          "rate": "Service Fee Rate",
+          "tier": "Service Fee Tier",
+          "rule": "Rule",
+          "rate": "Current Rate",
           "actions": "Actions"
         },
         "validation": {
@@ -940,8 +948,8 @@
         "errors": {
           "duplicate": "This service fee rate already exists.",
           "inUse": "This service fee rate is used by existing orders and cannot be deleted.",
-          "permission": "The current account cannot change service fee rates.",
-          "unknown": "Service fee rate save failed. Please try again later."
+          "permission": "The current account cannot change service fees.",
+          "unknown": "Service fee save failed. Please try again later."
         }
       }
     }
@@ -985,6 +993,12 @@
         "vipRecharge": "VIP Recharge"
       }
     },
+    "formSections": {
+      "basic": {
+        "title": "Order Basics",
+        "description": "Fill status, type, amount, rates, and people in the same reading order as order details."
+      }
+    },
     "fields": {
       "originalCurrency": "Original Currency",
       "amount": "Total Amount",
@@ -1000,7 +1014,7 @@
       "purchaseDetails": "Purchase / Wholesale Details",
       "serviceSubtype": "Service Subtype",
       "serviceDiscount": "Order Discount",
-      "serviceFeeType": "Service Fee Rate",
+      "serviceFeeType": "Service Fee Tier",
       "serviceDetails": "Service Details"
     },
     "placeholders": {
@@ -1023,8 +1037,20 @@
       "lockedOrderEntryUser": "Orders created from this page are automatically assigned to the current salesperson.",
       "autoDailyExchangeRate": "The exchange rate value is filled automatically and cannot be edited.",
       "lockedCurrencyAndRates": "The currency and exchange rates stay fixed after the order is created.",
-      "serviceFeeLocked": "Service fee rates are managed by administrators. The default rate is used here.",
+      "serviceFeeLocked": "Service fee tiers are managed by administrators. The default tier is used here.",
+      "autoServiceFee": "The service fee is matched automatically from the order type and order settings. It cannot be selected here.",
       "autoTimestamps": "After creation, the system writes the created time automatically. After editing, the system updates the latest modified time automatically."
+    },
+    "serviceFeePreview": {
+      "title": "Service fee preview",
+      "finalHint": "The order settings confirm the final service fee after saving.",
+      "savedHint": "This shows the service fee currently used by this order.",
+      "loading": "Matching",
+      "waiting": "Select the order customer and order type to show the service fee rate and amount.",
+      "unavailable": "The service fee cannot be shown right now. It will still be matched after saving.",
+      "tier": "Service Fee Tier",
+      "rate": "Service Fee Rate",
+      "amount": "Service Fee"
     },
     "select": {
       "originalCurrency": "Select an existing currency",
@@ -1034,7 +1060,7 @@
       "purchaseSubtype": "Select a purchase or wholesale subtype",
       "serviceSubtype": "Select a service subtype",
       "serviceDiscount": "Select an order discount",
-      "serviceFeeType": "Select a service fee rate"
+      "serviceFeeType": "Select a service fee tier"
     },
     "validation": {
       "selectPrompt": "Please select {label}.",

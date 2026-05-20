@@ -834,7 +834,7 @@
     },
     "tabs": {
       "orders": "订单列表",
-      "exchange-rates": "订单数设置"
+      "exchange-rates": "订单设置"
     },
     "modes": {
       "admin": {
@@ -914,34 +914,42 @@
       "serviceFees": {
         "badge": "服务费",
         "title": "服务费设置",
-        "description": "服务订单会按这里维护的费率计算服务费。",
-        "summaryLabel": "可选费率",
-        "createLabel": "新增服务费率",
-        "inputPlaceholder": "例如 10",
-        "add": "新增费率",
+        "description": "零售、批发和服务订单的服务费按固定档位维护；每个档位都可以单独修改，订单保存时会自动匹配。",
+        "retail": {
+          "title": "零售服务费设置",
+          "description": "零售订单会按客户在零售订单中的情况自动匹配：新用户、零售/服务vip或普通零售。",
+          "summaryLabel": "零售服务费"
+        },
+        "wholesale": {
+          "title": "批发服务费设置",
+          "description": "批发订单会按客户在批发订单中的情况自动匹配：新用户、高级批发、普通批发或批发VIP 年费。",
+          "summaryLabel": "批发服务费"
+        },
+        "service": {
+          "title": "服务订单服务费设置",
+          "description": "服务订单保存时统一使用这个服务费；调整后，订单列表和详情会按新的费率展示服务费。",
+          "summaryLabel": "服务订单服务费"
+        },
         "edit": "修改",
         "save": "保存",
         "cancel": "取消",
-        "delete": "删除",
-        "deleteConfirm": "确定要删除这个服务费率吗？已被订单使用的费率不能删除。",
-        "createSuccess": "服务费率已新增。",
-        "updateSuccess": "服务费率已更新。",
-        "deleteSuccess": "服务费率已删除。",
-        "emptyTitle": "暂无服务费率",
-        "emptyDescription": "新增后，服务订单就可以使用对应费率。",
+        "updateSuccess": "服务费档位已更新。",
+        "emptyDescription": "当前还没有可维护的服务费档位。",
         "table": {
-          "rate": "服务费率",
+          "tier": "服务费档位",
+          "rule": "适用规则",
+          "rate": "当前费率",
           "actions": "操作"
         },
         "validation": {
-          "invalid": "请输入正确的服务费率。",
-          "range": "服务费率需要大于 0，并且不能超过 100%。"
+          "invalid": "请输入正确的服务费。",
+          "range": "服务费需要大于 0，并且不能超过 100%。"
         },
         "errors": {
-          "duplicate": "这个服务费率已经存在。",
-          "inUse": "已有订单正在使用这个服务费率，不能删除。",
-          "permission": "当前账号不能修改服务费率。",
-          "unknown": "服务费率保存失败，请稍后再试。"
+          "duplicate": "这个服务费档位已经存在。",
+          "inUse": "已有订单正在使用这个服务费档位，不能删除。",
+          "permission": "当前账号不能修改服务费。",
+          "unknown": "服务费保存失败，请稍后再试。"
         }
       }
     }
@@ -985,6 +993,12 @@
         "vipRecharge": "VIP 充值"
       }
     },
+    "formSections": {
+      "basic": {
+        "title": "订单基础信息",
+        "description": "按订单详情的阅读顺序填写状态、类型、金额、汇率和人员信息。"
+      }
+    },
     "fields": {
       "originalCurrency": "原始货币",
       "amount": "金额总计",
@@ -1000,7 +1014,7 @@
       "purchaseDetails": "采购/批发明细",
       "serviceSubtype": "服务小类",
       "serviceDiscount": "订单折扣",
-      "serviceFeeType": "服务费率",
+      "serviceFeeType": "服务费档位",
       "serviceDetails": "服务订单明细"
     },
     "placeholders": {
@@ -1023,8 +1037,20 @@
       "lockedOrderEntryUser": "当前页面创建的订单会自动归属到当前业务员名下。",
       "autoDailyExchangeRate": "汇率等值会自动填入，不能手动修改。",
       "lockedCurrencyAndRates": "已创建订单的币种和汇率保持原值。",
-      "serviceFeeLocked": "服务费率由管理员维护，当前会自动使用默认费率。",
+      "serviceFeeLocked": "服务费档位由管理员维护，当前会自动使用默认档位。",
+      "autoServiceFee": "服务费会按订单类型和订单设置自动匹配，不能在这里手动选择。",
       "autoTimestamps": "创建订单后，系统会自动写入创建时间；编辑订单保存后，系统会自动更新最后一次改动时间。"
+    },
+    "serviceFeePreview": {
+      "title": "服务费预览",
+      "finalHint": "保存后会按订单设置最终确认。",
+      "savedHint": "这里显示当前订单实际使用的服务费。",
+      "loading": "正在匹配",
+      "waiting": "选择订单客户和订单类型后，会显示服务费率和费用。",
+      "unavailable": "暂时无法显示服务费，保存时仍会自动匹配。",
+      "tier": "服务费档位",
+      "rate": "服务费率",
+      "amount": "服务费"
     },
     "select": {
       "originalCurrency": "请选择已有币种",
@@ -1034,7 +1060,7 @@
       "purchaseSubtype": "请选择采购/批发小类",
       "serviceSubtype": "请选择服务小类",
       "serviceDiscount": "请选择订单折扣",
-      "serviceFeeType": "请选择服务费率"
+      "serviceFeeType": "请选择服务费档位"
     },
     "validation": {
       "selectPrompt": "请选择{label}。",
@@ -1045,7 +1071,7 @@
     },
     "errors": {
       "duplicateOrderNumber": "订单编号生成冲突，请稍后重试。",
-      "exchangeRateMissing": "这个币种的汇率还没有准备好，请先到订单数设置中补充。",
+      "exchangeRateMissing": "这个币种的汇率还没有准备好，请先到订单设置中补充。",
       "invalidForeignKeys": "请选择有效的订单录入员、订单客户、订单类型，以及对应的采购、批发或服务信息选项。",
       "cannotCreate": "你没有创建该订单的权限。",
       "cannotUpdate": "你没有修改该订单的权限。",

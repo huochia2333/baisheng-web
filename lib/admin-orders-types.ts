@@ -24,6 +24,7 @@ export type AdminOrderRow = {
   service_fee_amount: number | string | null;
   service_fee_ratio: number | string | null;
   service_fee_type_id: string | null;
+  service_fee_type_name: string | null;
 };
 
 export type OrderUserOption = {
@@ -94,7 +95,7 @@ export type CreateAdminOrderSupplementaryInput =
       kind: "service";
       subtypeId: string;
       discountId: string;
-      serviceFeeTypeId: string;
+      serviceFeeTypeId?: string | null;
       details: AdminOrderDetailValue;
     };
 

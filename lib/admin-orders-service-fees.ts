@@ -2,11 +2,16 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 
 import { withRequestTimeout } from "./request-timeout";
 import type { AdminOrderRow } from "./admin-orders-types";
-import type { ServiceFeeTypeOption } from "./service-fee-types";
 
-type ServiceOrderFeeRow = {
-  order_overview_id: string;
+type OrderServiceFeeRow = {
+  id: string;
   service_fee_type: string | null;
+};
+
+type ServiceFeeRatioRecord = {
+  display_name: string | null;
+  id: string;
+  fee_ratio: number | string;
 };
 
 export type AdminOrderServiceFeeRow = {
@@ -14,6 +19,7 @@ export type AdminOrderServiceFeeRow = {
   service_fee_amount: number | null;
   service_fee_ratio: number | string | null;
   service_fee_type_id: string | null;
+  service_fee_type_name: string | null;
 };
 
 export async function getAdminOrderServiceFees(
@@ -26,10 +32,10 @@ export async function getAdminOrderServiceFees(
 
   const { data: serviceRows, error: serviceRowsError } = await withRequestTimeout(
     supabase
-      .from("service_order")
-      .select("order_overview_id,service_fee_type")
-      .in("order_overview_id", orderIds)
-      .returns<ServiceOrderFeeRow[]>(),
+      .from("order_overview")
+      .select("id,service_fee_type")
+      .in("id", orderIds)
+      .returns<OrderServiceFeeRow[]>(),
   );
 
   if (serviceRowsError) {
@@ -51,9 +57,9 @@ export async function getAdminOrderServiceFees(
   const { data: feeTypes, error: feeTypesError } = await withRequestTimeout(
     supabase
       .from("service_fee_type")
-      .select("id,fee_ratio")
+      .select("id,fee_ratio,display_name")
       .in("id", feeTypeIds)
-      .returns<ServiceFeeTypeOption[]>(),
+      .returns<ServiceFeeRatioRecord[]>(),
   );
 
   if (feeTypesError) {
@@ -63,14 +69,20 @@ export async function getAdminOrderServiceFees(
   const feeRatioById = new Map(
     (feeTypes ?? []).map((row) => [row.id, row.fee_ratio]),
   );
+  const feeNameById = new Map(
+    (feeTypes ?? []).map((row) => [row.id, row.display_name]),
+  );
 
   return (serviceRows ?? []).map((row) => ({
-    order_overview_id: row.order_overview_id,
+    order_overview_id: row.id,
     service_fee_amount: null,
     service_fee_ratio: row.service_fee_type
       ? (feeRatioById.get(row.service_fee_type) ?? null)
       : null,
     service_fee_type_id: row.service_fee_type,
+    service_fee_type_name: row.service_fee_type
+      ? (feeNameById.get(row.service_fee_type) ?? null)
+      : null,
   }));
 }
 
@@ -84,6 +96,7 @@ export function mergeAdminOrdersWithServiceFees(
       service_fee_amount: order.service_fee_amount ?? null,
       service_fee_ratio: order.service_fee_ratio ?? null,
       service_fee_type_id: order.service_fee_type_id ?? null,
+      service_fee_type_name: order.service_fee_type_name ?? null,
     }));
   }
 
@@ -103,6 +116,7 @@ export function mergeAdminOrdersWithServiceFees(
       ),
       service_fee_ratio: serviceFeeRatio,
       service_fee_type_id: serviceFee?.service_fee_type_id ?? null,
+      service_fee_type_name: serviceFee?.service_fee_type_name ?? null,
     };
   });
 }
