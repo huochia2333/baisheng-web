@@ -4,6 +4,7 @@ import type { DashboardPaginationState } from "./dashboard-pagination";
 import type { ExchangeRateRow } from "./exchange-rates";
 import type { ServiceFeeTypeOption } from "./service-fee-types";
 import type { AppRole, UserStatus } from "./user-self-service";
+import type { VipMembershipScope } from "./vip-memberships";
 
 export type AdminOrderRow = {
   id: string;
@@ -51,6 +52,16 @@ export type ServiceOrderTypeOption = {
   business_subcategory: string;
 };
 
+export type ServiceOrderPriceOption = {
+  id: string;
+  service_order_type_id: string;
+  price_code: string;
+  display_name: string;
+  amount_usd: number | string;
+  sort_order: number;
+  is_active: boolean;
+};
+
 export type OrderDiscountTypeOption = {
   id: string;
   discount_ratio: number | string;
@@ -79,9 +90,18 @@ export type AdminOrderSupplementaryDetail =
       subtype: string | null;
       discountId: string;
       discountRatio: number | string | null;
+      priceOptionId: string;
+      priceOptionLabel: string | null;
+      priceAmountUsd: number | string | null;
       serviceFeeAmount: number | string | null;
       serviceFeeRatio: number | string | null;
       serviceFeeTypeId: string | null;
+      details: AdminOrderDetailValue;
+    }
+  | {
+      kind: "vip_recharge";
+      orderNumber: string;
+      vipScope: VipMembershipScope;
       details: AdminOrderDetailValue;
     };
 
@@ -95,7 +115,13 @@ export type CreateAdminOrderSupplementaryInput =
       kind: "service";
       subtypeId: string;
       discountId: string;
+      priceOptionId: string;
       serviceFeeTypeId?: string | null;
+      details: AdminOrderDetailValue;
+    }
+  | {
+      kind: "vip_recharge";
+      vipScope: VipMembershipScope;
       details: AdminOrderDetailValue;
     };
 
@@ -158,6 +184,7 @@ export type AdminOrdersPageData = {
   purchaseOrderTypeOptions: PurchaseOrderTypeOption[];
   orderCurrencyRates: ExchangeRateRow[];
   serviceFeeTypeOptions: ServiceFeeTypeOption[];
+  serviceOrderPriceOptions: ServiceOrderPriceOption[];
   serviceOrderTypeOptions: ServiceOrderTypeOption[];
   summary: {
     completed: number;

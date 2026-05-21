@@ -16,28 +16,23 @@ import { getBrowserSupabaseClient } from "@/lib/supabase";
 import {
   createDashboardSharedCopy,
   formatDateTime,
-  PageBanner,
 } from "../dashboard-shared-ui";
 import { DashboardDialog } from "../dashboard-dialog";
 import { Button } from "../../ui/button";
 import {
   createOrdersUiCopy,
-  flattenOrderDetailItems,
   formatCurrencyCode,
-  formatDiscountRatioValue,
   formatMoneyValue,
-  formatPurchaseOrderSubtype,
   formatRateValue,
-  formatServiceOrderSubtype,
   getOrderTypeMetaFromCategory,
   getStatusLabel,
   resolveOrderTypeMeta,
   resolveOrderUserLabel,
   toOrderErrorMessage,
-  type OrdersUiCopy,
 } from "./admin-orders-utils";
 import { OrderDetailCard } from "./admin-orders-dialog-ui";
 import { OrderServiceFeeSummaryCard } from "./admin-orders-service-fee-preview";
+import { OrderSupplementaryDetailsSection } from "./admin-orders-supplementary-details";
 
 export function OrderDetailsDialog({
   canDelete,
@@ -199,14 +194,16 @@ export function OrderDetailsDialog({
             <OrderDetailCard label={t("details.fields.originalCurrency")} value={formatCurrencyCode(order.original_currency)} />
             <OrderDetailCard label={t("details.fields.amount")} value={formatMoneyValue(order.amount, locale)} />
             <OrderDetailCard label={t("details.fields.rmbAmount")} value={formatMoneyValue(order.rmb_amount, locale)} />
-            <OrderServiceFeeSummaryCard
-              amount={order.service_fee_amount}
-              className="md:col-span-2"
-              description={t("serviceFeePreview.savedHint")}
-              rate={order.service_fee_ratio}
-              tier={order.service_fee_type_name}
-              title={t("details.fields.serviceFee")}
-            />
+            {order.service_fee_type_id ? (
+              <OrderServiceFeeSummaryCard
+                amount={order.service_fee_amount}
+                className="md:col-span-2"
+                description={t("serviceFeePreview.savedHint")}
+                rate={order.service_fee_ratio}
+                tier={order.service_fee_type_name}
+                title={t("details.fields.serviceFee")}
+              />
+            ) : null}
             {canViewCost ? (
               <OrderDetailCard label={t("details.fields.costAmount")} value={formatMoneyValue(order.cost_amount, locale)} />
             ) : null}
@@ -243,92 +240,5 @@ export function OrderDetailsDialog({
         </div>
       ) : null}
     </DashboardDialog>
-  );
-}
-
-function OrderSupplementaryDetailsSection({
-  detail,
-  loading,
-  error,
-  orderUiCopy,
-}: {
-  detail: AdminOrderSupplementaryDetail | null;
-  loading: boolean;
-  error: string | null;
-  orderUiCopy: OrdersUiCopy;
-}) {
-  const { locale } = useLocale();
-  const t = useTranslations("OrdersUI");
-  const detailItems = useMemo(
-    () => (detail ? flattenOrderDetailItems(detail.details, locale, orderUiCopy) : []),
-    [detail, locale, orderUiCopy],
-  );
-
-  if (loading) {
-    return (
-      <div className="rounded-[24px] border border-[#ebe7e1] bg-[#f9f7f4] px-5 py-4 shadow-[0_10px_24px_rgba(96,113,128,0.05)]">
-        <div className="flex items-center gap-3 text-sm text-[#60707d]">
-          <LoaderCircle className="size-4 animate-spin" />
-          {t("details.supplementary.loading")}
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return <PageBanner tone="error">{error}</PageBanner>;
-  }
-
-  if (!detail) {
-    return <PageBanner tone="info">{t("details.supplementary.empty")}</PageBanner>;
-  }
-
-  const formTitle =
-    detail.kind === "purchase"
-      ? t("details.supplementary.purchaseForm")
-      : t("details.supplementary.serviceForm");
-  const subtypeLabel =
-    detail.kind === "purchase"
-      ? t("details.supplementary.purchaseSubtype")
-      : t("details.supplementary.serviceSubtype");
-  const subtypeValue =
-    detail.kind === "purchase"
-      ? formatPurchaseOrderSubtype(detail.subtype, orderUiCopy)
-      : formatServiceOrderSubtype(detail.subtype, orderUiCopy);
-
-  return (
-    <section className="rounded-[28px] border border-[#ebe7e1] bg-[#f9f7f4] p-5 shadow-[0_10px_24px_rgba(96,113,128,0.05)] sm:p-6">
-      <div className="flex flex-col">
-        <h3 className="text-lg font-semibold text-[#23313a]">{formTitle}</h3>
-      </div>
-
-      <div className="mt-5 grid gap-5 md:grid-cols-2">
-        <OrderDetailCard label={t("details.supplementary.sourceForm")} value={formTitle} />
-        <OrderDetailCard label={subtypeLabel} value={subtypeValue} />
-        {detail.kind === "service" ? (
-          <>
-            <OrderDetailCard
-              label={t("details.supplementary.discount")}
-              value={formatDiscountRatioValue(detail.discountRatio, locale, orderUiCopy)}
-            />
-          </>
-        ) : null}
-
-        {detailItems.length > 0 ? (
-          detailItems.map((item, index) => (
-            <OrderDetailCard
-              key={`${item.label}-${index}`}
-              label={item.label}
-              multiline
-              value={item.value}
-            />
-          ))
-        ) : (
-          <div className="md:col-span-2">
-            <PageBanner tone="info">{t("details.supplementary.noMoreDetails")}</PageBanner>
-          </div>
-        )}
-      </div>
-    </section>
   );
 }

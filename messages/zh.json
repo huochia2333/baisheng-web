@@ -483,10 +483,10 @@
       "title": "团队管理",
       "description": "这里会承接团队成员、状态统计和组织协作信息，并逐步按不同角色补齐对应操作能力。"
     },
-      "people": {
-        "title": "人员管理",
-        "description": "这里按账号身份展示可处理的人员或客户信息。推荐关系和团队归属仍在对应板块单独维护。"
-      },
+    "people": {
+      "title": "人员管理",
+      "description": "这里按账号身份展示可处理的人员或客户信息。推荐关系和团队归属仍在对应板块单独维护。"
+    },
     "commission": {
       "title": "佣金中心",
       "description": "这里将整合佣金规则、结算明细、发放进度和异常记录，后续会继续细化成财务与业务岗位的专属界面。"
@@ -914,15 +914,15 @@
       "serviceFees": {
         "badge": "服务费",
         "title": "服务费设置",
-        "description": "零售、批发和服务订单的服务费按固定档位维护；每个档位都可以单独修改，订单保存时会自动匹配。",
+        "description": "零售和批发订单的服务费按固定档位维护；服务订单没有服务费，价格和折扣在下方单独维护。",
         "retail": {
           "title": "零售服务费设置",
-          "description": "零售订单会按客户在零售订单中的情况自动匹配：新用户、零售/服务vip或普通零售。",
+          "description": "零售订单会按客户在零售订单中的情况自动匹配：新用户、零售/服务VIP或普通零售。",
           "summaryLabel": "零售服务费"
         },
         "wholesale": {
           "title": "批发服务费设置",
-          "description": "批发订单会按客户在批发订单中的情况自动匹配：新用户、高级批发、普通批发或批发VIP 年费。",
+          "description": "批发订单会按客户在批发订单中的情况自动匹配：新用户、高级批发、普通批发或批发VIP。",
           "summaryLabel": "批发服务费"
         },
         "service": {
@@ -951,6 +951,39 @@
           "permission": "当前账号不能修改服务费。",
           "unknown": "服务费保存失败，请稍后再试。"
         }
+      },
+      "serviceOrders": {
+        "badge": "服务订单",
+        "title": "服务价格与折扣",
+        "description": "服务订单按固定美元价格保存，没有服务费；客户拥有零售/服务VIP时才可以使用服务折扣。",
+        "priceSummaryLabel": "服务价格项",
+        "discountSummaryLabel": "可选折扣",
+        "prices": {
+          "title": "服务价格",
+          "description": "这些价格用于服务订单金额，保存订单时会按价格和折扣自动计算。"
+        },
+        "discounts": {
+          "title": "服务折扣",
+          "description": "折扣只给有效零售/服务VIP客户使用；普通客户按 100% 原价保存。"
+        },
+        "table": {
+          "service": "服务项目",
+          "option": "价格选项",
+          "price": "美元价格",
+          "discount": "折扣",
+          "actions": "操作"
+        },
+        "edit": "修改",
+        "save": "保存",
+        "cancel": "取消",
+        "updateSuccess": "服务订单设置已更新。",
+        "validation": {
+          "price": "请输入大于 0 的美元价格。",
+          "discount": "请输入大于 0 且不超过 100% 的折扣。"
+        },
+        "errors": {
+          "unknown": "服务订单设置保存失败，请稍后再试。"
+        }
       }
     }
   },
@@ -975,7 +1008,8 @@
     "categories": {
       "purchase": "零售类",
       "dropshipping": "批发类",
-      "service": "服务订单"
+      "service": "服务订单",
+      "vipRecharge": "VIP充值"
     },
     "subtypes": {
       "purchase": {
@@ -989,8 +1023,11 @@
         "medicalEscort": "医疗陪同",
         "digitalSurvival": "数字化生存",
         "airportTransfer": "机场接送",
-        "carService": "用车服务",
-        "vipRecharge": "VIP 充值"
+        "carService": "用车服务"
+      },
+      "vipRecharge": {
+        "retail": "零售/服务VIP",
+        "wholesale": "批发VIP"
       }
     },
     "formSections": {
@@ -1015,7 +1052,10 @@
       "serviceSubtype": "服务小类",
       "serviceDiscount": "订单折扣",
       "serviceFeeType": "服务费档位",
-      "serviceDetails": "服务订单明细"
+      "servicePrice": "服务价格",
+      "serviceDetails": "服务订单明细",
+      "vipScope": "VIP类型",
+      "vipDetails": "VIP充值明细"
     },
     "placeholders": {
       "originalCurrency": "请选择已有币种",
@@ -1037,6 +1077,7 @@
       "lockedOrderEntryUser": "当前页面创建的订单会自动归属到当前业务员名下。",
       "autoDailyExchangeRate": "汇率等值会自动填入，不能手动修改。",
       "lockedCurrencyAndRates": "已创建订单的币种和汇率保持原值。",
+      "serviceAmountLocked": "服务订单金额会按服务价格和折扣自动填写。",
       "serviceFeeLocked": "服务费档位由管理员维护，当前会自动使用默认档位。",
       "autoServiceFee": "服务费会按订单类型和订单设置自动匹配，不能在这里手动选择。",
       "autoTimestamps": "创建订单后，系统会自动写入创建时间；编辑订单保存后，系统会自动更新最后一次改动时间。"
@@ -1060,7 +1101,9 @@
       "purchaseSubtype": "请选择采购/批发小类",
       "serviceSubtype": "请选择服务小类",
       "serviceDiscount": "请选择订单折扣",
-      "serviceFeeType": "请选择服务费档位"
+      "serviceFeeType": "请选择服务费档位",
+      "servicePrice": "请选择服务价格",
+      "vipScope": "请选择VIP类型"
     },
     "validation": {
       "selectPrompt": "请选择{label}。",
@@ -1078,7 +1121,10 @@
       "updatedScopeNotAllowed": "更新后的订单范围超出了你的可操作范围。",
       "cannotDelete": "你没有删除该订单的权限。",
       "inactiveOrderNumber": "只有已启用账号才能创建新订单编号。",
-      "orderNotFound": "没有找到对应订单。"
+      "orderNotFound": "没有找到对应订单。",
+      "serviceAmountInvalid": "服务订单需要按已设置的美元价格和折扣保存。",
+      "serviceDiscountRequiresVip": "客户需要拥有有效零售/服务VIP，才能使用服务订单折扣。",
+      "vipAmountInvalid": "VIP充值需要按 200 美金保存。"
     },
     "purchaseSection": {
       "title": "零售信息",
@@ -1088,8 +1134,14 @@
     },
     "serviceSection": {
       "title": "服务订单信息",
-      "createDescription": "当前订单类型为服务订单，请继续填写服务补充信息。点击“创建类别”添加一行，左侧填写类别名称，右侧填写对应内容。",
-      "editDescription": "当前订单类型为服务订单，可直接修改服务补充信息。点击“创建类别”添加一行，左侧填写类别名称，右侧填写对应内容。",
+      "createDescription": "当前订单类型为服务订单，请选择服务项目、价格和折扣；只有零售/服务VIP客户可以使用折扣。",
+      "editDescription": "当前订单类型为服务订单，可修改服务项目、价格、折扣和补充信息；只有零售/服务VIP客户可以使用折扣。",
+      "loading": "加载中"
+    },
+    "vipSection": {
+      "title": "VIP充值信息",
+      "createDescription": "VIP充值统一按 200 美金记录，选择零售/服务VIP或批发VIP后保存。",
+      "editDescription": "可修改这笔VIP充值对应的会员类型和补充信息。",
       "loading": "加载中"
     },
     "details": {
@@ -1117,11 +1169,14 @@
       },
       "supplementary": {
         "loading": "加载中",
-        "empty": "当前订单还没有对应的采购、批发或服务表单内容。",
+        "empty": "当前订单还没有对应的采购、批发、服务或VIP充值内容。",
         "purchaseForm": "采购/批发表单",
         "serviceForm": "服务订单表单",
+        "vipForm": "VIP充值表单",
         "purchaseSubtype": "采购/批发小类",
         "serviceSubtype": "服务小类",
+        "servicePrice": "服务价格",
+        "vipScope": "VIP类型",
         "sourceForm": "来源表单",
         "discount": "订单折扣",
         "serviceFeeRate": "服务费率",
@@ -2211,6 +2266,7 @@
         "status": "账号状态",
         "businessAccess": "业务权限",
         "customerType": "客户标记",
+        "vip": "VIP状态",
         "city": "城市",
         "relation": "关系摘要",
         "createdAt": "创建时间",
@@ -2295,7 +2351,9 @@
     },
     "feedback": {
       "saved": "账号调整已保存。目标账号下次登录或刷新登录状态后会看到新的权限。",
-      "customerTypeSaved": "客户标记已保存。"
+      "customerTypeSaved": "客户标记已保存。",
+      "vipApproved": "VIP申请已通过，并已生成VIP充值订单。",
+      "vipRejected": "VIP申请已拒绝。"
     },
     "errors": {
       "forbidden": "当前账号不能调整人员账号。",
@@ -2303,14 +2361,34 @@
       "lastAdmin": "系统必须保留至少一个正常启用的管理员账号。",
       "noChange": "账号身份、状态和业务权限没有变化。",
       "notFound": "没有找到要调整的人员账号。",
+      "processed": "这条VIP申请已经处理过。",
       "selfChange": "不能在这里调整自己的身份或状态。",
       "serviceUnavailable": "账号调整暂时没有保存成功，请稍后再试。",
       "unknown": "账号调整暂时没有保存成功，请稍后再试。"
+    },
+    "vip": {
+      "retail": "零售/服务VIP",
+      "wholesale": "批发VIP",
+      "activeUntil": "有效至 {value}",
+      "inactive": "未开通",
+      "pendingRequest": "{value} 待处理",
+      "requestedAt": "提交时间：{value}",
+      "approve": "通过",
+      "reject": "拒绝"
     }
   },
   "SalesmanPeople": {
     "metadata": {
       "title": "客户管理"
+    },
+    "vip": {
+      "retail": "零售/服务VIP",
+      "wholesale": "批发VIP",
+      "activeUntil": "有效至 {value}",
+      "inactive": "未开通",
+      "open": "申请开通",
+      "renew": "申请续费",
+      "pending": "申请中"
     },
     "header": {
       "badge": "业务员客户",
@@ -2342,7 +2420,8 @@
         "city": "城市",
         "currentType": "客户标记",
         "markedAt": "标记时间",
-        "actions": "操作"
+        "actions": "操作",
+        "vip": "VIP状态"
       },
       "currentType": "当前：{value}"
     },
@@ -2369,7 +2448,8 @@
       "unmarked": "未标记"
     },
     "feedback": {
-      "saved": "客户标记已保存。"
+      "saved": "客户标记已保存。",
+      "vipRequested": "VIP申请已提交，等待管理员确认收款。"
     },
     "errors": {
       "forbidden": "当前账号不能标记客户。",

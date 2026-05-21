@@ -39,7 +39,9 @@ export function SalesmanPeopleClient({
             filteredCustomers={viewModel.filteredCustomers}
             locale={locale}
             onAdjustCustomerType={viewModel.openCustomerTypeDialog}
+            onRequestVip={viewModel.handleRequestVip}
             onSearchTextChange={viewModel.setSearchText}
+            pendingVipRequestKey={viewModel.vipRequestPendingKey}
             searchText={viewModel.searchText}
           />
 

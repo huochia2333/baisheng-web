@@ -155,7 +155,10 @@ export function getNextOrderFormState<Key extends keyof OrderFormState>(
     nextState.purchaseDetails = "";
     nextState.serviceSubtype = "";
     nextState.serviceDiscount = "";
+    nextState.servicePriceOption = "";
     nextState.serviceDetails = "";
+    nextState.vipScope = "retail";
+    nextState.vipDetails = "";
   }
 
   if (key === "serviceSubtype") {

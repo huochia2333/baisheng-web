@@ -44,6 +44,7 @@ export function normalizeAdminPeopleErrorCode(value: string | undefined) {
     case "lastAdmin":
     case "noChange":
     case "notFound":
+    case "processed":
     case "selfChange":
     case "serviceUnavailable":
       return value;

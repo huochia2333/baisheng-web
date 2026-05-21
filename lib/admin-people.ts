@@ -15,6 +15,12 @@ import {
   normalizeSalesmanBusinessBoards,
   type SalesmanBusinessBoard,
 } from "./salesman-business-access";
+import {
+  normalizeVipMembershipSummary,
+  normalizeVipRechargeRequests,
+  type VipMembershipSummary,
+  type VipRechargeRequestSummary,
+} from "./vip-memberships";
 
 export const ADMIN_PEOPLE_ROLE_OPTIONS = [
   "administrator",
@@ -62,7 +68,10 @@ export type AdminPersonRow = {
   customer_type_marked_by_user_id: string | null;
   customer_type_marked_by_name: string | null;
   customer_type_marked_at: string | null;
+  pending_vip_requests: VipRechargeRequestSummary[];
+  retail_vip: VipMembershipSummary;
   salesman_business_boards: SalesmanBusinessBoard[];
+  wholesale_vip: VipMembershipSummary;
 };
 
 export type AdminPeopleChangeLogRow = {
@@ -238,9 +247,14 @@ function normalizeAdminPersonRow(value: unknown): AdminPersonRow | null {
       value.customer_type_marked_by_name,
     ),
     customer_type_marked_at: normalizeOptionalString(value.customer_type_marked_at),
+    pending_vip_requests: normalizeVipRechargeRequests(
+      value.pending_vip_requests,
+    ),
+    retail_vip: normalizeVipMembershipSummary(value.retail_vip),
     salesman_business_boards: normalizeSalesmanBusinessBoards(
       value.salesman_business_boards,
     ),
+    wholesale_vip: normalizeVipMembershipSummary(value.wholesale_vip),
   };
 }
 

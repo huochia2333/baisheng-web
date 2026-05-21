@@ -10,6 +10,7 @@ import {
   type OrderDiscountTypeOption,
   type OrderUserOption,
   type PurchaseOrderTypeOption,
+  type ServiceOrderPriceOption,
   type ServiceOrderTypeOption,
 } from "@/lib/admin-orders";
 
@@ -54,6 +55,7 @@ export function OrderFormDialog({
   orderingUserOptions,
   orderUserOptions,
   purchaseOrderTypeOptions,
+  serviceOrderPriceOptions,
   serviceOrderTypeOptions,
   supplementaryLoading = false,
   lockCurrencyField = false,
@@ -80,6 +82,7 @@ export function OrderFormDialog({
   orderUserOptions: OrderUserOption[];
   orderingUserOptions?: OrderUserOption[];
   purchaseOrderTypeOptions: PurchaseOrderTypeOption[];
+  serviceOrderPriceOptions: ServiceOrderPriceOption[];
   serviceOrderTypeOptions: ServiceOrderTypeOption[];
   supplementaryLoading?: boolean;
   lockCurrencyField?: boolean;
@@ -114,6 +117,14 @@ export function OrderFormDialog({
     );
   }, [purchaseOrderTypeOptions, selectedOrderCategory]);
   const isFormBusy = pending || supplementaryLoading;
+  const showCostInput = showCostField && selectedOrderCategory !== "vip_recharge";
+  const isAmountLocked =
+    selectedOrderCategory === "service" || selectedOrderCategory === "vip_recharge";
+  const showServiceFeePreview = Boolean(
+    serviceFeePreview &&
+      selectedOrderCategory !== "vip_recharge" &&
+      selectedOrderCategory !== "service",
+  );
 
   return (
     <DashboardDialog
@@ -215,14 +226,20 @@ export function OrderFormDialog({
             <OrderField label={t("fields.amount")} required>
               <input
                 className={fieldInputClassName}
-                disabled={isFormBusy}
+                disabled={isFormBusy || isAmountLocked}
                 min="0"
                 onChange={(event) => onFieldChange("amount", event.target.value)}
                 placeholder={t("placeholders.amount")}
+                readOnly={isAmountLocked}
                 step="0.01"
                 type="number"
                 value={formState.amount}
               />
+              {selectedOrderCategory === "service" ? (
+                <p className="mt-2 text-xs text-[#7b8790]">
+                  {t("hints.serviceAmountLocked")}
+                </p>
+              ) : null}
             </OrderField>
 
             <OrderField label={t("fields.rmbAmount")} required>
@@ -239,7 +256,7 @@ export function OrderFormDialog({
               <p className="mt-2 text-xs text-[#7b8790]">{t("hints.autoRmbAmount")}</p>
             </OrderField>
 
-            {showCostField ? (
+            {showCostInput ? (
               <OrderField label={t("fields.costAmount")}>
                 <input
                   className={fieldInputClassName}
@@ -330,7 +347,7 @@ export function OrderFormDialog({
           </div>
         </OrderFormSection>
 
-          {serviceFeePreview ? (
+          {showServiceFeePreview && serviceFeePreview ? (
             <OrderServiceFeePreview
               preview={serviceFeePreview}
               rmbAmount={formState.rmbAmount}
@@ -348,6 +365,7 @@ export function OrderFormDialog({
             orderDiscountOptions={orderDiscountOptions}
             purchaseOrderTypeOptions={visiblePurchaseOrderTypeOptions}
             selectedOrderCategory={selectedOrderCategory}
+            serviceOrderPriceOptions={serviceOrderPriceOptions}
             serviceOrderTypeOptions={serviceOrderTypeOptions}
             supplementaryLoading={supplementaryLoading}
             onFieldChange={onFieldChange}

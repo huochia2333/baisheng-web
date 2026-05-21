@@ -7,6 +7,7 @@ import {
   type OrdersUiCopy,
   PURCHASE_SUBTYPE_KEYS,
   SERVICE_SUBTYPE_KEYS,
+  VIP_SCOPE_KEYS,
 } from "./admin-orders-copy";
 
 const SERVICE_SUBTYPE_COST_PRESETS: Record<string, string> = {
@@ -81,6 +82,10 @@ export function getOrderTypeMetaFromCategory(
     return { label: copy.categories.service, tone: "green" as const };
   }
 
+  if (normalizedCategory === "vip_recharge") {
+    return { label: copy.categories.vip_recharge, tone: "gold" as const };
+  }
+
   return {
     label: normalizedCategory ?? copy.fallback.notProvided,
     tone: "default" as const,
@@ -143,6 +148,23 @@ export function formatServiceOrderSubtype(
         normalizedValue as keyof typeof SERVICE_SUBTYPE_KEYS,
         copy,
       )
+    : normalizedValue;
+}
+
+export function formatVipScope(
+  value: string | null | undefined,
+  copy: OrdersUiCopy,
+) {
+  const normalizedValue = normalizeOptionalString(value);
+
+  if (!normalizedValue) {
+    return copy.fallback.notProvided;
+  }
+
+  const matchedKey = VIP_SCOPE_KEYS[normalizedValue as keyof typeof VIP_SCOPE_KEYS];
+
+  return matchedKey
+    ? copy.subtypes.vipRecharge[normalizedValue as keyof typeof VIP_SCOPE_KEYS]
     : normalizedValue;
 }
 

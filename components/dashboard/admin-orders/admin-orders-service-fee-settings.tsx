@@ -54,17 +54,12 @@ export function AdminOrdersServiceFeeSettings({
     () => getServiceFeeRowsByScope(rows, "wholesale"),
     [rows],
   );
-  const serviceRows = useMemo(
-    () => getServiceFeeRowsByScope(rows, "service"),
-    [rows],
-  );
   const serviceFeeSummary = useMemo(
     () => ({
       retail: summarizeRateRange(retailRows, locale),
       wholesale: summarizeRateRange(wholesaleRows, locale),
-      service: summarizeRateRange(serviceRows, locale),
     }),
-    [locale, retailRows, serviceRows, wholesaleRows],
+    [locale, retailRows, wholesaleRows],
   );
 
   async function handleSave(row: ServiceFeeTypeOption) {
@@ -143,15 +138,8 @@ export function AdminOrdersServiceFeeSettings({
             label: t("settings.serviceFees.wholesale.summaryLabel"),
             value: serviceFeeSummary.wholesale,
           },
-          {
-            accent: "gold",
-            icon: <Percent className="size-5" />,
-            key: "service",
-            label: t("settings.serviceFees.service.summaryLabel"),
-            value: serviceFeeSummary.service,
-          },
         ]}
-        metricsClassName="md:grid-cols-3"
+        metricsClassName="md:grid-cols-2"
         title={t("settings.serviceFees.title")}
       />
 
@@ -187,20 +175,6 @@ export function AdminOrdersServiceFeeSettings({
         onStartEditing={startEditing}
       />
 
-      <AdminOrdersServiceFeeTierSection
-        copy={tierCopy}
-        description={t("settings.serviceFees.service.description")}
-        editValue={editValue}
-        editingId={editingId}
-        locale={locale}
-        pendingAction={pendingAction}
-        rows={serviceRows}
-        title={t("settings.serviceFees.service.title")}
-        onCancelEditing={cancelEditing}
-        onEditValueChange={setEditValue}
-        onSave={(row) => void handleSave(row)}
-        onStartEditing={startEditing}
-      />
     </section>
   );
 }

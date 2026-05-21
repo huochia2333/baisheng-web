@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { DashboardTableFrame } from "@/components/dashboard/dashboard-section-panel";
 import { Button } from "@/components/ui/button";
 import type { AdminPersonRow } from "@/lib/admin-people";
+import type { AdminVipRequestAction } from "@/lib/admin-people-vip-mutations";
 import type { Locale } from "@/lib/locale";
 import type { SalesmanBusinessBoardLabels } from "@/lib/salesman-business-access";
 import { cn } from "@/lib/utils";
@@ -19,6 +20,7 @@ import {
   getSalesmanBusinessAccessItems,
 } from "./admin-people-display";
 import type { useAdminPeopleViewModel } from "./use-admin-people-view-model";
+import { AdminPeopleVipCell } from "./admin-people-vip-cell";
 
 type AdminPeopleViewModel = ReturnType<typeof useAdminPeopleViewModel>;
 
@@ -27,7 +29,9 @@ export function PeopleTable({
   customerTypeLabels,
   locale,
   onAdjustPerson,
+  onVipRequestAction,
   people,
+  pendingVipRequestId,
   roleLabels,
   statusLabels,
 }: {
@@ -35,7 +39,12 @@ export function PeopleTable({
   customerTypeLabels: AdminPeopleViewModel["customerTypeLabels"];
   locale: Locale;
   onAdjustPerson: (person: AdminPersonRow) => void;
+  onVipRequestAction: (
+    requestId: string,
+    action: AdminVipRequestAction,
+  ) => void;
   people: AdminPersonRow[];
+  pendingVipRequestId: string | null;
   roleLabels: AdminPeopleViewModel["roleLabels"];
   statusLabels: AdminPeopleViewModel["statusLabels"];
 }) {
@@ -52,17 +61,18 @@ export function PeopleTable({
 
   return (
     <DashboardTableFrame>
-      <table className="min-w-[920px] table-fixed w-full text-left text-sm">
+      <table className="min-w-[1080px] table-fixed w-full text-left text-sm">
         <colgroup>
-          <col className="w-[18%]" />
-          <col className="w-[8%]" />
-          <col className="w-[9%]" />
-          <col className="w-[8%]" />
-          <col className="w-[13%]" />
-          <col className="w-[7%]" />
           <col className="w-[15%]" />
+          <col className="w-[7%]" />
+          <col className="w-[8%]" />
+          <col className="w-[7%]" />
+          <col className="w-[10%]" />
+          <col className="w-[17%]" />
+          <col className="w-[6%]" />
           <col className="w-[12%]" />
           <col className="w-[10%]" />
+          <col className="w-[8%]" />
         </colgroup>
         <thead className="bg-[#f6f4f0] text-xs font-semibold text-[#66727d]">
           <tr>
@@ -71,6 +81,7 @@ export function PeopleTable({
             <th className="px-3 py-3">{t("directory.columns.status")}</th>
             <th className="px-3 py-3">{t("directory.columns.businessAccess")}</th>
             <th className="px-3 py-3">{t("directory.columns.customerType")}</th>
+            <th className="px-3 py-3">{t("directory.columns.vip")}</th>
             <th className="px-3 py-3">{t("directory.columns.city")}</th>
             <th className="px-3 py-3">{t("directory.columns.relation")}</th>
             <th className="px-3 py-3">{t("directory.columns.createdAt")}</th>
@@ -133,6 +144,14 @@ export function PeopleTable({
                       })}
                     </p>
                   ) : null}
+                </td>
+                <td className="px-3 py-4 text-[#53616d]">
+                  <AdminPeopleVipCell
+                    locale={locale}
+                    onVipRequestAction={onVipRequestAction}
+                    pendingRequestId={pendingVipRequestId}
+                    person={person}
+                  />
                 </td>
                 <td className="px-3 py-4 text-[#53616d]">{person.city ?? fallback}</td>
                 <td className="px-3 py-4 text-[#53616d]">

@@ -14,7 +14,11 @@ export const SERVICE_SUBTYPE_KEYS = {
   digital_survival: "subtypes.service.digitalSurvival",
   medical_escort: "subtypes.service.medicalEscort",
   tour_escort: "subtypes.service.tourEscort",
-  vip_recharge: "subtypes.service.vipRecharge",
+} as const;
+
+export const VIP_SCOPE_KEYS = {
+  retail: "subtypes.vipRecharge.retail",
+  wholesale: "subtypes.vipRecharge.wholesale",
 } as const;
 
 type OrderFieldKey =
@@ -32,14 +36,18 @@ type OrderFieldKey =
   | "serviceDetails"
   | "serviceDiscount"
   | "serviceFeeType"
+  | "servicePrice"
   | "serviceSubtype"
-  | "transactionRate";
+  | "transactionRate"
+  | "vipDetails"
+  | "vipScope";
 
 export type OrdersUiCopy = {
   categories: {
     dropshipping: string;
     purchase: string;
     service: string;
+    vip_recharge: string;
   };
   errors: {
     cannotCreate: string;
@@ -50,7 +58,10 @@ export type OrdersUiCopy = {
     inactiveOrderNumber: string;
     invalidForeignKeys: string;
     orderNotFound: string;
+    serviceAmountInvalid: string;
+    serviceDiscountRequiresVip: string;
     updatedScopeNotAllowed: string;
+    vipAmountInvalid: string;
   };
   fallback: {
     formContent: string;
@@ -72,6 +83,7 @@ export type OrdersUiCopy = {
   subtypes: {
     purchase: Record<keyof typeof PURCHASE_SUBTYPE_KEYS, string>;
     service: Record<keyof typeof SERVICE_SUBTYPE_KEYS, string>;
+    vipRecharge: Record<keyof typeof VIP_SCOPE_KEYS, string>;
   };
   validation: {
     inputPrompt: (label: string) => string;
@@ -88,6 +100,7 @@ export function createOrdersUiCopy(t: OrdersUiTranslator): OrdersUiCopy {
       dropshipping: t("categories.dropshipping"),
       purchase: t("categories.purchase"),
       service: t("categories.service"),
+      vip_recharge: t("categories.vipRecharge"),
     },
     errors: {
       cannotCreate: t("errors.cannotCreate"),
@@ -98,7 +111,10 @@ export function createOrdersUiCopy(t: OrdersUiTranslator): OrdersUiCopy {
       inactiveOrderNumber: t("errors.inactiveOrderNumber"),
       invalidForeignKeys: t("errors.invalidForeignKeys"),
       orderNotFound: t("errors.orderNotFound"),
+      serviceAmountInvalid: t("errors.serviceAmountInvalid"),
+      serviceDiscountRequiresVip: t("errors.serviceDiscountRequiresVip"),
       updatedScopeNotAllowed: t("errors.updatedScopeNotAllowed"),
+      vipAmountInvalid: t("errors.vipAmountInvalid"),
     },
     fallback: {
       formContent: t("fallback.formContent"),
@@ -122,8 +138,11 @@ export function createOrdersUiCopy(t: OrdersUiTranslator): OrdersUiCopy {
       serviceDetails: t("fields.serviceDetails"),
       serviceDiscount: t("fields.serviceDiscount"),
       serviceFeeType: t("fields.serviceFeeType"),
+      servicePrice: t("fields.servicePrice"),
       serviceSubtype: t("fields.serviceSubtype"),
       transactionRate: t("fields.transactionRate"),
+      vipDetails: t("fields.vipDetails"),
+      vipScope: t("fields.vipScope"),
     },
     status: {
       cancelled: t("status.cancelled"),
@@ -147,7 +166,10 @@ export function createOrdersUiCopy(t: OrdersUiTranslator): OrdersUiCopy {
         digital_survival: t("subtypes.service.digitalSurvival"),
         medical_escort: t("subtypes.service.medicalEscort"),
         tour_escort: t("subtypes.service.tourEscort"),
-        vip_recharge: t("subtypes.service.vipRecharge"),
+      },
+      vipRecharge: {
+        retail: t("subtypes.vipRecharge.retail"),
+        wholesale: t("subtypes.vipRecharge.wholesale"),
       },
     },
     validation: {

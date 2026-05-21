@@ -10,6 +10,7 @@ export {
   formatPurchaseOrderSubtype,
   formatRateValue,
   formatServiceOrderSubtype,
+  formatVipScope,
   getOrderTypeMetaFromCategory,
   getOrderUserOptionLabel,
   getServiceSubtypeCostPreset,

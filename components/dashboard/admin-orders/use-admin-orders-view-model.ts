@@ -63,6 +63,7 @@ export function useAdminOrdersViewModel({
     pagination,
     purchaseOrderTypeOptions,
     serviceFeeTypeOptions,
+    serviceOrderPriceOptions,
     serviceOrderTypeOptions,
     summary,
     totalOrdersCount,
@@ -137,6 +138,7 @@ export function useAdminOrdersViewModel({
     canOpenCreateDialog,
     currentViewerId,
     orderCategoryByTypeId,
+    orderDiscountOptions,
     orderTypeOptions,
     ordersUiCopy,
     refreshOrdersRoute: routeState.refreshOrdersRoute,
@@ -145,11 +147,13 @@ export function useAdminOrdersViewModel({
     supabase,
     t,
     orderCurrencyRates,
+    serviceOrderPriceOptions,
   });
 
   const editDialogState = useAdminOrderEditDialog({
     canEditOrders,
     clearSelectedOrder: selectionState.clearSelectedOrder,
+    orderDiscountOptions,
     orderCategoryByTypeId,
     ordersUiCopy,
     refreshOrdersRoute: routeState.refreshOrdersRoute,
@@ -157,6 +161,7 @@ export function useAdminOrdersViewModel({
     sharedCopy,
     supabase,
     t,
+    serviceOrderPriceOptions,
   });
 
   const deleteActions = useAdminOrderDeleteActions({
@@ -217,6 +222,7 @@ export function useAdminOrdersViewModel({
     pageFeedback,
     purchaseOrderTypeOptions,
     serviceFeeTypeOptions,
+    serviceOrderPriceOptions,
     selectedOrder: selectionState.selectedOrder,
     serviceOrderTypeOptions,
     summary,

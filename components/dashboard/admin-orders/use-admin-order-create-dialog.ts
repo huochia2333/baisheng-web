@@ -5,6 +5,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   type BusinessCategoryOption,
   createAdminOrder,
+  type OrderDiscountTypeOption,
+  type ServiceOrderPriceOption,
 } from "@/lib/admin-orders";
 import {
   findLatestCnyExchangeRate,
@@ -32,6 +34,7 @@ import {
 import { toOrderErrorMessage } from "./admin-orders-errors";
 import { parseNumericValue } from "./admin-orders-display";
 import { type OrderServiceFeePreviewState } from "./admin-orders-service-fee-preview";
+import { applyServicePricingToOrderForm } from "./admin-orders-service-pricing";
 import { type DashboardSharedCopy } from "../dashboard-shared-ui";
 
 export function useAdminOrderCreateDialog({
@@ -39,6 +42,7 @@ export function useAdminOrderCreateDialog({
   canOpenCreateDialog,
   currentViewerId,
   orderCategoryByTypeId,
+  orderDiscountOptions,
   orderTypeOptions,
   ordersUiCopy,
   refreshOrdersRoute,
@@ -47,11 +51,13 @@ export function useAdminOrderCreateDialog({
   supabase,
   t,
   orderCurrencyRates,
+  serviceOrderPriceOptions,
 }: {
   canCreateOrders: boolean;
   canOpenCreateDialog: boolean;
   currentViewerId: string | null;
   orderCategoryByTypeId: Map<string, string | null>;
+  orderDiscountOptions: OrderDiscountTypeOption[];
   orderTypeOptions: BusinessCategoryOption[];
   ordersUiCopy: OrdersUiCopy;
   refreshOrdersRoute: () => void;
@@ -60,6 +66,7 @@ export function useAdminOrderCreateDialog({
   supabase: ReturnType<typeof getBrowserSupabaseClient>;
   t: OrdersTranslator;
   orderCurrencyRates: ExchangeRateRow[];
+  serviceOrderPriceOptions: ServiceOrderPriceOption[];
 }) {
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [createPending, setCreatePending] = useState(false);
@@ -146,16 +153,54 @@ export function useAdminOrderCreateDialog({
     <Key extends keyof OrderFormState>(key: Key, value: OrderFormState[Key]) => {
       setCreateDialogFeedback(null);
       setCreateFormState((current) => {
-        const nextState = getNextOrderFormState(current, key, value);
+        let nextState = getNextOrderFormState(current, key, value);
+        const selectedCategory =
+          key === "orderType"
+            ? orderCategoryByTypeId.get(String(value))
+            : orderCategoryByTypeId.get(nextState.orderType);
 
-        if (key !== "originalCurrency") {
-          return nextState;
+        if (selectedCategory === "vip_recharge") {
+          nextState = {
+            ...nextState,
+            originalCurrency: "USD",
+            amount: "200",
+            costAmount: "",
+            orderStatus: "completed",
+          };
         }
 
-        return applyOrderExchangeRateToOrderForm(nextState, orderCurrencyRates);
+        if (selectedCategory === "service") {
+          nextState = {
+            ...nextState,
+            originalCurrency: "USD",
+          };
+        }
+
+        if (
+          key === "originalCurrency" ||
+          selectedCategory === "vip_recharge" ||
+          selectedCategory === "service"
+        ) {
+          nextState = applyOrderExchangeRateToOrderForm(nextState, orderCurrencyRates);
+        }
+
+        if (selectedCategory === "service") {
+          return applyServicePricingToOrderForm(nextState, {
+            orderCategory: selectedCategory,
+            orderDiscountOptions,
+            serviceOrderPriceOptions,
+          });
+        }
+
+        return nextState;
       });
     },
-    [orderCurrencyRates],
+    [
+      orderCategoryByTypeId,
+      orderCurrencyRates,
+      orderDiscountOptions,
+      serviceOrderPriceOptions,
+    ],
   );
 
   useEffect(() => {
@@ -163,7 +208,10 @@ export function useAdminOrderCreateDialog({
       !createDialogOpen ||
       !supabase ||
       !createFormState.orderType ||
-      !createFormState.orderingUser
+      !createFormState.orderingUser ||
+      !["purchase", "dropshipping"].includes(
+        orderCategoryByTypeId.get(createFormState.orderType) ?? "",
+      )
     ) {
       serviceFeePreviewTokenRef.current += 1;
       setCreateServiceFeePreview({ feeType: null, status: "idle" });
@@ -200,6 +248,7 @@ export function useAdminOrderCreateDialog({
     createFormState.orderType,
     createFormState.orderingUser,
     createFormState.rmbAmount,
+    orderCategoryByTypeId,
     supabase,
   ]);
 

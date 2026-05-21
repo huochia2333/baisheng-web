@@ -248,6 +248,8 @@ export async function getCurrentUserBundle(
             "user_id,status,started_at,expires_at,first_paid_order_overview_id,latest_paid_order_overview_id",
           )
           .eq("user_id", user.id)
+          .order("expires_at", { ascending: false, nullsFirst: false })
+          .limit(1)
           .maybeSingle<UserVipMembershipRow>(),
         supabase
           .from("user_media_assets")

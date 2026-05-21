@@ -9,6 +9,12 @@ import {
 } from "./salesman-business-access";
 import { getCurrentSessionContext, type UserStatus } from "./user-self-service";
 import { normalizeOptionalString } from "./value-normalizers";
+import {
+  normalizeVipMembershipSummary,
+  normalizeVipRechargeRequests,
+  type VipMembershipSummary,
+  type VipRechargeRequestSummary,
+} from "./vip-memberships";
 
 export const SALESMAN_CUSTOMER_TYPE_OPTIONS = [
   "retail",
@@ -28,6 +34,9 @@ export type SalesmanCustomerRow = {
   customer_type: SalesmanCustomerType | null;
   marked_at: string | null;
   created_at: string;
+  pending_vip_requests: VipRechargeRequestSummary[];
+  retail_vip: VipMembershipSummary;
+  wholesale_vip: VipMembershipSummary;
 };
 
 export type SalesmanPeoplePageData = {
@@ -67,7 +76,10 @@ export async function getSalesmanPeoplePageData(
 
   const businessBoards = await getCurrentSalesmanBusinessBoards(supabase);
 
-  if (!salesmanBusinessBoardsInclude(businessBoards, "dropshipping")) {
+  if (
+    !salesmanBusinessBoardsInclude(businessBoards, "dropshipping") &&
+    !salesmanBusinessBoardsInclude(businessBoards, "tourism")
+  ) {
     return {
       hasPermission: false,
       currentViewerId: sessionContext.user.id,
@@ -94,6 +106,15 @@ export async function getSalesmanCustomerDirectory(
   }
 
   return normalizeSalesmanCustomerRows(data);
+}
+
+export async function getSalesmanCustomerRowById(
+  supabase: SupabaseClient,
+  userId: string,
+): Promise<SalesmanCustomerRow | null> {
+  const rows = await getSalesmanCustomerDirectory(supabase);
+
+  return rows.find((row) => row.user_id === userId) ?? null;
 }
 
 function normalizeSalesmanCustomerRows(value: unknown): SalesmanCustomerRow[] {
@@ -133,6 +154,11 @@ export function normalizeSalesmanCustomerRow(
       : null,
     marked_at: normalizeOptionalString(value.marked_at),
     created_at: createdAt,
+    pending_vip_requests: normalizeVipRechargeRequests(
+      value.pending_vip_requests,
+    ),
+    retail_vip: normalizeVipMembershipSummary(value.retail_vip),
+    wholesale_vip: normalizeVipMembershipSummary(value.wholesale_vip),
   };
 }
 

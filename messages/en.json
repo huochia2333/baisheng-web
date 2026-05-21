@@ -914,15 +914,15 @@
       "serviceFees": {
         "badge": "Service Fee",
         "title": "Service Fee Settings",
-        "description": "Retail, wholesale, and service-order fees are managed as fixed tiers. Each tier can be adjusted separately, and orders match the tier automatically when saved.",
+        "description": "Retail and wholesale service fees are managed as fixed tiers. Service orders have no service fee; their prices and discounts are managed below.",
         "retail": {
           "title": "Retail Service Fee Settings",
-          "description": "Retail orders match the customer's retail-order status: new customers use the new-customer tier for three months from their first retail order; customers who pay the 200 USD annual fee use the annual-fee tier; other returning customers use the standard tier.",
+          "description": "Retail orders match the customer's retail-order status: new customers use the new-customer tier for three months from their first retail order; customers with an active Retail/Service VIP use the VIP tier; other returning customers use the standard tier.",
           "summaryLabel": "Retail Service Fee"
         },
         "wholesale": {
           "title": "Wholesale Service Fee Settings",
-          "description": "Wholesale orders match the customer's wholesale-order status: new customers use the new-customer tier for three months from their first wholesale order; after that, customers keep the lower rate when the last 30 days of orders reach $20000, otherwise they use the standard tier or the VIP tier when they pay the wholesale VIP annual fee.",
+          "description": "Wholesale orders match the customer's wholesale-order status: new customers use the new-customer tier for three months from their first wholesale order; after that, customers keep the lower rate when the last 30 days of orders reach $20000, otherwise they use the standard tier or the VIP tier when Wholesale VIP is active.",
           "summaryLabel": "Wholesale Service Fee"
         },
         "service": {
@@ -951,6 +951,39 @@
           "permission": "The current account cannot change service fees.",
           "unknown": "Service fee save failed. Please try again later."
         }
+      },
+      "serviceOrders": {
+        "badge": "Service Orders",
+        "title": "Service Prices and Discounts",
+        "description": "Service orders are saved from fixed USD prices and do not have service fees. Service discounts are available only to customers with an active Retail/Service VIP.",
+        "priceSummaryLabel": "Price Options",
+        "discountSummaryLabel": "Discounts",
+        "prices": {
+          "title": "Service Prices",
+          "description": "These prices set the service order amount. Orders calculate the final amount from the selected price and discount."
+        },
+        "discounts": {
+          "title": "Service Discounts",
+          "description": "Discounts are only for active Retail/Service VIP customers. Other customers are saved at the 100% price."
+        },
+        "table": {
+          "service": "Service",
+          "option": "Price Option",
+          "price": "USD Price",
+          "discount": "Discount",
+          "actions": "Actions"
+        },
+        "edit": "Edit",
+        "save": "Save",
+        "cancel": "Cancel",
+        "updateSuccess": "Service order settings updated.",
+        "validation": {
+          "price": "Enter a USD price greater than 0.",
+          "discount": "Enter a discount greater than 0 and up to 100%."
+        },
+        "errors": {
+          "unknown": "Service order settings could not be saved. Please try again later."
+        }
       }
     }
   },
@@ -975,7 +1008,8 @@
     "categories": {
       "purchase": "Retail",
       "dropshipping": "Wholesale",
-      "service": "Service Order"
+      "service": "Service Order",
+      "vipRecharge": "VIP Recharge"
     },
     "subtypes": {
       "purchase": {
@@ -989,8 +1023,11 @@
         "medicalEscort": "Medical Escort",
         "digitalSurvival": "Digital Survival",
         "airportTransfer": "Airport Transfer",
-        "carService": "Car Service",
-        "vipRecharge": "VIP Recharge"
+        "carService": "Car Service"
+      },
+      "vipRecharge": {
+        "retail": "Retail/Service VIP",
+        "wholesale": "Wholesale VIP"
       }
     },
     "formSections": {
@@ -1015,7 +1052,10 @@
       "serviceSubtype": "Service Subtype",
       "serviceDiscount": "Order Discount",
       "serviceFeeType": "Service Fee Tier",
-      "serviceDetails": "Service Details"
+      "servicePrice": "Service Price",
+      "serviceDetails": "Service Details",
+      "vipScope": "VIP Type",
+      "vipDetails": "VIP Recharge Details"
     },
     "placeholders": {
       "originalCurrency": "Select an existing currency",
@@ -1037,6 +1077,7 @@
       "lockedOrderEntryUser": "Orders created from this page are automatically assigned to the current salesperson.",
       "autoDailyExchangeRate": "The exchange rate value is filled automatically and cannot be edited.",
       "lockedCurrencyAndRates": "The currency and exchange rates stay fixed after the order is created.",
+      "serviceAmountLocked": "Service order amount is filled from the selected service price and discount.",
       "serviceFeeLocked": "Service fee tiers are managed by administrators. The default tier is used here.",
       "autoServiceFee": "The service fee is matched automatically from the order type and order settings. It cannot be selected here.",
       "autoTimestamps": "After creation, the system writes the created time automatically. After editing, the system updates the latest modified time automatically."
@@ -1060,7 +1101,9 @@
       "purchaseSubtype": "Select a purchase or wholesale subtype",
       "serviceSubtype": "Select a service subtype",
       "serviceDiscount": "Select an order discount",
-      "serviceFeeType": "Select a service fee tier"
+      "serviceFeeType": "Select a service fee tier",
+      "servicePrice": "Select a service price",
+      "vipScope": "Select a VIP type"
     },
     "validation": {
       "selectPrompt": "Please select {label}.",
@@ -1078,7 +1121,10 @@
       "updatedScopeNotAllowed": "The updated order scope is outside your allowed range.",
       "cannotDelete": "You do not have permission to delete this order.",
       "inactiveOrderNumber": "Only enabled accounts can create new order numbers.",
-      "orderNotFound": "The order could not be found."
+      "orderNotFound": "The order could not be found.",
+      "serviceAmountInvalid": "Service orders must be saved from the configured USD price and discount.",
+      "serviceDiscountRequiresVip": "The customer needs an active Retail/Service VIP to use a service order discount.",
+      "vipAmountInvalid": "VIP recharge orders must be saved as 200 USD."
     },
     "purchaseSection": {
       "title": "Retail Details",
@@ -1088,8 +1134,14 @@
     },
     "serviceSection": {
       "title": "Service Order Details",
-      "createDescription": "This order type is a service order. Add detail rows, then enter the category name on the left and the matching content on the right.",
-      "editDescription": "This order type is a service order. Update detail rows by entering the category name on the left and the matching content on the right.",
+      "createDescription": "Choose the service item, price, and discount. Discounts are only for Retail/Service VIP customers.",
+      "editDescription": "Update the service item, price, discount, and supporting details. Discounts are only for Retail/Service VIP customers.",
+      "loading": "loading"
+    },
+    "vipSection": {
+      "title": "VIP Recharge Details",
+      "createDescription": "VIP recharge orders are recorded as 200 USD. Select Retail/Service VIP or Wholesale VIP, then save.",
+      "editDescription": "Update the VIP type or supporting details for this recharge order.",
       "loading": "loading"
     },
     "details": {
@@ -1117,13 +1169,16 @@
       },
       "supplementary": {
         "loading": "loading",
-        "empty": "This order does not have related purchase, wholesale, or service details yet.",
+        "empty": "This order does not have related purchase, wholesale, service, or VIP recharge details yet.",
         "purchaseForm": "Purchase / Wholesale Form",
         "serviceForm": "Service Order Form",
+        "vipForm": "VIP Recharge Form",
         "purchaseSubtype": "Purchase / Wholesale Subtype",
         "serviceSubtype": "Service Subtype",
+        "vipScope": "VIP Type",
         "sourceForm": "Source Form",
         "discount": "Order Discount",
+        "servicePrice": "Service Price",
         "serviceFeeRate": "Service Fee Rate",
         "serviceFee": "Service Fee",
         "noMoreDetails": "There are no additional details in the linked form yet."
@@ -2214,7 +2269,8 @@
         "city": "City",
         "relation": "Relationship Summary",
         "createdAt": "Created",
-        "actions": "Actions"
+        "actions": "Actions",
+        "vip": "VIP Status"
       },
       "referrer": "Referrer: {value}",
       "team": "Team: {value}",
@@ -2295,7 +2351,9 @@
     },
     "feedback": {
       "saved": "Account adjustment saved. The target account will see the new access after the next sign-in or session refresh.",
-      "customerTypeSaved": "Customer mark saved."
+      "customerTypeSaved": "Customer mark saved.",
+      "vipApproved": "VIP request approved and the VIP recharge order has been created.",
+      "vipRejected": "VIP request rejected."
     },
     "errors": {
       "forbidden": "The current account cannot adjust people accounts.",
@@ -2305,7 +2363,18 @@
       "notFound": "The person account could not be found.",
       "selfChange": "You cannot adjust your own role or status here.",
       "serviceUnavailable": "The account adjustment could not be saved. Please try again later.",
-      "unknown": "The account adjustment could not be saved. Please try again later."
+      "unknown": "The account adjustment could not be saved. Please try again later.",
+      "processed": "This VIP request has already been handled."
+    },
+    "vip": {
+      "retail": "Retail/Service VIP",
+      "wholesale": "Wholesale VIP",
+      "activeUntil": "Valid until {value}",
+      "inactive": "Not active",
+      "pendingRequest": "{value} pending",
+      "requestedAt": "Submitted: {value}",
+      "approve": "Approve",
+      "reject": "Reject"
     }
   },
   "SalesmanPeople": {
@@ -2342,7 +2411,8 @@
         "city": "City",
         "currentType": "Customer Mark",
         "markedAt": "Marked At",
-        "actions": "Actions"
+        "actions": "Actions",
+        "vip": "VIP Status"
       },
       "currentType": "Current: {value}"
     },
@@ -2369,7 +2439,8 @@
       "unmarked": "Unmarked"
     },
     "feedback": {
-      "saved": "Customer mark saved."
+      "saved": "Customer mark saved.",
+      "vipRequested": "VIP request submitted. It will take effect after admin payment confirmation."
     },
     "errors": {
       "forbidden": "The current account cannot mark customers.",
@@ -2377,6 +2448,15 @@
       "notFound": "The customer could not be found.",
       "serviceUnavailable": "The customer mark could not be saved. Please try again later.",
       "unknown": "The customer mark could not be saved. Please try again later."
+    },
+    "vip": {
+      "retail": "Retail/Service VIP",
+      "wholesale": "Wholesale VIP",
+      "activeUntil": "Valid until {value}",
+      "inactive": "Not active",
+      "open": "Request",
+      "renew": "Renew",
+      "pending": "Pending"
     }
   },
   "TeamManagement": {

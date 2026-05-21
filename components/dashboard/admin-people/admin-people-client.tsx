@@ -41,6 +41,8 @@ export function AdminPeopleClient({
             filteredPeople={viewModel.filteredPeople}
             locale={locale}
             onAdjustPerson={viewModel.openAccountDialog}
+            onVipRequestAction={viewModel.handleVipRequestAction}
+            pendingVipRequestId={viewModel.vipActionPendingId}
             onRoleFilterChange={viewModel.handleRoleFilterChange}
             onSearchTextChange={viewModel.setSearchText}
             onStatusFilterChange={viewModel.handleStatusFilterChange}

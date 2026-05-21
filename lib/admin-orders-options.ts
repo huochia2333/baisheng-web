@@ -11,6 +11,7 @@ import type {
   OrderDiscountTypeOption,
   OrderUserOption,
   PurchaseOrderTypeOption,
+  ServiceOrderPriceOption,
   ServiceOrderTypeOption,
 } from "./admin-orders-types";
 
@@ -100,6 +101,25 @@ export async function getServiceOrderTypeOptions(
       .select("id,business_subcategory")
       .order("business_subcategory", { ascending: true })
       .returns<ServiceOrderTypeOption[]>(),
+  );
+
+  if (error) {
+    throw error;
+  }
+
+  return data ?? [];
+}
+
+export async function getServiceOrderPriceOptions(
+  supabase: SupabaseClient,
+): Promise<ServiceOrderPriceOption[]> {
+  const { data, error } = await withRequestTimeout(
+    supabase
+      .from("service_order_price_option")
+      .select("id,service_order_type_id,price_code,display_name,amount_usd,sort_order,is_active")
+      .eq("is_active", true)
+      .order("sort_order", { ascending: true })
+      .returns<ServiceOrderPriceOption[]>(),
   );
 
   if (error) {

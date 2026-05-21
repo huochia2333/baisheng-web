@@ -34,6 +34,7 @@ import {
   type AdminPeopleFeedback,
 } from "./admin-people-view-model-utils";
 import { useAdminCustomerTypeMark } from "./use-admin-customer-type-mark";
+import { useAdminPeopleVipActions } from "./use-admin-people-vip-actions";
 
 type FilterValue<T extends string> = T | "all";
 
@@ -59,6 +60,10 @@ export function useAdminPeopleViewModel({
   >(["tourism"]);
   const [draftNote, setDraftNote] = useState("");
   const [saving, setSaving] = useState(false);
+  const { handleVipRequestAction, vipActionPendingId } = useAdminPeopleVipActions({
+    setFeedback,
+    setPeople,
+  });
 
   const roleLabels = useMemo<AdminPeopleRoleLabels>(
     () => ({
@@ -328,6 +333,7 @@ export function useAdminPeopleViewModel({
     statusLabels,
     statusOptions: ADMIN_PEOPLE_STATUS_OPTIONS,
     summary,
+    vipActionPendingId,
     closeAccountDialog,
     handleDraftCustomerTypeChange:
       customerTypeEditor.handleDraftCustomerTypeChange,
@@ -337,6 +343,7 @@ export function useAdminPeopleViewModel({
     handleRoleFilterChange,
     handleSaveAccountChange,
     handleStatusFilterChange,
+    handleVipRequestAction,
     openAccountDialog,
     setDraftNote,
     setSearchText,

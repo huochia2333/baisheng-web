@@ -57,5 +57,25 @@ export function toOrderErrorMessage(
     return copy.errors.orderNotFound;
   }
 
+  if (rawMessage.includes("VIP recharge orders must use USD")) {
+    return copy.errors.vipAmountInvalid;
+  }
+
+  if (rawMessage.includes("VIP recharge amount must be 200 USD")) {
+    return copy.errors.vipAmountInvalid;
+  }
+
+  if (
+    rawMessage.includes("service_orders_use_usd") ||
+    rawMessage.includes("service_price_required") ||
+    rawMessage.includes("service_order_amount_mismatch")
+  ) {
+    return copy.errors.serviceAmountInvalid;
+  }
+
+  if (rawMessage.includes("service_discount_requires_retail_service_vip")) {
+    return copy.errors.serviceDiscountRequiresVip;
+  }
+
   return baseMessage;
 }

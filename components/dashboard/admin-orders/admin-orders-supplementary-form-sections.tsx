@@ -8,8 +8,10 @@ import { useTranslations } from "next-intl";
 import {
   type OrderDiscountTypeOption,
   type PurchaseOrderTypeOption,
+  type ServiceOrderPriceOption,
   type ServiceOrderTypeOption,
 } from "@/lib/admin-orders";
+import { VIP_SCOPE_VALUES } from "@/lib/vip-memberships";
 import { useLocale } from "@/components/i18n/locale-provider";
 
 import {
@@ -24,8 +26,10 @@ import {
   formatDiscountRatioValue,
   formatPurchaseOrderSubtype,
   formatServiceOrderSubtype,
+  formatVipScope,
   type OrderFormState,
 } from "./admin-orders-utils";
+import { formatServicePriceOptionLabel } from "./admin-orders-service-pricing";
 
 type OrderSupplementaryFormSectionsProps = {
   formState: OrderFormState;
@@ -34,6 +38,7 @@ type OrderSupplementaryFormSectionsProps = {
   orderDiscountOptions: OrderDiscountTypeOption[];
   purchaseOrderTypeOptions: PurchaseOrderTypeOption[];
   selectedOrderCategory: string | null;
+  serviceOrderPriceOptions: ServiceOrderPriceOption[];
   serviceOrderTypeOptions: ServiceOrderTypeOption[];
   supplementaryLoading: boolean;
   onFieldChange: <Key extends keyof OrderFormState>(
@@ -49,6 +54,7 @@ export function OrderSupplementaryFormSections({
   orderDiscountOptions,
   purchaseOrderTypeOptions,
   selectedOrderCategory,
+  serviceOrderPriceOptions,
   serviceOrderTypeOptions,
   supplementaryLoading,
   onFieldChange,
@@ -76,7 +82,22 @@ export function OrderSupplementaryFormSections({
           isFormBusy={isFormBusy}
           mode={mode}
           orderDiscountOptions={orderDiscountOptions}
+          serviceOrderPriceOptions={serviceOrderPriceOptions}
           serviceOrderTypeOptions={serviceOrderTypeOptions}
+          supplementaryLoading={supplementaryLoading}
+          onFieldChange={onFieldChange}
+        />
+      </div>
+    );
+  }
+
+  if (selectedOrderCategory === "vip_recharge") {
+    return (
+      <div>
+        <VipRechargeSupplementaryFormSection
+          formState={formState}
+          isFormBusy={isFormBusy}
+          mode={mode}
           supplementaryLoading={supplementaryLoading}
           onFieldChange={onFieldChange}
         />
@@ -158,6 +179,7 @@ function ServiceSupplementaryFormSection({
   mode,
   orderDiscountOptions,
   serviceOrderTypeOptions,
+  serviceOrderPriceOptions,
   supplementaryLoading,
   onFieldChange,
 }: Pick<
@@ -166,6 +188,7 @@ function ServiceSupplementaryFormSection({
   | "isFormBusy"
   | "mode"
   | "orderDiscountOptions"
+  | "serviceOrderPriceOptions"
   | "serviceOrderTypeOptions"
   | "supplementaryLoading"
   | "onFieldChange"
@@ -173,6 +196,13 @@ function ServiceSupplementaryFormSection({
   const { locale } = useLocale();
   const t = useTranslations("OrdersUI");
   const orderUiCopy = useMemo(() => createOrdersUiCopy(t), [t]);
+  const visiblePriceOptions = useMemo(
+    () =>
+      serviceOrderPriceOptions.filter(
+        (option) => option.service_order_type_id === formState.serviceSubtype,
+      ),
+    [formState.serviceSubtype, serviceOrderPriceOptions],
+  );
 
   return (
     <OrderSupplementaryFormSection
@@ -218,6 +248,21 @@ function ServiceSupplementaryFormSection({
           </select>
         </OrderField>
 
+        <OrderField label={t("fields.servicePrice")} required>
+          <select
+            className={fieldInputClassName}
+            disabled={isFormBusy || !formState.serviceSubtype}
+            onChange={(event) => onFieldChange("servicePriceOption", event.target.value)}
+            value={formState.servicePriceOption}
+          >
+            <option value="">{t("select.servicePrice")}</option>
+            {visiblePriceOptions.map((option) => (
+              <option key={option.id} value={option.id}>
+                {formatServicePriceOptionLabel(option)}
+              </option>
+            ))}
+          </select>
+        </OrderField>
       </div>
 
       <OrderField label={t("fields.serviceDetails")}>
@@ -231,6 +276,68 @@ function ServiceSupplementaryFormSection({
           disabled={isFormBusy}
           onChange={(nextValue) => onFieldChange("serviceDetails", nextValue)}
           value={formState.serviceDetails}
+        />
+      </OrderField>
+    </OrderSupplementaryFormSection>
+  );
+}
+
+function VipRechargeSupplementaryFormSection({
+  formState,
+  isFormBusy,
+  mode,
+  supplementaryLoading,
+  onFieldChange,
+}: Pick<
+  OrderSupplementaryFormSectionsProps,
+  | "formState"
+  | "isFormBusy"
+  | "mode"
+  | "supplementaryLoading"
+  | "onFieldChange"
+>) {
+  const t = useTranslations("OrdersUI");
+  const orderUiCopy = useMemo(() => createOrdersUiCopy(t), [t]);
+
+  return (
+    <OrderSupplementaryFormSection
+      description={
+        mode === "create"
+          ? t("vipSection.createDescription")
+          : t("vipSection.editDescription")
+      }
+      title={t("vipSection.title")}
+    >
+      {supplementaryLoading ? <SupplementaryLoading message={t("vipSection.loading")} /> : null}
+
+      <div className="grid gap-5 md:grid-cols-2">
+        <OrderField label={t("fields.vipScope")} required>
+          <select
+            className={fieldInputClassName}
+            disabled={isFormBusy}
+            onChange={(event) => onFieldChange("vipScope", event.target.value)}
+            value={formState.vipScope}
+          >
+            {VIP_SCOPE_VALUES.map((scope) => (
+              <option key={scope} value={scope}>
+                {formatVipScope(scope, orderUiCopy)}
+              </option>
+            ))}
+          </select>
+        </OrderField>
+      </div>
+
+      <OrderField label={t("fields.vipDetails")}>
+        <OrderDetailPairsInput
+          copy={{
+            addLabel: t("detailPairs.add"),
+            namePlaceholder: t("detailPairs.namePlaceholder"),
+            removeLabel: t("detailPairs.remove"),
+            valuePlaceholder: t("detailPairs.valuePlaceholder"),
+          }}
+          disabled={isFormBusy}
+          onChange={(nextValue) => onFieldChange("vipDetails", nextValue)}
+          value={formState.vipDetails}
         />
       </OrderField>
     </OrderSupplementaryFormSection>

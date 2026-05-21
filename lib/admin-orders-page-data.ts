@@ -16,6 +16,7 @@ import {
   getOrderUserOptions,
   getPurchaseOrderTypeOptions,
   getServiceFeeTypeOptions,
+  getServiceOrderPriceOptions,
   getServiceOrderTypeOptions,
 } from "./admin-orders-options";
 import {
@@ -118,6 +119,7 @@ export async function getAdminOrdersPageData(
     serviceOrderTypeOptions,
     orderDiscountOptions,
     serviceFeeTypeOptions,
+    serviceOrderPriceOptions,
     orderCurrencyRates,
   ] = await Promise.all([
     getOrderUserOptions(supabase),
@@ -126,6 +128,7 @@ export async function getAdminOrdersPageData(
     getServiceOrderTypeOptions(supabase),
     getOrderDiscountTypeOptions(supabase),
     getServiceFeeTypeOptions(supabase),
+    getServiceOrderPriceOptions(supabase),
     getLatestCnyExchangeRates(supabase),
   ]);
   const orderTypeOptions = filterOrderTypeOptionsForBusinessScope(
@@ -152,6 +155,7 @@ export async function getAdminOrdersPageData(
       pagination: getDashboardPaginationState(0, requestedPage, pageSize),
       purchaseOrderTypeOptions,
       serviceFeeTypeOptions,
+      serviceOrderPriceOptions,
       serviceOrderTypeOptions,
       summary: {
         completed: 0,
@@ -227,6 +231,7 @@ export async function getAdminOrdersPageData(
       pagination,
       purchaseOrderTypeOptions,
       serviceFeeTypeOptions,
+      serviceOrderPriceOptions,
       serviceOrderTypeOptions,
       summary: {
         completed: completedOrdersCount,
@@ -271,6 +276,7 @@ export async function getAdminOrdersPageData(
     pagination,
     purchaseOrderTypeOptions,
     serviceFeeTypeOptions,
+    serviceOrderPriceOptions,
     serviceOrderTypeOptions,
     summary: {
       completed: completedOrdersCount,
@@ -305,6 +311,7 @@ function createEmptyAdminOrdersPageData(options: {
     pagination: getDashboardPaginationState(0, options.page, options.pageSize),
     purchaseOrderTypeOptions: [],
     serviceFeeTypeOptions: [],
+    serviceOrderPriceOptions: [],
     serviceOrderTypeOptions: [],
     summary: {
       completed: 0,

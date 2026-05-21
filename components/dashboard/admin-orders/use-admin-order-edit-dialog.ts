@@ -4,6 +4,8 @@ import { useCallback, useEffect, useState, useRef } from "react";
 
 import {
   getAdminOrderSupplementaryDetail,
+  type OrderDiscountTypeOption,
+  type ServiceOrderPriceOption,
   updateAdminOrder,
   type AdminOrderRow,
 } from "@/lib/admin-orders";
@@ -25,12 +27,14 @@ import {
   type PageFeedbackSetter,
 } from "./admin-orders-view-model-shared";
 import { type OrderServiceFeePreviewState } from "./admin-orders-service-fee-preview";
+import { applyServicePricingToOrderForm } from "./admin-orders-service-pricing";
 import { toOrderErrorMessage } from "./admin-orders-errors";
 import { type DashboardSharedCopy } from "../dashboard-shared-ui";
 
 export function useAdminOrderEditDialog({
   canEditOrders,
   clearSelectedOrder,
+  orderDiscountOptions,
   orderCategoryByTypeId,
   ordersUiCopy,
   refreshOrdersRoute,
@@ -38,9 +42,11 @@ export function useAdminOrderEditDialog({
   sharedCopy,
   supabase,
   t,
+  serviceOrderPriceOptions,
 }: {
   canEditOrders: boolean;
   clearSelectedOrder: () => void;
+  orderDiscountOptions: OrderDiscountTypeOption[];
   orderCategoryByTypeId: Map<string, string | null>;
   ordersUiCopy: OrdersUiCopy;
   refreshOrdersRoute: () => void;
@@ -48,6 +54,7 @@ export function useAdminOrderEditDialog({
   sharedCopy: DashboardSharedCopy;
   supabase: ReturnType<typeof getBrowserSupabaseClient>;
   t: OrdersTranslator;
+  serviceOrderPriceOptions: ServiceOrderPriceOption[];
 }) {
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [editDialogFeedback, setEditDialogFeedback] =
@@ -133,9 +140,25 @@ export function useAdminOrderEditDialog({
   const updateEditFormField = useCallback(
     <Key extends keyof OrderFormState>(key: Key, value: OrderFormState[Key]) => {
       setEditDialogFeedback(null);
-      setEditFormState((current) => getNextOrderFormState(current, key, value));
+      setEditFormState((current) => {
+        let nextState = getNextOrderFormState(current, key, value);
+        const selectedCategory =
+          key === "orderType"
+            ? orderCategoryByTypeId.get(String(value))
+            : orderCategoryByTypeId.get(nextState.orderType);
+
+        if (selectedCategory === "service") {
+          nextState = applyServicePricingToOrderForm(nextState, {
+            orderCategory: selectedCategory,
+            orderDiscountOptions,
+            serviceOrderPriceOptions,
+          });
+        }
+
+        return nextState;
+      });
     },
-    [],
+    [orderCategoryByTypeId, orderDiscountOptions, serviceOrderPriceOptions],
   );
 
   useEffect(() => {
@@ -143,7 +166,10 @@ export function useAdminOrderEditDialog({
       !editDialogOpen ||
       !supabase ||
       !editFormState.orderType ||
-      !editFormState.orderingUser
+      !editFormState.orderingUser ||
+      !["purchase", "dropshipping"].includes(
+        orderCategoryByTypeId.get(editFormState.orderType) ?? "",
+      )
     ) {
       editServiceFeePreviewTokenRef.current += 1;
       setEditServiceFeePreview({ feeType: null, status: "idle" });
@@ -182,6 +208,7 @@ export function useAdminOrderEditDialog({
     editFormState.orderingUser,
     editFormState.rmbAmount,
     editOriginalOrderNumber,
+    orderCategoryByTypeId,
     supabase,
   ]);
 

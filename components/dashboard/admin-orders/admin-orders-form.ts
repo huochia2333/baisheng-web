@@ -3,6 +3,7 @@ import {
   type AdminOrderSupplementaryDetail,
   type CreateAdminOrderInput,
 } from "@/lib/admin-orders";
+import { isVipMembershipScope } from "@/lib/vip-memberships";
 
 import { normalizeOptionalString } from "../dashboard-shared-ui";
 
@@ -37,7 +38,10 @@ export type OrderFormState = {
   purchaseDetails: string;
   serviceSubtype: string;
   serviceDiscount: string;
+  servicePriceOption: string;
   serviceDetails: string;
+  vipScope: string;
+  vipDetails: string;
 };
 
 export function createOrderFormState(defaults?: {
@@ -60,7 +64,10 @@ export function createOrderFormState(defaults?: {
     purchaseDetails: "",
     serviceSubtype: "",
     serviceDiscount: "",
+    servicePriceOption: "",
     serviceDetails: "",
+    vipScope: "retail",
+    vipDetails: "",
   };
 }
 
@@ -91,8 +98,16 @@ export function createOrderFormStateFromOrder(
       supplementaryDetail?.kind === "service" ? supplementaryDetail.subtypeId : "",
     serviceDiscount:
       supplementaryDetail?.kind === "service" ? supplementaryDetail.discountId : "",
+    servicePriceOption:
+      supplementaryDetail?.kind === "service" ? supplementaryDetail.priceOptionId : "",
     serviceDetails:
       supplementaryDetail?.kind === "service"
+        ? stringifyOrderDetailsForTextarea(supplementaryDetail.details)
+        : "",
+    vipScope:
+      supplementaryDetail?.kind === "vip_recharge" ? supplementaryDetail.vipScope : "retail",
+    vipDetails:
+      supplementaryDetail?.kind === "vip_recharge"
         ? stringifyOrderDetailsForTextarea(supplementaryDetail.details)
         : "",
   };
@@ -163,6 +178,7 @@ export function parseCreateOrderForm(
   if (orderCategory === "service") {
     const serviceSubtype = formState.serviceSubtype.trim();
     const serviceDiscount = formState.serviceDiscount.trim();
+    const servicePriceOption = formState.servicePriceOption.trim();
 
     if (!serviceSubtype) {
       return {
@@ -175,6 +191,13 @@ export function parseCreateOrderForm(
       return {
         ok: false,
         message: copy.validation.selectPrompt(copy.fields.serviceDiscount),
+      };
+    }
+
+    if (!servicePriceOption) {
+      return {
+        ok: false,
+        message: copy.validation.selectPrompt(copy.fields.servicePrice),
       };
     }
 
@@ -196,7 +219,41 @@ export function parseCreateOrderForm(
           kind: "service",
           subtypeId: serviceSubtype,
           discountId: serviceDiscount,
+          priceOptionId: servicePriceOption,
           details: serviceDetails,
+        },
+      },
+    };
+  }
+
+  if (orderCategory === "vip_recharge") {
+    const vipScope = formState.vipScope.trim();
+
+    if (!isVipMembershipScope(vipScope)) {
+      return {
+        ok: false,
+        message: copy.validation.selectPrompt(copy.fields.vipScope),
+      };
+    }
+
+    const vipDetails = parseFlexibleOrderDetails(
+      formState.vipDetails,
+      copy.fields.vipDetails,
+      copy,
+    );
+
+    if (typeof vipDetails === "string") {
+      return { ok: false, message: vipDetails };
+    }
+
+    return {
+      ok: true,
+      payload: {
+        ...baseParsed.payload,
+        supplementary: {
+          kind: "vip_recharge",
+          vipScope,
+          details: vipDetails,
         },
       },
     };

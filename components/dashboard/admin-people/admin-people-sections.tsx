@@ -104,10 +104,12 @@ export function AdminPeopleDirectorySection({
   filteredPeople,
   locale,
   onAdjustPerson,
+  onVipRequestAction,
   onRoleFilterChange,
   onSearchTextChange,
   onStatusFilterChange,
   roleFilter,
+  pendingVipRequestId,
   roleLabels,
   roleOptions,
   searchText,
@@ -120,10 +122,12 @@ export function AdminPeopleDirectorySection({
   filteredPeople: AdminPersonRow[];
   locale: Locale;
   onAdjustPerson: (person: AdminPersonRow) => void;
+  onVipRequestAction: AdminPeopleViewModel["handleVipRequestAction"];
   onRoleFilterChange: (value: string) => void;
   onSearchTextChange: (value: string) => void;
   onStatusFilterChange: (value: string) => void;
   roleFilter: string;
+  pendingVipRequestId: string | null;
   roleLabels: AdminPeopleViewModel["roleLabels"];
   roleOptions: AdminPeopleViewModel["roleOptions"];
   searchText: string;
@@ -198,7 +202,9 @@ export function AdminPeopleDirectorySection({
             customerTypeLabels={customerTypeLabels}
             locale={locale}
             onAdjustPerson={onAdjustPerson}
+            onVipRequestAction={onVipRequestAction}
             people={filteredPeople}
+            pendingVipRequestId={pendingVipRequestId}
             roleLabels={roleLabels}
             statusLabels={statusLabels}
           />

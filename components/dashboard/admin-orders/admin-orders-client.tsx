@@ -44,10 +44,18 @@ export function AdminOrdersClient({
   const [serviceFeeTypeOptions, setServiceFeeTypeOptions] = useState(
     initialData.serviceFeeTypeOptions,
   );
+  const [serviceOrderPriceOptions, setServiceOrderPriceOptions] = useState(
+    initialData.serviceOrderPriceOptions,
+  );
+  const [orderDiscountOptions, setOrderDiscountOptions] = useState(
+    initialData.orderDiscountOptions,
+  );
   const viewModel = useAdminOrdersViewModel({
     initialData: {
       ...initialData,
+      orderDiscountOptions,
       serviceFeeTypeOptions,
+      serviceOrderPriceOptions,
     },
     mode,
   });
@@ -115,8 +123,13 @@ export function AdminOrdersClient({
       {activeTab === "exchange-rates" && initialExchangeRatesData ? (
         <AdminOrderSettingsClient
           initialExchangeRatesData={initialExchangeRatesData}
+          initialOrderDiscounts={orderDiscountOptions}
           initialServiceFeeTypes={serviceFeeTypeOptions}
+          initialServiceOrderTypes={initialData.serviceOrderTypeOptions}
+          initialServicePriceOptions={serviceOrderPriceOptions}
+          onOrderDiscountsChange={setOrderDiscountOptions}
           onServiceFeeTypesChange={setServiceFeeTypeOptions}
+          onServicePriceOptionsChange={setServiceOrderPriceOptions}
         />
       ) : (
         <>
@@ -194,6 +207,7 @@ export function AdminOrdersClient({
         orderingUserOptions={viewModel.orderingUserOptions}
         pending={viewModel.createPending}
         purchaseOrderTypeOptions={viewModel.purchaseOrderTypeOptions}
+        serviceOrderPriceOptions={viewModel.serviceOrderPriceOptions}
         serviceOrderTypeOptions={viewModel.serviceOrderTypeOptions}
         showCostField={viewModel.canViewOrderCosts}
         submitLabel={viewModel.viewConfig.createTitle}
@@ -218,6 +232,7 @@ export function AdminOrdersClient({
         pending={viewModel.editPending}
         purchaseOrderTypeOptions={viewModel.purchaseOrderTypeOptions}
         serviceFeePreview={viewModel.editServiceFeePreview}
+        serviceOrderPriceOptions={viewModel.serviceOrderPriceOptions}
         serviceOrderTypeOptions={viewModel.serviceOrderTypeOptions}
         showCostField={viewModel.canViewOrderCosts}
         supplementaryLoading={viewModel.editSupplementaryLoading}

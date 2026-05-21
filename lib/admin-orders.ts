@@ -14,6 +14,7 @@ export type {
   OrderViewerContext,
   PurchaseOrderTypeOption,
   SaveAdminOrderInput,
+  ServiceOrderPriceOption,
   ServiceOrderTypeOption,
   UpdateAdminOrderInput,
 } from "./admin-orders-types";
@@ -36,6 +37,7 @@ export {
   getOrderUserOptions,
   getPurchaseOrderTypeOptions,
   getServiceFeeTypeOptions,
+  getServiceOrderPriceOptions,
   getServiceOrderTypeOptions,
 } from "./admin-orders-options";
 export {

@@ -15,6 +15,7 @@ import { EmptyState } from "@/components/dashboard/dashboard-shared-ui";
 import { Button } from "@/components/ui/button";
 import type { SalesmanCustomerRow } from "@/lib/salesman-people";
 import type { Locale } from "@/lib/locale";
+import type { VipMembershipScope } from "@/lib/vip-memberships";
 import { cn } from "@/lib/utils";
 
 import {
@@ -24,6 +25,7 @@ import {
   getSalesmanCustomerTypeLabel,
 } from "./salesman-people-display";
 import type { useSalesmanPeopleViewModel } from "./use-salesman-people-view-model";
+import { SalesmanPeopleVipCell } from "./salesman-people-vip-cell";
 
 type SalesmanPeopleViewModel = ReturnType<typeof useSalesmanPeopleViewModel>;
 
@@ -95,14 +97,21 @@ export function SalesmanPeopleDirectorySection({
   filteredCustomers,
   locale,
   onAdjustCustomerType,
+  onRequestVip,
   onSearchTextChange,
+  pendingVipRequestKey,
   searchText,
 }: {
   customerTypeLabels: SalesmanPeopleViewModel["customerTypeLabels"];
   filteredCustomers: SalesmanCustomerRow[];
   locale: Locale;
   onAdjustCustomerType: (customer: SalesmanCustomerRow) => void;
+  onRequestVip: (
+    customer: SalesmanCustomerRow,
+    vipScope: VipMembershipScope,
+  ) => void;
   onSearchTextChange: (value: string) => void;
+  pendingVipRequestKey: string | null;
   searchText: string;
 }) {
   const t = useTranslations("SalesmanPeople");
@@ -136,17 +145,19 @@ export function SalesmanPeopleDirectorySection({
           />
         ) : (
           <DashboardTableFrame>
-            <table className="min-w-[760px] table-fixed w-full text-left text-sm">
+            <table className="min-w-[980px] table-fixed w-full text-left text-sm">
               <colgroup>
-                <col className="w-[30%]" />
-                <col className="w-[16%]" />
-                <col className="w-[18%]" />
-                <col className="w-[22%]" />
+                <col className="w-[24%]" />
+                <col className="w-[28%]" />
+                <col className="w-[10%]" />
                 <col className="w-[14%]" />
+                <col className="w-[14%]" />
+                <col className="w-[10%]" />
               </colgroup>
               <thead className="bg-[#f6f4f0] text-xs font-semibold text-[#66727d]">
                 <tr>
                   <th className="px-3 py-3">{t("directory.columns.customer")}</th>
+                  <th className="px-3 py-3">{t("directory.columns.vip")}</th>
                   <th className="px-3 py-3">{t("directory.columns.city")}</th>
                   <th className="px-3 py-3">{t("directory.columns.currentType")}</th>
                   <th className="px-3 py-3">{t("directory.columns.markedAt")}</th>
@@ -169,6 +180,14 @@ export function SalesmanPeopleDirectorySection({
                           t("fallback.notProvided"),
                         )}
                       </p>
+                    </td>
+                    <td className="px-3 py-4">
+                      <SalesmanPeopleVipCell
+                        customer={customer}
+                        locale={locale}
+                        onRequestVip={onRequestVip}
+                        pendingKey={pendingVipRequestKey}
+                      />
                     </td>
                     <td className="px-3 py-4 text-[#53616d]">
                       {customer.city ?? t("fallback.notProvided")}
