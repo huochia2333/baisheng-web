@@ -1,9 +1,8 @@
 "use client";
 
-import { useEffect, useState, type MouseEvent as ReactMouseEvent } from "react";
+import { useState } from "react";
 
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
 import {
   ArrowLeftRight,
   ChevronDown,
@@ -28,6 +27,7 @@ import { signOutCurrentBrowserSession } from "@/lib/browser-auth-session";
 import { getBrowserSupabaseClient } from "@/lib/supabase";
 import type { WorkspaceNavItem } from "@/lib/workspace-config";
 import { cn } from "@/lib/utils";
+import { useAdminShellNavigation } from "./use-admin-shell-navigation";
 
 export type AdminShellNavLink = {
   href: string;
@@ -61,44 +61,14 @@ const NAV_ICONS: Record<WorkspaceNavItem["segment"], LucideIcon> = {
 };
 
 export function AdminShellNav({ items, mode }: AdminShellNavProps) {
-  const pathname = usePathname();
-  const router = useRouter();
-  const [pendingHref, setPendingHref] = useState<string | null>(null);
+  const {
+    activeItem,
+    handleNavClick,
+    pathname,
+    prefetchRoute,
+    resolvedPendingHref,
+  } = useAdminShellNavigation(items);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const resolvedPendingHref = pendingHref === pathname ? null : pendingHref;
-  const activeItem = items.find((item) => item.href === pathname) ?? items[0] ?? null;
-
-  useEffect(() => {
-    items.forEach((item) => {
-      if (item.href !== pathname) {
-        void router.prefetch(item.href);
-      }
-    });
-  }, [items, pathname, router]);
-
-  const prefetchRoute = (href: string) => {
-    if (href === pathname) {
-      return;
-    }
-
-    void router.prefetch(href);
-  };
-
-  const handleNavClick = (event: ReactMouseEvent<HTMLAnchorElement>, href: string) => {
-    if (
-      event.defaultPrevented ||
-      event.button !== 0 ||
-      event.metaKey ||
-      event.ctrlKey ||
-      event.altKey ||
-      event.shiftKey ||
-      href === pathname
-    ) {
-      return;
-    }
-
-    setPendingHref(href);
-  };
 
   if (mode === "mobile") {
     if (!activeItem) {

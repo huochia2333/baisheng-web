@@ -7,9 +7,11 @@ import { Languages, LoaderCircle } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 
 import { getDocumentLanguage, LOCALE_COOKIE_NAME, type Locale } from "@/lib/locale";
+import { useStaleFocusRecovery } from "@/lib/use-stale-focus-recovery";
 
 export function LanguageToggle() {
   const router = useRouter();
+  const shouldUseFullPageLoad = useStaleFocusRecovery();
   const locale = useLocale() as Locale;
   const t = useTranslations("LanguageToggle");
   const [isPending, startTransition] = useTransition();
@@ -27,6 +29,11 @@ export function LanguageToggle() {
     document.cookie = `${LOCALE_COOKIE_NAME}=${nextLocale}; Path=/; Max-Age=31536000; SameSite=Lax`;
     window.localStorage.setItem(LOCALE_COOKIE_NAME, nextLocale);
     document.documentElement.lang = getDocumentLanguage(nextLocale);
+
+    if (shouldUseFullPageLoad()) {
+      window.location.reload();
+      return;
+    }
 
     startTransition(() => {
       router.refresh();

@@ -20,6 +20,7 @@ import { Button } from "@/components/ui/button";
 import type { AnnouncementRow } from "@/lib/announcements";
 import { signOutCurrentBrowserSession } from "@/lib/browser-auth-session";
 import { getBrowserSupabaseClient } from "@/lib/supabase";
+import { useStaleFocusRecovery } from "@/lib/use-stale-focus-recovery";
 import type { WorkspaceAnnouncementsState } from "@/lib/workspace-announcements";
 
 import { DashboardDialog } from "./dashboard-dialog";
@@ -42,6 +43,7 @@ export function WorkspaceHeaderActions({
 }: WorkspaceHeaderActionsProps) {
   const t = useTranslations("DashboardShell");
   const { locale } = useLocale();
+  const shouldUseFullPageLoad = useStaleFocusRecovery();
   const supabase = getBrowserSupabaseClient();
   const menuRef = useRef<HTMLDivElement | null>(null);
 
@@ -182,7 +184,14 @@ export function WorkspaceHeaderActions({
                     className="flex items-center gap-3 rounded-[16px] px-3 py-2.5 text-sm font-medium text-[#405a70] transition-colors hover:bg-[#f3f5f6]"
                     href={item.href}
                     key={item.href}
-                    onClick={() => setAccountMenuOpen(false)}
+                    onClick={(event) => {
+                      setAccountMenuOpen(false);
+
+                      if (shouldUseFullPageLoad()) {
+                        event.preventDefault();
+                        window.location.assign(item.href);
+                      }
+                    }}
                     prefetch
                   >
                     <Icon className="size-4 text-[#6e7f8d]" />

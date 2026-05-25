@@ -11,6 +11,7 @@ import {
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
+import { useStaleFocusRecovery } from "@/lib/use-stale-focus-recovery";
 import { cn } from "@/lib/utils";
 
 type AuthRouteLinkProps = {
@@ -25,6 +26,7 @@ export function AuthRouteLink({
   href,
 }: AuthRouteLinkProps) {
   const router = useRouter();
+  const shouldUseFullPageLoad = useStaleFocusRecovery();
   const [pending, setPending] = useState(false);
 
   const prefetchRoute = useCallback(() => {
@@ -48,6 +50,11 @@ export function AuthRouteLink({
     }
 
     setPending(true);
+
+    if (shouldUseFullPageLoad()) {
+      event.preventDefault();
+      window.location.assign(href);
+    }
   };
 
   return (
