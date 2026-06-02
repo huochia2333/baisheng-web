@@ -28,7 +28,7 @@ export function AdminFeedbackClient({
         </PageBanner>
       ) : null}
 
-      <AdminFeedbackHeaderSection summary={viewModel.summary} />
+      <AdminFeedbackHeaderSection />
 
       {!viewModel.hasPermission ? (
         <AdminFeedbackNoPermissionSection />

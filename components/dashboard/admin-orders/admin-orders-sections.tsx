@@ -3,7 +3,7 @@
 import { memo } from "react";
 
 import { useTranslations } from "next-intl";
-import { BadgeDollarSign, ClipboardList, Plus, ReceiptText } from "lucide-react";
+import { ClipboardList, Plus } from "lucide-react";
 
 import { useLocale } from "@/components/i18n/locale-provider";
 import { type AdminOrderRow } from "@/lib/admin-orders";
@@ -41,11 +41,6 @@ type OrdersHeaderSectionProps = {
   description: string;
   noCreateTargetHint: string | null;
   onCreate: () => void;
-  summary: {
-    completed: number;
-    pending: number;
-    total: number;
-  };
   title: string;
 };
 
@@ -94,11 +89,8 @@ export const OrdersHeaderSection = memo(function OrdersHeaderSection({
   description,
   noCreateTargetHint,
   onCreate,
-  summary,
   title,
 }: OrdersHeaderSectionProps) {
-  const t = useTranslations("Orders");
-
   return (
     <DashboardSectionHeader
       actions={
@@ -122,29 +114,6 @@ export const OrdersHeaderSection = memo(function OrdersHeaderSection({
       badge={badge}
       contentClassName="max-w-2xl"
       description={description}
-      metrics={[
-        {
-          accent: "blue",
-          icon: <ReceiptText className="size-5" />,
-          key: "total",
-          label: t("summary.total"),
-          value: String(summary.total),
-        },
-        {
-          accent: "gold",
-          icon: <ClipboardList className="size-5" />,
-          key: "pending",
-          label: t("summary.pending"),
-          value: String(summary.pending),
-        },
-        {
-          accent: "green",
-          icon: <BadgeDollarSign className="size-5" />,
-          key: "completed",
-          label: t("summary.completed"),
-          value: String(summary.completed),
-        },
-      ]}
       title={title}
     />
   );

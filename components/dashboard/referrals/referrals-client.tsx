@@ -5,12 +5,10 @@ import { useCallback, useMemo, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import {
-  GitBranchPlus,
   Network,
   Package,
   Plane,
   ShieldAlert,
-  UsersRound,
 } from "lucide-react";
 
 import { useLocale } from "@/components/i18n/locale-provider";
@@ -209,16 +207,6 @@ export function ReferralsClient({
     () => buildTreeDisplayData(graph, searchText, locale, copy, sharedCopy),
     [copy, graph, locale, searchText, sharedCopy],
   );
-  const visibleEdgeCount = useMemo(
-    () =>
-      edges.filter(
-        (edge) =>
-          treeDisplay.visibleNodeIds.has(edge.referrer_user_id) &&
-          treeDisplay.visibleNodeIds.has(edge.new_user_id),
-      ).length,
-    [edges, treeDisplay.visibleNodeIds],
-  );
-
   return (
     <section className="mx-auto flex w-full max-w-[1320px] flex-col gap-8">
       {pageFeedback ? (
@@ -238,34 +226,6 @@ export function ReferralsClient({
       <DashboardSectionHeader
         badge={t("header.badge")}
         description={sectionDescription}
-        metrics={[
-          {
-            accent: "blue",
-            icon: <GitBranchPlus className="size-5" />,
-            key: "edges",
-            label: searchText.trim()
-              ? t("summary.matchedEdges")
-              : t("summary.visibleEdges"),
-            value: visibleEdgeCount,
-          },
-          {
-            accent: "green",
-            icon: <UsersRound className="size-5" />,
-            key: "nodes",
-            label: searchText.trim()
-              ? t("summary.matchedNodes")
-              : t("summary.visibleUsers"),
-            value: treeDisplay.visibleNodeIds.size,
-          },
-          {
-            accent: "gold",
-            icon: <Network className="size-5" />,
-            key: "roots",
-            label: t("summary.rootNodes"),
-            value: treeDisplay.rootIds.length,
-          },
-        ]}
-        metricsClassName="xl:min-w-[560px]"
         title={t("header.title")}
       />
 

@@ -31,7 +31,6 @@ import {
 
 import {
   areAdminTaskFiltersEqual,
-  type AdminTasksStats,
 } from "./admin-tasks-view-model-shared";
 
 export function useAdminTasksRouteState({
@@ -127,20 +126,6 @@ export function useAdminTasksRouteState({
   );
 
   useWorkspaceSyncEffect(refreshTaskBoard);
-
-  const stats = useMemo<AdminTasksStats>(
-    () => ({
-      accepted: tasks.reduce((total, task) => total + task.accepted_count, 0),
-      reviewing: tasks.reduce(
-        (total, task) =>
-          total + task.acceptance_assignees.filter(
-            (assignee) => assignee.task_status === "reviewing",
-          ).length,
-        0,
-      ),
-    }),
-    [tasks],
-  );
 
   const filteredTasks = useMemo(() => {
     const normalizedSearchText = normalizeSearchText(deferredSearchText);
@@ -278,7 +263,6 @@ export function useAdminTasksRouteState({
     goToPreviousPage,
     isRefreshing,
     refreshTaskBoard,
-    stats,
     tasks,
     tasksPagination,
     targetRoleOptions: initialData.targetRoleOptions,

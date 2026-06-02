@@ -1,13 +1,10 @@
 "use client";
 
 import {
-  CheckCircle2,
-  Clock3,
   Filter,
   MessageSquareWarning,
   Search,
   ShieldAlert,
-  TimerReset,
 } from "lucide-react";
 import { useTranslations } from "next-intl";
 
@@ -37,11 +34,7 @@ import type { useAdminFeedbackViewModel } from "./use-admin-feedback-view-model"
 
 type AdminFeedbackViewModel = ReturnType<typeof useAdminFeedbackViewModel>;
 
-export function AdminFeedbackHeaderSection({
-  summary,
-}: {
-  summary: AdminFeedbackViewModel["summary"];
-}) {
+export function AdminFeedbackHeaderSection() {
   const t = useTranslations("WorkspaceFeedback");
 
   return (
@@ -49,34 +42,6 @@ export function AdminFeedbackHeaderSection({
       badge={t("header.badge")}
       badgeIcon={<MessageSquareWarning className="size-4" />}
       description={t("header.description")}
-      metrics={[
-        {
-          accent: "blue",
-          icon: <MessageSquareWarning className="size-5" />,
-          label: t("summary.total"),
-          value: summary.total,
-        },
-        {
-          accent: "gold",
-          icon: <Clock3 className="size-5" />,
-          label: t("summary.new"),
-          value: summary.new,
-        },
-        {
-          accent: "blue",
-          icon: <TimerReset className="size-5" />,
-          label: t("summary.inProgress"),
-          value: summary.inProgress,
-        },
-        {
-          accent: "green",
-          icon: <CheckCircle2 className="size-5" />,
-          label: t("summary.resolved"),
-          value: summary.resolved,
-        },
-      ]}
-      metricsClassName="grid-cols-2 md:grid-cols-4"
-      metricsPlacement="below"
       title={t("header.title")}
     />
   );

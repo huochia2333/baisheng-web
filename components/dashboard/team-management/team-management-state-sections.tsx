@@ -2,10 +2,8 @@
 
 import { useTranslations } from "next-intl";
 import {
-  BriefcaseBusiness,
   Building2,
   CirclePlus,
-  Crown,
   LoaderCircle,
   RefreshCw,
   ShieldAlert,
@@ -30,18 +28,11 @@ import {
 } from "./team-management-section-styles";
 
 export function TeamManagementHeroSection({
-  aggregateStats,
   canManageSelectedTeam,
   busyKey,
   onRefresh,
   viewerRole,
 }: {
-  aggregateStats: {
-    manageableTeams: number;
-    teamCount: number;
-    totalClients: number;
-    totalMembers: number;
-  };
   canManageSelectedTeam: boolean;
   busyKey: string | null;
   onRefresh: () => void;
@@ -76,37 +67,6 @@ export function TeamManagementHeroSection({
       badge={t("header.badge")}
       badgeClassName="bg-[#e6edf2]"
       description={getTeamManagementDescription(viewerRole, t)}
-      metrics={[
-        {
-          accent: "blue",
-          icon: <Building2 className="size-5" />,
-          key: "teams",
-          label: t("summary.visibleTeams"),
-          value: aggregateStats.teamCount,
-        },
-        {
-          accent: "green",
-          icon: <UsersRound className="size-5" />,
-          key: "members",
-          label: t("summary.teamMembers"),
-          value: aggregateStats.totalMembers,
-        },
-        {
-          accent: "gold",
-          icon: <BriefcaseBusiness className="size-5" />,
-          key: "clients",
-          label: t("summary.teamClients"),
-          value: aggregateStats.totalClients,
-        },
-        {
-          accent: "blue",
-          icon: <Crown className="size-5" />,
-          key: "manageable",
-          label: t("summary.manageableTeams"),
-          value: aggregateStats.manageableTeams,
-        },
-      ]}
-      metricsClassName="sm:grid-cols-2 xl:min-w-[560px] xl:grid-cols-4"
       title={t("header.title")}
     />
   );

@@ -2,7 +2,15 @@
 
 import type { ReactNode } from "react";
 
-import { ClipboardList, Download, LoaderCircle, Mail, Paperclip, UserRound, XCircle } from "lucide-react";
+import {
+  ClipboardList,
+  Eye,
+  LoaderCircle,
+  Mail,
+  Paperclip,
+  UserRound,
+  XCircle,
+} from "lucide-react";
 import { useTranslations } from "next-intl";
 
 import type { PendingTaskReviewWithAssets } from "@/lib/task-reviews";
@@ -24,9 +32,9 @@ import {
 } from "../tasks/tasks-display";
 import { Button } from "../../ui/button";
 import { useLocale } from "../../i18n/locale-provider";
-import type { BusyAction } from "./types";
+import type { AdminTaskReviewAction } from "./admin-task-review-types";
 
-export function TaskReviewList({
+export function AdminTaskReviewList({
   assetBusyKey,
   busyRows,
   onAction,
@@ -34,10 +42,13 @@ export function TaskReviewList({
   rows,
 }: {
   assetBusyKey: string | null;
-  busyRows: Record<string, BusyAction>;
-  onAction: (row: PendingTaskReviewWithAssets, action: BusyAction) => Promise<void>;
+  busyRows: Record<string, AdminTaskReviewAction>;
+  onAction: (
+    row: PendingTaskReviewWithAssets,
+    action: AdminTaskReviewAction,
+  ) => Promise<void>;
   onOpenAsset: (
-    submissionId: string,
+    row: PendingTaskReviewWithAssets,
     asset: PendingTaskReviewWithAssets["assets"][number],
   ) => void;
   rows: PendingTaskReviewWithAssets[];
@@ -167,13 +178,13 @@ export function TaskReviewList({
                           className="inline-flex items-center gap-2 rounded-full bg-[#eef3f6] px-3 py-2 text-xs font-medium text-[#486782] transition hover:bg-[#e1ebf0] disabled:cursor-not-allowed disabled:opacity-70"
                           disabled={busy}
                           key={asset.id}
-                          onClick={() => onOpenAsset(row.submission_id, asset)}
+                          onClick={() => onOpenAsset(row, asset)}
                           type="button"
                         >
                           {busy ? (
                             <LoaderCircle className="size-3.5 animate-spin" />
                           ) : (
-                            <Download className="size-3.5" />
+                            <Eye className="size-3.5" />
                           )}
                           <span className="max-w-[180px] truncate">{asset.original_name}</span>
                           <span className="text-[#6f7b85]">{formatFileSize(asset.file_size_bytes)}</span>
@@ -198,7 +209,7 @@ function TaskReviewActionGroup({
   onApprove,
   onReject,
 }: {
-  busyAction?: BusyAction;
+  busyAction?: AdminTaskReviewAction;
   onApprove: () => void;
   onReject: () => void;
 }) {

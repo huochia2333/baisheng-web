@@ -76,18 +76,6 @@ export function useAdminFeedbackViewModel({
     [t],
   );
 
-  const summary = useMemo(
-    () => ({
-      declined: feedbackItems.filter((item) => item.status === "declined").length,
-      inProgress: feedbackItems.filter((item) => item.status === "in_progress")
-        .length,
-      new: feedbackItems.filter((item) => item.status === "new").length,
-      resolved: feedbackItems.filter((item) => item.status === "resolved").length,
-      total: feedbackItems.length,
-    }),
-    [feedbackItems],
-  );
-
   const filteredFeedback = useMemo(
     () =>
       feedbackItems.filter((item) => {
@@ -170,7 +158,6 @@ export function useAdminFeedbackViewModel({
     statusFilter,
     statusLabels,
     statusOptions: WORKSPACE_FEEDBACK_STATUS_OPTIONS,
-    summary,
     typeFilter,
     typeLabels,
     typeOptions: WORKSPACE_FEEDBACK_TYPE_OPTIONS,

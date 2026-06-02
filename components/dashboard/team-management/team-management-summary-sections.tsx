@@ -2,13 +2,9 @@
 
 import { useTranslations } from "next-intl";
 import {
-  BriefcaseBusiness,
   Building2,
-  Crown,
   LoaderCircle,
-  Star,
   Trash2,
-  UsersRound,
 } from "lucide-react";
 
 import { useLocale } from "@/components/i18n/locale-provider";
@@ -27,7 +23,7 @@ import {
   DashboardSectionPanel,
 } from "@/components/dashboard/dashboard-section-panel";
 
-import { DataPill, InsightCard, MetricCard, MiniMetric } from "./team-management-ui";
+import { DataPill, InsightCard, MiniMetric } from "./team-management-ui";
 import {
   getManagerCandidateLabel,
   getTeamDisplayName,
@@ -260,32 +256,6 @@ export function TeamDetailSummarySection({
           ) : null}
         </div>
 
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-          <MetricCard
-            icon={<UsersRound className="size-5" />}
-            label={t("detail.metrics.members")}
-            tone="blue"
-            value={detailTeam.member_count}
-          />
-          <MetricCard
-            icon={<Star className="size-5" />}
-            label={t("detail.metrics.activeMembers")}
-            tone="green"
-            value={detailTeam.active_member_count}
-          />
-          <MetricCard
-            icon={<BriefcaseBusiness className="size-5" />}
-            label={t("detail.metrics.clients")}
-            tone="gold"
-            value={detailTeam.client_count}
-          />
-          <MetricCard
-            icon={<Crown className="size-5" />}
-            label={t("detail.metrics.vipClients")}
-            tone="blue"
-            value={detailTeam.vip_client_count}
-          />
-        </div>
       </div>
     </DashboardSectionPanel>
   );

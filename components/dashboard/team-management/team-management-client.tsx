@@ -36,7 +36,6 @@ export function TeamManagementClient({
       ) : null}
 
       <TeamManagementHeroSection
-        aggregateStats={viewModel.aggregateStats}
         canManageSelectedTeam={viewModel.canManageSelectedTeam}
         busyKey={viewModel.busyKey}
         onRefresh={() => void viewModel.handleRefresh()}

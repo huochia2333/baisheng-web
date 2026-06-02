@@ -10,26 +10,17 @@ import {
   approveMediaReview,
   approveProfileChangeReview,
   approvePrivacyReview,
-  approveTaskReview,
   rejectMediaReview,
   rejectProfileChangeReview,
   rejectPrivacyReview,
-  rejectTaskReview,
   type PendingMediaReviewWithPreview,
   type PendingPrivacyReviewRow,
 } from "@/lib/admin-reviews";
 import type { PendingProfileChangeReviewRow } from "@/lib/profile-change-requests";
-import {
-  getTaskReviewSubmissionAssetSignedUrl,
-  type PendingTaskReviewWithAssets,
-  type TaskReviewSubmissionAsset,
-} from "@/lib/task-reviews";
 import { getBrowserSupabaseClient } from "@/lib/supabase";
 import {
   createDashboardSharedCopy,
-  getRawErrorMessage,
   toErrorMessage,
-  type DashboardSharedCopy,
   type NoticeTone,
 } from "../dashboard-shared-ui";
 import { useWorkspaceSyncEffect } from "../workspace-session-provider";
@@ -41,7 +32,7 @@ type PageFeedback = { tone: NoticeTone; message: string } | null;
 export function useAdminReviewsPage(initialData: AdminReviewsPageData) {
   const t = useTranslations("Reviews");
   const sharedT = useTranslations("DashboardShared");
-  const sharedCopy = createDashboardSharedCopy(sharedT);
+  const sharedCopy = useMemo(() => createDashboardSharedCopy(sharedT), [sharedT]);
   const supabase = getBrowserSupabaseClient();
 
   const [activeTab, setActiveTab] = useState<ReviewTab>("profile");
@@ -50,9 +41,7 @@ export function useAdminReviewsPage(initialData: AdminReviewsPageData) {
   const [privacyRows, setPrivacyRows] = useState<PendingPrivacyReviewRow[]>(initialData.privacyRows);
   const [mediaRows, setMediaRows] = useState<PendingMediaReviewWithPreview[]>(initialData.mediaRows);
   const [profileRows, setProfileRows] = useState<PendingProfileChangeReviewRow[]>(initialData.profileRows);
-  const [taskRows, setTaskRows] = useState<PendingTaskReviewWithAssets[]>(initialData.taskRows);
   const [busyRows, setBusyRows] = useState<Record<string, BusyAction>>({});
-  const [assetBusyKey, setAssetBusyKey] = useState<string | null>(null);
   const [previewAsset, setPreviewAsset] = useState<PendingMediaReviewWithPreview | null>(null);
 
   const applyPageData = useCallback((pageData: AdminReviewsPageData) => {
@@ -60,7 +49,6 @@ export function useAdminReviewsPage(initialData: AdminReviewsPageData) {
     setPrivacyRows(pageData.privacyRows);
     setMediaRows(pageData.mediaRows);
     setProfileRows(pageData.profileRows);
-    setTaskRows(pageData.taskRows);
   }, []);
 
   useEffect(() => {
@@ -268,107 +256,6 @@ export function useAdminReviewsPage(initialData: AdminReviewsPageData) {
     [busyRows, setRowBusyState, sharedCopy, supabase, t],
   );
 
-  const handleTaskReview = useCallback(
-    async (row: PendingTaskReviewWithAssets, action: BusyAction) => {
-      if (!supabase) {
-        return;
-      }
-
-      const rowKey = `task:${row.acceptance_id}`;
-      const actionLabel =
-        action === "approve" ? t("actions.approve") : t("actions.reject");
-
-      if (busyRows[rowKey]) {
-        return;
-      }
-
-      if (
-        typeof window !== "undefined"
-        && !window.confirm(t("confirm.task", { action: actionLabel }))
-      ) {
-        return;
-      }
-
-      let rejectReason: string | null = null;
-
-      if (action === "reject" && typeof window !== "undefined") {
-        const input = window.prompt(t("confirm.taskRejectReasonPrompt"), "");
-
-        if (input === null) {
-          return;
-        }
-
-        rejectReason = input;
-      }
-
-      setRowBusyState(rowKey, action);
-      setPageFeedback(null);
-
-      try {
-        if (action === "approve") {
-          await approveTaskReview(supabase, row.acceptance_id);
-        } else {
-          await rejectTaskReview(supabase, {
-            acceptanceId: row.acceptance_id,
-            reason: rejectReason,
-          });
-        }
-
-        setTaskRows((current) =>
-          current.filter((item) => item.acceptance_id !== row.acceptance_id),
-        );
-        setPageFeedback({
-          tone: "success",
-          message:
-            action === "approve"
-              ? t("feedback.taskApproved")
-              : t("feedback.taskRejected"),
-        });
-      } catch (error) {
-        setPageFeedback({
-          tone: "error",
-          message: toTaskReviewAdminErrorMessage(error, t, sharedCopy),
-        });
-      } finally {
-        setRowBusyState(rowKey, null);
-      }
-    },
-    [busyRows, setRowBusyState, sharedCopy, supabase, t],
-  );
-
-  const handleOpenTaskReviewAsset = useCallback(
-    async (submissionId: string, asset: TaskReviewSubmissionAsset) => {
-      if (!supabase) {
-        return;
-      }
-
-      const nextBusyKey = `${submissionId}:${asset.id}`;
-
-      if (assetBusyKey === nextBusyKey) {
-        return;
-      }
-
-      setAssetBusyKey(nextBusyKey);
-      setPageFeedback(null);
-
-      try {
-        const signedUrl = await getTaskReviewSubmissionAssetSignedUrl(supabase, asset);
-
-        if (typeof window !== "undefined") {
-          window.open(signedUrl, "_blank", "noopener,noreferrer");
-        }
-      } catch (error) {
-        setPageFeedback({
-          tone: "error",
-          message: toErrorMessage(error, sharedCopy),
-        });
-      } finally {
-        setAssetBusyKey((current) => (current === nextBusyKey ? null : current));
-      }
-    },
-    [assetBusyKey, sharedCopy, supabase],
-  );
-
   const closePreviewDialog = useCallback((open: boolean) => {
     if (open) {
       return;
@@ -394,25 +281,17 @@ export function useAdminReviewsPage(initialData: AdminReviewsPageData) {
         label: t("tabs.media"),
         count: mediaRows.length,
       },
-      {
-        key: "task" as const,
-        label: t("tabs.task"),
-        count: taskRows.length,
-      },
     ],
-    [mediaRows.length, privacyRows.length, profileRows.length, taskRows.length, t],
+    [mediaRows.length, privacyRows.length, profileRows.length, t],
   );
 
   return {
     activeTab,
-    assetBusyKey,
     busyRows,
     closePreviewDialog,
     handleMediaReview,
-    handleOpenTaskReviewAsset,
     handleProfileChangeReview,
     handlePrivacyReview,
-    handleTaskReview,
     hasPermission,
     mediaRows,
     pageFeedback,
@@ -423,45 +302,5 @@ export function useAdminReviewsPage(initialData: AdminReviewsPageData) {
     setActiveTab,
     setPreviewAsset,
     supabase,
-    taskRows,
   };
-}
-
-function toTaskReviewAdminErrorMessage(
-  error: unknown,
-  t: ReturnType<typeof useTranslations>,
-  sharedCopy: DashboardSharedCopy,
-) {
-  const rawMessage = getRawErrorMessage(error);
-  const baseMessage = toErrorMessage(error, sharedCopy);
-
-  if (rawMessage.includes("only administrator can approve task review")) {
-    return t("errors.noTaskReviewPermission");
-  }
-
-  if (rawMessage.includes("only administrator can reject task review")) {
-    return t("errors.noTaskReviewPermission");
-  }
-
-  if (rawMessage.includes("task is not in reviewing status")) {
-    return t("errors.taskNotReviewing");
-  }
-
-  if (rawMessage.includes("task review submission not found")) {
-    return t("errors.taskSubmissionMissing");
-  }
-
-  if (rawMessage.includes("task current submission is missing")) {
-    return t("errors.taskSubmissionMissing");
-  }
-
-  if (rawMessage.includes("task review submission is not pending")) {
-    return t("errors.taskSubmissionMissing");
-  }
-
-  if (rawMessage.includes("task not found")) {
-    return t("errors.taskMissing");
-  }
-
-  return baseMessage;
 }

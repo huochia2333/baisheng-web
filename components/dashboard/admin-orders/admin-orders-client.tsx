@@ -147,7 +147,6 @@ export function AdminOrdersClient({
         description={viewModel.viewConfig.description}
         noCreateTargetHint={viewModel.viewConfig.noCreateTargetHint}
         onCreate={viewModel.openCreateDialog}
-        summary={viewModel.summary}
         title={viewModel.viewConfig.title}
       />
 

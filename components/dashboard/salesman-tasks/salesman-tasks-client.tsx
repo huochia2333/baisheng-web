@@ -1,6 +1,6 @@
 "use client";
 
-import { CheckCheck, CircleCheckBig, ClipboardList, Clock3, History, ShieldAlert, Upload, XCircle } from "lucide-react";
+import { ClipboardList, History, ShieldAlert } from "lucide-react";
 import { useTranslations } from "next-intl";
 
 import type {
@@ -61,52 +61,6 @@ export function SalesmanTasksClient({
         badge={t("header.badge")}
         badgeClassName="bg-[#e6edf2]"
         description={t("header.description")}
-        metrics={[
-          {
-            accent: "blue",
-            icon: <ClipboardList className="size-5" />,
-            key: "all",
-            label: t("summary.all"),
-            value: viewModel.summary.all,
-          },
-          {
-            accent: "gold",
-            icon: <Clock3 className="size-5" />,
-            key: "available",
-            label: t("summary.available"),
-            value: viewModel.summary.available,
-          },
-          {
-            accent: "blue",
-            icon: <CircleCheckBig className="size-5" />,
-            key: "inProgress",
-            label: t("summary.inProgress"),
-            value: viewModel.summary.inProgress,
-          },
-          {
-            accent: "gold",
-            icon: <Upload className="size-5" />,
-            key: "reviewing",
-            label: t("summary.reviewing"),
-            value: viewModel.summary.reviewing,
-          },
-          {
-            accent: "blue",
-            icon: <XCircle className="size-5" />,
-            key: "rejected",
-            label: t("summary.rejected"),
-            value: viewModel.summary.rejected,
-          },
-          {
-            accent: "green",
-            icon: <CheckCheck className="size-5" />,
-            key: "completed",
-            label: t("summary.completed"),
-            value: viewModel.summary.completed,
-          },
-        ]}
-        metricsClassName="sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-6"
-        metricsPlacement="below"
         title={t("header.title")}
       />
 

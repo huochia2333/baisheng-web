@@ -3,7 +3,7 @@
 import { useCallback, useMemo, useState } from "react";
 import type { ReactNode } from "react";
 import { useTranslations } from "next-intl";
-import { BadgeDollarSign, Coins, ReceiptText, ShieldAlert, WalletCards } from "lucide-react";
+import { Coins, ReceiptText, ShieldAlert, WalletCards } from "lucide-react";
 
 import { getSalesmanCommissionPageData, type SalesmanCommissionPageData } from "@/lib/salesman-commission";
 import { getBrowserSupabaseClient } from "@/lib/supabase";
@@ -64,11 +64,6 @@ export function SalesmanCommissionClient({
   useWorkspaceSyncEffect(refreshCommissionBoard);
 
   const commissionsPagination = useDashboardPagination(commissions);
-  const summary = useMemo(() => ({
-    totalAmount: commissions.reduce((sum, commission) => sum + commission.commissionAmountRmb, 0),
-    pendingAmount: commissions.filter((commission) => commission.settlementStatus === "pending").reduce((sum, commission) => sum + commission.commissionAmountRmb, 0),
-    paidAmount: commissions.filter((commission) => commission.settlementStatus === "paid").reduce((sum, commission) => sum + commission.commissionAmountRmb, 0),
-  }), [commissions]);
   const boardOptions = useMemo(() => [
     {
       key: "normal" as const,
@@ -90,34 +85,6 @@ export function SalesmanCommissionClient({
       <DashboardSectionHeader
         badge={t("salesman.header.badge")}
         description={t("salesman.header.description")}
-        metrics={[
-          {
-            accent: "blue",
-            icon: <WalletCards className="size-5" />,
-            key: "totalAmount",
-            label: t("salesman.summary.totalAmount"),
-            labelClassName: "sm:min-h-10 sm:leading-5",
-            value: formatCommissionMoney(summary.totalAmount, locale),
-          },
-          {
-            accent: "gold",
-            icon: <Coins className="size-5" />,
-            key: "pendingAmount",
-            label: t("salesman.summary.pendingAmount"),
-            labelClassName: "sm:min-h-10 sm:leading-5",
-            value: formatCommissionMoney(summary.pendingAmount, locale),
-          },
-          {
-            accent: "green",
-            icon: <BadgeDollarSign className="size-5" />,
-            key: "paidAmount",
-            label: t("salesman.summary.paidAmount"),
-            labelClassName: "sm:min-h-10 sm:leading-5",
-            value: formatCommissionMoney(summary.paidAmount, locale),
-          },
-        ]}
-        metricsClassName="sm:grid-cols-3"
-        metricsPlacement="below"
         title={t("salesman.header.title")}
       />
       {!hasPermission ? <section className="rounded-[28px] border border-white/85 bg-white/72 p-6 shadow-[0_18px_45px_rgba(96,113,128,0.06)] xl:p-8"><EmptyState description={t("salesman.states.noPermissionDescription")} icon={<ShieldAlert className="size-6" />} title={t("salesman.states.noPermissionTitle")} /></section> : (

@@ -1,7 +1,6 @@
 "use client";
 
 import {
-  ClipboardList,
   FileBadge2,
   ImageIcon,
   ShieldAlert,
@@ -18,28 +17,23 @@ import { EmptyState, PageBanner } from "@/components/dashboard/dashboard-shared-
 import { PrivacyReviewList } from "./admin-reviews-ui";
 import { MediaPreviewDialog, MediaReviewList } from "./media-review-list";
 import { ProfileChangeReviewList } from "./profile-change-review-list";
-import { TaskReviewList } from "./task-review-list";
 import { useAdminReviewsPage } from "./use-admin-reviews-page";
 
 const reviewTabIconMap = {
   media: ImageIcon,
   profile: UserRound,
   privacy: FileBadge2,
-  task: ClipboardList,
 } as const;
 
 export function AdminReviewsClient({ initialData }: { initialData: AdminReviewsPageData }) {
   const t = useTranslations("Reviews");
   const {
     activeTab,
-    assetBusyKey,
     busyRows,
     closePreviewDialog,
     handleMediaReview,
-    handleOpenTaskReviewAsset,
     handleProfileChangeReview,
     handlePrivacyReview,
-    handleTaskReview,
     hasPermission,
     mediaRows,
     pageFeedback,
@@ -49,7 +43,6 @@ export function AdminReviewsClient({ initialData }: { initialData: AdminReviewsP
     reviewTabs,
     setActiveTab,
     setPreviewAsset,
-    taskRows,
   } = useAdminReviewsPage(initialData);
 
   return (
@@ -61,37 +54,6 @@ export function AdminReviewsClient({ initialData }: { initialData: AdminReviewsP
       <DashboardSectionHeader
         badge={t("header.badge")}
         contentClassName="max-w-2xl"
-        metrics={[
-          {
-            accent: "green",
-            icon: <UserRound className="size-5" />,
-            key: "profile",
-            label: t("summary.profile"),
-            value: profileRows.length,
-          },
-          {
-            accent: "blue",
-            icon: <FileBadge2 className="size-5" />,
-            key: "privacy",
-            label: t("summary.privacy"),
-            value: privacyRows.length,
-          },
-          {
-            accent: "green",
-            icon: <ImageIcon className="size-5" />,
-            key: "media",
-            label: t("summary.media"),
-            value: mediaRows.length,
-          },
-          {
-            accent: "blue",
-            icon: <ClipboardList className="size-5" />,
-            key: "task",
-            label: t("summary.task"),
-            value: taskRows.length,
-          },
-        ]}
-        metricsClassName="sm:grid-cols-2 xl:grid-cols-4"
         title={t("header.title")}
       />
 
@@ -143,18 +105,6 @@ export function AdminReviewsClient({ initialData }: { initialData: AdminReviewsP
                 onAction={handleMediaReview}
                 onPreviewOpen={setPreviewAsset}
                 rows={mediaRows}
-              />
-            ) : null}
-
-            {activeTab === "task" ? (
-              <TaskReviewList
-                assetBusyKey={assetBusyKey}
-                busyRows={busyRows}
-                onAction={handleTaskReview}
-                onOpenAsset={(submissionId, asset) =>
-                  void handleOpenTaskReviewAsset(submissionId, asset)
-                }
-                rows={taskRows}
               />
             ) : null}
           </div>

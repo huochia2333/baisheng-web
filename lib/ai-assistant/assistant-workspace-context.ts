@@ -48,7 +48,7 @@ const NAV_ENTRY_DESCRIPTIONS = {
   people: "管理账号、状态、角色和业务范围",
   records: "查看重要处理动作的留痕",
   referrals: "按当前可见业务板块查看推荐关系和邀请码线索",
-  reviews: "处理资料、媒体和任务审核",
+  reviews: "处理资料和媒体审核",
   tasks: "查看、领取、提交或管理任务",
   team: "查看当前账号可见的团队范围",
 } as const satisfies Record<WorkspaceNavLabelKey, string>;
@@ -177,7 +177,7 @@ function buildPageVariantGuide(pageVariants: WorkspacePageVariants) {
       : null,
     pageVariants.feedback ? "反馈管理只用于管理员查看和处理用户反馈。" : null,
     pageVariants.records ? "操作记录只用于管理员核对重要处理动作。" : null,
-    pageVariants.reviews ? "审核中心由管理员处理资料、媒体和任务审核。" : null,
+    pageVariants.reviews ? "审核中心由管理员处理资料和媒体审核。" : null,
   ].filter(Boolean);
 
   if (roleNotes.length === 0) {
@@ -209,7 +209,7 @@ function getPeopleGuide(mode: WorkspacePageVariants["people"]) {
 
 function getTasksGuide(mode: WorkspacePageVariants["tasks"]) {
   if (mode === "admin") {
-    return "管理员任务页用于发布、分派、查看领取进度和处理任务详情。";
+    return "管理员任务页用于发布、分派、查看领取进度、处理任务详情和任务审核。";
   }
 
   return "内部成员任务页用于查看可见任务、领取任务、提交成果并等待审核。";

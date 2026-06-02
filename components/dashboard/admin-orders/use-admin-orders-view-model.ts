@@ -65,7 +65,6 @@ export function useAdminOrdersViewModel({
     serviceFeeTypeOptions,
     serviceOrderPriceOptions,
     serviceOrderTypeOptions,
-    summary,
     totalOrdersCount,
     userOptions,
   } = initialData;
@@ -225,7 +224,6 @@ export function useAdminOrdersViewModel({
     serviceOrderPriceOptions,
     selectedOrder: selectionState.selectedOrder,
     serviceOrderTypeOptions,
-    summary,
     supabase,
     orderCurrencyRates,
     totalOrdersCount,

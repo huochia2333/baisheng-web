@@ -1311,18 +1311,16 @@
     "summary": {
       "privacy": "隐私待审核",
       "media": "媒体待审核",
-      "task": "任务待审核",
       "profile": "资料修改待审核"
     },
     "states": {
       "noPermissionTitle": "暂无审核权限",
-      "noPermissionDescription": "当前登录账号不是管理员，无法访问资料、隐私、媒体或任务审核列表。"
+      "noPermissionDescription": "当前登录账号不是管理员，无法访问资料、隐私或媒体审核列表。"
     },
     "tabs": {
       "profile": "资料修改",
       "privacy": "隐私审核",
-      "media": "媒体审核",
-      "task": "任务审核"
+      "media": "媒体审核"
     },
     "actions": {
       "approve": "通过",
@@ -1331,8 +1329,6 @@
     "confirm": {
       "privacy": "确定要{action}这条个人隐私资料审核吗？",
       "media": "确定要{action}这条个人媒体审核吗？",
-      "task": "确定要{action}这条任务提审记录吗？",
-      "taskRejectReasonPrompt": "请输入拒绝原因，留空则不填写。",
       "profile": "确定要{action}这条资料修改申请吗？"
     },
     "feedback": {
@@ -1340,16 +1336,8 @@
       "privacyRejected": "个人隐私资料已拒绝。",
       "mediaApproved": "个人媒体已审核通过。",
       "mediaRejected": "个人媒体已拒绝。",
-      "taskApproved": "任务审核已通过，任务已完成。",
-      "taskRejected": "任务审核已拒绝，任务接取者可以重新提交。",
       "profileApproved": "资料修改已通过，用户资料已更新。",
       "profileRejected": "资料修改申请已拒绝。"
-    },
-    "errors": {
-      "noTaskReviewPermission": "当前账号没有审核这条任务提审记录的权限。",
-      "taskNotReviewing": "这项任务当前已经不在待审核状态。",
-      "taskSubmissionMissing": "当前任务提审记录不存在，请刷新后重试。",
-      "taskMissing": "任务不存在，请刷新列表后重试。"
     }
   },
   "ReviewsUI": {
@@ -2053,6 +2041,11 @@
       },
       "confirmDelete": "确认删除任务“{taskName}”吗？任务附件也会一起清理。",
       "confirmDeleteWithHistory": "确认删除任务“{taskName}”吗？关联的提审/佣金记录、任务附件和提审附件也会一起清理。",
+      "tabs": {
+        "tasks": "当前任务",
+        "reviews": "任务审核",
+        "mediaLibrary": "任务媒体库"
+      },
       "header": {
         "badge": "平台任务调度",
         "title": "管理员任务板",
@@ -2066,6 +2059,26 @@
       "summary": {
         "accepted": "进行中",
         "reviewing": "审核中"
+      },
+      "reviewBoard": {
+        "badge": "任务审核",
+        "title": "任务审核",
+        "description": "这里集中处理成员提交的任务成果。通过后任务会进入已完成，拒绝后提交人可以重新提交。",
+        "refresh": "刷新审核",
+        "noPermissionTitle": "没有任务审核权限",
+        "noPermissionDescription": "当前账号不能处理任务审核。请确认账号身份和状态。",
+        "confirm": "确定要{action}这条任务提交吗？",
+        "rejectReasonPrompt": "请输入拒绝原因，留空则不填写。",
+        "feedback": {
+          "approved": "任务审核已通过，任务已完成。",
+          "rejected": "任务审核已拒绝，提交人可以重新提交。"
+        },
+        "errors": {
+          "noPermission": "当前账号没有审核这条任务提交的权限。",
+          "notReviewing": "这项任务当前已经不在待审核状态。",
+          "submissionMissing": "当前任务提交不存在，请刷新后重试。",
+          "taskMissing": "任务不存在，请刷新列表后重试。"
+        }
       },
       "states": {
         "noPermissionTitle": "没有访问权限",
@@ -2180,6 +2193,50 @@
         "loadFailed": "成员提交成果读取失败，请刷新后重试。",
         "openFailed": "成果预览地址生成失败，请稍后重试。",
         "downloadFailed": "成果下载地址生成失败，请稍后重试。"
+      },
+      "filePreview": {
+        "title": "文件预览",
+        "image": "图片",
+        "video": "视频",
+        "pdf": "PDF",
+        "file": "文件",
+        "round": "第 {round} 次提交",
+        "submittedAt": "提交时间：{time}",
+        "reviewedAt": "通过时间：{time}",
+        "openInNewTab": "新窗口打开",
+        "download": "下载",
+        "unsupportedTitle": "这个文件暂时不能直接预览",
+        "unsupportedDescription": "可以先下载原文件，再用电脑里的对应软件查看。"
+      },
+      "mediaLibrary": {
+        "badge": "已通过素材",
+        "title": "任务媒体库",
+        "description": "集中管理已通过任务审核的成员上传文件，当前共 {count} 个文件。",
+        "refresh": "刷新媒体库",
+        "searchLabel": "搜索文件",
+        "searchPlaceholder": "搜索文件名、任务名、提交人或审核人",
+        "kindLabel": "文件类型",
+        "kindAll": "全部类型",
+        "kindImage": "图片",
+        "kindVideo": "视频",
+        "kindPdf": "PDF",
+        "kindFile": "其他文件",
+        "preview": "预览",
+        "download": "下载",
+        "round": "第 {round} 次提交",
+        "taskLabel": "关联任务",
+        "typeLabel": "任务类型",
+        "submitterLabel": "提交人",
+        "reviewedAtLabel": "通过时间",
+        "unknownUser": "未填写姓名",
+        "noPermissionTitle": "没有任务媒体库权限",
+        "noPermissionDescription": "当前账号不能查看任务媒体库。请确认账号身份和状态。",
+        "emptyTitle": "任务媒体库暂无文件",
+        "emptyDescription": "成员提交的文件通过任务审核后，会集中显示在这里。",
+        "noMatchesTitle": "没有匹配文件",
+        "noMatchesDescription": "可以换个关键词，或切换文件类型后再看。",
+        "previewFailed": "文件预览地址生成失败，请稍后重试。",
+        "downloadFailed": "文件下载失败，请稍后重试。"
       },
       "taskTypes": {
         "dialog": {

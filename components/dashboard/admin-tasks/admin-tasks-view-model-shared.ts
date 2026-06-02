@@ -13,11 +13,6 @@ export type PageFeedbackValue = {
 
 export type PageFeedback = PageFeedbackValue | null;
 
-export type AdminTasksStats = {
-  accepted: number;
-  reviewing: number;
-};
-
 export type AdminTasksPagination = DashboardPaginationSlice<AdminTaskRow>;
 
 export const taskInputClassName =

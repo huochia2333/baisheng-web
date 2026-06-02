@@ -81,16 +81,6 @@ export function useTeamManagementViewModel({
   const canView = canViewTeamPanel(currentData.viewerRole, currentData.viewerStatus);
   const canManageSelectedTeam = currentData.detail.team?.can_manage === true;
 
-  const aggregateStats = useMemo(
-    () => ({
-      manageableTeams: currentData.overviews.filter((team) => team.can_manage).length,
-      teamCount: currentData.overviews.length,
-      totalClients: currentData.overviews.reduce((sum, team) => sum + team.client_count, 0),
-      totalMembers: currentData.overviews.reduce((sum, team) => sum + team.member_count, 0),
-    }),
-    [currentData.overviews],
-  );
-
   const filteredMembers = useMemo(
     () => filterTeamMembers(currentData.detail.members, memberSearchText, locale),
     [currentData.detail.members, locale, memberSearchText],
@@ -155,7 +145,6 @@ export function useTeamManagementViewModel({
   );
 
   return {
-    aggregateStats,
     availableCandidateCount,
     busyKey,
     canManageSelectedTeam,

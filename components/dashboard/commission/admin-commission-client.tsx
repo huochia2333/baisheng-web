@@ -249,22 +249,6 @@ export function AdminCommissionClient({
     [filteredCommissions],
   );
   const commissionsPagination = useDashboardPagination(filteredCommissions);
-  const summary = useMemo(
-    () => ({
-      recordCount: filteredCommissions.length,
-      totalAmount: filteredCommissions.reduce(
-        (sum, item) => sum + item.commissionAmountRmb,
-        0,
-      ),
-      pendingAmount: filteredCommissions
-        .filter((item) => item.settlementStatus === "pending")
-        .reduce((sum, item) => sum + item.commissionAmountRmb, 0),
-      paidAmount: filteredCommissions
-        .filter((item) => item.settlementStatus === "paid")
-        .reduce((sum, item) => sum + item.commissionAmountRmb, 0),
-    }),
-    [filteredCommissions],
-  );
   const boardOptions = useMemo(
     () => [
       {
@@ -331,7 +315,7 @@ export function AdminCommissionClient({
       {pageFeedback ? (
         <PageBanner tone={pageFeedback.tone}>{pageFeedback.message}</PageBanner>
       ) : null}
-      <AdminCommissionHeader summary={summary} />
+      <AdminCommissionHeader />
       {!hasPermission ? (
         <section className="rounded-[28px] border border-white/85 bg-white/72 p-6 shadow-[0_18px_45px_rgba(96,113,128,0.06)] xl:p-8">
           <EmptyState

@@ -82,10 +82,6 @@ export function useSalesmanTasksPage({
   const viewerId = initialData.viewerId;
   const tasks = initialData.tasks;
   const canView = initialData.canView;
-  const openTaskCount = useMemo(
-    () => tasks.filter((task) => task.status !== "completed").length,
-    [tasks],
-  );
 
   useEffect(() => {
     setFilters(initialView.filters);
@@ -140,26 +136,6 @@ export function useSalesmanTasksPage({
   );
 
   useWorkspaceSyncEffect(refreshTaskBoard);
-
-  const summary = useMemo(
-    () => ({
-      all: openTaskCount,
-      available: tasks.filter((task) => task.status === "to_be_accepted").length,
-      inProgress: tasks.filter(
-        (task) => task.status === "accepted" && task.accepted_by_user_id === viewerId,
-      ).length,
-      reviewing: tasks.filter(
-        (task) => task.status === "reviewing" && task.accepted_by_user_id === viewerId,
-      ).length,
-      rejected: tasks.filter(
-        (task) => task.status === "rejected" && task.accepted_by_user_id === viewerId,
-      ).length,
-      completed: tasks.filter(
-        (task) => task.status === "completed" && task.accepted_by_user_id === viewerId,
-      ).length,
-    }),
-    [openTaskCount, tasks, viewerId],
-  );
 
   const filteredTasks = useMemo(() => {
     const normalizedText = normalizeSearchText(deferredSearchText);
@@ -505,7 +481,6 @@ export function useSalesmanTasksPage({
     submitDialogOpen,
     submitDialogPending,
     submitDialogTask,
-    summary,
     tasksPagination,
     updateFilter,
     viewerId,

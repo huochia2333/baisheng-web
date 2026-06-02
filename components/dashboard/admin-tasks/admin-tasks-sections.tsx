@@ -9,8 +9,6 @@ import {
   RefreshCw,
   Settings2,
   ShieldAlert,
-  Upload,
-  UserRound,
 } from "lucide-react";
 
 import {
@@ -42,7 +40,6 @@ import {
 } from "./admin-task-submission-media";
 import {
   type AdminTasksPagination,
-  type AdminTasksStats,
 } from "./admin-tasks-view-model-shared";
 import { useAdminTaskSubmissionMedia } from "./use-admin-task-submission-media";
 
@@ -56,7 +53,6 @@ export function AdminTasksHeroSection({
   onRefresh,
   onToggleCompletedHistory,
   showCompletedHistory,
-  stats,
 }: {
   canView: boolean;
   isRefreshing: boolean;
@@ -65,7 +61,6 @@ export function AdminTasksHeroSection({
   onRefresh: () => void;
   onToggleCompletedHistory: () => void;
   showCompletedHistory: boolean;
-  stats: AdminTasksStats;
 }) {
   const t = useTranslations("Tasks.admin");
 
@@ -114,24 +109,6 @@ export function AdminTasksHeroSection({
       badge={t("header.badge")}
       badgeClassName="bg-[#e6edf2]"
       description={t("header.description")}
-      metrics={[
-        {
-          accent: "blue",
-          icon: <UserRound className="size-5" />,
-          key: "accepted",
-          label: t("summary.accepted"),
-          value: stats.accepted,
-        },
-        {
-          accent: "gold",
-          icon: <Upload className="size-5" />,
-          key: "reviewing",
-          label: t("summary.reviewing"),
-          value: stats.reviewing,
-        },
-      ]}
-      metricsClassName="sm:grid-cols-2"
-      metricsPlacement="below"
       title={t("header.title")}
     />
   );

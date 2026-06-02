@@ -7,6 +7,7 @@ import {
 } from "./task-review-assets";
 import type { TaskReviewSubmissionAsset } from "./task-review-assets";
 export {
+  downloadTaskReviewSubmissionAssetBlob,
   getTaskReviewSubmissionAssetSignedUrl,
   getTaskReviewSubmissionAssetsForTask,
   removeStoredTaskReviewSubmissionAssets,

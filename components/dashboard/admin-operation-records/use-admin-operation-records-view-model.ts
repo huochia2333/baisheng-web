@@ -105,18 +105,6 @@ export function useAdminOperationRecordsViewModel({
     searchText,
   ]);
 
-  const summary = useMemo(() => {
-    return {
-      account: initialData.records.filter((record) => record.category === "account")
-        .length,
-      feedback: initialData.records.filter((record) => record.category === "feedback")
-        .length,
-      profile: initialData.records.filter((record) => record.category === "profile")
-        .length,
-      total: initialData.records.length,
-    };
-  }, [initialData.records]);
-
   return {
     actionFilter,
     actionLabels,
@@ -133,6 +121,5 @@ export function useAdminOperationRecordsViewModel({
     setCategoryFilter,
     setSearchText,
     statusLabels,
-    summary,
   };
 }

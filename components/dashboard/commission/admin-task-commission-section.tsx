@@ -1,21 +1,14 @@
 ﻿"use client";
 
-import { useMemo } from "react";
-
 import { useTranslations } from "next-intl";
 import {
-  BadgeDollarSign,
-  Coins,
-  ReceiptText,
   Search,
-  ShieldCheck,
   UserRound,
 } from "lucide-react";
 
 import type { TaskCommissionRow } from "@/lib/task-commissions";
 import { cn } from "@/lib/utils";
 import { useLocale } from "@/components/i18n/locale-provider";
-import { DashboardMetricCard } from "@/components/dashboard/dashboard-metric-card";
 import {
   DashboardListSection,
   DashboardTableFrame,
@@ -49,57 +42,12 @@ export function AdminTaskCommissionSection({
   const { locale } = useLocale();
   const showActions = typeof onMarkAsPaid === "function";
 
-  const summary = useMemo(
-    () => ({
-      recordCount: rows.length,
-      totalAmount: rows.reduce((sum, row) => sum + row.commissionAmountRmb, 0),
-      pendingAmount: rows
-        .filter((row) => row.settlementStatus === "pending")
-        .reduce((sum, row) => sum + row.commissionAmountRmb, 0),
-      paidAmount: rows
-        .filter((row) => row.settlementStatus === "paid")
-        .reduce((sum, row) => sum + row.commissionAmountRmb, 0),
-    }),
-    [rows],
-  );
-
   return (
     <DashboardListSection
       bodyClassName="space-y-6"
       description={t("taskSection.description")}
       title={t("taskSection.title")}
     >
-        <div className="grid w-full grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
-          <DashboardMetricCard
-            accent="blue"
-            icon={<ReceiptText className="size-5" />}
-            label={t("taskSection.summary.recordCount")}
-            labelClassName="sm:min-h-10 sm:leading-5"
-            value={summary.recordCount.toString()}
-          />
-          <DashboardMetricCard
-            accent="green"
-            icon={<Coins className="size-5" />}
-            label={t("taskSection.summary.totalAmount")}
-            labelClassName="sm:min-h-10 sm:leading-5"
-            value={formatCommissionMoney(summary.totalAmount, locale)}
-          />
-          <DashboardMetricCard
-            accent="gold"
-            icon={<BadgeDollarSign className="size-5" />}
-            label={t("taskSection.summary.pendingAmount")}
-            labelClassName="sm:min-h-10 sm:leading-5"
-            value={formatCommissionMoney(summary.pendingAmount, locale)}
-          />
-          <DashboardMetricCard
-            accent="blue"
-            icon={<ShieldCheck className="size-5" />}
-            label={t("taskSection.summary.paidAmount")}
-            labelClassName="sm:min-h-10 sm:leading-5"
-            value={formatCommissionMoney(summary.paidAmount, locale)}
-          />
-        </div>
-
       {rows.length === 0 ? (
         <EmptyState
           description={t("taskSection.emptyDescription")}

@@ -21,7 +21,7 @@ export function AdminOperationRecordsClient({
 
   return (
     <section className="mx-auto flex w-full max-w-[1320px] flex-col gap-8">
-      <OperationRecordsHeaderSection summary={viewModel.summary} />
+      <OperationRecordsHeaderSection />
 
       {!viewModel.hasPermission ? (
         <OperationRecordsNoPermissionSection />

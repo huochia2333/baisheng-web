@@ -18,7 +18,6 @@ import type {
 } from "@/lib/team-management";
 
 import { Button } from "@/components/ui/button";
-import { DashboardMetricCard } from "@/components/dashboard/dashboard-metric-card";
 import { DashboardPill } from "@/components/dashboard/dashboard-pill";
 import {
   DashboardListHeader,
@@ -42,27 +41,6 @@ export function SectionHeader({
   description: string;
 }) {
   return <DashboardListHeader description={description} title={title} />;
-}
-
-export function MetricCard({
-  icon,
-  label,
-  value,
-  tone,
-}: {
-  icon: ReactNode;
-  label: string;
-  value: number;
-  tone: "blue" | "green" | "gold";
-}) {
-  return (
-    <DashboardMetricCard
-      accent={tone}
-      icon={icon}
-      label={label}
-      value={value}
-    />
-  );
 }
 
 export function MiniMetric({

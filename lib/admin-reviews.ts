@@ -11,12 +11,6 @@ import {
   type UserPrivacyRequestRow,
 } from "./user-self-service";
 import {
-  approveTaskReview as approveTaskReviewAction,
-  getPendingTaskReviews as getPendingTaskReviewsData,
-  rejectTaskReview as rejectTaskReviewAction,
-  type PendingTaskReviewWithAssets,
-} from "./task-reviews";
-import {
   approveProfileChangeRequest as approveProfileChangeRequestAction,
   getPendingProfileChangeReviews,
   rejectProfileChangeRequest as rejectProfileChangeRequestAction,
@@ -92,7 +86,6 @@ export type AdminReviewsPageData = {
   privacyRows: PendingPrivacyReviewRow[];
   mediaRows: PendingMediaReviewWithPreview[];
   profileRows: PendingProfileChangeReviewRow[];
-  taskRows: PendingTaskReviewWithAssets[];
 };
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -243,15 +236,13 @@ export async function getAdminReviewsPageData(
       privacyRows: [],
       mediaRows: [],
       profileRows: [],
-      taskRows: [],
     };
   }
 
-  const [privacyRows, mediaRows, profileRows, taskRows] = await Promise.all([
+  const [privacyRows, mediaRows, profileRows] = await Promise.all([
     getPendingPrivacyReviews(supabase),
     getPendingMediaReviews(supabase),
     getPendingProfileChangeReviews(supabase),
-    getPendingTaskReviewsData(supabase),
   ]);
 
   return {
@@ -259,7 +250,6 @@ export async function getAdminReviewsPageData(
     privacyRows,
     mediaRows,
     profileRows,
-    taskRows,
   };
 }
 
@@ -416,21 +406,4 @@ export async function rejectProfileChangeReview(
   requestId: string,
 ) {
   return rejectProfileChangeRequestAction(supabase, requestId);
-}
-
-export async function approveTaskReview(
-  supabase: SupabaseClient,
-  acceptanceId: string,
-) {
-  return approveTaskReviewAction(supabase, acceptanceId);
-}
-
-export async function rejectTaskReview(
-  supabase: SupabaseClient,
-  options: {
-    acceptanceId: string;
-    reason?: string | null;
-  },
-) {
-  return rejectTaskReviewAction(supabase, options);
 }

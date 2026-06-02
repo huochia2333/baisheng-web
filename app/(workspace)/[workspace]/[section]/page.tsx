@@ -13,6 +13,8 @@ import {
   parseAdminOrdersSearchParams,
 } from "@/lib/admin-orders";
 import { getAdminCommissionPageData } from "@/lib/admin-commission";
+import { getAdminTaskMediaLibraryData } from "@/lib/admin-task-media-library";
+import { getAdminTaskReviewBoardData } from "@/lib/admin-task-reviews";
 import { getAdminReviewsPageData } from "@/lib/admin-reviews";
 import { getAdminPeoplePageData } from "@/lib/admin-people";
 import { getAdminOperationRecordsPageData } from "@/lib/admin-operation-records";
@@ -324,9 +326,20 @@ export default async function WorkspaceSectionPage({
   } else if (section === "tasks") {
     if (config.pageVariants.tasks === "admin") {
       const supabase = await getServerSupabaseClient();
-      const initialData = await getAdminTasksPageData(supabase);
+      const [initialData, initialReviewData, initialMediaLibraryData] = await Promise.all([
+        getAdminTasksPageData(supabase),
+        getAdminTaskReviewBoardData(supabase),
+        getAdminTaskMediaLibraryData(supabase),
+      ]);
       const initialView = parseAdminTasksSearchParams(resolvedSearchParams);
-      content = <AdminTasksClient initialData={initialData} initialView={initialView} />;
+      content = (
+        <AdminTasksClient
+          initialData={initialData}
+          initialMediaLibraryData={initialMediaLibraryData}
+          initialReviewData={initialReviewData}
+          initialView={initialView}
+        />
+      );
     } else if (config.pageVariants.tasks === "staff") {
       const supabase = await getServerSupabaseClient();
       const initialData = await getSalesmanTasksPageData(supabase);
@@ -446,7 +459,13 @@ function getSectionNamespaces(
 
   if (section === "tasks") {
     if (config.pageVariants.tasks === "admin") {
-      namespaces.push("DashboardPagination", "Tasks.admin", "Tasks.shared");
+      namespaces.push(
+        "DashboardPagination",
+        "DashboardShared",
+        "ReviewsUI",
+        "Tasks.admin",
+        "Tasks.shared",
+      );
     }
 
     if (config.pageVariants.tasks === "staff") {

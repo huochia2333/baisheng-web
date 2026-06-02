@@ -193,6 +193,27 @@ export async function getTaskReviewSubmissionAssetSignedUrl(
   return data.signedUrl;
 }
 
+export async function downloadTaskReviewSubmissionAssetBlob(
+  supabase: SupabaseClient,
+  asset: Pick<TaskReviewSubmissionAsset, "bucket_name" | "task_attachment_storage_path">,
+) {
+  const { data, error } = await withRequestTimeout(
+    supabase.storage
+      .from(asset.bucket_name)
+      .download(asset.task_attachment_storage_path),
+    {
+      timeoutMs: 60_000,
+      message: "task_review_submission_asset_download_timeout",
+    },
+  );
+
+  if (error) {
+    throw error;
+  }
+
+  return data;
+}
+
 export function validateTaskReviewSubmissionFiles(
   files: File[],
   options: {

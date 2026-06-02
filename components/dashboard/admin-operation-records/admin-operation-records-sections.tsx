@@ -3,11 +3,8 @@
 import {
   ClipboardClock,
   Filter,
-  MessageSquareText,
   Search,
   ShieldAlert,
-  UserCheck,
-  UserCog,
 } from "lucide-react";
 import { useTranslations } from "next-intl";
 
@@ -37,11 +34,7 @@ type OperationRecordsViewModel = ReturnType<
   typeof useAdminOperationRecordsViewModel
 >;
 
-export function OperationRecordsHeaderSection({
-  summary,
-}: {
-  summary: OperationRecordsViewModel["summary"];
-}) {
+export function OperationRecordsHeaderSection() {
   const t = useTranslations("OperationRecords");
 
   return (
@@ -49,34 +42,6 @@ export function OperationRecordsHeaderSection({
       badge={t("header.badge")}
       badgeIcon={<ClipboardClock className="size-4" />}
       description={t("header.description")}
-      metrics={[
-        {
-          accent: "blue",
-          icon: <ClipboardClock className="size-5" />,
-          label: t("summary.total"),
-          value: summary.total,
-        },
-        {
-          accent: "green",
-          icon: <UserCog className="size-5" />,
-          label: t("summary.account"),
-          value: summary.account,
-        },
-        {
-          accent: "gold",
-          icon: <UserCheck className="size-5" />,
-          label: t("summary.profile"),
-          value: summary.profile,
-        },
-        {
-          accent: "blue",
-          icon: <MessageSquareText className="size-5" />,
-          label: t("summary.feedback"),
-          value: summary.feedback,
-        },
-      ]}
-      metricsClassName="grid-cols-2 md:grid-cols-4"
-      metricsPlacement="below"
       title={t("header.title")}
     />
   );

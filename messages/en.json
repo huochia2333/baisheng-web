@@ -1311,18 +1311,16 @@
     "summary": {
       "privacy": "Pending Privacy Reviews",
       "media": "Pending Media Reviews",
-      "task": "Pending Task Reviews",
       "profile": "Profile Changes Pending"
     },
     "states": {
       "noPermissionTitle": "No Review Access",
-      "noPermissionDescription": "The current account is not an admin and cannot access profile, privacy, media, or task reviews."
+      "noPermissionDescription": "The current account is not an admin and cannot access profile, privacy, or media reviews."
     },
     "tabs": {
       "profile": "Profile Changes",
       "privacy": "Privacy Review",
-      "media": "Media Review",
-      "task": "Task Review"
+      "media": "Media Review"
     },
     "actions": {
       "approve": "Approve",
@@ -1331,8 +1329,6 @@
     "confirm": {
       "privacy": "Are you sure you want to {action} this privacy review?",
       "media": "Are you sure you want to {action} this media review?",
-      "task": "Are you sure you want to {action} this task submission?",
-      "taskRejectReasonPrompt": "Enter a rejection reason for the task submitter. Leave blank if no reason is needed.",
       "profile": "Are you sure you want to {action} this profile change request?"
     },
     "feedback": {
@@ -1340,16 +1336,8 @@
       "privacyRejected": "Privacy information rejected.",
       "mediaApproved": "Media approved.",
       "mediaRejected": "Media rejected.",
-      "taskApproved": "Task review approved. The task is now completed.",
-      "taskRejected": "Task review rejected. The task owner can resubmit it.",
       "profileApproved": "Profile change approved and the user profile has been updated.",
       "profileRejected": "Profile change request rejected."
-    },
-    "errors": {
-      "noTaskReviewPermission": "The current account cannot review this task submission.",
-      "taskNotReviewing": "This task is no longer waiting for review.",
-      "taskSubmissionMissing": "The current task submission is missing. Refresh and try again.",
-      "taskMissing": "The task no longer exists. Refresh the list and try again."
     }
   },
   "ReviewsUI": {
@@ -2053,6 +2041,11 @@
       },
       "confirmDelete": "Delete task \"{taskName}\"? Attached files will be removed as well.",
       "confirmDeleteWithHistory": "Delete task \"{taskName}\"? Related review or commission records, task files, and review submission files will be removed as well.",
+      "tabs": {
+        "tasks": "Current Tasks",
+        "reviews": "Task Review",
+        "mediaLibrary": "Task Media Library"
+      },
       "header": {
         "badge": "Task Dispatch",
         "title": "Administrator Task Board",
@@ -2066,6 +2059,26 @@
       "summary": {
         "accepted": "In Progress",
         "reviewing": "Under Review"
+      },
+      "reviewBoard": {
+        "badge": "Task Review",
+        "title": "Task Review",
+        "description": "Review submitted task work here. Approved tasks move to completed, and rejected submissions can be sent again.",
+        "refresh": "Refresh Reviews",
+        "noPermissionTitle": "No Task Review Access",
+        "noPermissionDescription": "The current account cannot review task submissions. Confirm the account role and status.",
+        "confirm": "Are you sure you want to {action} this task submission?",
+        "rejectReasonPrompt": "Enter a rejection reason. Leave blank if no reason is needed.",
+        "feedback": {
+          "approved": "Task review approved. The task is now completed.",
+          "rejected": "Task review rejected. The submitter can send it again."
+        },
+        "errors": {
+          "noPermission": "The current account cannot review this task submission.",
+          "notReviewing": "This task is no longer waiting for review.",
+          "submissionMissing": "The current task submission is missing. Refresh and try again.",
+          "taskMissing": "The task no longer exists. Refresh the list and try again."
+        }
       },
       "states": {
         "noPermissionTitle": "No Access to Task Dispatch",
@@ -2180,6 +2193,50 @@
         "loadFailed": "Submitted media could not be loaded. Refresh and try again.",
         "openFailed": "The preview link could not be generated. Try again later.",
         "downloadFailed": "The download link could not be generated. Try again later."
+      },
+      "filePreview": {
+        "title": "File Preview",
+        "image": "Image",
+        "video": "Video",
+        "pdf": "PDF",
+        "file": "File",
+        "round": "Submission round {round}",
+        "submittedAt": "Submitted at: {time}",
+        "reviewedAt": "Approved at: {time}",
+        "openInNewTab": "Open in New Tab",
+        "download": "Download",
+        "unsupportedTitle": "This file cannot be previewed here yet",
+        "unsupportedDescription": "Download the original file and open it with the matching app on your computer."
+      },
+      "mediaLibrary": {
+        "badge": "Approved Files",
+        "title": "Task Media Library",
+        "description": "Manage member files that have passed task review in one place. {count} file(s) are available.",
+        "refresh": "Refresh Library",
+        "searchLabel": "Search Files",
+        "searchPlaceholder": "Search by file name, task, submitter, or reviewer",
+        "kindLabel": "File Type",
+        "kindAll": "All Types",
+        "kindImage": "Images",
+        "kindVideo": "Videos",
+        "kindPdf": "PDF",
+        "kindFile": "Other Files",
+        "preview": "Preview",
+        "download": "Download",
+        "round": "Submission round {round}",
+        "taskLabel": "Linked Task",
+        "typeLabel": "Task Type",
+        "submitterLabel": "Submitter",
+        "reviewedAtLabel": "Approved At",
+        "unknownUser": "Name not provided",
+        "noPermissionTitle": "No Task Media Library Access",
+        "noPermissionDescription": "The current account cannot view the task media library. Confirm the account role and status.",
+        "emptyTitle": "No Files in Task Media Library",
+        "emptyDescription": "Files will appear here after member submissions pass task review.",
+        "noMatchesTitle": "No Matching Files",
+        "noMatchesDescription": "Try another keyword or switch the file type.",
+        "previewFailed": "The preview link could not be generated. Try again later.",
+        "downloadFailed": "The file could not be downloaded. Try again later."
       },
       "taskTypes": {
         "dialog": {
