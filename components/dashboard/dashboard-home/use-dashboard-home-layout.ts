@@ -1,7 +1,15 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
+import { markBrowserCloudSyncActivity } from "@/lib/browser-sync-recovery";
+import {
+  getCurrentUserHomeWidgetLayout,
+  saveUserHomeWidgetLayout,
+} from "@/lib/dashboard-home-layouts";
+import { getBrowserSupabaseClient } from "@/lib/supabase";
+
+import { useWorkspaceSyncEffect } from "../workspace-session-provider";
 import {
   cloneDefaultHomeWidgetLayout,
   createHomeWidgetInstance,
@@ -13,42 +21,118 @@ import {
 } from "./dashboard-home-layout";
 
 type UseDashboardHomeLayoutOptions = {
+  initialWidgets: unknown;
   scope: string;
 };
 
 export function useDashboardHomeLayout({
+  initialWidgets,
   scope,
 }: UseDashboardHomeLayoutOptions) {
-  const storageKey = useMemo(() => `baisheng.home.widgets.v1:${scope}`, [scope]);
+  const supabase = getBrowserSupabaseClient();
+  const hasInitialCloudLayout =
+    initialWidgets !== null && initialWidgets !== undefined;
+  const legacyStorageKey = useMemo(
+    () => `baisheng.home.widgets.v1:${scope}`,
+    [scope],
+  );
+  const normalizedInitialWidgets = useMemo(
+    () => normalizeHomeWidgetLayout(initialWidgets),
+    [initialWidgets],
+  );
   const [editing, setEditing] = useState(false);
   const [widgets, setWidgets] = useState<HomeWidgetInstance[]>(() =>
-    cloneDefaultHomeWidgetLayout(),
+    normalizedInitialWidgets,
   );
-  const [hydrated, setHydrated] = useState(false);
+  const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const lastSavedWidgetsJsonRef = useRef(
+    JSON.stringify(normalizedInitialWidgets),
+  );
 
-  useEffect(() => {
-    try {
-      const storedValue = window.localStorage.getItem(storageKey);
-
-      if (storedValue) {
-        setWidgets(normalizeHomeWidgetLayout(JSON.parse(storedValue)));
-      } else {
-        setWidgets(cloneDefaultHomeWidgetLayout());
+  useEffect(
+    () => () => {
+      if (saveTimerRef.current) {
+        clearTimeout(saveTimerRef.current);
       }
-    } catch {
-      setWidgets(cloneDefaultHomeWidgetLayout());
-    } finally {
-      setHydrated(true);
-    }
-  }, [storageKey]);
+    },
+    [],
+  );
 
   useEffect(() => {
-    if (!hydrated) {
+    if (hasInitialCloudLayout || typeof window === "undefined") {
       return;
     }
 
-    window.localStorage.setItem(storageKey, JSON.stringify(widgets));
-  }, [hydrated, storageKey, widgets]);
+    try {
+      const storedValue = window.localStorage.getItem(legacyStorageKey);
+
+      if (!storedValue) {
+        return;
+      }
+
+      const legacyWidgets = normalizeHomeWidgetLayout(JSON.parse(storedValue));
+      const migrationTimer = window.setTimeout(() => {
+        lastSavedWidgetsJsonRef.current = "";
+        setWidgets(legacyWidgets);
+      }, 0);
+
+      return () => window.clearTimeout(migrationTimer);
+    } catch {
+      return;
+    }
+  }, [hasInitialCloudLayout, legacyStorageKey]);
+
+  useEffect(() => {
+    if (!supabase) {
+      return;
+    }
+
+    const widgetsJson = JSON.stringify(widgets);
+
+    if (widgetsJson === lastSavedWidgetsJsonRef.current) {
+      return;
+    }
+
+    if (saveTimerRef.current) {
+      clearTimeout(saveTimerRef.current);
+    }
+
+    saveTimerRef.current = setTimeout(() => {
+      void saveUserHomeWidgetLayout(supabase, scope, widgets)
+        .then((layout) => {
+          const normalizedWidgets = normalizeHomeWidgetLayout(layout.widgets);
+
+          markBrowserCloudSyncActivity();
+          lastSavedWidgetsJsonRef.current = JSON.stringify(normalizedWidgets);
+          window.localStorage.removeItem(legacyStorageKey);
+        })
+        .catch(() => {
+          lastSavedWidgetsJsonRef.current = "";
+        });
+    }, 250);
+  }, [legacyStorageKey, scope, supabase, widgets]);
+
+  const refreshLayout = useCallback(
+    async ({ isMounted }: { isMounted: () => boolean }) => {
+      if (!supabase || editing) {
+        return;
+      }
+
+      const layout = await getCurrentUserHomeWidgetLayout(supabase, scope);
+
+      if (!layout || !isMounted()) {
+        return;
+      }
+
+      const nextWidgets = normalizeHomeWidgetLayout(layout.widgets);
+
+      lastSavedWidgetsJsonRef.current = JSON.stringify(nextWidgets);
+      setWidgets(nextWidgets);
+    },
+    [editing, scope, supabase],
+  );
+
+  useWorkspaceSyncEffect(refreshLayout);
 
   const addWidget = useCallback((type: HomeWidgetType) => {
     const id = createWidgetId(type);

@@ -10,6 +10,10 @@ import {
   type AppRole,
   type UserStatus,
 } from "./user-self-service";
+import {
+  getUserHomeWidgetLayout,
+  type DashboardHomeWidgetLayoutItem,
+} from "./dashboard-home-layouts";
 import { getUserTodos, type UserTodoItemRow } from "./user-todos";
 
 export type DashboardHomeGreetingPeriod =
@@ -22,6 +26,7 @@ export type DashboardHomePageData = {
   announcements: AnnouncementRow[];
   displayName: string | null;
   greetingPeriod: DashboardHomeGreetingPeriod;
+  homeWidgetLayout: DashboardHomeWidgetLayoutItem[] | null;
   layoutScope: string;
   role: AppRole | null;
   status: UserStatus | null;
@@ -43,10 +48,16 @@ export async function getDashboardHomePageData(
     return null;
   }
 
-  const [profile, announcements, todos] = await Promise.all([
+  const layoutScope = `${role ?? "workspace"}:${user.id}`;
+  const [profile, announcements, todos, homeLayout] = await Promise.all([
     getHomeProfile(supabase, user.id),
     getVisibleAnnouncements(supabase, undefined, { role, status }),
     getUserTodos(supabase, { status, userId: user.id }),
+    getUserHomeWidgetLayout(supabase, {
+      scope: layoutScope,
+      status,
+      userId: user.id,
+    }),
   ]);
 
   return {
@@ -59,7 +70,8 @@ export async function getDashboardHomePageData(
       user.phone ||
       null,
     greetingPeriod: getShanghaiGreetingPeriod(),
-    layoutScope: user.id,
+    homeWidgetLayout: homeLayout?.widgets ?? null,
+    layoutScope,
     role,
     status,
     todos,

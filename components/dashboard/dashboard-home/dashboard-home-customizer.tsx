@@ -42,7 +42,8 @@ export function DashboardHomeCustomizer({
   todoCopy,
 }: DashboardHomeCustomizerProps) {
   const layout = useDashboardHomeLayout({
-    scope: `${initialData.role ?? "workspace"}:${initialData.layoutScope}`,
+    initialWidgets: initialData.homeWidgetLayout,
+    scope: initialData.layoutScope,
   });
   const {
     addWidget,
