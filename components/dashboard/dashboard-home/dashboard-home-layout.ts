@@ -1,6 +1,11 @@
 "use client";
 
-export type HomeWidgetType = "greeting" | "announcements" | "todos";
+export type HomeWidgetType =
+  | "greeting"
+  | "clock"
+  | "announcements"
+  | "todos"
+  | "invite";
 
 export type HomeWidgetInstance = {
   height: number;
@@ -18,6 +23,8 @@ export const HOME_WIDGET_ROW_UNIT_PX = 112;
 
 export const HOME_WIDGET_TYPES: readonly HomeWidgetType[] = [
   "greeting",
+  "clock",
+  "invite",
   "announcements",
   "todos",
 ];
@@ -27,7 +34,9 @@ const DEFAULT_WIDGET_SIZE: Record<
   Pick<HomeWidgetInstance, "height" | "width">
 > = {
   announcements: { height: 3, width: 2 },
+  clock: { height: 2, width: 2 },
   greeting: { height: 2, width: 5 },
+  invite: { height: 2, width: 2 },
   todos: { height: 4, width: 3 },
 };
 
@@ -40,11 +49,25 @@ export const DEFAULT_HOME_WIDGET_LAYOUT: readonly HomeWidgetInstance[] = [
     y: 0,
   },
   {
+    ...DEFAULT_WIDGET_SIZE.invite,
+    id: "home-invite",
+    type: "invite",
+    x: 0,
+    y: 2,
+  },
+  {
+    ...DEFAULT_WIDGET_SIZE.clock,
+    id: "home-clock",
+    type: "clock",
+    x: 0,
+    y: 4,
+  },
+  {
     ...DEFAULT_WIDGET_SIZE.announcements,
     id: "home-announcements",
     type: "announcements",
     x: 0,
-    y: 2,
+    y: 6,
   },
   {
     ...DEFAULT_WIDGET_SIZE.todos,

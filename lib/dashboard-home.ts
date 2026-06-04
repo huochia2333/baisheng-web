@@ -11,6 +11,10 @@ import {
   type UserStatus,
 } from "./user-self-service";
 import {
+  getCurrentSalesmanBusinessBoards,
+  type SalesmanBusinessBoard,
+} from "./salesman-business-access";
+import {
   getUserHomeWidgetLayout,
   type DashboardHomeWidgetLayoutItem,
 } from "./dashboard-home-layouts";
@@ -24,10 +28,12 @@ export type DashboardHomeGreetingPeriod =
 
 export type DashboardHomePageData = {
   announcements: AnnouncementRow[];
+  businessBoards: SalesmanBusinessBoard[];
   displayName: string | null;
   greetingPeriod: DashboardHomeGreetingPeriod;
   homeWidgetLayout: DashboardHomeWidgetLayoutItem[] | null;
   layoutScope: string;
+  referralCode: string | null;
   role: AppRole | null;
   status: UserStatus | null;
   todos: UserTodoItemRow[];
@@ -37,6 +43,7 @@ type HomeProfileRow = {
   email: string | null;
   name: string | null;
   phone: string | null;
+  referral_code: string | null;
 };
 
 export async function getDashboardHomePageData(
@@ -49,19 +56,26 @@ export async function getDashboardHomePageData(
   }
 
   const layoutScope = `${role ?? "workspace"}:${user.id}`;
-  const [profile, announcements, todos, homeLayout] = await Promise.all([
-    getHomeProfile(supabase, user.id),
-    getVisibleAnnouncements(supabase, undefined, { role, status }),
-    getUserTodos(supabase, { status, userId: user.id }),
-    getUserHomeWidgetLayout(supabase, {
-      scope: layoutScope,
-      status,
-      userId: user.id,
-    }),
-  ]);
+  const businessBoardsPromise: Promise<SalesmanBusinessBoard[]> =
+    role === "salesman" && status === "active"
+      ? getCurrentSalesmanBusinessBoards(supabase)
+      : Promise.resolve([]);
+  const [profile, announcements, todos, homeLayout, businessBoards] =
+    await Promise.all([
+      getHomeProfile(supabase, user.id),
+      getVisibleAnnouncements(supabase, undefined, { role, status }),
+      getUserTodos(supabase, { status, userId: user.id }),
+      getUserHomeWidgetLayout(supabase, {
+        scope: layoutScope,
+        status,
+        userId: user.id,
+      }),
+      businessBoardsPromise,
+    ]);
 
   return {
     announcements,
+    businessBoards,
     displayName:
       profile?.name?.trim() ||
       profile?.email?.trim() ||
@@ -72,6 +86,7 @@ export async function getDashboardHomePageData(
     greetingPeriod: getShanghaiGreetingPeriod(),
     homeWidgetLayout: homeLayout?.widgets ?? null,
     layoutScope,
+    referralCode: profile?.referral_code?.trim().toUpperCase() || null,
     role,
     status,
     todos,
@@ -107,7 +122,7 @@ async function getHomeProfile(supabase: SupabaseClient, userId: string) {
   const { data, error } = await withRequestTimeout(
     supabase
       .from("user_profiles")
-      .select("name,email,phone")
+      .select("name,email,phone,referral_code")
       .eq("user_id", userId)
       .maybeSingle<HomeProfileRow>(),
   );

@@ -533,15 +533,42 @@
       "afternoon": "Good afternoon",
       "evening": "Good evening"
     },
-    "announcements": {
-      "title": "Announcements",
-      "description": "Only published announcements visible to this account are shown here.",
-      "emptyTitle": "No announcements",
-      "emptyDescription": "New published announcements will appear here."
-    },
-    "customizer": {
-      "edit": "Edit Widgets",
-      "done": "Done",
+      "announcements": {
+        "title": "Announcements",
+        "description": "Only published announcements visible to this account are shown here.",
+        "emptyTitle": "No announcements",
+        "emptyDescription": "New published announcements will appear here."
+      },
+      "clock": {
+        "title": "Current Time",
+        "miniTitle": "Time",
+        "description": "Check the current Beijing time. It refreshes while you stay on the home page.",
+        "compactDescription": "Shows the current Beijing time.",
+        "timezoneLabel": "Beijing time"
+      },
+      "invite": {
+        "title": "My Invite Code",
+        "description": "Copy your invite code, or send a registration link to someone who needs an account.",
+        "compactDescription": "Quickly copy your invite code and registration link.",
+        "codeLabel": "Invite code",
+        "copyCode": "Copy invite code",
+        "copyLink": "Copy registration link",
+        "copyBoardLink": "Copy {board} registration link",
+        "copiedCode": "Invite code copied.",
+        "copiedLink": "Registration link copied.",
+        "copiedBoardLink": "{board} registration link copied.",
+        "copyFailed": "Copy failed. Please try again later.",
+        "noCodeTitle": "No invite code yet",
+        "noCodeDescription": "This account does not have an invite code available yet. Contact an administrator to confirm.",
+        "noLinkAccess": "This account does not have any available business registration link yet.",
+        "businessBoards": {
+          "tourism": "Retail",
+          "dropshipping": "Wholesale"
+        }
+      },
+      "customizer": {
+        "edit": "Edit Widgets",
+        "done": "Done",
       "addWidget": "Add to Home",
       "reset": "Reset Layout",
       "removeWidget": "Remove Widget",
@@ -558,13 +585,21 @@
         "todoCount": "{count} todos"
       },
       "widgets": {
-        "greeting": {
-          "title": "Greeting Card",
-          "description": "Shows the current greeting and welcome message."
-        },
-        "announcements": {
-          "title": "Announcements",
-          "description": "Shows announcements visible to this account."
+          "greeting": {
+            "title": "Greeting Card",
+            "description": "Shows the current greeting and welcome message."
+          },
+          "clock": {
+            "title": "Current Time",
+            "description": "Shows refreshing Beijing time."
+          },
+          "invite": {
+            "title": "My Invite Code",
+            "description": "Copy invite codes and registration links."
+          },
+          "announcements": {
+            "title": "Announcements",
+            "description": "Shows announcements visible to this account."
         },
         "todos": {
           "title": "My Todos",

@@ -533,15 +533,42 @@
       "afternoon": "下午好",
       "evening": "晚上好"
     },
-    "announcements": {
-      "title": "公告栏",
-      "description": "仅展示当前账号可见且已经发布的最新公告。",
-      "emptyTitle": "暂无公告",
-      "emptyDescription": "管理员发布公告后，会在这里展示最新内容。"
-    },
-    "customizer": {
-      "edit": "编辑组件",
-      "done": "完成",
+      "announcements": {
+        "title": "公告栏",
+        "description": "仅展示当前账号可见且已经发布的最新公告。",
+        "emptyTitle": "暂无公告",
+        "emptyDescription": "管理员发布公告后，会在这里展示最新内容。"
+      },
+      "clock": {
+        "title": "当前时间",
+        "miniTitle": "时间",
+        "description": "查看当前北京时间，首页停留时会自动刷新。",
+        "compactDescription": "显示当前北京时间。",
+        "timezoneLabel": "北京时间"
+      },
+      "invite": {
+        "title": "我的邀请码",
+        "description": "复制自己的邀请码，或把注册链接发给需要注册的客户。",
+        "compactDescription": "快速复制邀请码和注册链接。",
+        "codeLabel": "邀请码",
+        "copyCode": "复制邀请码",
+        "copyLink": "复制注册链接",
+        "copyBoardLink": "复制{board}注册链接",
+        "copiedCode": "邀请码已复制。",
+        "copiedLink": "注册链接已复制。",
+        "copiedBoardLink": "{board}注册链接已复制。",
+        "copyFailed": "复制失败，请稍后重试。",
+        "noCodeTitle": "还没有邀请码",
+        "noCodeDescription": "当前账号暂时没有可复制的邀请码，请联系管理员确认。",
+        "noLinkAccess": "当前账号还没有可用的业务注册链接。",
+        "businessBoards": {
+          "tourism": "零售",
+          "dropshipping": "批发"
+        }
+      },
+      "customizer": {
+        "edit": "编辑组件",
+        "done": "完成",
       "addWidget": "添加到首页",
       "reset": "恢复默认",
       "removeWidget": "移除组件",
@@ -558,13 +585,21 @@
         "todoCount": "{count}条待办"
       },
       "widgets": {
-        "greeting": {
-          "title": "问候卡片",
-          "description": "显示当前问候和欢迎信息。"
-        },
-        "announcements": {
-          "title": "公告栏",
-          "description": "显示当前账号可见的公告。"
+          "greeting": {
+            "title": "问候卡片",
+            "description": "显示当前问候和欢迎信息。"
+          },
+          "clock": {
+            "title": "当前时间",
+            "description": "显示自动刷新的北京时间。"
+          },
+          "invite": {
+            "title": "我的邀请码",
+            "description": "复制邀请码和注册链接。"
+          },
+          "announcements": {
+            "title": "公告栏",
+            "description": "显示当前账号可见的公告。"
         },
         "todos": {
           "title": "我的待办",

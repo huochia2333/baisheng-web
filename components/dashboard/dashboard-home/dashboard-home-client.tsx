@@ -40,10 +40,46 @@ export function DashboardHomeClient({ initialData }: DashboardHomeClientProps) {
     }),
     [t],
   );
+  const clockCopy = useMemo(
+    () => ({
+      compactDescription: t("clock.compactDescription"),
+      description: t("clock.description"),
+      miniTitle: t("clock.miniTitle"),
+      timezoneLabel: t("clock.timezoneLabel"),
+      title: t("clock.title"),
+    }),
+    [t],
+  );
+  const inviteCopy = useMemo(
+    () => ({
+      businessBoards: {
+        dropshipping: t("invite.businessBoards.dropshipping"),
+        tourism: t("invite.businessBoards.tourism"),
+      },
+      codeLabel: t("invite.codeLabel"),
+      copiedBoardLink: (board: string) =>
+        t("invite.copiedBoardLink", { board }),
+      copiedCode: t("invite.copiedCode"),
+      copiedLink: t("invite.copiedLink"),
+      compactDescription: t("invite.compactDescription"),
+      copyBoardLink: (board: string) => t("invite.copyBoardLink", { board }),
+      copyCode: t("invite.copyCode"),
+      copyFailed: t("invite.copyFailed"),
+      copyLink: t("invite.copyLink"),
+      description: t("invite.description"),
+      noCodeDescription: t("invite.noCodeDescription"),
+      noCodeTitle: t("invite.noCodeTitle"),
+      noLinkAccess: t("invite.noLinkAccess"),
+      title: t("invite.title"),
+    }),
+    [t],
+  );
   const widgetCopy = useMemo(
     () => ({
       announcements: announcementsCopy,
+      clock: clockCopy,
       greeting: greetingCopy,
+      invite: inviteCopy,
       widgets: {
         announcementCount: (count: number) =>
           t("customizer.summary.announcementCount", { count }),
@@ -51,7 +87,7 @@ export function DashboardHomeClient({ initialData }: DashboardHomeClientProps) {
           t("customizer.summary.todoCount", { count }),
       },
     }),
-    [announcementsCopy, greetingCopy, t],
+    [announcementsCopy, clockCopy, greetingCopy, inviteCopy, t],
   );
   const customizerCopy = useMemo(
     () => ({
@@ -73,6 +109,14 @@ export function DashboardHomeClient({ initialData }: DashboardHomeClientProps) {
         announcements: {
           description: t("customizer.widgets.announcements.description"),
           title: t("customizer.widgets.announcements.title"),
+        },
+        clock: {
+          description: t("customizer.widgets.clock.description"),
+          title: t("customizer.widgets.clock.title"),
+        },
+        invite: {
+          description: t("customizer.widgets.invite.description"),
+          title: t("customizer.widgets.invite.title"),
         },
         greeting: {
           description: t("customizer.widgets.greeting.description"),

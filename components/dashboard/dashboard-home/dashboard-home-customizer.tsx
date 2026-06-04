@@ -209,10 +209,13 @@ export function DashboardHomeCustomizer({
               >
                 <DashboardHomeWidgetContent
                   announcements={initialData.announcements}
+                  businessBoards={initialData.businessBoards}
                   copy={copy}
                   displayName={initialData.displayName}
                   greetingPeriod={initialData.greetingPeriod}
                   locale={locale}
+                  referralCode={initialData.referralCode}
+                  role={initialData.role}
                   todoCopy={todoCopy}
                   todoState={todoState}
                   widget={widget}

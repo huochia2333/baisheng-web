@@ -4,6 +4,8 @@ import type { ReactNode } from "react";
 
 import {
   Bell,
+  Clock3,
+  KeyRound,
   type LucideIcon,
   ListTodo,
   Megaphone,
@@ -69,7 +71,9 @@ type DashboardHomeWidgetCardProps = {
 
 const widgetIcons: Record<HomeWidgetType, LucideIcon> = {
   announcements: Megaphone,
+  clock: Clock3,
   greeting: Bell,
+  invite: KeyRound,
   todos: ListTodo,
 };
 

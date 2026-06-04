@@ -5,13 +5,24 @@ import type { ReactNode } from "react";
 import { Bell, ListTodo, Megaphone } from "lucide-react";
 
 import type { AnnouncementRow } from "@/lib/announcements";
-import type { DashboardHomeGreetingPeriod } from "@/lib/dashboard-home";
+import type {
+  DashboardHomeGreetingPeriod,
+  DashboardHomePageData,
+} from "@/lib/dashboard-home";
 import { cn } from "@/lib/utils";
 
 import {
   formatHomeAnnouncementDate,
   getHomeDisplayName,
 } from "./dashboard-home-display";
+import {
+  HomeClockSection,
+  type HomeClockCopy,
+} from "./dashboard-home-clock-section";
+import {
+  HomeInviteSection,
+  type HomeInviteCopy,
+} from "./dashboard-home-invite-section";
 import type { HomeWidgetInstance } from "./dashboard-home-layout";
 import { HomeTodosSection } from "./dashboard-home-todo-section";
 import type { HomeTodoCopy } from "./dashboard-home-todo-display";
@@ -30,6 +41,8 @@ export type DashboardHomeWidgetCopy = {
     title: (name: string) => string;
     unnamedUser: string;
   };
+  clock: HomeClockCopy;
+  invite: HomeInviteCopy;
   widgets: {
     announcementCount: (count: number) => string;
     todoCount: (count: number) => string;
@@ -38,10 +51,13 @@ export type DashboardHomeWidgetCopy = {
 
 type DashboardHomeWidgetContentProps = {
   announcements: AnnouncementRow[];
+  businessBoards: DashboardHomePageData["businessBoards"];
   copy: DashboardHomeWidgetCopy;
   displayName: string | null;
   greetingPeriod: DashboardHomeGreetingPeriod;
   locale: string;
+  referralCode: string | null;
+  role: DashboardHomePageData["role"];
   todoCopy: HomeTodoCopy;
   todoState: DashboardHomeTodosState;
   widget: HomeWidgetInstance;
@@ -49,10 +65,13 @@ type DashboardHomeWidgetContentProps = {
 
 export function DashboardHomeWidgetContent({
   announcements,
+  businessBoards,
   copy,
   displayName,
   greetingPeriod,
   locale,
+  referralCode,
+  role,
   todoCopy,
   todoState,
   widget,
@@ -64,6 +83,28 @@ export function DashboardHomeWidgetContent({
         displayName={displayName}
         greetingPeriod={greetingPeriod}
         widget={widget}
+      />
+    );
+  }
+
+  if (widget.type === "clock") {
+    return (
+      <HomeClockSection
+        copy={copy.clock}
+        density={getUtilityWidgetDensity(widget)}
+        locale={locale}
+      />
+    );
+  }
+
+  if (widget.type === "invite") {
+    return (
+      <HomeInviteSection
+        businessBoards={businessBoards}
+        copy={copy.invite}
+        density={getUtilityWidgetDensity(widget)}
+        referralCode={referralCode}
+        role={role}
       />
     );
   }
@@ -88,6 +129,18 @@ export function DashboardHomeWidgetContent({
       widget={widget}
     />
   );
+}
+
+function getUtilityWidgetDensity(widget: HomeWidgetInstance) {
+  if (widget.width <= 2 && widget.height <= 2) {
+    return "mini" as const;
+  }
+
+  if (widget.width <= 2 || widget.height <= 2) {
+    return "compact" as const;
+  }
+
+  return "comfortable" as const;
 }
 
 function GreetingWidgetContent({
