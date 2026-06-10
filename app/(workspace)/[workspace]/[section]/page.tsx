@@ -505,6 +505,7 @@ function getSectionNamespaces(
     namespaces.push(
       config.pageVariants.people === "admin" ? "AdminPeople" : "SalesmanPeople",
       "DashboardShared",
+      "PersonPrivateNotes",
     );
   }
 

@@ -358,6 +358,12 @@
         "title": "Sales Workspace",
         "workspaceLabel": "Sales Center"
       },
+      "promoter": {
+        "accountLabel": "Promoter Account",
+        "subtitle": "Field growth role",
+        "title": "Promoter Workspace",
+        "workspaceLabel": "Promoter Center"
+      },
       "recruiter": {
         "accountLabel": "Recruiter Account",
         "subtitle": "Recruitment role",
@@ -440,6 +446,7 @@
     "finance": "loading",
     "manager": "loading",
     "operator": "loading",
+    "promoter": "loading",
     "recruiter": "loading",
     "salesman": "loading"
   },
@@ -476,6 +483,10 @@
       "salesman": {
         "title": "Sales Workspace",
         "description": "This page is still being completed. The sales workspace entry is ready, and detailed content will be added here later."
+      },
+      "promoter": {
+        "title": "Promoter Workspace",
+        "description": "This page is still being completed. The promoter workspace entry is ready, and detailed content will be added here later."
       }
     },
     "announcements": {
@@ -764,6 +775,7 @@
       "manager": "Manager",
       "operator": "Operator",
       "recruiter": "Recruiter",
+      "promoter": "Promoter",
       "salesman": "Sales"
     },
     "header": {
@@ -861,7 +873,7 @@
     "changePassword": "Change Password",
     "copyInviteCode": "Copy Invite Code",
     "businessInviteTitle": "Business Invite Links",
-    "businessInviteDescription": "Copy a retail or wholesale registration link so new clients enter the matching referral relationship.",
+    "businessInviteDescription": "Copy an available business registration link so new clients enter the matching referral relationship.",
     "businessReferralLoading": "Loading business access...",
     "businessReferralTourism": "Retail",
     "businessReferralDropshipping": "Wholesale",
@@ -965,6 +977,7 @@
     "accountSwitcherRoleManager": "Manager account",
     "accountSwitcherRoleOperator": "Operator account",
     "accountSwitcherRoleFinance": "Finance account",
+    "accountSwitcherRolePromoter": "Promoter account",
     "accountSwitcherRoleRecruiter": "Recruiter account"
   },
   "DashboardMyState": {
@@ -1704,6 +1717,7 @@
       "operator": "Operator",
       "manager": "Manager",
       "recruiter": "Recruiter",
+      "promoter": "Promoter",
       "salesman": "Sales",
       "finance": "Finance",
       "client": "Client",
@@ -1968,6 +1982,7 @@
         "operator": "Operator",
         "manager": "Manager",
         "recruiter": "Recruiter",
+        "promoter": "Promoter",
         "salesman": "Salesman",
         "finance": "Finance",
         "client": "Client",
@@ -2068,6 +2083,7 @@
         "manager": "Manager",
         "operator": "Operations",
         "recruiter": "Recruiter",
+        "promoter": "Promoter",
         "salesman": "Sales",
         "finance": "Finance"
       },
@@ -2557,6 +2573,7 @@
       "manager": "Manager",
       "operator": "Operator",
       "recruiter": "Recruiter",
+      "promoter": "Promoter",
       "salesman": "Salesman",
       "finance": "Finance",
       "client": "Client"
@@ -2574,6 +2591,35 @@
     },
     "fallback": {
       "notProvided": "Not provided"
+    }
+  },
+  "PersonPrivateNotes": {
+    "dialog": {
+      "title": "Note for {name}",
+      "description": "This note is only shown to you, so you can remember follow-up details.",
+      "visibility": "Only you can see this note. Other accounts will not see it.",
+      "note": "My Note",
+      "placeholder": "Add useful details, such as preferences, follow-up points, or reminders",
+      "counter": "{count}/{max}"
+    },
+    "actions": {
+      "cancel": "Cancel",
+      "save": "Save Note",
+      "saving": "Saving..."
+    },
+    "feedback": {
+      "saved": "Note saved.",
+      "cleared": "Note cleared."
+    },
+    "errors": {
+      "forbidden": "This account cannot save this note.",
+      "invalidInput": "This note is too long. Shorten it before saving.",
+      "notFound": "This account could not be found.",
+      "serviceUnavailable": "The note could not be saved. Please try again later.",
+      "unknown": "The note could not be saved. Please try again later."
+    },
+    "fallback": {
+      "unnamed": "Unnamed Account"
     }
   },
   "AdminPeople": {
@@ -2611,6 +2657,7 @@
       "emptyDescription": "Adjust the search text or filters and try again.",
       "columns": {
         "account": "Account",
+        "privateNote": "My Note",
         "role": "Role",
         "status": "Account Status",
         "businessAccess": "Business Access",
@@ -2659,6 +2706,7 @@
     },
     "actions": {
       "adjust": "Adjust Account",
+      "note": "Note",
       "currentAccount": "Current Account",
       "cancel": "Cancel",
       "save": "Save Change",
@@ -2669,6 +2717,7 @@
       "manager": "Manager",
       "operator": "Operator",
       "recruiter": "Recruiter",
+      "promoter": "Promoter",
       "salesman": "Sales",
       "finance": "Finance",
       "client": "Client"
@@ -2693,6 +2742,7 @@
     "fallback": {
       "unnamedUser": "Unnamed Person",
       "notProvided": "Pending",
+      "noPrivateNote": "No note",
       "noReferrer": "No referrer",
       "noTeam": "No team"
     },
@@ -2729,9 +2779,10 @@
       "title": "Customer Management"
     },
     "header": {
-      "badge": "Sales Customers",
+      "badge": "My Customers",
       "title": "Customer Management",
-      "description": "Review your customers and mark them as retail or wholesale for internal use."
+      "description": "Review your customers and mark them as retail or wholesale for internal use.",
+      "descriptionRetailOnly": "Review your customers and mark them as retail for internal use."
     },
     "summary": {
       "total": "Total Customers",
@@ -2741,7 +2792,7 @@
     },
     "states": {
       "noPermissionTitle": "No Customer Management Access",
-      "noPermissionDescription": "Only active sales accounts with wholesale access can review and mark their own customers."
+      "noPermissionDescription": "Only active accounts with business access can review and mark their own customers."
     },
     "filters": {
       "search": "Search Customers",
@@ -2755,6 +2806,7 @@
       "emptyDescription": "Adjust the search text, or confirm that customers are already linked to you.",
       "columns": {
         "customer": "Customer",
+        "privateNote": "My Note",
         "city": "City",
         "currentType": "Customer Mark",
         "markedAt": "Marked At",
@@ -2776,6 +2828,7 @@
     },
     "actions": {
       "adjust": "Adjust Mark",
+      "note": "Note",
       "cancel": "Cancel",
       "save": "Save Mark",
       "saving": "Saving..."
@@ -2783,6 +2836,7 @@
     "fallback": {
       "unnamedCustomer": "Unnamed Customer",
       "notProvided": "Pending",
+      "noPrivateNote": "No note",
       "unmarked": "Unmarked"
     },
     "feedback": {

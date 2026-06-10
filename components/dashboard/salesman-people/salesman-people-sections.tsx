@@ -1,6 +1,13 @@
 "use client";
 
-import { Filter, Search, Tags, UserCheck, UsersRound } from "lucide-react";
+import {
+  Filter,
+  Search,
+  StickyNote,
+  Tags,
+  UserCheck,
+  UsersRound,
+} from "lucide-react";
 import { useTranslations } from "next-intl";
 
 import {
@@ -10,12 +17,16 @@ import {
   DashboardTableFrame,
   dashboardFilterInputClassName,
 } from "@/components/dashboard/dashboard-section-panel";
-import { DashboardSectionHeader } from "@/components/dashboard/dashboard-section-header";
+import {
+  DashboardSectionHeader,
+  type DashboardSectionHeaderMetric,
+} from "@/components/dashboard/dashboard-section-header";
 import { EmptyState } from "@/components/dashboard/dashboard-shared-ui";
 import { Button } from "@/components/ui/button";
 import type { SalesmanCustomerRow } from "@/lib/salesman-people";
 import type { Locale } from "@/lib/locale";
 import type { VipMembershipScope } from "@/lib/vip-memberships";
+import { salesmanBusinessBoardsInclude } from "@/lib/salesman-business-access";
 import { cn } from "@/lib/utils";
 
 import {
@@ -30,44 +41,61 @@ import { SalesmanPeopleVipCell } from "./salesman-people-vip-cell";
 type SalesmanPeopleViewModel = ReturnType<typeof useSalesmanPeopleViewModel>;
 
 export function SalesmanPeopleHeaderSection({
+  businessBoards,
   summary,
 }: {
+  businessBoards: SalesmanPeopleViewModel["businessBoards"];
   summary: SalesmanPeopleViewModel["summary"];
 }) {
   const t = useTranslations("SalesmanPeople");
+  const canViewWholesale = salesmanBusinessBoardsInclude(
+    businessBoards,
+    "dropshipping",
+  );
+  const metrics = [
+    {
+      accent: "blue",
+      icon: <UsersRound className="size-5" />,
+      key: "total",
+      label: t("summary.total"),
+      value: summary.totalCount,
+    },
+    {
+      accent: "green",
+      icon: <UserCheck className="size-5" />,
+      key: "retail",
+      label: t("summary.retail"),
+      value: summary.retailCount,
+    },
+    {
+      accent: "gold",
+      icon: <Tags className="size-5" />,
+      key: "wholesale",
+      label: t("summary.wholesale"),
+      value: summary.wholesaleCount,
+    },
+    {
+      accent: "blue",
+      icon: <Filter className="size-5" />,
+      key: "unmarked",
+      label: t("summary.unmarked"),
+      value: summary.unmarkedCount,
+    },
+  ] satisfies DashboardSectionHeaderMetric[];
 
   return (
     <DashboardSectionHeader
       badge={t("header.badge")}
       badgeIcon={<UsersRound className="size-4" />}
-      description={t("header.description")}
-      metrics={[
-        {
-          accent: "blue",
-          icon: <UsersRound className="size-5" />,
-          label: t("summary.total"),
-          value: summary.totalCount,
-        },
-        {
-          accent: "green",
-          icon: <UserCheck className="size-5" />,
-          label: t("summary.retail"),
-          value: summary.retailCount,
-        },
-        {
-          accent: "gold",
-          icon: <Tags className="size-5" />,
-          label: t("summary.wholesale"),
-          value: summary.wholesaleCount,
-        },
-        {
-          accent: "blue",
-          icon: <Filter className="size-5" />,
-          label: t("summary.unmarked"),
-          value: summary.unmarkedCount,
-        },
-      ]}
-      metricsClassName="grid-cols-2 md:grid-cols-4"
+      description={
+        canViewWholesale ? t("header.description") : t("header.descriptionRetailOnly")
+      }
+      metrics={metrics.filter(
+        (metric) => canViewWholesale || metric.key !== "wholesale",
+      )}
+      metricsClassName={
+        canViewWholesale ? "grid-cols-2 md:grid-cols-4" : "grid-cols-2 md:grid-cols-3"
+      }
       metricsPlacement="below"
       title={t("header.title")}
     />
@@ -93,19 +121,23 @@ export function SalesmanPeopleNoPermissionSection() {
 }
 
 export function SalesmanPeopleDirectorySection({
+  businessBoards,
   customerTypeLabels,
   filteredCustomers,
   locale,
   onAdjustCustomerType,
+  onEditCustomerNote,
   onRequestVip,
   onSearchTextChange,
   pendingVipRequestKey,
   searchText,
 }: {
+  businessBoards: SalesmanPeopleViewModel["businessBoards"];
   customerTypeLabels: SalesmanPeopleViewModel["customerTypeLabels"];
   filteredCustomers: SalesmanCustomerRow[];
   locale: Locale;
   onAdjustCustomerType: (customer: SalesmanCustomerRow) => void;
+  onEditCustomerNote: (customer: SalesmanCustomerRow) => void;
   onRequestVip: (
     customer: SalesmanCustomerRow,
     vipScope: VipMembershipScope,
@@ -145,18 +177,20 @@ export function SalesmanPeopleDirectorySection({
           />
         ) : (
           <DashboardTableFrame>
-            <table className="min-w-[980px] table-fixed w-full text-left text-sm">
+            <table className="min-w-[1120px] table-fixed w-full text-left text-sm">
               <colgroup>
-                <col className="w-[24%]" />
-                <col className="w-[28%]" />
+                <col className="w-[18%]" />
+                <col className="w-[17%]" />
+                <col className="w-[23%]" />
+                <col className="w-[9%]" />
+                <col className="w-[11%]" />
                 <col className="w-[10%]" />
-                <col className="w-[14%]" />
-                <col className="w-[14%]" />
-                <col className="w-[10%]" />
+                <col className="w-[12%]" />
               </colgroup>
               <thead className="bg-[#f6f4f0] text-xs font-semibold text-[#66727d]">
                 <tr>
                   <th className="px-3 py-3">{t("directory.columns.customer")}</th>
+                  <th className="px-3 py-3">{t("directory.columns.privateNote")}</th>
                   <th className="px-3 py-3">{t("directory.columns.vip")}</th>
                   <th className="px-3 py-3">{t("directory.columns.city")}</th>
                   <th className="px-3 py-3">{t("directory.columns.currentType")}</th>
@@ -181,8 +215,14 @@ export function SalesmanPeopleDirectorySection({
                         )}
                       </p>
                     </td>
+                    <td className="px-3 py-4 text-[#53616d]">
+                      <p className="break-words leading-6 [overflow-wrap:anywhere]">
+                        {customer.private_note ?? t("fallback.noPrivateNote")}
+                      </p>
+                    </td>
                     <td className="px-3 py-4">
                       <SalesmanPeopleVipCell
+                        businessBoards={businessBoards}
                         customer={customer}
                         locale={locale}
                         onRequestVip={onRequestVip}
@@ -209,12 +249,21 @@ export function SalesmanPeopleDirectorySection({
                       )}
                     </td>
                     <td className="px-3 py-4">
-                      <Button
-                        className="h-9 rounded-full bg-[#486782] px-3 text-white hover:bg-[#3e5f79]"
-                        onClick={() => onAdjustCustomerType(customer)}
-                      >
-                        {t("actions.adjust")}
-                      </Button>
+                      <div className="flex flex-col items-start gap-2">
+                        <Button
+                          className="h-9 rounded-full border border-[#d9e0e5] bg-white px-3 text-[#486782] hover:bg-[#f3f6f8]"
+                          onClick={() => onEditCustomerNote(customer)}
+                        >
+                          <StickyNote className="size-4" />
+                          {t("actions.note")}
+                        </Button>
+                        <Button
+                          className="h-9 rounded-full bg-[#486782] px-3 text-white hover:bg-[#3e5f79]"
+                          onClick={() => onAdjustCustomerType(customer)}
+                        >
+                          {t("actions.adjust")}
+                        </Button>
+                      </div>
                     </td>
                   </tr>
                 ))}

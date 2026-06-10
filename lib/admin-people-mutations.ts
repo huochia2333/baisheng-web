@@ -16,6 +16,7 @@ import {
   uniqueSalesmanBusinessBoards,
   type SalesmanBusinessBoard,
 } from "./salesman-business-access";
+import { isSalesStaffRole } from "./sales-staff-roles";
 import { getCurrentSessionContext } from "./user-self-service";
 
 export type AdminPeopleUpdateErrorCode =
@@ -70,7 +71,7 @@ export async function updateAdminPersonAccount(
     normalizeAccountCity(currentPerson.city) !== payload.nextCity;
   const businessBoards = normalizePayloadBusinessBoards(payload);
   const businessAccessWillChange =
-    currentPerson.role === "salesman" || payload.nextRole === "salesman"
+    isSalesStaffRole(currentPerson.role) || isSalesStaffRole(payload.nextRole)
       ? !areSalesmanBusinessBoardsEqual(
           currentPerson.salesman_business_boards,
           businessBoards,
@@ -89,7 +90,7 @@ export async function updateAdminPersonAccount(
     }
   }
 
-  if (currentPerson.role === "salesman" || payload.nextRole === "salesman") {
+  if (isSalesStaffRole(currentPerson.role) || isSalesStaffRole(payload.nextRole)) {
     await setSalesmanBusinessAccess(
       supabase,
       payload.targetUserId,
@@ -211,8 +212,12 @@ function normalizeInputBusinessBoards(value: unknown): SalesmanBusinessBoard[] {
 function normalizePayloadBusinessBoards(
   input: AdminPersonAccountUpdatePayload,
 ): SalesmanBusinessBoard[] {
-  if (input.nextRole !== "salesman") {
+  if (!isSalesStaffRole(input.nextRole)) {
     return [];
+  }
+
+  if (input.nextRole === "promoter") {
+    return ["tourism"];
   }
 
   if (!input.salesmanBusinessBoards) {

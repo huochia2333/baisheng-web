@@ -21,6 +21,7 @@ const READABLE_EXCHANGE_RATE_ROLES = new Set<AppRole>([
   "operator",
   "manager",
   "salesman",
+  "promoter",
   "finance",
   "client",
 ]);

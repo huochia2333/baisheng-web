@@ -1,7 +1,12 @@
 import fs from "node:fs";
 import path from "node:path";
 
-export type RegressionRole = "administrator" | "salesman" | "client" | "finance";
+export type RegressionRole =
+  | "administrator"
+  | "salesman"
+  | "promoter"
+  | "client"
+  | "finance";
 
 export type RegressionAccount = {
   email: string;
@@ -14,6 +19,7 @@ const ROLE_ENV_PREFIX: Record<RegressionRole, string> = {
   administrator: "E2E_ADMIN",
   client: "E2E_CLIENT",
   finance: "E2E_FINANCE",
+  promoter: "E2E_PROMOTER",
   salesman: "E2E_SALESMAN",
 };
 
@@ -21,6 +27,7 @@ const ROLE_WORKSPACE_PATH: Record<RegressionRole, string> = {
   administrator: "/admin",
   client: "/client",
   finance: "/finance",
+  promoter: "/promoter",
   salesman: "/salesman",
 };
 
@@ -28,12 +35,14 @@ const LOCAL_ROLE_EMAIL_PREFIX: Record<RegressionRole, string> = {
   administrator: "local.admin@",
   client: "local.client@",
   finance: "local.finance@",
+  promoter: "local.promoter@",
   salesman: "local.salesman@",
 };
 
 const FALLBACK_ROLE_ORDER: readonly RegressionRole[] = [
   "administrator",
   "salesman",
+  "promoter",
   "client",
   "finance",
 ];

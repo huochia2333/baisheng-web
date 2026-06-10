@@ -9,6 +9,7 @@ import {
   ADMIN_PEOPLE_CITY_MAX_LENGTH,
   type AdminPersonRow,
 } from "@/lib/admin-people";
+import { isSalesStaffRole } from "@/lib/sales-staff-roles";
 import type { SalesmanBusinessBoard } from "@/lib/salesman-business-access";
 
 import { getCustomerTypeLabel } from "./admin-people-display";
@@ -19,6 +20,7 @@ type AdminPeopleViewModel = ReturnType<typeof useAdminPeopleViewModel>;
 export function AdminPeopleAccountDialog({
   businessBoardLabels,
   businessBoardOptions,
+  businessAccessLocked,
   canSaveDraft,
   customerTypeLabels,
   customerTypeOptions,
@@ -48,6 +50,7 @@ export function AdminPeopleAccountDialog({
 }: {
   businessBoardLabels: AdminPeopleViewModel["businessBoardLabels"];
   businessBoardOptions: AdminPeopleViewModel["businessBoardOptions"];
+  businessAccessLocked: boolean;
   canSaveDraft: boolean;
   customerTypeLabels: AdminPeopleViewModel["customerTypeLabels"];
   customerTypeOptions: AdminPeopleViewModel["customerTypeOptions"];
@@ -211,7 +214,7 @@ export function AdminPeopleAccountDialog({
             </div>
           ) : null}
 
-          {draftRole === "salesman" ? (
+          {isSalesStaffRole(draftRole) ? (
             <div className="rounded-[22px] border border-[#e4e9ed] bg-white p-5">
               <p className="text-sm font-semibold text-[#23313a]">
                 {t("dialog.businessAccess")}
@@ -228,7 +231,11 @@ export function AdminPeopleAccountDialog({
                     <input
                       checked={draftBusinessBoards.includes(board)}
                       className="size-4 accent-[#486782]"
-                      disabled={selectedPersonIsCurrentViewer || saving}
+                      disabled={
+                        selectedPersonIsCurrentViewer ||
+                        saving ||
+                        businessAccessLocked
+                      }
                       onChange={(event) =>
                         onDraftBusinessBoardChange(board, event.target.checked)
                       }

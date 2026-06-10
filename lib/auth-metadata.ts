@@ -9,6 +9,7 @@ export const APP_ROLES = [
   "manager",
   "recruiter",
   "salesman",
+  "promoter",
   "finance",
   "client",
 ] as const satisfies readonly AppRole[];

@@ -124,6 +124,7 @@ export function personMatchesSearch(person: AdminPersonRow, searchText: string) 
     person.team_name,
     person.customer_type,
     person.customer_type_marked_by_name,
+    person.private_note,
     ...person.salesman_business_boards,
   ].some((value) => normalizeSearchText(value).includes(normalizedSearch));
 }

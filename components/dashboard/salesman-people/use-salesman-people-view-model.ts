@@ -5,15 +5,17 @@ import { useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
 
 import {
-  SALESMAN_CUSTOMER_TYPE_OPTIONS,
+  getSalesmanCustomerTypeOptionsForBusinessBoards,
   isSalesmanCustomerType,
   type SalesmanCustomerRow,
   type SalesmanCustomerType,
   type SalesmanPeoplePageData,
 } from "@/lib/salesman-people";
 import type { VipMembershipScope } from "@/lib/vip-memberships";
+import { usePersonPrivateNoteEditor } from "@/components/dashboard/person-notes/use-person-private-note-editor";
 
 import {
+  getSalesmanCustomerName,
   salesmanCustomerMatchesSearch,
   type SalesmanCustomerTypeLabels,
 } from "./salesman-people-display";
@@ -44,6 +46,11 @@ export function useSalesmanPeopleViewModel({
   const [vipRequestPendingKey, setVipRequestPendingKey] = useState<string | null>(
     null,
   );
+  const businessBoards = initialData.businessBoards;
+  const customerTypeOptions = useMemo(
+    () => getSalesmanCustomerTypeOptionsForBusinessBoards(businessBoards),
+    [businessBoards],
+  );
 
   const customerTypeLabels = useMemo<SalesmanCustomerTypeLabels>(
     () => ({
@@ -52,6 +59,20 @@ export function useSalesmanPeopleViewModel({
     }),
     [t],
   );
+  const personNoteEditor = usePersonPrivateNoteEditor<SalesmanCustomerRow>({
+    getTargetName: (customer) =>
+      getSalesmanCustomerName(customer, t("fallback.unnamedCustomer")),
+    onSaved: (targetUserId, privateNote) => {
+      setCustomers((currentCustomers) =>
+        currentCustomers.map((customer) =>
+          customer.user_id === targetUserId
+            ? { ...customer, private_note: privateNote }
+            : customer,
+        ),
+      );
+    },
+    setFeedback,
+  });
 
   const summary = useMemo(() => {
     const retailCount = customers.filter(
@@ -82,6 +103,7 @@ export function useSalesmanPeopleViewModel({
     selectedCustomer !== null &&
     !saving &&
     isSalesmanCustomerType(draftType) &&
+    customerTypeOptions.includes(draftType) &&
     selectedCustomer.customer_type !== draftType;
 
   const openCustomerTypeDialog = (customer: SalesmanCustomerRow) => {
@@ -221,13 +243,15 @@ export function useSalesmanPeopleViewModel({
   return {
     canSaveDraft,
     currentViewerId: initialData.currentViewerId,
+    businessBoards,
     customerTypeLabels,
-    customerTypeOptions: SALESMAN_CUSTOMER_TYPE_OPTIONS,
+    customerTypeOptions,
     dialogOpen,
     draftType,
     feedback,
     filteredCustomers,
     hasPermission: initialData.hasPermission,
+    personNoteEditor,
     saving,
     searchText,
     selectedCustomer,

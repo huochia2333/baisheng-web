@@ -14,6 +14,7 @@ import {
   getCurrentSalesmanBusinessBoards,
   type SalesmanBusinessBoard,
 } from "./salesman-business-access";
+import { isSalesStaffRole } from "./sales-staff-roles";
 import {
   getUserHomeWidgetLayout,
   type DashboardHomeWidgetLayoutItem,
@@ -57,7 +58,7 @@ export async function getDashboardHomePageData(
 
   const layoutScope = `${role ?? "workspace"}:${user.id}`;
   const businessBoardsPromise: Promise<SalesmanBusinessBoard[]> =
-    role === "salesman" && status === "active"
+    isSalesStaffRole(role) && status === "active"
       ? getCurrentSalesmanBusinessBoards(supabase)
       : Promise.resolve([]);
   const [profile, announcements, todos, homeLayout, businessBoards] =

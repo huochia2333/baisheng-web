@@ -37,6 +37,7 @@ export type ReferralsCopy = {
     finance: string;
     manager: string;
     operator: string;
+    promoter: string;
     recruiter: string;
     salesman: string;
     unknown: string;
@@ -72,6 +73,7 @@ export function createReferralsCopy(t: ReferralTranslator): ReferralsCopy {
       finance: t("roles.finance"),
       manager: t("roles.manager"),
       operator: t("roles.operator"),
+      promoter: t("roles.promoter"),
       recruiter: t("roles.recruiter"),
       salesman: t("roles.salesman"),
       unknown: t("roles.unknown"),
@@ -204,6 +206,7 @@ export function getRoleLabel(role: AppRole | null, copy: ReferralsCopy) {
   if (role === "operator") return copy.roles.operator;
   if (role === "manager") return copy.roles.manager;
   if (role === "recruiter") return copy.roles.recruiter;
+  if (role === "promoter") return copy.roles.promoter;
   if (role === "salesman") return copy.roles.salesman;
   if (role === "finance") return copy.roles.finance;
   if (role === "client") return copy.roles.client;

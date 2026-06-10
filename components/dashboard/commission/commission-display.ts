@@ -45,6 +45,8 @@ export function getCommissionRoleLabel(role: AppRole | null, t: TranslateFn) {
       return t("shared.roles.manager");
     case "recruiter":
       return t("shared.roles.recruiter");
+    case "promoter":
+      return t("shared.roles.promoter");
     case "salesman":
       return t("shared.roles.salesman");
     case "finance":

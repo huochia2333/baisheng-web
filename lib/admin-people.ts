@@ -22,6 +22,7 @@ export const ADMIN_PEOPLE_ROLE_OPTIONS = [
   "operator",
   "recruiter",
   "salesman",
+  "promoter",
   "finance",
   "client",
 ] as const satisfies readonly AppRole[];
@@ -60,6 +61,7 @@ export type AdminPersonRow = {
   direct_referral_count: number;
   latest_change_at: string | null;
   created_at: string;
+  private_note: string | null;
   customer_type: CustomerTypeMark | null;
   customer_type_marked_by_user_id: string | null;
   customer_type_marked_by_name: string | null;
@@ -243,6 +245,7 @@ function normalizeAdminPersonRow(value: unknown): AdminPersonRow | null {
     direct_referral_count: normalizeInteger(value.direct_referral_count),
     latest_change_at: normalizeOptionalString(value.latest_change_at),
     created_at: createdAt,
+    private_note: normalizeOptionalString(value.private_note),
     customer_type: normalizeCustomerTypeMark(value.customer_type),
     customer_type_marked_by_user_id: normalizeOptionalString(
       value.customer_type_marked_by_user_id,

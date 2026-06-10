@@ -10,7 +10,13 @@ export type TaskStatus =
   | "rejected"
   | "completed";
 export type AdminTaskStatusFilter = "all" | TaskStatus;
-export type TaskTargetRole = "manager" | "operator" | "recruiter" | "salesman" | "finance";
+export type TaskTargetRole =
+  | "manager"
+  | "operator"
+  | "recruiter"
+  | "salesman"
+  | "promoter"
+  | "finance";
 export type AdminTaskTargetRoleFilter = "all" | TaskTargetRole;
 
 export const TASK_TARGET_ROLES = [
@@ -18,6 +24,7 @@ export const TASK_TARGET_ROLES = [
   "operator",
   "recruiter",
   "salesman",
+  "promoter",
   "finance",
 ] as const satisfies readonly TaskTargetRole[];
 

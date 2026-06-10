@@ -25,9 +25,9 @@ import {
 import { getServerSupabaseClient } from "@/lib/supabase-server";
 import {
   getCurrentSalesmanBusinessBoards,
-  salesmanBusinessBoardsInclude,
   type SalesmanBusinessBoard,
 } from "@/lib/salesman-business-access";
+import { isSalesStaffRole } from "@/lib/sales-staff-roles";
 import {
   EMPTY_WORKSPACE_ANNOUNCEMENTS_STATE,
   getWorkspaceAnnouncementsState,
@@ -172,7 +172,7 @@ function getWorkspaceConfig(
 async function getSalesmanShellBusinessBoards(
   config: WorkspaceRouteConfig,
 ): Promise<SalesmanBusinessBoard[]> {
-  if (config.routeSegment !== "salesman") {
+  if (!isSalesStaffRole(config.authRole)) {
     return [];
   }
 
@@ -190,7 +190,7 @@ function canShowWorkspaceNavItem(
   item: WorkspaceNavItem,
   salesmanBusinessBoards: readonly SalesmanBusinessBoard[],
 ) {
-  if (config.routeSegment !== "salesman") {
+  if (!isSalesStaffRole(config.authRole)) {
     return true;
   }
 
@@ -199,7 +199,7 @@ function canShowWorkspaceNavItem(
   }
 
   if (item.segment === "people") {
-    return salesmanBusinessBoardsInclude(salesmanBusinessBoards, "dropshipping");
+    return salesmanBusinessBoards.length > 0;
   }
 
   return true;

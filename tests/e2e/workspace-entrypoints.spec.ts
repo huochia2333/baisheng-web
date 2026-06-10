@@ -34,6 +34,16 @@ const workspaceEntries: readonly WorkspaceEntry[] = [
     role: "salesman",
   },
   {
+    paths: [
+      "/promoter/orders",
+      "/promoter/tasks",
+      "/promoter/commission",
+      "/promoter/exchange-rates",
+      "/promoter/people",
+    ],
+    role: "promoter",
+  },
+  {
     paths: ["/client/orders", "/client/referrals"],
     role: "client",
   },

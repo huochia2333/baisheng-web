@@ -46,6 +46,7 @@ export type DashboardMyCopy = {
   accountSwitcherRoleManager: string;
   accountSwitcherRoleOperator: string;
   accountSwitcherRoleFinance: string;
+  accountSwitcherRolePromoter: string;
   accountSwitcherRoleRecruiter: string;
   editProfile: string;
   changePassword: string;
@@ -144,6 +145,7 @@ export function useDashboardMyCopy(): DashboardMyCopy {
     accountSwitcherRoleManager: t("accountSwitcherRoleManager"),
     accountSwitcherRoleOperator: t("accountSwitcherRoleOperator"),
     accountSwitcherRoleFinance: t("accountSwitcherRoleFinance"),
+    accountSwitcherRolePromoter: t("accountSwitcherRolePromoter"),
     accountSwitcherRoleRecruiter: t("accountSwitcherRoleRecruiter"),
     editProfile: t("editProfile"),
     changePassword: t("changePassword"),

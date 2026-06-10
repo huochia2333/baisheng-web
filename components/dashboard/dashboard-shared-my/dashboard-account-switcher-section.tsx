@@ -193,6 +193,7 @@ function getAccountSwitcherRoleLabel(copy: DashboardMyCopy, role: AppRole) {
     finance: copy.accountSwitcherRoleFinance,
     manager: copy.accountSwitcherRoleManager,
     operator: copy.accountSwitcherRoleOperator,
+    promoter: copy.accountSwitcherRolePromoter,
     recruiter: copy.accountSwitcherRoleRecruiter,
     salesman: copy.accountSwitcherRoleSalesman,
   };

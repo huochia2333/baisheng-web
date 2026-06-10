@@ -4,6 +4,7 @@ export type AppRole =
   | "manager"
   | "recruiter"
   | "salesman"
+  | "promoter"
   | "finance"
   | "client";
 
@@ -12,6 +13,7 @@ const WORKSPACE_BASE_PATH_BY_ROLE = {
   manager: "/manager",
   recruiter: "/recruiter",
   salesman: "/salesman",
+  promoter: "/promoter",
   operator: "/operator",
   finance: "/finance",
   client: "/client",
@@ -24,6 +26,7 @@ export const WORKSPACE_BASE_PATHS = [
   "/manager",
   "/recruiter",
   "/salesman",
+  "/promoter",
   "/operator",
   "/finance",
   "/client",
@@ -36,6 +39,7 @@ const WORKSPACE_ACCESS_BY_ROLE = {
   manager: ["/manager"],
   recruiter: ["/recruiter"],
   salesman: ["/salesman"],
+  promoter: ["/promoter"],
   operator: ["/operator"],
   finance: ["/finance"],
   client: ["/client"],

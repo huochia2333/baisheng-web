@@ -6,6 +6,7 @@
 @source "./finance";
 @source "./manager";
 @source "./operator";
+@source "./promoter";
 @source "./recruiter";
 @source "./salesman";
 @source "../components/brand";

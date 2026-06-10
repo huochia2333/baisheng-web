@@ -13,6 +13,7 @@ import {
   type AppRole,
   type UserStatus,
 } from "./user-self-service";
+import { isSalesStaffRole } from "./sales-staff-roles";
 
 export type SalesmanCommissionViewerContext = {
   user: User;
@@ -46,7 +47,7 @@ export function canViewSalesmanCommissionBoard(
   role: AppRole | null,
   status: UserStatus | null,
 ) {
-  return role === "salesman" && status === "active";
+  return isSalesStaffRole(role) && status === "active";
 }
 
 export async function getSalesmanCommissionPageData(

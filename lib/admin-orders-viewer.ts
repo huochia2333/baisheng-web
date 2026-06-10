@@ -6,6 +6,7 @@ import {
   type UserStatus,
 } from "./user-self-service";
 import type { OrderViewerContext } from "./admin-orders-types";
+import { isSalesStaffRole } from "./sales-staff-roles";
 
 export async function getCurrentOrderViewerContext(
   supabase: SupabaseClient,
@@ -32,7 +33,7 @@ export function canReadOrderByRole(role: AppRole | null, status: UserStatus | nu
     role === "administrator" ||
     role === "finance" ||
     role === "manager" ||
-    role === "salesman" ||
+    isSalesStaffRole(role) ||
     role === "client"
   );
 }
@@ -49,6 +50,6 @@ export function canReadOrderCostByRole(
     role === "administrator" ||
     role === "finance" ||
     role === "manager" ||
-    role === "salesman"
+    isSalesStaffRole(role)
   );
 }

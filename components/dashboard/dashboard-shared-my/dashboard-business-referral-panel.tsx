@@ -14,6 +14,7 @@ import {
   getCurrentSalesmanBusinessBoards,
   type SalesmanBusinessBoard,
 } from "@/lib/salesman-business-access";
+import { isSalesStaffRole } from "@/lib/sales-staff-roles";
 import { getBrowserSupabaseClient } from "@/lib/supabase";
 
 import { Button } from "../../ui/button";
@@ -44,7 +45,7 @@ export function DashboardBusinessReferralPanel({
   const [notice, setNotice] = useState<LocalNotice | null>(null);
 
   useEffect(() => {
-    if (!supabase || role !== "salesman") {
+    if (!supabase || !isSalesStaffRole(role)) {
       setSalesmanBoards([]);
       setLoading(false);
       return;
@@ -57,12 +58,10 @@ export function DashboardBusinessReferralPanel({
       setLoading(true);
 
       try {
-        if (role === "salesman") {
-          const boards = await getCurrentSalesmanBusinessBoards(client);
+        const boards = await getCurrentSalesmanBusinessBoards(client);
 
-          if (mounted) {
-            setSalesmanBoards(boards);
-          }
+        if (mounted) {
+          setSalesmanBoards(boards);
         }
       } finally {
         if (mounted) {
@@ -78,9 +77,9 @@ export function DashboardBusinessReferralPanel({
     };
   }, [role, supabase]);
 
-    if (role !== "salesman") {
-      return null;
-    }
+  if (!isSalesStaffRole(role)) {
+    return null;
+  }
 
   const boardLabel = (board: SalesmanBusinessBoard) => t(BOARD_COPY_KEYS[board]);
 

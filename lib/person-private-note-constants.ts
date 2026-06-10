@@ -1,0 +1,1 @@
+export const PERSON_PRIVATE_NOTE_MAX_LENGTH = 1000;

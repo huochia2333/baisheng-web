@@ -2,6 +2,7 @@
 
 import { useLocale } from "@/components/i18n/locale-provider";
 import { PageBanner } from "@/components/dashboard/dashboard-shared-ui";
+import { PersonPrivateNoteDialog } from "@/components/dashboard/person-notes/person-private-note-dialog";
 import type { SalesmanPeoplePageData } from "@/lib/salesman-people";
 
 import {
@@ -28,17 +29,22 @@ export function SalesmanPeopleClient({
         </PageBanner>
       ) : null}
 
-      <SalesmanPeopleHeaderSection summary={viewModel.summary} />
+      <SalesmanPeopleHeaderSection
+        businessBoards={viewModel.businessBoards}
+        summary={viewModel.summary}
+      />
 
       {!viewModel.hasPermission ? (
         <SalesmanPeopleNoPermissionSection />
       ) : (
         <>
           <SalesmanPeopleDirectorySection
+            businessBoards={viewModel.businessBoards}
             customerTypeLabels={viewModel.customerTypeLabels}
             filteredCustomers={viewModel.filteredCustomers}
             locale={locale}
             onAdjustCustomerType={viewModel.openCustomerTypeDialog}
+            onEditCustomerNote={viewModel.personNoteEditor.openNoteDialog}
             onRequestVip={viewModel.handleRequestVip}
             onSearchTextChange={viewModel.setSearchText}
             pendingVipRequestKey={viewModel.vipRequestPendingKey}
@@ -56,6 +62,19 @@ export function SalesmanPeopleClient({
             onSave={() => void viewModel.handleSaveCustomerType()}
             open={viewModel.dialogOpen}
             saving={viewModel.saving}
+          />
+
+          <PersonPrivateNoteDialog
+            canSave={viewModel.personNoteEditor.canSave}
+            draftNote={viewModel.personNoteEditor.draftNote}
+            onClose={viewModel.personNoteEditor.closeNoteDialog}
+            onDraftNoteChange={
+              viewModel.personNoteEditor.handleDraftNoteChange
+            }
+            onSave={() => void viewModel.personNoteEditor.handleSaveNote()}
+            open={viewModel.personNoteEditor.noteDialogOpen}
+            saving={viewModel.personNoteEditor.saving}
+            targetName={viewModel.personNoteEditor.selectedTargetName}
           />
         </>
       )}

@@ -11,6 +11,7 @@ import {
   normalizeInteger,
   normalizeOptionalString,
 } from "./value-normalizers";
+import { isSalesStaffRole } from "./sales-staff-roles";
 
 export type TeamOverview = {
   team_id: string;
@@ -115,7 +116,10 @@ export function canViewTeamPanel(role: AppRole | null, status: UserStatus | null
 
   return (
     status === "active" &&
-    (role === "manager" || role === "operator" || role === "finance" || role === "salesman")
+    (role === "manager" ||
+      role === "operator" ||
+      role === "finance" ||
+      isSalesStaffRole(role))
   );
 }
 

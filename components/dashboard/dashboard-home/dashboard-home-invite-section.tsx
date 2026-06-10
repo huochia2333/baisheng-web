@@ -10,6 +10,7 @@ import {
 
 import { Button } from "@/components/ui/button";
 import { buildBoardInviteLink } from "@/lib/business-referrals";
+import { isSalesStaffRole } from "@/lib/sales-staff-roles";
 import type { SalesmanBusinessBoard } from "@/lib/salesman-business-access";
 import { cn } from "@/lib/utils";
 
@@ -167,7 +168,7 @@ export function HomeInviteSection({
         ))}
       </div>
 
-      {!mini && role === "salesman" && linkActions.length === 0 ? (
+      {!mini && isSalesStaffRole(role) && linkActions.length === 0 ? (
         <p className="mt-3 break-words text-xs leading-5 text-[#7b858d]">
           {copy.noLinkAccess}
         </p>
@@ -281,7 +282,7 @@ function buildInviteLinkActions({
   copy: HomeInviteCopy;
   role: string | null;
 }): InviteLinkAction[] {
-  if (role === "salesman") {
+  if (isSalesStaffRole(role)) {
     return businessBoards.map((board) => {
       const boardLabel = copy.businessBoards[board];
 

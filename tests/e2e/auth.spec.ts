@@ -5,6 +5,7 @@ import { loginAs, type RegressionRole } from "./helpers/auth";
 const roles: readonly RegressionRole[] = [
   "administrator",
   "salesman",
+  "promoter",
   "client",
   "finance",
 ];

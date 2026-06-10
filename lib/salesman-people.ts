@@ -6,7 +6,9 @@ import { withRequestTimeout } from "./request-timeout";
 import {
   getCurrentSalesmanBusinessBoards,
   salesmanBusinessBoardsInclude,
+  type SalesmanBusinessBoard,
 } from "./salesman-business-access";
+import { isSalesStaffRole } from "./sales-staff-roles";
 import { getCurrentSessionContext, type UserStatus } from "./user-self-service";
 import { normalizeOptionalString } from "./value-normalizers";
 import {
@@ -34,12 +36,14 @@ export type SalesmanCustomerRow = {
   customer_type: SalesmanCustomerType | null;
   marked_at: string | null;
   created_at: string;
+  private_note: string | null;
   pending_vip_requests: VipRechargeRequestSummary[];
   retail_vip: VipMembershipSummary;
   wholesale_vip: VipMembershipSummary;
 };
 
 export type SalesmanPeoplePageData = {
+  businessBoards: SalesmanBusinessBoard[];
   hasPermission: boolean;
   currentViewerId: string | null;
   customers: SalesmanCustomerRow[];
@@ -49,13 +53,29 @@ export function canViewSalesmanPeople(
   role: AppRole | null,
   status: UserStatus | null,
 ) {
-  return role === "salesman" && status === "active";
+  return isSalesStaffRole(role) && status === "active";
 }
 
 export function isSalesmanCustomerType(
   value: unknown,
 ): value is SalesmanCustomerType {
   return value === "retail" || value === "wholesale";
+}
+
+export function getSalesmanCustomerTypeOptionsForBusinessBoards(
+  businessBoards: readonly SalesmanBusinessBoard[],
+): SalesmanCustomerType[] {
+  const options: SalesmanCustomerType[] = [];
+
+  if (salesmanBusinessBoardsInclude(businessBoards, "tourism")) {
+    options.push("retail");
+  }
+
+  if (salesmanBusinessBoardsInclude(businessBoards, "dropshipping")) {
+    options.push("wholesale");
+  }
+
+  return options;
 }
 
 export async function getSalesmanPeoplePageData(
@@ -68,6 +88,7 @@ export async function getSalesmanPeoplePageData(
     !canViewSalesmanPeople(sessionContext.role, sessionContext.status)
   ) {
     return {
+      businessBoards: [],
       hasPermission: false,
       currentViewerId: sessionContext.user?.id ?? null,
       customers: [],
@@ -81,6 +102,7 @@ export async function getSalesmanPeoplePageData(
     !salesmanBusinessBoardsInclude(businessBoards, "tourism")
   ) {
     return {
+      businessBoards,
       hasPermission: false,
       currentViewerId: sessionContext.user.id,
       customers: [],
@@ -88,6 +110,7 @@ export async function getSalesmanPeoplePageData(
   }
 
   return {
+    businessBoards,
     hasPermission: true,
     currentViewerId: sessionContext.user.id,
     customers: await getSalesmanCustomerDirectory(supabase),
@@ -154,6 +177,7 @@ export function normalizeSalesmanCustomerRow(
       : null,
     marked_at: normalizeOptionalString(value.marked_at),
     created_at: createdAt,
+    private_note: normalizeOptionalString(value.private_note),
     pending_vip_requests: normalizeVipRechargeRequests(
       value.pending_vip_requests,
     ),

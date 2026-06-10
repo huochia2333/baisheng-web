@@ -3,8 +3,14 @@ import {
   isAdminPeopleStatus,
   isCustomerTypeMark,
   type AdminPeopleChangeLogRow,
+  type AdminPeopleRole,
   type AdminPersonRow,
 } from "@/lib/admin-people";
+import {
+  areSalesmanBusinessBoardsEqual,
+  type SalesmanBusinessBoard,
+} from "@/lib/salesman-business-access";
+import { isSalesStaffRole } from "@/lib/sales-staff-roles";
 
 export type AdminPeopleFeedback = {
   tone: "error" | "success" | "info";
@@ -51,6 +57,24 @@ export function normalizeAdminPeopleErrorCode(value: string | undefined) {
     default:
       return "unknown";
   }
+}
+
+export function isDraftBusinessAccessChanged(
+  selectedPerson: AdminPersonRow,
+  draftRole: AdminPeopleRole,
+  draftBusinessBoards: SalesmanBusinessBoard[],
+) {
+  if (!isSalesStaffRole(selectedPerson.role) && !isSalesStaffRole(draftRole)) {
+    return false;
+  }
+
+  const currentBoards =
+    isSalesStaffRole(selectedPerson.role)
+      ? selectedPerson.salesman_business_boards
+      : [];
+  const nextBoards = isSalesStaffRole(draftRole) ? draftBusinessBoards : [];
+
+  return !areSalesmanBusinessBoardsEqual(currentBoards, nextBoards);
 }
 
 function normalizeChangeLogs(value: unknown) {

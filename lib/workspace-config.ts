@@ -8,6 +8,7 @@ import type { WorkspaceSectionKey } from "./workspace-sections";
 export const workspaceRouteSegments = [
   "admin",
   "salesman",
+  "promoter",
   "recruiter",
   "manager",
   "operator",
@@ -226,6 +227,22 @@ const WORKSPACE_ROUTE_CONFIG_BY_SEGMENT = {
     },
     routeSegment: "salesman",
   },
+  promoter: {
+    authRole: "promoter",
+    basePath: "/promoter",
+    initials: "DT",
+    navItems: sharedNavItems,
+    pageVariants: {
+      commission: "salesman",
+      exchangeRates: "readonly",
+      orders: "salesman",
+      people: "salesman",
+      referrals: true,
+      tasks: "staff",
+      team: true,
+    },
+    routeSegment: "promoter",
+  },
 } as const satisfies Record<WorkspaceRouteSegment, WorkspaceRouteConfig>;
 
 const WORKSPACE_ROUTE_CONFIG_BY_BASE_PATH = {
@@ -234,6 +251,7 @@ const WORKSPACE_ROUTE_CONFIG_BY_BASE_PATH = {
   "/finance": WORKSPACE_ROUTE_CONFIG_BY_SEGMENT.finance,
   "/manager": WORKSPACE_ROUTE_CONFIG_BY_SEGMENT.manager,
   "/operator": WORKSPACE_ROUTE_CONFIG_BY_SEGMENT.operator,
+  "/promoter": WORKSPACE_ROUTE_CONFIG_BY_SEGMENT.promoter,
   "/recruiter": WORKSPACE_ROUTE_CONFIG_BY_SEGMENT.recruiter,
   "/salesman": WORKSPACE_ROUTE_CONFIG_BY_SEGMENT.salesman,
 } as const satisfies Record<WorkspaceBasePath, WorkspaceRouteConfig>;

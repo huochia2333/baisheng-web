@@ -17,11 +17,12 @@ import {
 } from "@/lib/admin-people";
 import {
   SALESMAN_BUSINESS_BOARD_OPTIONS,
-  areSalesmanBusinessBoardsEqual,
   uniqueSalesmanBusinessBoards,
   type SalesmanBusinessBoard,
   type SalesmanBusinessBoardLabels,
 } from "@/lib/salesman-business-access";
+import { isSalesStaffRole } from "@/lib/sales-staff-roles";
+import { usePersonPrivateNoteEditor } from "@/components/dashboard/person-notes/use-person-private-note-editor";
 
 import {
   getPersonDisplayName,
@@ -30,6 +31,7 @@ import {
   type AdminPeopleStatusLabels,
 } from "./admin-people-display";
 import {
+  isDraftBusinessAccessChanged,
   normalizeAdminPeopleErrorCode,
   readAdminPeopleUpdateResponse,
   type AdminPeopleFeedback,
@@ -77,6 +79,7 @@ export function useAdminPeopleViewModel({
       finance: t("roles.finance"),
       manager: t("roles.manager"),
       operator: t("roles.operator"),
+      promoter: t("roles.promoter"),
       recruiter: t("roles.recruiter"),
       salesman: t("roles.salesman"),
     }),
@@ -103,6 +106,24 @@ export function useAdminPeopleViewModel({
     setFeedback,
     setPeople,
   });
+  const personNoteEditor = usePersonPrivateNoteEditor<AdminPersonRow>({
+    getTargetName: (person) =>
+      getPersonDisplayName(person, t("fallback.unnamedUser")),
+    onSaved: (targetUserId, privateNote) => {
+      setPeople((currentPeople) =>
+        currentPeople.map((person) =>
+          person.user_id === targetUserId
+            ? { ...person, private_note: privateNote }
+            : person,
+        ),
+      );
+    },
+    setFeedback,
+  });
+  const businessBoardOptions =
+    draftRole === "promoter"
+      ? (["tourism"] as const)
+      : SALESMAN_BUSINESS_BOARD_OPTIONS;
 
   const summary = useMemo(() => {
     const activeCount = people.filter(
@@ -178,7 +199,9 @@ export function useAdminPeopleViewModel({
     setDraftStatus(person.status);
     setDraftCity(person.city ?? "");
     setDraftBusinessBoards(
-      person.role === "salesman" && person.salesman_business_boards.length > 0
+      person.role === "promoter"
+        ? ["tourism"]
+        : isSalesStaffRole(person.role) && person.salesman_business_boards.length > 0
         ? person.salesman_business_boards
         : ["tourism"],
     );
@@ -197,6 +220,11 @@ export function useAdminPeopleViewModel({
   const handleDraftRoleChange = (value: string) => {
     if (isAdminPeopleRole(value)) {
       setDraftRole(value);
+      if (value === "promoter") {
+        setDraftBusinessBoards(["tourism"]);
+        return;
+      }
+
       if (value === "salesman" && draftBusinessBoards.length === 0) {
         setDraftBusinessBoards(["tourism"]);
       }
@@ -211,6 +239,11 @@ export function useAdminPeopleViewModel({
     board: SalesmanBusinessBoard,
     checked: boolean,
   ) => {
+    if (draftRole === "promoter") {
+      setDraftBusinessBoards(["tourism"]);
+      return;
+    }
+
     setDraftBusinessBoards((currentBoards) => {
       const nextBoards = checked
         ? [...currentBoards, board]
@@ -257,7 +290,7 @@ export function useAdminPeopleViewModel({
             nextStatus: draftStatus,
             nextCity: draftCity,
             salesmanBusinessBoards:
-              draftRole === "salesman" ? draftBusinessBoards : [],
+              isSalesStaffRole(draftRole) ? draftBusinessBoards : [],
             note: draftNote,
           }),
           headers: {
@@ -333,7 +366,8 @@ export function useAdminPeopleViewModel({
     currentViewerId: initialData.currentViewerId,
     dialogOpen,
     businessBoardLabels,
-    businessBoardOptions: SALESMAN_BUSINESS_BOARD_OPTIONS,
+    businessAccessLocked: draftRole === "promoter",
+    businessBoardOptions,
     customerTypeWillChange,
     customerTypeLabels: customerTypeEditor.customerTypeLabels,
     customerTypeOptions: customerTypeEditor.customerTypeOptions,
@@ -347,6 +381,7 @@ export function useAdminPeopleViewModel({
     filteredPeople,
     hasPermission: initialData.hasPermission,
     people,
+    personNoteEditor,
     recentChanges,
     roleFilter,
     roleLabels,
@@ -376,22 +411,4 @@ export function useAdminPeopleViewModel({
     setDraftNote,
     setSearchText,
   };
-}
-
-function isDraftBusinessAccessChanged(
-  selectedPerson: AdminPersonRow,
-  draftRole: AdminPeopleRole,
-  draftBusinessBoards: SalesmanBusinessBoard[],
-) {
-  if (selectedPerson.role !== "salesman" && draftRole !== "salesman") {
-    return false;
-  }
-
-  const currentBoards =
-    selectedPerson.role === "salesman"
-      ? selectedPerson.salesman_business_boards
-      : [];
-  const nextBoards = draftRole === "salesman" ? draftBusinessBoards : [];
-
-  return !areSalesmanBusinessBoardsEqual(currentBoards, nextBoards);
 }

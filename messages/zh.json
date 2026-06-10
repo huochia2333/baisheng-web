@@ -358,6 +358,12 @@
         "title": "业务工作台",
         "workspaceLabel": "业务中心"
       },
+      "promoter": {
+        "accountLabel": "地推账号",
+        "subtitle": "地推拓展岗位",
+        "title": "地推工作台",
+        "workspaceLabel": "地推中心"
+      },
       "recruiter": {
         "accountLabel": "招聘员账号",
         "subtitle": "招聘业务员岗位",
@@ -440,6 +446,7 @@
     "finance": "加载中",
     "manager": "加载中",
     "operator": "加载中",
+    "promoter": "加载中",
     "recruiter": "加载中",
     "salesman": "加载中"
   },
@@ -476,6 +483,10 @@
       "salesman": {
         "title": "业务工作台",
         "description": "这个页面还在完善中。当前已准备好业务工作台入口，后续会继续补充具体内容。"
+      },
+      "promoter": {
+        "title": "地推工作台",
+        "description": "这个页面还在完善中。当前已准备好地推工作台入口，后续会继续补充具体内容。"
       }
     },
     "announcements": {
@@ -764,6 +775,7 @@
       "manager": "经理",
       "operator": "运营",
       "recruiter": "招聘员",
+      "promoter": "地推",
       "salesman": "业务员"
     },
     "header": {
@@ -861,7 +873,7 @@
     "changePassword": "修改密码",
     "copyInviteCode": "复制邀请码",
     "businessInviteTitle": "业务邀请链接",
-    "businessInviteDescription": "按零售或批发复制注册链接，新客户会进入对应的推荐关系。",
+    "businessInviteDescription": "复制当前可用业务的注册链接，新客户会进入对应的推荐关系。",
     "businessReferralLoading": "正在读取业务权限...",
     "businessReferralTourism": "零售",
     "businessReferralDropshipping": "批发",
@@ -965,6 +977,7 @@
     "accountSwitcherRoleManager": "经理账号",
     "accountSwitcherRoleOperator": "运营账号",
     "accountSwitcherRoleFinance": "财务账号",
+    "accountSwitcherRolePromoter": "地推账号",
     "accountSwitcherRoleRecruiter": "招聘账号"
   },
   "DashboardMyState": {
@@ -1704,6 +1717,7 @@
       "operator": "运营",
       "manager": "经理",
       "recruiter": "招聘员",
+      "promoter": "地推",
       "salesman": "业务员",
       "finance": "财务",
       "client": "客户",
@@ -1968,6 +1982,7 @@
         "operator": "运营",
         "manager": "经理",
         "recruiter": "招聘",
+        "promoter": "地推",
         "salesman": "业务员",
         "finance": "财务",
         "client": "客户",
@@ -2068,6 +2083,7 @@
         "manager": "经理",
         "operator": "运营",
         "recruiter": "招聘",
+        "promoter": "地推",
         "salesman": "业务",
         "finance": "财务"
       },
@@ -2557,6 +2573,7 @@
       "manager": "经理",
       "operator": "运营",
       "recruiter": "招聘员",
+      "promoter": "地推",
       "salesman": "业务员",
       "finance": "财务",
       "client": "客户"
@@ -2574,6 +2591,35 @@
     },
     "fallback": {
       "notProvided": "待补充"
+    }
+  },
+  "PersonPrivateNotes": {
+    "dialog": {
+      "title": "备注 {name}",
+      "description": "这条备注只显示给你自己，用来记录跟进重点或记忆点。",
+      "visibility": "只有你自己能看到这条备注，其他账号不会看到。",
+      "note": "我的备注",
+      "placeholder": "写下需要记住的信息，比如沟通偏好、跟进重点或特别提醒",
+      "counter": "{count}/{max}"
+    },
+    "actions": {
+      "cancel": "取消",
+      "save": "保存备注",
+      "saving": "保存中..."
+    },
+    "feedback": {
+      "saved": "备注已保存。",
+      "cleared": "备注已清空。"
+    },
+    "errors": {
+      "forbidden": "当前账号不能保存这条备注。",
+      "invalidInput": "备注内容过长，请缩短后再保存。",
+      "notFound": "没有找到这个账号。",
+      "serviceUnavailable": "备注暂时没有保存成功，请稍后再试。",
+      "unknown": "备注暂时没有保存成功，请稍后再试。"
+    },
+    "fallback": {
+      "unnamed": "未命名账号"
     }
   },
   "AdminPeople": {
@@ -2611,6 +2657,7 @@
       "emptyDescription": "请调整搜索内容或筛选条件后再查看。",
       "columns": {
         "account": "账号",
+        "privateNote": "我的备注",
         "role": "身份",
         "status": "账号状态",
         "businessAccess": "业务权限",
@@ -2659,6 +2706,7 @@
     },
     "actions": {
       "adjust": "调整账号",
+      "note": "备注",
       "currentAccount": "当前账号",
       "cancel": "取消",
       "save": "保存调整",
@@ -2669,6 +2717,7 @@
       "manager": "经理",
       "operator": "运营",
       "recruiter": "招聘员",
+      "promoter": "地推",
       "salesman": "业务员",
       "finance": "财务",
       "client": "客户"
@@ -2693,6 +2742,7 @@
     "fallback": {
       "unnamedUser": "未命名人员",
       "notProvided": "待补充",
+      "noPrivateNote": "未填写",
       "noReferrer": "无推荐人",
       "noTeam": "未加入团队"
     },
@@ -2738,9 +2788,10 @@
       "pending": "申请中"
     },
     "header": {
-      "badge": "业务员客户",
+      "badge": "我的客户",
       "title": "客户管理",
-      "description": "这里展示你名下的客户，并可以把客户标记为零售或批发。"
+      "description": "这里展示你名下的客户，并可以把客户标记为零售或批发。",
+      "descriptionRetailOnly": "这里展示你名下的客户，并可以把客户标记为零售。"
     },
     "summary": {
       "total": "客户总数",
@@ -2750,7 +2801,7 @@
     },
     "states": {
       "noPermissionTitle": "没有客户管理权限",
-      "noPermissionDescription": "只有开通批发权限的正常业务员账号可以查看和标记自己的客户。"
+      "noPermissionDescription": "只有正常启用并已开通业务权限的账号可以查看和标记自己的客户。"
     },
     "filters": {
       "search": "搜索客户",
@@ -2764,6 +2815,7 @@
       "emptyDescription": "请调整搜索内容后再查看，或先确认是否已经有关联客户。",
       "columns": {
         "customer": "客户",
+        "privateNote": "我的备注",
         "city": "城市",
         "currentType": "客户标记",
         "markedAt": "标记时间",
@@ -2785,6 +2837,7 @@
     },
     "actions": {
       "adjust": "调整标记",
+      "note": "备注",
       "cancel": "取消",
       "save": "保存标记",
       "saving": "保存中..."
@@ -2792,6 +2845,7 @@
     "fallback": {
       "unnamedCustomer": "未命名客户",
       "notProvided": "待补充",
+      "noPrivateNote": "未填写",
       "unmarked": "未标记"
     },
     "feedback": {

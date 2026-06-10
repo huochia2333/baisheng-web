@@ -1,6 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 import {
+  getSalesmanCustomerRowById,
   isSalesmanCustomerType,
   normalizeSalesmanCustomerRow,
   type SalesmanCustomerRow,
@@ -8,6 +9,7 @@ import {
 } from "./salesman-people";
 import { withRequestTimeout } from "./request-timeout";
 import { getCurrentSessionContext } from "./user-self-service";
+import { isSalesStaffRole } from "./sales-staff-roles";
 
 export type SalesmanPeopleUpdateErrorCode =
   | "forbidden"
@@ -38,7 +40,7 @@ export async function updateSalesmanCustomerType(
 
   if (
     !sessionContext.user ||
-    sessionContext.role !== "salesman" ||
+    !isSalesStaffRole(sessionContext.role) ||
     sessionContext.status !== "active"
   ) {
     throw new SalesmanPeopleMutationError("forbidden");
@@ -56,9 +58,18 @@ export async function updateSalesmanCustomerType(
     throw error;
   }
 
-  const updatedCustomer = Array.isArray(data)
+  const rpcCustomer = Array.isArray(data)
     ? normalizeSalesmanCustomerRow(data[0])
     : normalizeSalesmanCustomerRow(data);
+
+  if (!rpcCustomer) {
+    throw new SalesmanPeopleMutationError("notFound");
+  }
+
+  const updatedCustomer = await getSalesmanCustomerRowById(
+    supabase,
+    payload.customerUserId,
+  );
 
   if (!updatedCustomer) {
     throw new SalesmanPeopleMutationError("notFound");

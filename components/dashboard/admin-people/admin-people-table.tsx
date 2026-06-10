@@ -1,5 +1,6 @@
 "use client";
 
+import { StickyNote } from "lucide-react";
 import { useTranslations } from "next-intl";
 
 import { DashboardTableFrame } from "@/components/dashboard/dashboard-section-panel";
@@ -8,6 +9,7 @@ import type { AdminPersonRow } from "@/lib/admin-people";
 import type { AdminVipRequestAction } from "@/lib/admin-people-vip-mutations";
 import type { Locale } from "@/lib/locale";
 import type { SalesmanBusinessBoardLabels } from "@/lib/salesman-business-access";
+import { isSalesStaffRole } from "@/lib/sales-staff-roles";
 import { cn } from "@/lib/utils";
 
 import {
@@ -29,6 +31,7 @@ export function PeopleTable({
   customerTypeLabels,
   locale,
   onAdjustPerson,
+  onEditPersonNote,
   onVipRequestAction,
   people,
   pendingVipRequestId,
@@ -39,6 +42,7 @@ export function PeopleTable({
   customerTypeLabels: AdminPeopleViewModel["customerTypeLabels"];
   locale: Locale;
   onAdjustPerson: (person: AdminPersonRow) => void;
+  onEditPersonNote: (person: AdminPersonRow) => void;
   onVipRequestAction: (
     requestId: string,
     action: AdminVipRequestAction,
@@ -61,22 +65,24 @@ export function PeopleTable({
 
   return (
     <DashboardTableFrame>
-      <table className="min-w-[1080px] table-fixed w-full text-left text-sm">
+      <table className="min-w-[1240px] table-fixed w-full text-left text-sm">
         <colgroup>
-          <col className="w-[15%]" />
+          <col className="w-[13%]" />
+          <col className="w-[11%]" />
           <col className="w-[7%]" />
-          <col className="w-[8%]" />
           <col className="w-[7%]" />
-          <col className="w-[10%]" />
-          <col className="w-[17%]" />
+          <col className="w-[7%]" />
+          <col className="w-[9%]" />
+          <col className="w-[13%]" />
           <col className="w-[6%]" />
-          <col className="w-[12%]" />
-          <col className="w-[10%]" />
+          <col className="w-[9%]" />
           <col className="w-[8%]" />
+          <col className="w-[10%]" />
         </colgroup>
         <thead className="bg-[#f6f4f0] text-xs font-semibold text-[#66727d]">
           <tr>
             <th className="px-3 py-3">{t("directory.columns.account")}</th>
+            <th className="px-3 py-3">{t("directory.columns.privateNote")}</th>
             <th className="px-3 py-3">{t("directory.columns.role")}</th>
             <th className="px-3 py-3">{t("directory.columns.status")}</th>
             <th className="px-3 py-3">{t("directory.columns.businessAccess")}</th>
@@ -106,6 +112,11 @@ export function PeopleTable({
                     {getPersonContact(person, fallback)}
                   </p>
                 </td>
+                <td className="px-3 py-4 text-[#53616d]">
+                  <p className="break-words leading-6 [overflow-wrap:anywhere]">
+                    {person.private_note ?? t("fallback.noPrivateNote")}
+                  </p>
+                </td>
                 <td className="px-3 py-4">
                   <span className="inline-flex rounded-full bg-[#eef3f6] px-3 py-1 text-xs font-semibold text-[#486782]">
                     {getRoleLabel(person.role, roleLabels, fallback)}
@@ -118,7 +129,7 @@ export function PeopleTable({
                   />
                 </td>
                 <td className="px-3 py-4 text-[#53616d]">
-                  {person.role === "salesman" ? (
+                  {isSalesStaffRole(person.role) ? (
                     <BusinessAccessChips
                       compactLabels={businessBoardCompactLabels}
                       fallback={fallback}
@@ -167,13 +178,24 @@ export function PeopleTable({
                   {formatPeopleDate(person.created_at, locale, fallback)}
                 </td>
                 <td className="px-3 py-4">
-                  <Button
-                    className="h-9 rounded-full bg-[#486782] px-3 text-white hover:bg-[#3e5f79] disabled:bg-[#d9dee2] disabled:text-[#7c8790]"
-                    disabled={isCurrentViewer}
-                    onClick={() => onAdjustPerson(person)}
-                  >
-                    {isCurrentViewer ? t("actions.currentAccount") : t("actions.adjust")}
-                  </Button>
+                  <div className="flex flex-col items-start gap-2">
+                    <Button
+                      className="h-9 rounded-full border border-[#d9e0e5] bg-white px-3 text-[#486782] hover:bg-[#f3f6f8]"
+                      onClick={() => onEditPersonNote(person)}
+                    >
+                      <StickyNote className="size-4" />
+                      {t("actions.note")}
+                    </Button>
+                    <Button
+                      className="h-9 rounded-full bg-[#486782] px-3 text-white hover:bg-[#3e5f79] disabled:bg-[#d9dee2] disabled:text-[#7c8790]"
+                      disabled={isCurrentViewer}
+                      onClick={() => onAdjustPerson(person)}
+                    >
+                      {isCurrentViewer
+                        ? t("actions.currentAccount")
+                        : t("actions.adjust")}
+                    </Button>
+                  </div>
                 </td>
               </tr>
             );

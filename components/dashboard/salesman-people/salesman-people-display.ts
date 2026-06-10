@@ -68,5 +68,6 @@ export function salesmanCustomerMatchesSearch(
     customer.city,
     customer.status,
     customer.customer_type,
+    customer.private_note,
   ].some((value) => normalizeSearchText(value).includes(normalizedSearch));
 }

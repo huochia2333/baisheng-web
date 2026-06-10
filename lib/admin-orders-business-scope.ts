@@ -5,6 +5,7 @@ import {
   getCurrentSalesmanBusinessBoards,
   getOrderCategoriesForSalesmanBusinessBoards,
 } from "./salesman-business-access";
+import { isSalesStaffRole } from "./sales-staff-roles";
 
 type OrderTypeCategoryOption = {
   category: string;
@@ -20,7 +21,7 @@ export async function getAdminOrderBusinessScope(
   supabase: SupabaseClient,
   role: AppRole | null,
 ): Promise<AdminOrderBusinessScope> {
-  if (role !== "salesman") {
+  if (!isSalesStaffRole(role)) {
     return {
       canViewAssignedBoards: true,
       orderCategories: null,

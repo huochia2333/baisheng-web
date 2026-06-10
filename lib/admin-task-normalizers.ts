@@ -194,6 +194,7 @@ export function normalizeTaskTargetRole(value: unknown): TaskTargetRole | null {
     || value === "operator"
     || value === "recruiter"
     || value === "salesman"
+    || value === "promoter"
     || value === "finance"
   ) {
     return value;

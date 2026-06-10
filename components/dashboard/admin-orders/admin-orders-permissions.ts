@@ -1,4 +1,5 @@
 import type { AppRole, UserStatus } from "@/lib/user-self-service";
+import { isSalesStaffRole } from "@/lib/sales-staff-roles";
 
 export function canReadOrderByRole(
   role: AppRole | null,
@@ -12,7 +13,7 @@ export function canReadOrderByRole(
     role === "administrator" ||
     role === "finance" ||
     role === "manager" ||
-    role === "salesman" ||
+    isSalesStaffRole(role) ||
     role === "client"
   );
 }
@@ -29,7 +30,7 @@ export function canReadOrderCostByRole(
     role === "administrator" ||
     role === "finance" ||
     role === "manager" ||
-    role === "salesman"
+    isSalesStaffRole(role)
   );
 }
 
@@ -41,7 +42,7 @@ export function canCreateOrderByRole(
     return false;
   }
 
-  return role === "administrator" || role === "manager" || role === "salesman";
+  return role === "administrator" || role === "manager" || isSalesStaffRole(role);
 }
 
 export function canUpdateOrderByRole(

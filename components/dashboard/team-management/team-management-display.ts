@@ -4,6 +4,7 @@ import type {
   TeamManagerCandidate,
 } from "@/lib/team-management";
 import type { AppRole } from "@/lib/user-self-service";
+import { isSalesStaffRole } from "@/lib/sales-staff-roles";
 
 import {
   getRawErrorMessage,
@@ -86,7 +87,7 @@ export function getTeamManagementDescription(
     return t("descriptions.administrator");
   }
 
-  if (role === "salesman") {
+  if (isSalesStaffRole(role)) {
     return t("descriptions.salesman");
   }
 

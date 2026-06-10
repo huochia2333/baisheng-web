@@ -7,6 +7,10 @@ import { Button } from "@/components/ui/button";
 import type { Locale } from "@/lib/locale";
 import type { SalesmanCustomerRow } from "@/lib/salesman-people";
 import {
+  salesmanBusinessBoardsInclude,
+  type SalesmanBusinessBoard,
+} from "@/lib/salesman-business-access";
+import {
   VIP_SCOPE_VALUES,
   type VipMembershipScope,
   type VipMembershipSummary,
@@ -16,11 +20,13 @@ import { formatSalesmanPeopleDate } from "./salesman-people-display";
 import { getVipRequestPendingKey } from "./use-salesman-people-view-model";
 
 export function SalesmanPeopleVipCell({
+  businessBoards,
   customer,
   locale,
   onRequestVip,
   pendingKey,
 }: {
+  businessBoards: readonly SalesmanBusinessBoard[];
   customer: SalesmanCustomerRow;
   locale: Locale;
   onRequestVip: (
@@ -29,9 +35,15 @@ export function SalesmanPeopleVipCell({
   ) => void;
   pendingKey: string | null;
 }) {
+  const visibleScopes = VIP_SCOPE_VALUES.filter((scope) =>
+    scope === "retail"
+      ? salesmanBusinessBoardsInclude(businessBoards, "tourism")
+      : salesmanBusinessBoardsInclude(businessBoards, "dropshipping"),
+  );
+
   return (
     <div className="flex min-w-0 flex-col gap-2">
-      {VIP_SCOPE_VALUES.map((scope) => (
+      {visibleScopes.map((scope) => (
         <VipScopeCard
           customer={customer}
           key={scope}

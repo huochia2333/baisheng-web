@@ -56,6 +56,7 @@ export function useAdminOperationRecordsViewModel({
       finance: t("roles.finance"),
       manager: t("roles.manager"),
       operator: t("roles.operator"),
+      promoter: t("roles.promoter"),
       recruiter: t("roles.recruiter"),
       salesman: t("roles.salesman"),
     }),

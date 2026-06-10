@@ -6,6 +6,7 @@ import {
 } from "./salesman-people";
 import { withRequestTimeout } from "./request-timeout";
 import { getCurrentSessionContext } from "./user-self-service";
+import { isSalesStaffRole } from "./sales-staff-roles";
 import {
   isVipMembershipScope,
   type VipMembershipScope,
@@ -41,7 +42,7 @@ export async function requestSalesmanVipRecharge(
 
   if (
     !sessionContext.user ||
-    sessionContext.role !== "salesman" ||
+    !isSalesStaffRole(sessionContext.role) ||
     sessionContext.status !== "active"
   ) {
     throw new SalesmanVipRequestError("forbidden");

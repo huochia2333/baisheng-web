@@ -10,6 +10,7 @@ import {
   type WorkspacePageVariants,
   type WorkspaceRouteConfig,
 } from "@/lib/workspace-config";
+import { isSalesStaffRole } from "@/lib/sales-staff-roles";
 
 const ROLE_LABELS = {
   administrator: "管理员",
@@ -17,6 +18,7 @@ const ROLE_LABELS = {
   finance: "财务",
   manager: "经理",
   operator: "运营",
+  promoter: "地推",
   recruiter: "招聘员",
   salesman: "业务员",
 } as const satisfies Record<AppRole, string>;
@@ -117,12 +119,12 @@ function getNavEntryDescription(
   config: WorkspaceRouteConfig,
   item: WorkspaceNavItem,
 ) {
-  if (config.routeSegment === "salesman" && item.segment === "orders") {
+  if (isSalesStaffRole(config.authRole) && item.segment === "orders") {
     return "按当前账号可见业务处理订单；如果页面没有该入口，以当前工作台实际显示为准";
   }
 
-  if (config.routeSegment === "salesman" && item.segment === "people") {
-    return "拥有批发客户管理入口时使用；如果页面没有该入口，以当前工作台实际显示为准";
+  if (isSalesStaffRole(config.authRole) && item.segment === "people") {
+    return "拥有客户管理入口时使用；如果页面没有该入口，以当前工作台实际显示为准";
   }
 
   return NAV_ENTRY_DESCRIPTIONS[item.labelKey];
