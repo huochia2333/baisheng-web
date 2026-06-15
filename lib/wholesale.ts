@@ -1,14 +1,13 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
-import {
-  getAppRoleFromMetadataContainer,
-  type UserStatus,
-} from "./auth-metadata";
+import type { UserStatus } from "./auth-metadata";
 import type { AppRole } from "./auth-routing";
+import { getCurrentSessionContext } from "./current-session-context";
 import {
   getLatestCnyExchangeRates,
   type ExchangeRateRow,
 } from "./exchange-rates";
+import { scopeWholesaleRows } from "./wholesale-scope";
 import type { WorkspaceWholesaleSectionKey } from "./workspace-config";
 
 export type WholesaleCustomer = {
@@ -153,9 +152,9 @@ export async function getWholesalePageData(
   supabase: SupabaseClient,
   section: WorkspaceWholesaleSectionKey,
 ): Promise<WholesalePageData> {
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const sessionContext = await getCurrentSessionContext(supabase);
+  const currentRole = sessionContext.role;
+  const currentUserId = sessionContext.user?.id ?? null;
 
   const [
     customersResult,
@@ -246,19 +245,30 @@ export async function getWholesalePageData(
     profilesByUserId.set(profile.user_id, profile);
   }
 
-  const profiles = Array.from(profilesByUserId.values());
-
-  return {
-    currentRole: user ? getAppRoleFromMetadataContainer(user) : null,
-    currentUserId: user?.id ?? null,
+  const scopedRows = scopeWholesaleRows({
+    commissions: readRows(commissionsResult),
+    currentRole,
+    currentUserId,
     customers: readRows(customersResult),
-    exchangeRates,
+    logisticsOrders: readRows(logisticsOrdersResult),
     orders: readRows(ordersResult),
     purchaseOrders: readRows(purchaseOrdersResult),
-    logisticsOrders: readRows(logisticsOrdersResult),
-    commissions: readRows(commissionsResult),
     referrals: readRows(referralsResult),
-    profiles,
+    profiles: Array.from(profilesByUserId.values()),
+    registeredCandidates: readRows(linkCandidateProfilesResult),
+  });
+
+  return {
+    currentRole,
+    currentUserId,
+    customers: scopedRows.customers,
+    exchangeRates,
+    orders: scopedRows.orders,
+    purchaseOrders: scopedRows.purchaseOrders,
+    logisticsOrders: scopedRows.logisticsOrders,
+    commissions: scopedRows.commissions,
+    referrals: scopedRows.referrals,
+    profiles: scopedRows.profiles,
     section,
   };
 }

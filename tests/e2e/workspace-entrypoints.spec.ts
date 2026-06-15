@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
 
 import {
   expectNotForbiddenPage,
@@ -112,6 +112,42 @@ test.describe("workspace entrypoint regression", () => {
     await expect(wholesaleOrdersLink).toBeVisible();
   });
 
+  for (const entry of [
+    {
+      copyButtonTestId: "home-invite-copy-link-wholesale",
+      role: "salesman" as const,
+    },
+    {
+      copyButtonTestId: "home-invite-copy-link-tourism",
+      role: "promoter" as const,
+    },
+  ]) {
+    test(`${entry.role} registration link uses the single invite code`, async ({
+      page,
+    }) => {
+      await mockClipboard(page);
+      await loginAs(page, entry.role);
+
+      const inviteCode = (
+        await page.getByTestId("home-invite-code").innerText()
+      )
+        .trim()
+        .toUpperCase();
+
+      await page.getByTestId(entry.copyButtonTestId).click();
+
+      const copiedLink = await page.evaluate(() =>
+        window.localStorage.getItem("__lastCopiedInviteLink") ?? "",
+      );
+      const copiedUrl = new URL(copiedLink);
+
+      expect(copiedUrl.pathname).toBe("/register");
+      expect(copiedUrl.searchParams.get("ref")).toBe(inviteCode);
+      expect(copiedUrl.searchParams.has("board")).toBe(false);
+      expect(copiedUrl.searchParams.get("ref")).not.toMatch(/-[TD]$/);
+    });
+  }
+
   test("wholesale order list can filter by ordered date range", async ({
     page,
   }) => {
@@ -201,6 +237,24 @@ test.describe("workspace entrypoint regression", () => {
     await expect(page.getByLabel("关联批发订单")).toBeEnabled();
   });
 
+  test("salesman wholesale people only shows scoped customers", async ({
+    page,
+  }) => {
+    await loginAs(page, "salesman");
+    await page.goto("/salesman/wholesale/people");
+    await expectWorkspaceShell(page);
+    await expectNotForbiddenPage(page);
+
+    await expect(page.getByText("Wholesale Alpha").first()).toBeVisible();
+    await expect(page.getByText("Wholesale Beta").first()).toBeVisible();
+    await expect(page.getByText("Promoter Wholesale Shop")).toHaveCount(0);
+
+    await page.getByRole("button", { name: /业务员账户/ }).click();
+
+    await expect(page.getByText("本地业务员").first()).toBeVisible();
+    await expect(page.getByText("本地地推")).toHaveCount(0);
+  });
+
   test("tourism order list can filter by ordered date range", async ({
     page,
   }) => {
@@ -231,3 +285,16 @@ test.describe("workspace entrypoint regression", () => {
     await expect(createdToInput).toHaveValue("");
   });
 });
+
+async function mockClipboard(page: Page) {
+  await page.addInitScript(() => {
+    Object.defineProperty(navigator, "clipboard", {
+      configurable: true,
+      value: {
+        writeText: async (value: string) => {
+          window.localStorage.setItem("__lastCopiedInviteLink", value);
+        },
+      },
+    });
+  });
+}

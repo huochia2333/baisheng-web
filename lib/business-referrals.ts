@@ -3,11 +3,6 @@ import {
   type SalesmanBusinessBoard,
 } from "./salesman-business-access";
 
-const BOARD_REFERRAL_CODE_SUFFIX = {
-  tourism: "T",
-  wholesale: "D",
-} as const satisfies Record<SalesmanBusinessBoard, string>;
-
 export function buildBoardInviteLink({
   board,
   origin,
@@ -21,28 +16,19 @@ export function buildBoardInviteLink({
     return "";
   }
 
-  const boardReferralCode = buildBoardReferralCode(referralCode, board);
-
-  if (!boardReferralCode) {
-    return "";
-  }
-
-  const params = new URLSearchParams({
-    ref: boardReferralCode,
-  });
-
-  return `${origin}/register?${params.toString()}`;
-}
-
-function buildBoardReferralCode(
-  referralCode: string,
-  board: SalesmanBusinessBoard,
-) {
-  const normalizedReferralCode = referralCode.trim().toUpperCase();
+  const normalizedReferralCode = normalizeReferralCode(referralCode);
 
   if (!normalizedReferralCode) {
     return "";
   }
 
-  return `${normalizedReferralCode}-${BOARD_REFERRAL_CODE_SUFFIX[board]}`;
+  const params = new URLSearchParams({
+    ref: normalizedReferralCode,
+  });
+
+  return `${origin}/register?${params.toString()}`;
+}
+
+function normalizeReferralCode(referralCode: string) {
+  return referralCode.trim().toUpperCase();
 }

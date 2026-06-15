@@ -19,7 +19,7 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function RegisterPage({
   searchParams,
 }: {
-  searchParams: Promise<{ board?: string | string[]; ref?: string | string[] }>;
+  searchParams: Promise<{ ref?: string | string[] }>;
 }) {
   const [, params, t, authShellCopy] = await Promise.all([
     redirectAuthenticatedUserToWorkspace(),
@@ -27,10 +27,7 @@ export default async function RegisterPage({
     getTranslations("RegisterPage"),
     getAuthShellCopy(),
   ]);
-  const initialInviteCode = buildInitialInviteCode(
-    firstSearchParam(params.ref),
-    firstSearchParam(params.board),
-  );
+  const initialInviteCode = normalizeInviteCode(firstSearchParam(params.ref));
 
   return (
     <ScopedIntlProvider namespaces={["LanguageToggle", "RegisterForm"]}>
@@ -64,31 +61,6 @@ function firstSearchParam(value: string | string[] | undefined) {
   return Array.isArray(value) ? value[0] : value;
 }
 
-function buildInitialInviteCode(
-  referralCode: string | undefined,
-  businessBoard: string | undefined,
-) {
-  const normalizedCode = referralCode?.trim().toUpperCase();
-
-  if (!normalizedCode || /-[TD]$/i.test(normalizedCode)) {
-    return normalizedCode;
-  }
-
-  const suffix = getInviteCodeBoardSuffix(businessBoard);
-
-  return suffix ? `${normalizedCode}-${suffix}` : normalizedCode;
-}
-
-function getInviteCodeBoardSuffix(value: string | undefined) {
-  const normalized = value?.trim().toLowerCase();
-
-  if (normalized === "tourism") {
-    return "T";
-  }
-
-  if (normalized === "wholesale") {
-    return "D";
-  }
-
-  return null;
+function normalizeInviteCode(value: string | undefined) {
+  return value?.trim().toUpperCase();
 }
