@@ -9,6 +9,7 @@ import { useTranslations } from "next-intl";
 
 import { useLocale } from "@/components/i18n/locale-provider";
 import type { AiAssistantLocale } from "@/lib/ai-assistant/assistant-types";
+import { getCompanyText } from "@/lib/company-config";
 
 import { AiAssistantFeedbackBridge } from "./ai-assistant-feedback-bridge";
 import { AiAssistantPanel } from "./ai-assistant-panel";
@@ -20,15 +21,25 @@ export function AiAssistantClient() {
   const { locale } = useLocale();
   const [open, setOpen] = useState(false);
   const assistantLocale: AiAssistantLocale = locale === "en" ? "en" : "zh";
+  const companyText = getCompanyText(assistantLocale);
   const copy = useMemo(
     () => ({
-      close: t("close"),
+      close:
+        assistantLocale === "en"
+          ? `Close ${companyText.assistantName}`
+          : `关闭${companyText.assistantName}`,
       feedbackEntry: {
         action: t("feedbackAction"),
         assistantReplyLabel: t("feedbackDraftAssistantLabel"),
         draftExpectation: t("feedbackDraftExpectation"),
-        draftIntro: t("feedbackDraftIntro"),
-        draftTitle: t("feedbackDraftTitle"),
+        draftIntro:
+          assistantLocale === "en"
+            ? `I ran into this while using ${companyText.assistantName}:`
+            : `我在使用${companyText.assistantName}时遇到这个问题：`,
+        draftTitle:
+          assistantLocale === "en"
+            ? `${companyText.assistantName} did not solve my problem`
+            : `${companyText.assistantName}没有解决我的问题`,
         errorDescription: t("feedbackErrorDescription"),
         errorLabel: t("feedbackDraftErrorLabel"),
         explicitDescription: t("feedbackExplicitDescription"),
@@ -37,7 +48,10 @@ export function AiAssistantClient() {
       },
       greeting: t("greeting"),
       inputLabel: t("inputLabel"),
-      open: t("open"),
+      open:
+        assistantLocale === "en"
+          ? `Open ${companyText.assistantName}`
+          : `打开${companyText.assistantName}`,
       placeholder: t("placeholder"),
       reset: t("reset"),
       resetConfirmAction: t("resetConfirmAction"),
@@ -46,9 +60,9 @@ export function AiAssistantClient() {
       send: t("send"),
       serviceUnavailable: t("serviceUnavailable"),
       thinking: t("thinking"),
-      title: t("title"),
+      title: companyText.assistantName,
     }),
-    [t],
+    [assistantLocale, companyText.assistantName, t],
   );
   const chat = useAiAssistantChat({
     copy,

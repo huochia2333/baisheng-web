@@ -1,5 +1,6 @@
 import Image from "next/image";
 
+import { companyConfig } from "@/lib/company-config";
 import { cn } from "@/lib/utils";
 
 export function BrandMark({
@@ -35,7 +36,7 @@ export function BrandMark({
         preload={priority}
         quality={90}
         sizes={`${size}px`}
-        src="/images/pt5-logo.png"
+        src={companyConfig.logoSrc}
         style={{
           display: "block",
           height: "100%",

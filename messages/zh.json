@@ -1,7 +1,7 @@
 {
   "Metadata": {
-    "appTitle": "柏盛管理系统",
-    "appDescription": "柏盛管理系统的登录、注册与业务工作台。"
+    "appTitle": "管理系统",
+    "appDescription": "登录、注册与业务工作台。"
   },
   "ErrorBoundary": {
     "badge": "页面保护",
@@ -34,9 +34,9 @@
     "page": "第 {page} / {pageCount} 页"
   },
   "AuthShell": {
-    "brandTitle": "柏盛管理系统",
+    "brandTitle": "管理系统",
     "brandSubtitle": "精选管理工作台",
-    "copyright": "© 2026 柏盛管理系统",
+    "copyright": "© 2026 管理系统",
     "privacy": "隐私政策",
     "terms": "服务条款",
     "help": "帮助中心",
@@ -46,7 +46,7 @@
     "common": {
       "backHome": "返回主入口",
       "lastUpdatedLabel": "最后更新",
-      "draftNotice": "本页面为柏盛管理系统的实用模板草案，可用于当前产品上线展示；在作为正式法律文本前，仍建议由业务负责人或法律顾问复核。",
+      "draftNotice": "本页面为当前管理系统的实用模板草案，可用于当前产品上线展示；在作为正式法律文本前，仍建议由业务负责人或法律顾问复核。",
       "nav": {
         "privacy": "隐私政策",
         "terms": "服务条款",
@@ -57,7 +57,7 @@
       "metadataTitle": "隐私政策",
       "eyebrow": "隐私政策",
       "title": "隐私政策",
-      "description": "本政策说明柏盛管理系统在注册、登录、审核、角色工作台和业务协作过程中，如何处理账号资料、实名资料、媒体资料与工作台数据。",
+      "description": "本政策说明当前管理系统在注册、登录、审核、角色工作台和业务协作过程中，如何处理账号资料、实名资料、媒体资料与工作台数据。",
       "lastUpdated": "2026-04-24",
       "sections": [
         {
@@ -113,13 +113,13 @@
       "metadataTitle": "服务条款",
       "eyebrow": "服务条款",
       "title": "服务条款",
-      "description": "本条款说明访问和使用柏盛管理系统的基本规则，包括账号、角色权限、提交资料和业务流程。",
+      "description": "本条款说明访问和使用当前管理系统的基本规则，包括账号、角色权限、提交资料和业务流程。",
       "lastUpdated": "2026-04-24",
       "sections": [
         {
           "title": "服务范围",
           "items": [
-            "柏盛管理系统提供角色化 Web 工作台，用于注册、登录、个人资料管理、审核流程、订单、任务、推荐、团队、汇率和佣金相关操作。",
+            "当前管理系统提供角色化 Web 工作台，用于注册、登录、个人资料管理、审核流程、订单、任务、推荐、团队、汇率和佣金相关操作。",
             "你可使用的功能取决于系统分配给你的角色、团队关系、账号状态，以及当前为你开放的功能。",
             "随着业务运营变化，系统可能调整、扩展或移除部分功能。"
           ]
@@ -188,16 +188,16 @@
   },
   "RegisterPage": {
     "title": "注册",
-    "asideTitle": "申请加入<br></br>柏盛工作台",
+    "asideTitle": "申请加入<br></br>工作台",
     "asideDescription": "通过邀请码创建账号，系统会根据账号资料和角色权限开放对应功能。",
     "noteTitle": "系统邀请制",
-    "noteDescription": "柏盛目前采用邀请制以保障服务质量。如果您尚未获得邀请码，请联系系统管理员或推荐人。",
-    "headerTitle": "注册柏盛账号",
+    "noteDescription": "当前系统采用邀请制以保障服务质量。如果您尚未获得邀请码，请联系系统管理员或推荐人。",
+    "headerTitle": "注册账号",
     "headerDescription": "请填写真实联系信息，并使用有效邀请码完成账号创建。",
     "footerPrompt": "已有账号？",
     "footerLinkLabel": "返回登录",
     "mobileNoteTitle": "系统邀请制",
-    "mobileNoteDescription": "柏盛目前采用邀请制以保障服务质量。如果您尚未获得邀请码，请联系系统管理员或推荐人。"
+    "mobileNoteDescription": "当前系统采用邀请制以保障服务质量。如果您尚未获得邀请码，请联系系统管理员或推荐人。"
   },
   "ForgotPasswordPage": {
     "title": "忘记密码",
@@ -298,13 +298,13 @@
     "emailDeliveryFailed": "重置邮件没有发送成功，请确认邮箱可用，或联系管理员处理。"
   },
   "DashboardShell": {
-    "brandTitle": "柏盛管理系统",
+    "brandTitle": "管理系统",
     "logout": "退出登录",
     "serviceUnavailable": "当前服务暂时不可用，请稍后再试。",
     "aiAssistant": {
-      "title": "柏盛助手",
-      "open": "打开柏盛助手",
-      "close": "关闭柏盛助手",
+      "title": "工作台助手",
+      "open": "打开工作台助手",
+      "close": "关闭工作台助手",
       "reset": "新对话",
       "resetConfirmDescription": "开始新对话会清空当前聊天内容。",
       "resetConfirmAction": "确认开始",
@@ -319,8 +319,8 @@
       "feedbackErrorDescription": "如果这个问题一直没有解决，可以把刚才的情况提交给管理员查看。",
       "feedbackExplicitDescription": "你可以直接把这个问题提交给管理员查看，不用再去找反馈入口。",
       "feedbackUnableDescription": "这件事需要人工确认，可以把刚才的对话提交给管理员查看。",
-      "feedbackDraftTitle": "柏盛助手没有解决我的问题",
-      "feedbackDraftIntro": "我在使用柏盛助手时遇到这个问题：",
+      "feedbackDraftTitle": "工作台助手没有解决我的问题",
+      "feedbackDraftIntro": "我在使用工作台助手时遇到这个问题：",
       "feedbackDraftUserQuestionLabel": "我的问题：",
       "feedbackDraftAssistantLabel": "助手回复：",
       "feedbackDraftErrorLabel": "当前情况：",
@@ -925,7 +925,7 @@
     "verificationPendingDescription": "身份证资料已提交，当前正在审核中。",
     "verificationEmptyDescription": "身份证资料通过审核后，这里会显示通过认证。",
     "identityMediaTitle": "身份证明与多媒体",
-    "copyright": "© 2026 柏盛管理系统",
+    "copyright": "© 2026 管理系统",
     "privacy": "隐私政策",
     "terms": "服务条款",
     "help": "帮助中心",

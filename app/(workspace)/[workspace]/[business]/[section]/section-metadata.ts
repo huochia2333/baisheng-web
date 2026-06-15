@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 
 import { getTranslations } from "next-intl/server";
 
+import { getWorkspaceBusinessModule } from "@/lib/workspace-business-modules";
 import {
   getWorkspaceConfigByRouteSegment,
   isWorkspaceBusinessKey,
@@ -23,7 +24,13 @@ export async function generateWorkspaceSectionMetadata({
     return {};
   }
 
-  if (business === "wholesale") {
+  const businessModule = getWorkspaceBusinessModule(business);
+
+  if (!businessModule) {
+    return {};
+  }
+
+  if (businessModule.pageEntry === "wholesale") {
     const wholesaleSection = getEnabledWholesaleSection(section, config);
 
     if (!wholesaleSection) {

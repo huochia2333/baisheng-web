@@ -5,14 +5,21 @@ import { useMemo, useState } from "react";
 import {
   ArrowLeftRight,
   Building2,
+  Puzzle,
   Settings,
   ShieldAlert,
   ShoppingCart,
+  type LucideIcon,
 } from "lucide-react";
 import { useTranslations } from "next-intl";
 
 import type { AdminSystemSettingsPageData } from "@/lib/admin-system-settings";
-import type { CommissionRuleCode } from "@/lib/commission-settings";
+import {
+  getWorkspaceBusinessSettingsModule,
+  getWorkspaceBusinessSettingsModules,
+  type WorkspaceBusinessKey,
+  type WorkspaceBusinessSettingsModule,
+} from "@/lib/workspace-business-modules";
 import { DashboardSectionHeader } from "@/components/dashboard/dashboard-section-header";
 import { DashboardSegmentedTabs } from "@/components/dashboard/dashboard-segmented-tabs";
 import { EmptyState } from "@/components/dashboard/dashboard-shared-ui";
@@ -21,19 +28,16 @@ import { AdminOrdersServiceOrderSettings } from "@/components/dashboard/admin-or
 import { AdminCommissionSettingsSection } from "@/components/dashboard/commission/admin-commission-settings-section";
 import { ExchangeRatesClient } from "@/components/dashboard/exchange-rates/exchange-rates-client";
 
-type SettingsPanel = "exchangeRates" | "tourism" | "wholesale";
+type SettingsPanel = WorkspaceBusinessKey | "exchangeRates";
 
-const TOURISM_COMMISSION_RULE_CODES = [
-  "service_escort_salesman",
-  "digital_survival_salesman",
-  "service_referral_rate",
-  "vip_first_year_referral_bonus",
-] as const satisfies readonly CommissionRuleCode[];
+const businessSettingsModules = getWorkspaceBusinessSettingsModules();
 
-const WHOLESALE_COMMISSION_RULE_CODES = [
-  "purchase_salesman_tier",
-  "purchase_referral_rate",
-] as const satisfies readonly CommissionRuleCode[];
+const BUSINESS_SETTINGS_ICON_BY_KEY: Partial<
+  Record<WorkspaceBusinessKey, LucideIcon>
+> = {
+  tourism: ShoppingCart,
+  wholesale: Building2,
+};
 
 export function AdminSystemSettingsClient({
   initialData,
@@ -41,7 +45,9 @@ export function AdminSystemSettingsClient({
   initialData: AdminSystemSettingsPageData;
 }) {
   const t = useTranslations("SystemSettings");
-  const [activePanel, setActivePanel] = useState<SettingsPanel>("tourism");
+  const [activePanel, setActivePanel] = useState<SettingsPanel>(
+    businessSettingsModules[0]?.business ?? "exchangeRates",
+  );
   const [serviceFeeTypeOptions, setServiceFeeTypeOptions] = useState(
     initialData.serviceFeeTypeOptions,
   );
@@ -56,18 +62,12 @@ export function AdminSystemSettingsClient({
   );
   const tabOptions = useMemo(
     () => [
-      {
-        description: t("tabs.tourism.description"),
-        icon: <ShoppingCart className="size-4" />,
-        key: "tourism" as const,
-        label: t("tabs.tourism.title"),
-      },
-      {
-        description: t("tabs.wholesale.description"),
-        icon: <Building2 className="size-4" />,
-        key: "wholesale" as const,
-        label: t("tabs.wholesale.title"),
-      },
+      ...businessSettingsModules.map((module) => ({
+        description: t(module.descriptionKey),
+        icon: getBusinessSettingsIcon(module.business),
+        key: module.business,
+        label: t(module.titleKey),
+      })),
       {
         description: t("tabs.exchangeRates.description"),
         icon: <ArrowLeftRight className="size-4" />,
@@ -104,46 +104,114 @@ export function AdminSystemSettingsClient({
             value={activePanel}
           />
 
-          {activePanel === "tourism" ? (
-            <div className="flex flex-col gap-8">
-              <AdminOrdersServiceFeeSettings
-                commissionRuleSettings={commissionRuleSettings}
-                initialRows={serviceFeeTypeOptions}
-                onRowsChange={setServiceFeeTypeOptions}
-              />
-              <AdminOrdersServiceOrderSettings
-                initialDiscounts={orderDiscountOptions}
-                initialPrices={serviceOrderPriceOptions}
-                serviceOrderTypes={initialData.serviceOrderTypeOptions}
-                onDiscountsChange={setOrderDiscountOptions}
-                onPricesChange={setServiceOrderPriceOptions}
-              />
-              <AdminCommissionSettingsSection
-                canManageSettings={initialData.canManageCommissionSettings}
-                onRowsChange={setCommissionRuleSettings}
-                rows={commissionRuleSettings}
-                ruleCodes={TOURISM_COMMISSION_RULE_CODES}
-              />
-            </div>
-          ) : activePanel === "wholesale" ? (
-            <div className="flex flex-col gap-8">
-              <AdminCommissionSettingsSection
-                canManageSettings={initialData.canManageCommissionSettings}
-                onRowsChange={setCommissionRuleSettings}
-                rows={commissionRuleSettings}
-                ruleCodes={WHOLESALE_COMMISSION_RULE_CODES}
-              />
-            </div>
-          ) : activePanel === "exchangeRates" ? (
+          {activePanel === "exchangeRates" ? (
             <ExchangeRatesClient
               embedded
               homeHref="/admin/home"
               initialData={initialData.exchangeRates}
               mode="manage"
             />
-          ) : null}
+          ) : (
+            <BusinessSettingsPanel
+              canManageCommissionSettings={initialData.canManageCommissionSettings}
+              commissionRuleSettings={commissionRuleSettings}
+              module={getWorkspaceBusinessSettingsModule(activePanel)}
+              onCommissionRuleRowsChange={setCommissionRuleSettings}
+              onOrderDiscountRowsChange={setOrderDiscountOptions}
+              onServiceFeeRowsChange={setServiceFeeTypeOptions}
+              onServiceOrderPriceRowsChange={setServiceOrderPriceOptions}
+              orderDiscountOptions={orderDiscountOptions}
+              serviceFeeTypeOptions={serviceFeeTypeOptions}
+              serviceOrderPriceOptions={serviceOrderPriceOptions}
+              serviceOrderTypeOptions={initialData.serviceOrderTypeOptions}
+            />
+          )}
         </>
       )}
     </section>
   );
+}
+
+function BusinessSettingsPanel({
+  canManageCommissionSettings,
+  commissionRuleSettings,
+  module,
+  onCommissionRuleRowsChange,
+  onOrderDiscountRowsChange,
+  onServiceFeeRowsChange,
+  onServiceOrderPriceRowsChange,
+  orderDiscountOptions,
+  serviceFeeTypeOptions,
+  serviceOrderPriceOptions,
+  serviceOrderTypeOptions,
+}: {
+  canManageCommissionSettings: AdminSystemSettingsPageData["canManageCommissionSettings"];
+  commissionRuleSettings: AdminSystemSettingsPageData["commissionRuleSettings"];
+  module: WorkspaceBusinessSettingsModule | undefined;
+  onCommissionRuleRowsChange: (
+    rows: AdminSystemSettingsPageData["commissionRuleSettings"],
+  ) => void;
+  onOrderDiscountRowsChange: (
+    rows: AdminSystemSettingsPageData["orderDiscountOptions"],
+  ) => void;
+  onServiceFeeRowsChange: (
+    rows: AdminSystemSettingsPageData["serviceFeeTypeOptions"],
+  ) => void;
+  onServiceOrderPriceRowsChange: (
+    rows: AdminSystemSettingsPageData["serviceOrderPriceOptions"],
+  ) => void;
+  orderDiscountOptions: AdminSystemSettingsPageData["orderDiscountOptions"];
+  serviceFeeTypeOptions: AdminSystemSettingsPageData["serviceFeeTypeOptions"];
+  serviceOrderPriceOptions: AdminSystemSettingsPageData["serviceOrderPriceOptions"];
+  serviceOrderTypeOptions: AdminSystemSettingsPageData["serviceOrderTypeOptions"];
+}) {
+  if (!module) {
+    return null;
+  }
+
+  return (
+    <div className="flex flex-col gap-8">
+      {module.sections.map((section) => {
+        if (section.kind === "tourismServiceFees") {
+          return (
+            <AdminOrdersServiceFeeSettings
+              commissionRuleSettings={commissionRuleSettings}
+              initialRows={serviceFeeTypeOptions}
+              key={section.kind}
+              onRowsChange={onServiceFeeRowsChange}
+            />
+          );
+        }
+
+        if (section.kind === "tourismServiceOrders") {
+          return (
+            <AdminOrdersServiceOrderSettings
+              initialDiscounts={orderDiscountOptions}
+              initialPrices={serviceOrderPriceOptions}
+              key={section.kind}
+              serviceOrderTypes={serviceOrderTypeOptions}
+              onDiscountsChange={onOrderDiscountRowsChange}
+              onPricesChange={onServiceOrderPriceRowsChange}
+            />
+          );
+        }
+
+        return (
+          <AdminCommissionSettingsSection
+            canManageSettings={canManageCommissionSettings}
+            key={`${section.kind}-${section.ruleCodes.join("-")}`}
+            onRowsChange={onCommissionRuleRowsChange}
+            rows={commissionRuleSettings}
+            ruleCodes={section.ruleCodes}
+          />
+        );
+      })}
+    </div>
+  );
+}
+
+function getBusinessSettingsIcon(business: WorkspaceBusinessKey) {
+  const Icon = BUSINESS_SETTINGS_ICON_BY_KEY[business] ?? Puzzle;
+
+  return <Icon className="size-4" />;
 }

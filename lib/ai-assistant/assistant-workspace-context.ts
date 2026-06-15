@@ -5,11 +5,13 @@ import {
 import {
   getWorkspaceConfigByBasePath,
   getWorkspaceConfigForPathname,
+  type WorkspaceBusinessKey,
   type WorkspaceNavItem,
   type WorkspaceNavLabelKey,
   type WorkspacePageVariants,
   type WorkspaceRouteConfig,
 } from "@/lib/workspace-config";
+import { getWorkspaceBusinessModule } from "@/lib/workspace-business-modules";
 import { isSalesStaffRole } from "@/lib/sales-staff-roles";
 
 const ROLE_LABELS = {
@@ -65,6 +67,11 @@ const NAV_ENTRY_DESCRIPTIONS = {
   wholesaleOrders: "管理批发客户订单、费用、毛利、订单月份和关联 1688 采购订单",
 } as const satisfies Record<WorkspaceNavLabelKey, string>;
 
+const BUSINESS_LABELS = {
+  tourism: "旅游业务",
+  wholesale: "批发业务",
+} as const satisfies Record<WorkspaceBusinessKey, string>;
+
 const SYSTEM_UPDATE_GUIDES = [
   "后台采用一套登录壳、旅游业务和批发业务两个分组；旅游订单继续使用当前订单结构，批发业务使用独立的客户、订单、1688 认领、物流、提成和推荐模型。",
   "任务支持按目标角色发放、多人分别领取、分别提交审核；管理员可以设置提交任务时是否必须上传文件。",
@@ -114,7 +121,7 @@ function buildRoleGuide(config: WorkspaceRouteConfig) {
     ...config.globalNavItems.map((item) => buildNavEntryGuide(config, item)),
     ...config.navGroups.flatMap((group) =>
       group.navItems.map((item) =>
-        `${group.business === "tourism" ? "旅游业务" : "批发业务"} / ${buildNavEntryGuide(config, item)}`,
+        `${BUSINESS_LABELS[group.business]} / ${buildNavEntryGuide(config, item)}`,
       ),
     ),
   ];
@@ -135,7 +142,7 @@ function getNavEntryDescription(
   item: WorkspaceNavItem,
 ) {
   if (isSalesStaffRole(config.authRole) && item.segment === "orders") {
-    return item.business === "wholesale"
+    return isWholesaleBusinessNavItem(item)
       ? NAV_ENTRY_DESCRIPTIONS.wholesaleOrders
       : "按当前账号可见旅游业务处理订单；如果页面没有该入口，以当前工作台实际显示为准";
   }
@@ -145,6 +152,14 @@ function getNavEntryDescription(
   }
 
   return NAV_ENTRY_DESCRIPTIONS[item.labelKey];
+}
+
+function isWholesaleBusinessNavItem(item: WorkspaceNavItem) {
+  if (!item.business) {
+    return false;
+  }
+
+  return getWorkspaceBusinessModule(item.business)?.pageEntry === "wholesale";
 }
 
 function buildCurrentPageGuide(

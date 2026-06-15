@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 
-import { getTranslations } from "next-intl/server";
+import { getLocale, getTranslations } from "next-intl/server";
 
 import { AdminShellNav } from "@/components/dashboard/admin-shell-nav";
 import { AdminShellLogoutButton } from "@/components/dashboard/admin-shell-client";
@@ -18,6 +18,8 @@ import {
 } from "@/components/dashboard/workspace-customization-sidebar";
 import { ScopedIntlProvider } from "@/components/i18n/scoped-intl-provider";
 import { LanguageToggle } from "@/components/i18n/language-toggle";
+import { getCompanyText } from "@/lib/company-config";
+import { normalizeLocale } from "@/lib/locale";
 import {
   getWorkspaceBusinessNavHref,
   getWorkspaceNavHref,
@@ -53,11 +55,13 @@ type AdminShellProps = {
 };
 
 export async function AdminShell({ children, config }: AdminShellProps) {
-  const [t, initialAnnouncementsState, workspaceBusinessAccess] = await Promise.all([
+  const [t, initialAnnouncementsState, workspaceBusinessAccess, locale] = await Promise.all([
     getTranslations("DashboardShell"),
     getInitialWorkspaceAnnouncementsState(),
     getShellWorkspaceBusinessAccess(),
+    getLocale(),
   ]);
+  const companyText = getCompanyText(normalizeLocale(locale));
   const workspace = getWorkspaceConfig(config, t, workspaceBusinessAccess);
 
   return (
@@ -80,9 +84,9 @@ export async function AdminShell({ children, config }: AdminShellProps) {
                       <h2 className="text-sm font-bold tracking-wide text-[#415f76]">
                         {workspace.title}
                       </h2>
-                      <p className="text-xs text-[#415f76]/60">
-                        {workspace.subtitle}
-                      </p>
+                    <p className="text-xs text-[#415f76]/60">
+                      {workspace.subtitle}
+                    </p>
                     </div>
                   </div>
 
@@ -106,7 +110,7 @@ export async function AdminShell({ children, config }: AdminShellProps) {
                       {workspace.workspaceLabel}
                     </p>
                     <h1 className="hidden text-xl font-bold tracking-tight text-[#486782] sm:block sm:text-3xl">
-                      {t("brandTitle")}
+                      {companyText.productName}
                     </h1>
                   </div>
 
@@ -121,7 +125,7 @@ export async function AdminShell({ children, config }: AdminShellProps) {
                   </div>
 
                   <h1 className="col-span-2 break-words text-2xl font-bold tracking-tight text-[#486782] sm:hidden">
-                    {t("brandTitle")}
+                    {companyText.productName}
                   </h1>
                 </div>
 

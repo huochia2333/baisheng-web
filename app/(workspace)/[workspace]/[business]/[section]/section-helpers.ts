@@ -2,6 +2,7 @@ import type {
   WorkspaceBusinessKey,
   WorkspaceRouteConfig,
 } from "@/lib/workspace-config";
+import { getWorkspaceBusinessModule } from "@/lib/workspace-business-modules";
 import type { WorkspaceSectionKey } from "@/lib/workspace-sections";
 
 export function isWorkspaceSectionEnabled(
@@ -34,8 +35,9 @@ export function getSectionNamespaces(
   business: WorkspaceBusinessKey,
 ) {
   const namespaces = ["AdminSectionPlaceholder"];
+  const businessModule = getWorkspaceBusinessModule(business);
 
-  if (business === "wholesale") {
+  if (businessModule?.pageEntry === "wholesale") {
     namespaces.push("WholesaleBusiness");
     return namespaces;
   }

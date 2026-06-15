@@ -1,4 +1,5 @@
 import type { ChatCompletionMessageParam } from "@/lib/ai-assistant/deepseek-client";
+import { getCompanyText } from "@/lib/company-config";
 import { normalizeSearchText } from "@/lib/value-normalizers";
 import { getWholesalePageData, type WholesaleOrder } from "@/lib/wholesale";
 
@@ -151,12 +152,13 @@ export function buildWholesaleOrderAssessmentMessages({
       "订单编号": order.order_number,
     };
   });
+  const companyText = getCompanyText("zh");
 
   return [
     {
       role: "system",
       content: [
-        "你是柏盛管理系统里的批发业务订单评估助手。",
+        `你是${companyText.productName}里的批发业务订单评估助手。`,
         "你只基于用户当前可见的批发订单统计做评估，不要编造未提供的数据。",
         "用简体中文，口吻直接、务实，面向业务负责人。",
         "不要提数据库、接口、模型、JSON、字段名、token、权限系统等技术词。",

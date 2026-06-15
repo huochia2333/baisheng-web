@@ -1,7 +1,7 @@
 {
   "Metadata": {
-    "appTitle": "Baisheng Management System",
-    "appDescription": "Sign-in, registration and workspace flows for the Baisheng Management System."
+    "appTitle": "Management System",
+    "appDescription": "Sign-in, registration and workspace flows."
   },
   "ErrorBoundary": {
     "badge": "Page Guard",
@@ -34,9 +34,9 @@
     "page": "Page {page} / {pageCount}"
   },
   "AuthShell": {
-    "brandTitle": "Baisheng Management System",
+    "brandTitle": "Management System",
     "brandSubtitle": "Curated Admin Console",
-    "copyright": "© 2026 Baisheng Management System",
+    "copyright": "© 2026 Management System",
     "privacy": "Privacy Policy",
     "terms": "Terms of Service",
     "help": "Help Center",
@@ -46,7 +46,7 @@
     "common": {
       "backHome": "Back to Main Entry",
       "lastUpdatedLabel": "Last updated",
-      "draftNotice": "This policy page is a practical template draft for the Baisheng Management System. It should be reviewed by the business owner or legal counsel before being treated as final legal advice.",
+      "draftNotice": "This policy page is a practical template draft for the current management system. It should be reviewed by the business owner or legal counsel before being treated as final legal advice.",
       "nav": {
         "privacy": "Privacy Policy",
         "terms": "Terms of Service",
@@ -57,7 +57,7 @@
       "metadataTitle": "Privacy Policy",
       "eyebrow": "Privacy Policy",
       "title": "Privacy Policy",
-      "description": "This policy explains how Baisheng Management System handles account, identity, media and workspace data during registration, sign-in, review and role-based work.",
+      "description": "This policy explains how the current management system handles account, identity, media and workspace data during registration, sign-in, review and role-based work.",
       "lastUpdated": "2026-04-24",
       "sections": [
         {
@@ -113,13 +113,13 @@
       "metadataTitle": "Terms of Service",
       "eyebrow": "Terms of Service",
       "title": "Terms of Service",
-      "description": "These terms describe the basic rules for accessing and using the Baisheng Management System, including accounts, role permissions, submitted materials, and everyday business processes.",
+      "description": "These terms describe the basic rules for accessing and using the current management system, including accounts, role permissions, submitted materials, and everyday business processes.",
       "lastUpdated": "2026-04-24",
       "sections": [
         {
           "title": "Service Scope",
           "items": [
-            "Baisheng Management System provides different workspaces for different roles, covering registration, sign-in, profile management, reviews, orders, tasks, referrals, teams, exchange rates, and commission-related work.",
+            "The current management system provides different workspaces for different roles, covering registration, sign-in, profile management, reviews, orders, tasks, referrals, teams, exchange rates, and commission-related work.",
             "The features available to you depend on your assigned role, team relationship, account status, and the functions currently opened to that role.",
             "The system may change, expand or remove features as business operations evolve."
           ]
@@ -188,16 +188,16 @@
   },
   "RegisterPage": {
     "title": "Register",
-    "asideTitle": "Request Access to<br></br>Baisheng Workspace",
+    "asideTitle": "Request Access to<br></br>the Workspace",
     "asideDescription": "Create an account with an invite code. Available features are opened according to your profile and role.",
     "noteTitle": "Invitation Access",
-    "noteDescription": "Baisheng currently uses invitation-based access to maintain service quality. Contact an administrator or your referrer if you need an invite code.",
+    "noteDescription": "The system currently uses invitation-based access to maintain service quality. Contact an administrator or your referrer if you need an invite code.",
     "headerTitle": "Create Your Account",
     "headerDescription": "Use accurate contact details and a valid invite code to create your account.",
     "footerPrompt": "Already have an account?",
     "footerLinkLabel": "Back to Sign In",
     "mobileNoteTitle": "Invitation Access",
-    "mobileNoteDescription": "Baisheng currently uses invitation-based access to maintain service quality. Contact an administrator or your referrer if you need an invite code."
+    "mobileNoteDescription": "The system currently uses invitation-based access to maintain service quality. Contact an administrator or your referrer if you need an invite code."
   },
   "ForgotPasswordPage": {
     "title": "Forgot Password",
@@ -298,13 +298,13 @@
     "emailDeliveryFailed": "The reset email could not be sent. Confirm the email can receive messages or contact an administrator."
   },
   "DashboardShell": {
-    "brandTitle": "Baisheng Management System",
+    "brandTitle": "Management System",
     "logout": "Sign Out",
     "serviceUnavailable": "The service is temporarily unavailable. Please try again later.",
     "aiAssistant": {
-      "title": "Baisheng Assistant",
-      "open": "Open Baisheng Assistant",
-      "close": "Close Baisheng Assistant",
+      "title": "Workspace Assistant",
+      "open": "Open Workspace Assistant",
+      "close": "Close Workspace Assistant",
       "reset": "New Chat",
       "resetConfirmDescription": "Starting a new chat will clear the current conversation.",
       "resetConfirmAction": "Start New",
@@ -319,8 +319,8 @@
       "feedbackErrorDescription": "If this problem keeps blocking you, send the recent details to an administrator for review.",
       "feedbackExplicitDescription": "You can send this problem to an administrator from here without looking for the feedback button.",
       "feedbackUnableDescription": "This needs someone to confirm it. You can send the recent conversation to an administrator for review.",
-      "feedbackDraftTitle": "Baisheng Assistant did not solve my problem",
-      "feedbackDraftIntro": "I ran into this while using Baisheng Assistant:",
+      "feedbackDraftTitle": "Workspace Assistant did not solve my problem",
+      "feedbackDraftIntro": "I ran into this while using Workspace Assistant:",
       "feedbackDraftUserQuestionLabel": "My question: ",
       "feedbackDraftAssistantLabel": "Assistant reply: ",
       "feedbackDraftErrorLabel": "Current situation: ",
@@ -925,7 +925,7 @@
     "verificationPendingDescription": "Your ID information has been submitted and is currently under review.",
     "verificationEmptyDescription": "This area will show your verified status after the ID review is approved.",
     "identityMediaTitle": "Identity Documents & Media",
-    "copyright": "© 2026 Baisheng Management System",
+    "copyright": "© 2026 Management System",
     "privacy": "Privacy Policy",
     "terms": "Terms of Service",
     "help": "Help Center",

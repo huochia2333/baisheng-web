@@ -1,11 +1,12 @@
 import type { EmailOtpType } from "@supabase/supabase-js";
 import { NextResponse, type NextRequest } from "next/server";
 
+import { getCompanyPublicOrigin } from "@/lib/company-config";
 import { getServerSupabaseClient } from "@/lib/supabase-server";
 
 const EMAIL_CONFIRMATION_TYPE = "email" satisfies EmailOtpType;
 const DEFAULT_REDIRECT_PATH = "/login";
-const DEFAULT_PUBLIC_ORIGIN = "https://account.pt5china.com";
+const DEFAULT_PUBLIC_ORIGIN = getCompanyPublicOrigin();
 const LOCAL_PUBLIC_HOST_PATTERN = /^(?:localhost|127\.0\.0\.1)(?::\d+)?$/;
 const ALLOWED_PUBLIC_HOSTS = new Set(
   [DEFAULT_PUBLIC_ORIGIN, process.env.NEXT_PUBLIC_SITE_URL]

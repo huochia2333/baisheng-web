@@ -2,6 +2,9 @@
 
 import { useTranslations } from "next-intl";
 
+import { useLocale } from "@/components/i18n/locale-provider";
+import { getCompanyText } from "@/lib/company-config";
+
 export type DashboardMyCopy = {
   bundleUnavailable: string;
   bundleSyncDescription: string;
@@ -96,6 +99,8 @@ export type DashboardMyCopy = {
 
 export function useDashboardMyCopy(): DashboardMyCopy {
   const t = useTranslations("DashboardMy");
+  const { locale } = useLocale();
+  const companyText = getCompanyText(locale === "en" ? "en" : "zh");
 
   return {
     bundleUnavailable: t("bundleUnavailable"),
@@ -159,7 +164,7 @@ export function useDashboardMyCopy(): DashboardMyCopy {
     verificationPendingDescription: t("verificationPendingDescription"),
     verificationEmptyDescription: t("verificationEmptyDescription"),
     identityMediaTitle: t("identityMediaTitle"),
-    copyright: t("copyright"),
+    copyright: companyText.copyright,
     privacy: t("privacy"),
     terms: t("terms"),
     help: t("help"),

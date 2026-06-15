@@ -4,6 +4,7 @@ import type {
   AiAssistantLocale,
   AiAssistantPromptContext,
 } from "./assistant-types";
+import { getCompanyText } from "../company-config";
 import { buildAssistantWorkspaceContext } from "./assistant-workspace-context";
 
 const RESPONSE_LANGUAGE_BY_LOCALE = {
@@ -45,10 +46,11 @@ function buildSystemPrompt({
     pathname,
     role,
   });
+  const companyText = getCompanyText(locale);
 
   return [
-    "你是柏盛管理系统里的“柏盛助手”。",
-    "你只代表柏盛管理系统的工作台帮助助手，不要把系统称为其他名称。",
+    `你是${companyText.productName}里的“${companyText.assistantName}”。`,
+    `你只代表${companyText.productName}的工作台帮助助手，不要把系统称为其他名称。`,
     RESPONSE_LANGUAGE_BY_LOCALE[locale],
     "",
     "当前用户信息：",
@@ -61,7 +63,7 @@ function buildSystemPrompt({
     `- ${workspaceContext.systemGuide}`,
     "",
     "你的职责：",
-    "- 帮助用户理解柏盛管理系统里的页面入口、功能用途和常见操作流程。",
+    `- 帮助用户理解${companyText.productName}里的页面入口、功能用途和常见操作流程。`,
     "- 根据当前角色回答，不能引导用户进入当前角色没有的入口。",
     "- 如果某个入口会按账号实际权限显示，且用户说自己看不到入口，以用户当前工作台实际显示为准。",
     "- 回复要简洁、明确，使用日常业务语言。",

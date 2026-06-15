@@ -19,15 +19,15 @@ export const FORMAL_LEGAL_CONTENT: Record<
       metadataTitle: "隐私政策",
       title: "隐私政策",
       description:
-        "本政策说明柏盛管理系统在账号注册、身份认证、角色权限、业务协作、审核处理和系统安全维护过程中，如何收集、使用、保存、共享和保护个人信息及相关业务数据。",
+        "本政策说明{productName}在账号注册、身份认证、角色权限、业务协作、审核处理和系统安全维护过程中，如何收集、使用、保存、共享和保护个人信息及相关业务数据。",
       lastUpdated: "2026-04-27",
       draftNotice:
-        "本文件构成柏盛管理系统对用户公开展示的隐私政策。用户访问或使用本系统，即表示已阅读并理解本政策所述个人信息处理规则；如用户另与运营方签署书面协议，且该协议与本政策不一致的，以双方书面约定及强制适用法律规定为准。",
+        "本文件构成{productName}对用户公开展示的隐私政策。用户访问或使用本系统，即表示已阅读并理解本政策所述个人信息处理规则；如用户另与运营方签署书面协议，且该协议与本政策不一致的，以双方书面约定及强制适用法律规定为准。",
       sections: [
         {
           title: "一、适用范围与信息处理主体",
           items: [
-            "本政策适用于用户访问、注册、登录和使用柏盛管理系统及其相关工作台、表单、审核、订单、任务、推荐、团队、佣金和通知功能时产生的信息处理活动。",
+            "本政策适用于用户访问、注册、登录和使用{productName}及其相关工作台、表单、审核、订单、任务、推荐、团队、佣金和通知功能时产生的信息处理活动。",
             "本系统由相应业务运营方负责管理。除非另有书面说明，运营方将作为个人信息处理者，依照适用法律法规、本政策及业务管理规则处理用户个人信息。",
             "本政策不适用于第三方网站、服务或外部系统的个人信息处理活动。用户通过本系统跳转至第三方服务时，应另行阅读并遵守该第三方的隐私政策和服务规则。",
           ],
@@ -94,15 +94,15 @@ export const FORMAL_LEGAL_CONTENT: Record<
       metadataTitle: "服务条款",
       title: "服务条款",
       description:
-        "本条款规定用户访问和使用柏盛管理系统时应遵守的账号、权限、数据提交、业务协作、安全管理、责任限制和争议处理规则。",
+        "本条款规定用户访问和使用{productName}时应遵守的账号、权限、数据提交、业务协作、安全管理、责任限制和争议处理规则。",
       lastUpdated: "2026-04-27",
       draftNotice:
-        "本文件构成柏盛管理系统对用户公开展示的服务条款。用户访问、注册、登录或以任何方式使用本系统，即表示已阅读、理解并同意受本条款约束。",
+        "本文件构成{productName}对用户公开展示的服务条款。用户访问、注册、登录或以任何方式使用本系统，即表示已阅读、理解并同意受本条款约束。",
       sections: [
         {
           title: "一、条款接受与适用范围",
           items: [
-            "用户访问、注册、登录或以任何方式使用柏盛管理系统，即视为已阅读、理解并同意受本条款约束。不同意本条款的，用户应立即停止访问和使用本系统。",
+            "用户访问、注册、登录或以任何方式使用{productName}，即视为已阅读、理解并同意受本条款约束。不同意本条款的，用户应立即停止访问和使用本系统。",
             "本系统为面向授权客户、员工、合作人员和管理人员的业务管理平台，提供账号管理、角色工作台、订单、任务、推荐、团队、佣金、汇率、公告、审核及相关协作功能。",
             "用户可能同时受其与运营方、雇主、合作方或客户之间另行签署的协议、业务规则、操作规范和保密义务约束。",
           ],
@@ -185,15 +185,15 @@ export const FORMAL_LEGAL_CONTENT: Record<
       metadataTitle: "Privacy Policy",
       title: "Privacy Policy",
       description:
-        "This policy explains how the Baisheng Management System collects, uses, stores, shares and protects personal information and operational data during account registration, identity verification, role-based access, business collaboration, review workflows and system security maintenance.",
+        "This policy explains how {productName} collects, uses, stores, shares and protects personal information and operational data during account registration, identity verification, role-based access, business collaboration, review workflows and system security maintenance.",
       lastUpdated: "2026-04-27",
       draftNotice:
-        "This document is the Privacy Policy publicly displayed for the Baisheng Management System. By accessing or using the system, you acknowledge that you have read and understood the personal information processing rules described in this policy.",
+        "This document is the Privacy Policy publicly displayed for {productName}. By accessing or using the system, you acknowledge that you have read and understood the personal information processing rules described in this policy.",
       sections: [
         {
           title: "1. Scope and Data Controller",
           items: [
-            "This policy applies when users access, register for, sign in to or use the Baisheng Management System, including related workspaces, forms, reviews, orders, tasks, referrals, teams, commissions and notice functions.",
+            "This policy applies when users access, register for, sign in to or use {productName}, including related workspaces, forms, reviews, orders, tasks, referrals, teams, commissions and notice functions.",
             "The relevant business operator manages the system. Unless separately stated in writing, the operator acts as the personal information processor or controller and processes user information in accordance with applicable laws, this policy and business management rules.",
             "This policy does not apply to personal information processing by third-party websites, services or external systems. If you access a third-party service through the system, you should review and follow that third party's privacy policy and service rules.",
           ],
@@ -260,15 +260,15 @@ export const FORMAL_LEGAL_CONTENT: Record<
       metadataTitle: "Terms of Service",
       title: "Terms of Service",
       description:
-        "These terms set out the rules governing account access, permissions, data submissions, business collaboration, security management, liability limitations and dispute handling when using the Baisheng Management System.",
+        "These terms set out the rules governing account access, permissions, data submissions, business collaboration, security management, liability limitations and dispute handling when using {productName}.",
       lastUpdated: "2026-04-27",
       draftNotice:
-        "This document is the Terms of Service publicly displayed for the Baisheng Management System. By accessing, registering for, signing in to or otherwise using the system, you agree to be bound by these terms.",
+        "This document is the Terms of Service publicly displayed for {productName}. By accessing, registering for, signing in to or otherwise using the system, you agree to be bound by these terms.",
       sections: [
         {
           title: "1. Acceptance and Scope",
           items: [
-            "By accessing, registering for, signing in to or otherwise using the Baisheng Management System, you are deemed to have read, understood and agreed to these terms. If you do not agree, you must stop accessing and using the system immediately.",
+            "By accessing, registering for, signing in to or otherwise using {productName}, you are deemed to have read, understood and agreed to these terms. If you do not agree, you must stop accessing and using the system immediately.",
             "The system is a business management platform for authorized customers, employees, collaborators and administrators. It provides account management, role workspaces, orders, tasks, referrals, teams, commissions, exchange rates, announcements, reviews and related collaboration functions.",
             "You may also be subject to separate agreements, business rules, operating procedures and confidentiality obligations with the operator, employer, collaborator or customer.",
           ],

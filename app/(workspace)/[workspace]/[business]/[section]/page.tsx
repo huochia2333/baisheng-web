@@ -33,6 +33,7 @@ import {
   getCurrentWorkspaceBusinessAccess,
   workspaceBusinessAccessIncludes,
 } from "@/lib/workspace-business-access";
+import { getWorkspaceBusinessModule } from "@/lib/workspace-business-modules";
 import {
   getWorkspaceConfigByRouteSegment,
   getWorkspaceHomeHref,
@@ -140,6 +141,12 @@ export default async function WorkspaceSectionPage({
     notFound();
   }
 
+  const businessModule = getWorkspaceBusinessModule(business);
+
+  if (!businessModule) {
+    notFound();
+  }
+
   const accessSupabase = await getServerSupabaseClient();
   const workspaceBusinessAccess =
     await getCurrentWorkspaceBusinessAccess(accessSupabase);
@@ -148,7 +155,7 @@ export default async function WorkspaceSectionPage({
     forbidden();
   }
 
-  if (business === "wholesale") {
+  if (businessModule.pageEntry === "wholesale") {
     return renderWholesaleSectionPage(section, config);
   }
 
