@@ -42,6 +42,7 @@ type AdminShellNavProps = {
 };
 
 const NAV_ICONS: Record<WorkspaceNavSegment, LucideIcon> = {
+  accounts: UserCog,
   announcements: Megaphone,
   commission: WalletCards,
   feedback: MessageSquareWarning,
@@ -51,7 +52,7 @@ const NAV_ICONS: Record<WorkspaceNavSegment, LucideIcon> = {
   my: UserRound,
   "order-claims": ClipboardCheck,
   orders: ShoppingCart,
-  people: UserCog,
+  people: UsersRound,
   records: ClipboardClock,
   referrals: GitBranchPlus,
   reviews: ShieldCheck,

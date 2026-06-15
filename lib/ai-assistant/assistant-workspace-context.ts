@@ -24,6 +24,7 @@ const ROLE_LABELS = {
 } as const satisfies Record<AppRole, string>;
 
 const NAV_LABELS = {
+  accounts: "账号管理",
   announcements: "公告管理",
   commission: "佣金",
   feedback: "反馈管理",
@@ -44,6 +45,7 @@ const NAV_LABELS = {
 } as const satisfies Record<WorkspaceNavLabelKey, string>;
 
 const NAV_ENTRY_DESCRIPTIONS = {
+  accounts: "管理系统登录账号、身份、状态和城市",
   announcements: "发布和管理系统公告",
   commission: "查看或处理订单佣金与任务奖励",
   feedback: "管理员查看和跟进用户反馈",
@@ -53,7 +55,7 @@ const NAV_ENTRY_DESCRIPTIONS = {
   my: "从头像进入个人资料、邀请码和账号入口",
   orderClaims: "接收 1688 采购订单并由业务员认领归属客户",
   orders: "查看或处理当前账号可见的订单",
-  people: "管理账号、状态、角色和业务范围",
+  people: "按当前业务查看客户、地推或业务员资料",
   records: "查看重要处理动作的留痕",
   referrals: "按当前可见业务板块查看推荐关系和邀请码线索",
   reviews: "处理资料和媒体审核",
@@ -237,10 +239,10 @@ function getOrdersGuide(mode: WorkspacePageVariants["orders"]) {
 
 function getPeopleGuide(mode: WorkspacePageVariants["people"]) {
   if (mode === "admin") {
-    return "管理员人员管理用于调整账号状态、角色和业务范围。";
+    return "管理员旅游人员管理用于查看旅游客户和地推资料；账号身份、状态和城市在全局账号管理中调整。";
   }
 
-  return "业务员人员入口按当前账号的业务范围展示客户管理内容。";
+  return "人员入口按当前账号的业务范围展示客户管理内容。";
 }
 
 function getTasksGuide(mode: WorkspacePageVariants["tasks"]) {

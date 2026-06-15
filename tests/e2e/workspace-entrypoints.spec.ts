@@ -15,6 +15,7 @@ type WorkspaceEntry = {
 const workspaceEntries: readonly WorkspaceEntry[] = [
   {
     paths: [
+      "/admin/accounts",
       "/admin/announcements",
       "/admin/feedback",
       "/admin/settings",

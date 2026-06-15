@@ -332,6 +332,7 @@
     "nav": {
       "home": "Home",
       "my": "My Profile",
+      "accounts": "Account Management",
       "announcements": "Announcements",
       "orders": "Orders",
       "referrals": "Referral Tree",
@@ -2642,27 +2643,32 @@
       "unnamed": "Unnamed Account"
     }
   },
+  "TourismPeople": {
+    "metadata": {
+      "title": "Tourism People Management"
+    }
+  },
   "AdminPeople": {
     "metadata": {
-      "title": "People Management"
+      "title": "Account Management"
     },
     "header": {
       "badge": "Admin Only",
-      "title": "People Management",
-      "description": "Review system accounts and adjust account role, status, and city. Role changes do not automatically change referral or team relationships."
+      "title": "Account Management",
+      "description": "Review system sign-in accounts and adjust account role, status, and city. Business profiles are managed inside each business area."
     },
     "summary": {
-      "total": "Total People",
+      "total": "Total Accounts",
       "active": "Active Accounts",
       "administrators": "Administrators",
       "suspended": "Suspended"
     },
     "states": {
-      "noPermissionTitle": "No People Management Access",
-      "noPermissionDescription": "Only active administrator accounts can review and adjust people accounts."
+      "noPermissionTitle": "No Account Management Access",
+      "noPermissionDescription": "Only active administrator accounts can review and adjust system accounts."
     },
     "filters": {
-      "search": "Search People",
+      "search": "Search Accounts",
       "searchPlaceholder": "Search name, phone, email, city, or team",
       "role": "Role",
       "status": "Account Status",
@@ -2670,10 +2676,10 @@
       "allStatuses": "All Statuses"
     },
     "directory": {
-      "eyebrow": "People Directory",
+      "eyebrow": "Account Directory",
       "title": "Accounts",
-      "description": "The list keeps account, role, status, and other key items visible. Open an account to review full details; referral relationships, team membership, and commission records are not changed automatically.",
-      "emptyTitle": "No people match these filters",
+      "description": "The list keeps account, role, status, city, and note visible. Open an account to review basic details; tourism and wholesale customer profiles are managed in their own business areas.",
+      "emptyTitle": "No accounts match these filters",
       "emptyDescription": "Adjust the search text or filters and try again.",
       "columns": {
         "account": "Account",
@@ -2681,18 +2687,14 @@
         "privateNote": "My Note",
         "role": "Role",
         "status": "Account Status",
-        "businessAccess": "Business Access",
-        "customerType": "Customer Mark",
         "city": "City",
         "relation": "Relationship Summary",
         "createdAt": "Created",
-        "actions": "Actions",
-        "vip": "VIP Status"
+        "actions": "Actions"
       },
       "referrer": "Referrer: {value}",
       "team": "Team: {value}",
-      "directReferrals": "{count} direct referrals",
-      "customerTypeMarkedBy": "Marked by: {value}"
+      "directReferrals": "{count} direct referrals"
     },
     "logs": {
       "eyebrow": "Audit Records",
@@ -2703,7 +2705,7 @@
       "noNote": "No note",
       "cityChange": "City: {from} -> {to}",
       "columns": {
-        "target": "Person",
+        "target": "Account",
         "change": "Change",
         "actor": "Changed By",
         "note": "Note",
@@ -2712,24 +2714,19 @@
     },
     "dialog": {
       "title": "Account Details: {name}",
-      "description": "Full account details are shown here. Account changes can be made below.",
+      "description": "Basic sign-in account details are shown here. You can adjust role, status, and city below.",
       "adjustTitle": "Adjust Account",
       "adjustDescription": "After saving, the updated account information applies after the person signs in again or refreshes the page.",
       "nextRole": "New Role",
       "nextStatus": "New Status",
       "nextCity": "City",
       "cityPlaceholder": "Enter a city, or leave it blank",
-      "customerType": "Customer Mark",
-      "customerTypeHint": "Current mark: {value}. This mark is only used internally for retail customers.",
-      "customerTypePlaceholder": "Choose a customer mark",
-      "businessAccess": "Visible Business",
-        "businessAccessHint": "Controls whether this account can see the tourism business and wholesale business in the sidebar. It does not change referrals or team membership.",
       "note": "Note",
       "notePlaceholder": "Add a reason so the change is easy to review later"
     },
     "details": {
       "basicTitle": "Account Info",
-      "businessTitle": "Relationships & Business",
+      "businessTitle": "Referral Info",
       "noteTitle": "My Note",
       "email": "Email",
       "phone": "Phone",
@@ -2737,11 +2734,6 @@
       "status": "Account Status",
       "city": "City",
       "createdAt": "Created",
-      "customerType": "Customer Mark",
-      "customerTypeMarkedBy": "Marked By",
-      "customerTypeMarkedAt": "Marked At",
-      "businessAccess": "Visible Business",
-      "noBusinessAccess": "No visible business for this role",
       "referralCode": "Invite Code",
       "referrer": "Referrer",
       "team": "Team",
@@ -2786,23 +2778,22 @@
       "wholesale": "Wholesale"
     },
     "fallback": {
-      "unnamedUser": "Unnamed Person",
+      "unnamedUser": "Unnamed Account",
       "notProvided": "Pending",
       "noPrivateNote": "No note",
       "noReferrer": "No referrer",
       "noTeam": "No team"
     },
     "feedback": {
-      "saved": "Account information saved. The person will see the updated access and details after the next sign-in or page refresh.",
-      "customerTypeSaved": "Customer mark saved.",
+      "saved": "Account information saved. The person will see the updated role, status, and details after the next sign-in or page refresh.",
       "vipApproved": "VIP request approved and the VIP recharge order has been created.",
       "vipRejected": "VIP request rejected."
     },
     "errors": {
       "forbidden": "The current account cannot adjust people accounts.",
-      "invalidInput": "Choose a valid role, account status, city, and business access.",
+      "invalidInput": "Choose a valid role, account status, and city.",
       "lastAdmin": "The system must keep at least one active administrator account.",
-      "noChange": "The account role, status, city, and business access did not change.",
+      "noChange": "The account role, status, and city did not change.",
       "notFound": "The person account could not be found.",
       "selfChange": "You cannot adjust your own account information here.",
       "serviceUnavailable": "The account adjustment could not be saved. Please try again later.",

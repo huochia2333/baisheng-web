@@ -38,6 +38,7 @@ export type WorkspaceWholesaleSectionKey =
   (typeof workspaceWholesaleSectionKeys)[number];
 
 export type WorkspaceGlobalNavSegment =
+  | "accounts"
   | "announcements"
   | "feedback"
   | "home"
@@ -50,6 +51,7 @@ export type WorkspaceNavSegment =
   | WorkspaceWholesaleSectionKey;
 
 export type WorkspaceNavLabelKey =
+  | "accounts"
   | "announcements"
   | "home"
   | "my"
@@ -88,6 +90,7 @@ export type WorkspaceNavGroup = {
 };
 
 export type WorkspacePageVariants = {
+  accounts?: true;
   announcements?: true;
   commission?: WorkspaceCommissionPageMode;
   feedback?: true;
@@ -118,6 +121,7 @@ const homeNavItems = [
 
 const adminGlobalNavItems = [
   { segment: "home", labelKey: "home" },
+  { segment: "accounts", labelKey: "accounts" },
   { segment: "announcements", labelKey: "announcements" },
   { segment: "feedback", labelKey: "feedback" },
   { segment: "settings", labelKey: "settings" },
@@ -271,6 +275,7 @@ const WORKSPACE_ROUTE_CONFIG_BY_SEGMENT = {
     initials: "AD",
     navGroups: adminNavGroups,
     pageVariants: {
+      accounts: true,
       announcements: true,
       commission: "admin",
       feedback: true,
@@ -414,6 +419,7 @@ const workspaceRouteSegmentSet = new Set<string>(workspaceRouteSegments);
 const workspaceBusinessKeySet = new Set<string>(workspaceBusinessKeys);
 const workspaceWholesaleSectionKeySet = new Set<string>(workspaceWholesaleSectionKeys);
 const workspaceGlobalNavSegmentSet = new Set<string>([
+  "accounts",
   "announcements",
   "feedback",
   "home",

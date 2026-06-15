@@ -15,9 +15,6 @@ import {
   type AdminPeopleStatus,
   type AdminPersonRow,
 } from "@/lib/admin-people";
-import {
-  type WorkspaceBusinessAccessLabels,
-} from "@/lib/workspace-business-access";
 import { usePersonPrivateNoteEditor } from "@/components/dashboard/person-notes/use-person-private-note-editor";
 
 import {
@@ -31,8 +28,6 @@ import {
   readAdminPeopleUpdateResponse,
   type AdminPeopleFeedback,
 } from "./admin-people-view-model-utils";
-import { useAdminCustomerTypeMark } from "./use-admin-customer-type-mark";
-import { useAdminPeopleVipActions } from "./use-admin-people-vip-actions";
 
 type FilterValue<T extends string> = T | "all";
 
@@ -58,11 +53,6 @@ export function useAdminPeopleViewModel({
   const [draftCity, setDraftCity] = useState("");
   const [draftNote, setDraftNote] = useState("");
   const [saving, setSaving] = useState(false);
-  const { handleVipRequestAction, vipActionPendingId } =
-    useAdminPeopleVipActions({
-      setFeedback,
-      setPeople,
-    });
 
   const roleLabels = useMemo<AdminPeopleRoleLabels>(
     () => ({
@@ -87,17 +77,6 @@ export function useAdminPeopleViewModel({
     [t],
   );
 
-  const businessAccessLabels = useMemo<WorkspaceBusinessAccessLabels>(
-    () => ({
-      tourism: t("businessBoards.tourism"),
-      wholesale: t("businessBoards.wholesale"),
-    }),
-    [t],
-  );
-  const customerTypeEditor = useAdminCustomerTypeMark({
-    setFeedback,
-    setPeople,
-  });
   const personNoteEditor = usePersonPrivateNoteEditor<AdminPersonRow>({
     getTargetName: (person) =>
       getPersonDisplayName(person, t("fallback.unnamedUser")),
@@ -160,14 +139,7 @@ export function useAdminPeopleViewModel({
   const cityWillChange =
     selectedPerson !== null &&
     (selectedPerson.city ?? "").trim() !== draftCity.trim();
-  const customerTypeWillChange = customerTypeEditor.customerTypeWillChange(
-    selectedPerson,
-    draftRole,
-  );
-  const hasDraftChange =
-    accountWillChange ||
-    cityWillChange ||
-    customerTypeWillChange;
+  const hasDraftChange = accountWillChange || cityWillChange;
   const canSaveDraft =
     dialogOpen && hasDraftChange && !selectedPersonIsCurrentViewer && !saving;
 
@@ -177,7 +149,6 @@ export function useAdminPeopleViewModel({
     setDraftRole(person.role ?? "client");
     setDraftStatus(person.status);
     setDraftCity(person.city ?? "");
-    customerTypeEditor.openCustomerTypeDraft(person);
     setDraftNote("");
   };
 
@@ -224,9 +195,7 @@ export function useAdminPeopleViewModel({
     setFeedback(null);
 
     try {
-      let latestPerson = selectedPerson;
       let savedAccountChange = false;
-      let savedCustomerType = false;
 
       if (accountWillChange || cityWillChange) {
         const response = await fetch("/api/admin/people/account", {
@@ -260,7 +229,6 @@ export function useAdminPeopleViewModel({
           return;
         }
 
-        latestPerson = result.person;
         savedAccountChange = true;
 
         setPeople((currentPeople) =>
@@ -274,26 +242,10 @@ export function useAdminPeopleViewModel({
         }
       }
 
-      if (customerTypeWillChange) {
-        const updatedPerson =
-          await customerTypeEditor.saveCustomerTypeChange(latestPerson);
-
-        if (!updatedPerson) {
-          return;
-        }
-
-        latestPerson = updatedPerson;
-        savedCustomerType = true;
-      }
-
       setSelectedPerson(null);
       setFeedback({
         tone: "success",
-        message: savedAccountChange
-          ? t("feedback.saved")
-          : savedCustomerType
-            ? t("feedback.customerTypeSaved")
-            : t("feedback.saved"),
+        message: savedAccountChange ? t("feedback.saved") : t("feedback.saved"),
       });
     } catch {
       setFeedback({
@@ -309,11 +261,6 @@ export function useAdminPeopleViewModel({
     canSaveDraft,
     currentViewerId: initialData.currentViewerId,
     dialogOpen,
-    businessBoardLabels: businessAccessLabels,
-    customerTypeWillChange,
-    customerTypeLabels: customerTypeEditor.customerTypeLabels,
-    customerTypeOptions: customerTypeEditor.customerTypeOptions,
-    draftCustomerType: customerTypeEditor.draftCustomerType,
     draftCity,
     draftNote,
     draftRole,
@@ -336,17 +283,13 @@ export function useAdminPeopleViewModel({
     statusLabels,
     statusOptions: ADMIN_PEOPLE_STATUS_OPTIONS,
     summary,
-    vipActionPendingId,
     closeAccountDialog,
-    handleDraftCustomerTypeChange:
-      customerTypeEditor.handleDraftCustomerTypeChange,
     handleDraftCityChange,
     handleDraftRoleChange,
     handleDraftStatusChange,
     handleRoleFilterChange,
     handleSaveAccountChange,
     handleStatusFilterChange,
-    handleVipRequestAction,
     openAccountDialog,
     setDraftNote,
     setSearchText,

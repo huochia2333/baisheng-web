@@ -70,8 +70,8 @@ export function LoginForm({
 
   const redirectToWorkspace = async (session?: Session | null) => {
     const role =
-      getRoleFromAuthSession(session) ??
-      (supabase ? await getRoleFromAuthClaims(supabase, session?.user) : null);
+      (supabase ? await getRoleFromAuthClaims(supabase, session?.user) : null) ??
+      getRoleFromAuthSession(session);
     const nextPath = role ? getDefaultSignedInPathForRole(role) : "/";
     const accountSwitcherResult = completeAccountSwitcherLogin({ role, session });
 

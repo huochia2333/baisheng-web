@@ -103,17 +103,13 @@ export function AdminPeopleNoPermissionSection() {
 
 export function AdminPeopleDirectorySection({
   currentViewerId,
-  customerTypeLabels,
   filteredPeople,
-  locale,
   onAdjustPerson,
   onEditPersonNote,
-  onVipRequestAction,
   onRoleFilterChange,
   onSearchTextChange,
   onStatusFilterChange,
   roleFilter,
-  pendingVipRequestId,
   roleLabels,
   roleOptions,
   searchText,
@@ -122,17 +118,13 @@ export function AdminPeopleDirectorySection({
   statusOptions,
 }: {
   currentViewerId: string | null;
-  customerTypeLabels: AdminPeopleViewModel["customerTypeLabels"];
   filteredPeople: AdminPersonRow[];
-  locale: Locale;
   onAdjustPerson: (person: AdminPersonRow) => void;
   onEditPersonNote: (person: AdminPersonRow) => void;
-  onVipRequestAction: AdminPeopleViewModel["handleVipRequestAction"];
   onRoleFilterChange: (value: string) => void;
   onSearchTextChange: (value: string) => void;
   onStatusFilterChange: (value: string) => void;
   roleFilter: string;
-  pendingVipRequestId: string | null;
   roleLabels: AdminPeopleViewModel["roleLabels"];
   roleOptions: AdminPeopleViewModel["roleOptions"];
   searchText: string;
@@ -202,13 +194,9 @@ export function AdminPeopleDirectorySection({
         ) : (
           <PeopleTable
             currentViewerId={currentViewerId}
-            customerTypeLabels={customerTypeLabels}
-            locale={locale}
             onAdjustPerson={onAdjustPerson}
             onEditPersonNote={onEditPersonNote}
-            onVipRequestAction={onVipRequestAction}
             people={filteredPeople}
-            pendingVipRequestId={pendingVipRequestId}
             roleLabels={roleLabels}
             statusLabels={statusLabels}
           />
@@ -245,71 +233,124 @@ export function AdminPeopleRecentChangesSection({
           title={t("logs.emptyTitle")}
         />
       ) : (
-        <DashboardTableFrame>
-          <table className="min-w-[900px] w-full text-left text-sm">
-            <thead className="bg-[#f6f4f0] text-xs font-semibold text-[#66727d]">
-              <tr>
-                <th className="px-4 py-3">{t("logs.columns.target")}</th>
-                <th className="px-4 py-3">{t("logs.columns.change")}</th>
-                <th className="px-4 py-3">{t("logs.columns.actor")}</th>
-                <th className="px-4 py-3">{t("logs.columns.note")}</th>
-                <th className="px-4 py-3">{t("logs.columns.time")}</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-[#eee9e1]">
-              {changes.map((change) => (
-                <tr key={change.id} className="align-top">
-                  <td className="px-4 py-4">
-                    <p className="font-semibold text-[#23313a]">
-                      {change.target_name ?? change.target_email ?? fallback}
-                    </p>
-                    <p className="mt-1 text-xs text-[#7b858d]">
-                      {change.target_email ?? fallback}
-                    </p>
-                  </td>
-                  <td className="px-4 py-4 text-[#53616d]">
-                    <p>
-                      {getRoleLabel(change.previous_role, roleLabels, fallback)}
-                      {" -> "}
-                      {getRoleLabel(change.next_role, roleLabels, fallback)}
-                    </p>
-                    <p className="mt-1">
-                      {getStatusLabel(
-                        change.previous_status,
-                        statusLabels,
-                        fallback,
-                      )}
-                      {" -> "}
-                      {getStatusLabel(
-                        change.next_status,
-                        statusLabels,
-                        fallback,
-                      )}
-                    </p>
-                    {change.previous_city !== change.next_city ? (
-                      <p className="mt-1">
-                        {t("logs.cityChange", {
-                          from: change.previous_city ?? fallback,
-                          to: change.next_city ?? fallback,
-                        })}
-                      </p>
-                    ) : null}
-                  </td>
-                  <td className="px-4 py-4 text-[#53616d]">
-                    {change.actor_name ?? change.actor_email ?? fallback}
-                  </td>
-                  <td className="max-w-[260px] px-4 py-4 text-[#53616d]">
-                    {change.note ?? t("logs.noNote")}
-                  </td>
-                  <td className="px-4 py-4 text-[#53616d]">
-                    {formatPeopleDate(change.created_at, locale, fallback)}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </DashboardTableFrame>
+        <>
+          <div className="hidden md:block">
+            <DashboardTableFrame>
+              <table className="min-w-[900px] w-full text-left text-sm">
+                <thead className="bg-[#f6f4f0] text-xs font-semibold text-[#66727d]">
+                  <tr>
+                    <th className="px-4 py-3">{t("logs.columns.target")}</th>
+                    <th className="px-4 py-3">{t("logs.columns.change")}</th>
+                    <th className="px-4 py-3">{t("logs.columns.actor")}</th>
+                    <th className="px-4 py-3">{t("logs.columns.note")}</th>
+                    <th className="px-4 py-3">{t("logs.columns.time")}</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[#eee9e1]">
+                  {changes.map((change) => (
+                    <tr key={change.id} className="align-top">
+                      <td className="px-4 py-4">
+                        <p className="font-semibold text-[#23313a]">
+                          {change.target_name ?? change.target_email ?? fallback}
+                        </p>
+                        <p className="mt-1 text-xs text-[#7b858d]">
+                          {change.target_email ?? fallback}
+                        </p>
+                      </td>
+                      <td className="px-4 py-4 text-[#53616d]">
+                        <ChangeSummary
+                          change={change}
+                          fallback={fallback}
+                          roleLabels={roleLabels}
+                          statusLabels={statusLabels}
+                        />
+                      </td>
+                      <td className="px-4 py-4 text-[#53616d]">
+                        {change.actor_name ?? change.actor_email ?? fallback}
+                      </td>
+                      <td className="max-w-[260px] px-4 py-4 text-[#53616d]">
+                        {change.note ?? t("logs.noNote")}
+                      </td>
+                      <td className="px-4 py-4 text-[#53616d]">
+                        {formatPeopleDate(change.created_at, locale, fallback)}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </DashboardTableFrame>
+          </div>
+          <div className="grid gap-3 md:hidden">
+            {changes.map((change) => (
+              <article
+                className="rounded-[18px] border border-[#ebe7e1] bg-white p-4 shadow-[0_10px_24px_rgba(96,113,128,0.05)]"
+                key={change.id}
+              >
+                <p className="font-semibold text-[#23313a]">
+                  {change.target_name ?? change.target_email ?? fallback}
+                </p>
+                <p className="mt-1 break-all text-xs text-[#7b858d]">
+                  {change.target_email ?? fallback}
+                </p>
+                <div className="mt-3 text-sm leading-6 text-[#53616d]">
+                  <ChangeSummary
+                    change={change}
+                    fallback={fallback}
+                    roleLabels={roleLabels}
+                    statusLabels={statusLabels}
+                  />
+                </div>
+                <p className="mt-3 text-sm text-[#53616d]">
+                  操作人：{change.actor_name ?? change.actor_email ?? fallback}
+                </p>
+                <p className="mt-1 break-words text-sm text-[#53616d]">
+                  备注：{change.note ?? t("logs.noNote")}
+                </p>
+                <p className="mt-1 text-xs text-[#7b858d]">
+                  {formatPeopleDate(change.created_at, locale, fallback)}
+                </p>
+              </article>
+            ))}
+          </div>
+        </>
       )}
     </DashboardListSection>
+  );
+}
+
+function ChangeSummary({
+  change,
+  fallback,
+  roleLabels,
+  statusLabels,
+}: {
+  change: AdminPeopleChangeLogRow;
+  fallback: string;
+  roleLabels: AdminPeopleViewModel["roleLabels"];
+  statusLabels: AdminPeopleViewModel["statusLabels"];
+}) {
+  const t = useTranslations("AdminPeople");
+
+  return (
+    <>
+      <p>
+        {getRoleLabel(change.previous_role, roleLabels, fallback)}
+        {" -> "}
+        {getRoleLabel(change.next_role, roleLabels, fallback)}
+      </p>
+      <p className="mt-1">
+        {getStatusLabel(change.previous_status, statusLabels, fallback)}
+        {" -> "}
+        {getStatusLabel(change.next_status, statusLabels, fallback)}
+      </p>
+      {change.previous_city !== change.next_city ? (
+        <p className="mt-1">
+          {t("logs.cityChange", {
+            from: change.previous_city ?? fallback,
+            to: change.next_city ?? fallback,
+          })}
+        </p>
+      ) : null}
+    </>
   );
 }

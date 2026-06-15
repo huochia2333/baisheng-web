@@ -70,7 +70,7 @@ export function getSectionNamespaces(
 
   if (section === "people" && config.pageVariants.people) {
     namespaces.push(
-      config.pageVariants.people === "admin" ? "AdminPeople" : "SalesmanPeople",
+      config.pageVariants.people === "admin" ? "TourismPeople" : "SalesmanPeople",
       "DashboardShared",
       "PersonPrivateNotes",
     );

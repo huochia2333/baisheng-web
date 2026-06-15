@@ -90,8 +90,8 @@ export function WorkspaceSessionProvider({
 
       if (currentBasePath) {
         const role =
-          getRoleFromAuthSession(session) ??
-          (await getRoleFromAuthClaims(supabase, session.user));
+          (await getRoleFromAuthClaims(supabase, session.user)) ??
+          getRoleFromAuthSession(session);
 
         if (role) {
           const desiredBasePath = getDefaultWorkspaceBasePath(role);

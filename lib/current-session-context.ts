@@ -5,6 +5,8 @@ import type { AppRole } from "./auth-routing";
 import {
   getAppRoleFromMetadataContainer,
   getUserStatusFromMetadataContainer,
+  normalizeAppRole,
+  normalizeUserStatus,
   type UserStatus,
 } from "./auth-metadata";
 import { withRequestTimeout } from "./request-timeout";
@@ -15,6 +17,8 @@ const AUTH_SESSION_TIMEOUT_MESSAGE = "登录状态同步较慢，请稍后重试
 const SESSION_TRACKING_REGISTRY_KEY = "__baishengSessionTrackingRegistry__" as const;
 
 type SessionCacheState = {
+  currentAccessContextRequest: Promise<AppAccessContext | null> | null;
+  currentAccessContextSnapshot: AppAccessContext | null | undefined;
   currentClaimsRequest: Promise<unknown | null> | null;
   currentClaimsSnapshot: unknown | null | undefined;
   currentSessionRequest: Promise<Session | null> | null;
@@ -24,6 +28,11 @@ type SessionCacheState = {
   sessionTrackingCleanup: (() => void) | null;
   sessionTrackingReady: boolean;
   resetVersion: number;
+};
+
+type AppAccessContext = {
+  role: AppRole | null;
+  status: UserStatus | null;
 };
 
 const sessionCacheByClient = new WeakMap<SupabaseClient, SessionCacheState>();
@@ -79,12 +88,19 @@ export async function getCurrentSessionContext(
     getCurrentClaims(supabase),
   ]);
   const trustedClaims = user ? claims : null;
+  const accessContext = user ? await getCurrentAppAccessContext(supabase) : null;
 
   return {
     session,
     user,
-    role: getAppRoleFromClaims(trustedClaims) ?? getRoleFromUser(user),
-    status: getUserStatusFromClaims(trustedClaims) ?? getStatusFromUser(user),
+    role:
+      accessContext?.role ??
+      getAppRoleFromClaims(trustedClaims) ??
+      getRoleFromUser(user),
+    status:
+      accessContext?.status ??
+      getUserStatusFromClaims(trustedClaims) ??
+      getStatusFromUser(user),
   };
 }
 
@@ -115,6 +131,8 @@ function getSessionCache(supabase: SupabaseClient) {
   if (existingCache) {
     if (existingCache.resetVersion !== sessionCacheResetVersion) {
       existingCache.sessionTrackingCleanup?.();
+      existingCache.currentAccessContextRequest = null;
+      existingCache.currentAccessContextSnapshot = undefined;
       existingCache.currentClaimsRequest = null;
       existingCache.currentClaimsSnapshot = undefined;
       existingCache.currentSessionRequest = null;
@@ -130,6 +148,8 @@ function getSessionCache(supabase: SupabaseClient) {
   }
 
   const sessionCache: SessionCacheState = {
+    currentAccessContextRequest: null,
+    currentAccessContextSnapshot: undefined,
     currentClaimsRequest: null,
     currentClaimsSnapshot: undefined,
     currentSessionRequest: null,
@@ -290,6 +310,68 @@ async function getCurrentClaims(supabase: SupabaseClient): Promise<unknown | nul
   return sessionCache.currentClaimsRequest;
 }
 
+async function getCurrentAppAccessContext(
+  supabase: SupabaseClient,
+): Promise<AppAccessContext | null> {
+  const sessionCache = getSessionCache(supabase);
+
+  ensureSessionTracking(supabase, sessionCache);
+
+  if (sessionCache.currentUserSnapshot === null) {
+    sessionCache.currentAccessContextSnapshot = null;
+    return null;
+  }
+
+  if (sessionCache.currentAccessContextSnapshot !== undefined) {
+    return sessionCache.currentAccessContextSnapshot;
+  }
+
+  if (!sessionCache.currentAccessContextRequest) {
+    sessionCache.currentAccessContextRequest = resolveCurrentAppAccessContext(
+      supabase,
+      sessionCache,
+    ).finally(() => {
+      sessionCache.currentAccessContextRequest = null;
+    });
+  }
+
+  return sessionCache.currentAccessContextRequest;
+}
+
+async function resolveCurrentAppAccessContext(
+  supabase: SupabaseClient,
+  sessionCache: SessionCacheState,
+) {
+  try {
+    const { data, error } = await withRequestTimeout(
+      supabase.rpc("get_current_app_access_context"),
+      {
+        timeoutMs: AUTH_SESSION_TIMEOUT_MS,
+        message: AUTH_SESSION_TIMEOUT_MESSAGE,
+      },
+    );
+
+    if (error) {
+      throw error;
+    }
+
+    const row = Array.isArray(data) ? data[0] : data;
+    const record = readRecord(row);
+    const context = record
+      ? {
+          role: normalizeAppRole(record.role),
+          status: normalizeUserStatus(record.status),
+        }
+      : null;
+
+    sessionCache.currentAccessContextSnapshot = context;
+    return context;
+  } catch {
+    sessionCache.currentAccessContextSnapshot = null;
+    return null;
+  }
+}
+
 async function resolveCurrentClaims(
   supabase: SupabaseClient,
   sessionCache: SessionCacheState,
@@ -320,6 +402,8 @@ function ensureSessionTracking(
   const {
     data: { subscription },
   } = supabase.auth.onAuthStateChange((_event, session) => {
+    sessionCache.currentAccessContextRequest = null;
+    sessionCache.currentAccessContextSnapshot = undefined;
     sessionCache.currentClaimsRequest = null;
     sessionCache.currentClaimsSnapshot = undefined;
     sessionCache.currentSessionSnapshot = session;
@@ -367,6 +451,12 @@ function isAuthSessionMissingError(error: unknown) {
     (error.name === "AuthSessionMissingError" ||
       error.message.toLowerCase().includes("auth session missing"))
   );
+}
+
+function readRecord(value: unknown): Record<string, unknown> | null {
+  return typeof value === "object" && value !== null
+    ? (value as Record<string, unknown>)
+    : null;
 }
 
 function delay(timeoutMs: number) {

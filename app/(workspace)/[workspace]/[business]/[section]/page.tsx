@@ -63,10 +63,10 @@ const AdminOrdersClient = dynamic(
     ),
 );
 
-const AdminPeopleClient = dynamic(
+const TourismPeopleClient = dynamic(
   () =>
-    import("@/components/dashboard/admin-people/admin-people-client").then(
-      (mod) => mod.AdminPeopleClient,
+    import("@/components/dashboard/tourism-people/tourism-people-client").then(
+      (mod) => mod.TourismPeopleClient,
     ),
 );
 
@@ -220,7 +220,7 @@ export default async function WorkspaceSectionPage({
     const supabase = await getServerSupabaseClient();
     if (config.pageVariants.people === "admin") {
       const initialData = await getAdminPeoplePageData(supabase);
-      content = <AdminPeopleClient initialData={initialData} />;
+      content = <TourismPeopleClient initialData={initialData} />;
     } else {
       const initialData = await getSalesmanPeoplePageData(supabase);
       content = <SalesmanPeopleClient initialData={initialData} />;

@@ -38,13 +38,9 @@ export function AdminPeopleClient({
         <>
           <AdminPeopleDirectorySection
             currentViewerId={viewModel.currentViewerId}
-            customerTypeLabels={viewModel.customerTypeLabels}
             filteredPeople={viewModel.filteredPeople}
-            locale={locale}
             onAdjustPerson={viewModel.openAccountDialog}
             onEditPersonNote={viewModel.personNoteEditor.openNoteDialog}
-            onVipRequestAction={viewModel.handleVipRequestAction}
-            pendingVipRequestId={viewModel.vipActionPendingId}
             onRoleFilterChange={viewModel.handleRoleFilterChange}
             onSearchTextChange={viewModel.setSearchText}
             onStatusFilterChange={viewModel.handleStatusFilterChange}
@@ -65,19 +61,14 @@ export function AdminPeopleClient({
           />
 
           <AdminPeopleAccountDialog
-            businessBoardLabels={viewModel.businessBoardLabels}
             canSaveDraft={viewModel.canSaveDraft}
-            customerTypeLabels={viewModel.customerTypeLabels}
-            customerTypeOptions={viewModel.customerTypeOptions}
             draftCity={viewModel.draftCity}
-            draftCustomerType={viewModel.draftCustomerType}
             draftNote={viewModel.draftNote}
             draftRole={viewModel.draftRole}
             draftStatus={viewModel.draftStatus}
             locale={locale}
             onClose={viewModel.closeAccountDialog}
             onDraftCityChange={viewModel.handleDraftCityChange}
-            onDraftCustomerTypeChange={viewModel.handleDraftCustomerTypeChange}
             onDraftNoteChange={viewModel.setDraftNote}
             onDraftRoleChange={viewModel.handleDraftRoleChange}
             onDraftStatusChange={viewModel.handleDraftStatusChange}

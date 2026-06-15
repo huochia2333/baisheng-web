@@ -9,11 +9,9 @@ import type { Locale } from "@/lib/locale";
 
 import {
   formatPeopleDate,
-  getCustomerTypeLabel,
   getPersonRelationSummary,
   getRoleLabel,
   getStatusLabel,
-  getWorkspaceBusinessAccessLabel,
 } from "./admin-people-display";
 import type { useAdminPeopleViewModel } from "./use-admin-people-view-model";
 
@@ -25,15 +23,11 @@ type AccountDetailItem = {
 };
 
 export function AdminPeopleAccountDetails({
-  businessBoardLabels,
-  customerTypeLabels,
   locale,
   person,
   roleLabels,
   statusLabels,
 }: {
-  businessBoardLabels: AdminPeopleViewModel["businessBoardLabels"];
-  customerTypeLabels: AdminPeopleViewModel["customerTypeLabels"];
   locale: Locale;
   person: AdminPersonRow;
   roleLabels: AdminPeopleViewModel["roleLabels"];
@@ -45,11 +39,6 @@ export function AdminPeopleAccountDetails({
     noReferrer: t("fallback.noReferrer"),
     noTeam: t("fallback.noTeam"),
   });
-  const businessAccess = getWorkspaceBusinessAccessLabel(
-    person.workspace_business_access,
-    businessBoardLabels,
-    t("details.noBusinessAccess"),
-  );
 
   return (
     <div className="min-w-0 space-y-4">
@@ -85,30 +74,6 @@ export function AdminPeopleAccountDetails({
 
       <DetailSection
         items={[
-          {
-            label: t("details.customerType"),
-            value: getCustomerTypeLabel(
-              person.customer_type,
-              customerTypeLabels,
-              fallback,
-            ),
-          },
-          {
-            label: t("details.customerTypeMarkedBy"),
-            value: person.customer_type_marked_by_name ?? fallback,
-          },
-          {
-            label: t("details.customerTypeMarkedAt"),
-            value: formatPeopleDate(
-              person.customer_type_marked_at,
-              locale,
-              fallback,
-            ),
-          },
-          {
-            label: t("details.businessAccess"),
-            value: businessAccess,
-          },
           {
             label: t("details.referralCode"),
             value: person.referral_code ?? fallback,

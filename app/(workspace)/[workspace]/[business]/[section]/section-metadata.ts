@@ -76,7 +76,7 @@ export async function generateWorkspaceSectionMetadata({
   if (section === "people" && config.pageVariants.people) {
     const t = await getTranslations(
       config.pageVariants.people === "admin"
-        ? "AdminPeople.metadata"
+        ? "TourismPeople.metadata"
         : "SalesmanPeople.metadata",
     );
 

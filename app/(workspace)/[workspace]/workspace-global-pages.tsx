@@ -5,6 +5,7 @@ import { forbidden, notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 
 import { ScopedIntlProvider } from "@/components/i18n/scoped-intl-provider";
+import { getAdminPeoplePageData } from "@/lib/admin-people";
 import { getAdminAnnouncementsPageData } from "@/lib/announcements";
 import { getAdminSystemSettingsPageData } from "@/lib/admin-system-settings";
 import { getServerSupabaseClient } from "@/lib/supabase-server";
@@ -25,6 +26,13 @@ const AdminAnnouncementsClient = dynamic(
     ),
 );
 
+const AdminPeopleClient = dynamic(
+  () =>
+    import("@/components/dashboard/admin-people/admin-people-client").then(
+      (mod) => mod.AdminPeopleClient,
+    ),
+);
+
 const AdminFeedbackClient = dynamic(
   () =>
     import("@/components/dashboard/admin-feedback/admin-feedback-client").then(
@@ -38,6 +46,14 @@ const AdminSystemSettingsClient = dynamic(
       "@/components/dashboard/admin-system-settings/admin-system-settings-client"
     ).then((mod) => mod.AdminSystemSettingsClient),
 );
+
+export async function generateWorkspaceAccountsMetadata(): Promise<Metadata> {
+  const t = await getTranslations("AdminPeople.metadata");
+
+  return {
+    title: t("title"),
+  };
+}
 
 export async function generateWorkspaceAnnouncementsMetadata(): Promise<Metadata> {
   const t = await getTranslations("Announcements.metadata");
@@ -61,6 +77,27 @@ export async function generateWorkspaceSettingsMetadata(): Promise<Metadata> {
   return {
     title: t("title"),
   };
+}
+
+export async function renderWorkspaceAccountsPage({
+  params,
+}: WorkspaceGlobalPageProps) {
+  const config = await getGlobalPageConfig(params);
+
+  if (!config.pageVariants.accounts) {
+    forbidden();
+  }
+
+  const supabase = await getServerSupabaseClient();
+  const initialData = await getAdminPeoplePageData(supabase);
+
+  return (
+    <ScopedIntlProvider
+      namespaces={["AdminPeople", "DashboardShared", "PersonPrivateNotes"]}
+    >
+      <AdminPeopleClient initialData={initialData} />
+    </ScopedIntlProvider>
+  );
 }
 
 export async function renderWorkspaceAnnouncementsPage({

@@ -1,12 +1,12 @@
 import { cookies } from "next/headers";
 import { forbidden, redirect } from "next/navigation";
 
-import { getAppRoleFromMetadataContainer } from "./auth-metadata";
 import {
   canAccessWorkspaceBasePath,
   getDefaultSignedInPathForRole,
   type AppRole,
 } from "./auth-routing";
+import { getCurrentSessionContext } from "./current-session-context";
 import { getServerSupabaseClient } from "./supabase-server";
 
 type ServerAuthContext = {
@@ -28,12 +28,9 @@ export async function getServerAuthContext(): Promise<ServerAuthContext> {
   }
 
   const supabase = await getServerSupabaseClient();
-  const {
-    data: { user },
-    error,
-  } = await supabase.auth.getUser();
+  const { user, role } = await getCurrentSessionContext(supabase);
 
-  if (error || !user) {
+  if (!user) {
     return {
       role: null,
       userId: null,
@@ -41,7 +38,7 @@ export async function getServerAuthContext(): Promise<ServerAuthContext> {
   }
 
   return {
-    role: getAppRoleFromMetadataContainer(user),
+    role,
     userId: user.id,
   };
 }

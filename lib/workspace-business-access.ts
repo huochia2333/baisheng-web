@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
+import { getCurrentSessionContext } from "./current-session-context";
 import {
   workspaceBusinessKeys,
   type WorkspaceBusinessKey,
@@ -79,19 +80,43 @@ export function getDefaultWorkspaceBusinessAccessForRole(
 export async function getCurrentWorkspaceBusinessAccess(
   supabase: SupabaseClient,
 ): Promise<WorkspaceBusinessKey[]> {
-  const { data, error } = await withRequestTimeout(
-    supabase.rpc("get_current_workspace_business_access"),
-  );
+  const fallbackAccess = await getFallbackWorkspaceBusinessAccess(supabase);
 
-  if (error || !Array.isArray(data)) {
+  try {
+    const { data, error } = await withRequestTimeout(
+      supabase.rpc("get_current_workspace_business_access"),
+    );
+
+    if (error || !Array.isArray(data)) {
+      return fallbackAccess;
+    }
+
+    const normalizedAccess = normalizeWorkspaceBusinessAccess(
+      data.map((item) =>
+        typeof item === "object" && item !== null && "business_key" in item
+          ? item.business_key
+          : null,
+      ),
+    );
+
+    return normalizedAccess.length > 0 ? normalizedAccess : fallbackAccess;
+  } catch {
+    return fallbackAccess;
+  }
+}
+
+async function getFallbackWorkspaceBusinessAccess(
+  supabase: SupabaseClient,
+): Promise<WorkspaceBusinessKey[]> {
+  try {
+    const { user, role, status } = await getCurrentSessionContext(supabase);
+
+    if (!user || status !== "active") {
+      return [];
+    }
+
+    return getDefaultWorkspaceBusinessAccessForRole(role);
+  } catch {
     return [];
   }
-
-  return normalizeWorkspaceBusinessAccess(
-    data.map((item) =>
-      typeof item === "object" && item !== null && "business_key" in item
-        ? item.business_key
-        : null,
-    ),
-  );
 }

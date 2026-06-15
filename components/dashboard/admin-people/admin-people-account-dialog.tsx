@@ -12,25 +12,19 @@ import {
 import type { Locale } from "@/lib/locale";
 
 import { AdminPeopleAccountDetails } from "./admin-people-account-details";
-import { getCustomerTypeLabel } from "./admin-people-display";
 import type { useAdminPeopleViewModel } from "./use-admin-people-view-model";
 
 type AdminPeopleViewModel = ReturnType<typeof useAdminPeopleViewModel>;
 
 export function AdminPeopleAccountDialog({
-  businessBoardLabels,
   canSaveDraft,
-  customerTypeLabels,
-  customerTypeOptions,
   draftCity,
-  draftCustomerType,
   draftNote,
   draftRole,
   draftStatus,
   locale,
   onClose,
   onDraftCityChange,
-  onDraftCustomerTypeChange,
   onDraftNoteChange,
   onDraftRoleChange,
   onDraftStatusChange,
@@ -45,19 +39,14 @@ export function AdminPeopleAccountDialog({
   statusLabels,
   statusOptions,
 }: {
-  businessBoardLabels: AdminPeopleViewModel["businessBoardLabels"];
   canSaveDraft: boolean;
-  customerTypeLabels: AdminPeopleViewModel["customerTypeLabels"];
-  customerTypeOptions: AdminPeopleViewModel["customerTypeOptions"];
   draftCity: string;
-  draftCustomerType: AdminPeopleViewModel["draftCustomerType"];
   draftNote: string;
   draftRole: string;
   draftStatus: string;
   locale: Locale;
   onClose: () => void;
   onDraftCityChange: (value: string) => void;
-  onDraftCustomerTypeChange: (value: string) => void;
   onDraftNoteChange: (value: string) => void;
   onDraftRoleChange: (value: string) => void;
   onDraftStatusChange: (value: string) => void;
@@ -115,8 +104,6 @@ export function AdminPeopleAccountDialog({
       {person ? (
         <div className="min-w-0 space-y-6">
           <AdminPeopleAccountDetails
-            businessBoardLabels={businessBoardLabels}
-            customerTypeLabels={customerTypeLabels}
             locale={locale}
             person={person}
             roleLabels={roleLabels}
@@ -187,45 +174,6 @@ export function AdminPeopleAccountDialog({
                   />
                 </label>
               </div>
-
-              {draftRole === "client" ? (
-                <div className="rounded-[22px] border border-[#e4e9ed] bg-white p-5">
-                  <p className="text-sm font-semibold text-[#23313a]">
-                    {t("dialog.customerType")}
-                  </p>
-                  <p className="mt-1 text-xs leading-6 text-[#6a7680]">
-                    {t("dialog.customerTypeHint", {
-                      value: getCustomerTypeLabel(
-                        person.customer_type,
-                        customerTypeLabels,
-                        t("fallback.notProvided"),
-                      ),
-                    })}
-                  </p>
-                  <label className="mt-4 block min-w-0">
-                    <span className="mb-2 block text-[11px] font-semibold tracking-[0.16em] text-[#88939b] uppercase">
-                      {t("dialog.customerType")}
-                    </span>
-                    <select
-                      className="h-12 w-full rounded-[18px] border border-[#dfe5ea] bg-white px-4 text-sm text-[#23313a] outline-none transition focus:border-[#bfd2e1] focus:ring-4 focus:ring-[#bfd2e1]/30"
-                      disabled={selectedPersonIsCurrentViewer || saving}
-                      onChange={(event) =>
-                        onDraftCustomerTypeChange(event.target.value)
-                      }
-                      value={draftCustomerType}
-                    >
-                      <option value="">
-                        {t("dialog.customerTypePlaceholder")}
-                      </option>
-                      {customerTypeOptions.map((customerType) => (
-                        <option key={customerType} value={customerType}>
-                          {customerTypeLabels[customerType]}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                </div>
-              ) : null}
 
               <label className="block min-w-0">
                 <span className="mb-2 block text-[11px] font-semibold tracking-[0.16em] text-[#88939b] uppercase">
