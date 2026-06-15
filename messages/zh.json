@@ -220,7 +220,7 @@
     "submitting": "登录中...",
     "registeredNotice": "注册请求已提交。若当前需要邮箱验证，请先完成验证后再登录。",
     "passwordResetNotice": "新密码已经更新完成，请使用新密码重新登录。",
-    "accountSwitcherAddNotice": "请登录另一个账号，登录成功后会加入这台设备的常用账号。",
+    "accountSwitcherAddNotice": "请登录另一个账号，登录成功后会加入当前浏览器会话的常用账号。",
     "accountSwitcherReauthenticateNotice": "请重新登录 {email}，完成后可继续在“我的”页切换账号。",
     "accountSwitcherDifferentAccountRequired": "请登录另一个账号，当前账号已经在使用中。",
     "accountSwitcherTargetMismatch": "请使用 {email} 登录，才能继续切换这个常用账号。",
@@ -339,11 +339,19 @@
       "people": "人员管理",
       "commission": "佣金",
       "settings": "系统设置",
-      "exchangeRates": "汇率",
       "tasks": "任务",
       "reviews": "审核",
       "feedback": "反馈管理",
-      "records": "操作记录"
+      "records": "操作记录",
+      "orderClaims": "订单认领",
+      "incentives": "提成",
+      "logistics": "物流管理",
+      "wholesaleOrders": "批发订单"
+    },
+    "business": {
+      "noAccess": "当前账号暂无可见业务",
+      "tourism": "旅游业务",
+      "wholesale": "批发业务"
     },
     "roles": {
       "admin": {
@@ -454,6 +462,38 @@
     "viewMyPage": "返回首页",
     "badge": "这个页面会根据不同身份继续补充可用内容"
   },
+  "WholesaleBusiness": {
+    "sections": {
+      "orders": {
+        "title": "批发订单",
+        "description": "集中管理批发客户订单、采购金额、运费、费用、毛利、订单月份和关联 1688 采购订单。"
+      },
+      "order-claims": {
+        "title": "订单认领",
+        "description": "接收 1688 采购订单文件或自动同步来的订单，由业务员认领并归属到对应客户。原始订单保持不可随意更改。"
+      },
+      "logistics": {
+        "title": "物流管理",
+        "description": "记录国际订单号、目的地订单号、货代进度和物流费用，方便按客户查看每天的物流状态。"
+      },
+      "people": {
+        "title": "人员管理",
+        "description": "统一管理批发客户档案和可承接批发业务的业务员账号。"
+      },
+      "referrals": {
+        "title": "批发推荐树",
+        "description": "展示批发客户推荐关系，并用于汇总客户推荐佣金。"
+      },
+      "commission": {
+        "title": "批发佣金",
+        "description": "汇总批发客户推荐佣金，和旅游业务佣金分开查看。"
+      },
+      "incentives": {
+        "title": "批发提成",
+        "description": "按批发订单毛利和订单金额统计业务员提成，和旅游订单佣金分开结算。"
+      }
+    }
+  },
   "WorkspaceSections": {
     "fallbacks": {
       "admin": {
@@ -515,11 +555,7 @@
     },
     "settings": {
       "title": "系统设置",
-      "description": "集中维护订单规则、佣金规则和汇率设置。"
-    },
-    "exchange-rates": {
-      "title": "汇率管理",
-      "description": "这里会展示汇率来源、更新时间、历史变化和人工调整记录，为订单和财务页面提供统一参考。"
+      "description": "集中维护旅游业务设置、批发业务设置和汇率设置。"
     },
     "tasks": {
       "title": "任务看板",
@@ -573,8 +609,8 @@
         "noCodeDescription": "当前账号暂时没有可复制的邀请码，请联系管理员确认。",
         "noLinkAccess": "当前账号还没有可用的业务注册链接。",
         "businessBoards": {
-          "tourism": "零售",
-          "dropshipping": "批发"
+          "tourism": "旅游业务",
+          "wholesale": "批发业务"
         }
       },
       "customizer": {
@@ -875,28 +911,13 @@
     "businessInviteTitle": "业务邀请链接",
     "businessInviteDescription": "复制当前可用业务的注册链接，新客户会进入对应的推荐关系。",
     "businessReferralLoading": "正在读取业务权限...",
-    "businessReferralTourism": "零售",
-    "businessReferralDropshipping": "批发",
+    "businessReferralTourism": "旅游业务",
+    "businessReferralWholesale": "批发业务",
     "businessInviteCopyBoardLink": "复制{board}注册链接",
     "businessInviteCopied": "{board}注册链接已复制。",
     "businessInviteCopyFailed": "注册链接复制失败，请稍后再试。",
     "businessInviteNoCode": "当前账号还没有可用的邀请码。",
     "businessInviteNoAccess": "当前账号还没有可用的业务邀请权限。",
-    "businessReferralUnavailable": "当前服务暂时不可用，请稍后再试。",
-    "dropshippingActivationTitle": "开通批发",
-    "dropshippingActivationDescription": "如需开展批发，请填写对应业务员的邀请码。",
-    "dropshippingInvitePlaceholder": "填写批发业务员邀请码",
-    "dropshippingActivationSubmit": "提交邀请码",
-    "dropshippingActivationSubmitting": "提交中...",
-    "dropshippingActivationSuccess": "批发已开通。",
-    "dropshippingAlreadyLinked": "已开通批发。",
-    "dropshippingActivationRequired": "请填写批发业务员邀请码。",
-    "dropshippingActivationNotFound": "邀请码不存在，请确认后重新输入。",
-    "dropshippingActivationMaxUses": "邀请码已达到使用上限。",
-    "dropshippingActivationExpired": "邀请码已过期，请联系业务员确认。",
-    "dropshippingActivationForbidden": "该邀请码不能用于批发，请更换对应业务员的邀请码。",
-    "dropshippingActivationSelfReferral": "不能使用自己的邀请码开通业务。",
-    "dropshippingActivationNoPermission": "当前账号不能执行此操作。",
     "refreshProfile": "刷新资料",
     "verificationTitle": "实名认证状态",
     "verificationApproved": "通过认证",
@@ -948,7 +969,7 @@
     "accountVerificationTitle": "账号与认证",
     "accountVerificationDescription": "处理实名信息、通行资料、个人照片和个人视频。",
     "accountSwitcherTitle": "常用账号",
-    "accountSwitcherDescription": "在这台设备保存另一个常用账号，方便下次快速切换。不会保存账号密码，请不要在共用电脑上使用。",
+    "accountSwitcherDescription": "在当前浏览器会话保存另一个常用账号，方便短时间内快速切换。不会保存账号密码，请不要在共用电脑上使用。",
     "accountSwitcherAdd": "添加常用账号",
     "accountSwitcherAddHint": "可以添加账户",
     "accountSwitcherCurrent": "正在使用",
@@ -957,19 +978,19 @@
     "accountSwitcherSwitch": "切换",
     "accountSwitcherReauthenticate": "重新登录",
     "accountSwitcherRemove": "移除",
-    "accountSwitcherClear": "清除本机保存",
-    "accountSwitcherEmpty": "当前还没有保存另一个常用账号。添加后，两个账号可以在这台设备上来回切换。",
-    "accountSwitcherCurrentOnlySaved": "这台设备保存的是当前正在使用的账号，没有另一个可切换账号。可以清除后重新添加。",
+    "accountSwitcherClear": "清除会话保存",
+    "accountSwitcherEmpty": "当前还没有保存另一个常用账号。添加后，两个账号可以在当前浏览器会话里来回切换。",
+    "accountSwitcherCurrentOnlySaved": "当前浏览器会话保存的是正在使用的账号，没有另一个可切换账号。可以清除后重新添加。",
     "accountSwitcherUnknownEmail": "邮箱未显示",
     "accountSwitcherUnavailable": "当前账号暂时不能加入常用账号，请刷新页面后重试。",
-    "accountSwitcherExpiredNotice": "这个常用账号超过 15 天没有使用，需要重新登录后才能切换。",
+    "accountSwitcherExpiredNotice": "这个常用账号超过 8 小时没有使用，需要重新登录后才能切换。",
     "accountSwitcherSessionExpiredNotice": "这个常用账号需要重新登录后才能继续切换。",
     "accountSwitcherRemoved": "常用账号已移除。",
-    "accountSwitcherCleared": "本机保存的常用账号已清除。",
+    "accountSwitcherCleared": "当前浏览器会话保存的常用账号已清除。",
     "accountSwitcherRemoveConfirm": "移除这个常用账号？",
-    "accountSwitcherRemoveConfirmDescription": "移除后，这台设备不会再显示这个常用账号；账号本身不会被删除。",
-    "accountSwitcherClearConfirm": "清除这台设备保存的常用账号？",
-    "accountSwitcherClearConfirmDescription": "只会清除这台设备保存的常用账号记录，当前账号会继续保持登录。",
+    "accountSwitcherRemoveConfirmDescription": "移除后，当前浏览器会话不会再显示这个常用账号；账号本身不会被删除。",
+    "accountSwitcherClearConfirm": "清除当前浏览器会话保存的常用账号？",
+    "accountSwitcherClearConfirmDescription": "只会清除当前浏览器会话保存的常用账号记录，当前账号会继续保持登录。",
     "accountSwitcherCancel": "取消",
     "accountSwitcherRoleAdministrator": "管理员账号",
     "accountSwitcherRoleSalesman": "业务员账号",
@@ -1029,20 +1050,20 @@
     "header": {
       "badge": "系统设置",
       "title": "系统设置",
-      "description": "订单规则、佣金规则和汇率设置都在这里统一维护；订单页和佣金页只保留日常处理和记录查看。"
+      "description": "旅游业务、批发业务和汇率规则在这里统一维护；业务页面只保留日常处理和记录查看。"
     },
     "tabs": {
-      "orders": {
-        "title": "订单规则",
-        "description": "服务费、服务价格和折扣"
+      "tourism": {
+        "title": "旅游业务设置",
+        "description": "旅游订单、服务价格、折扣和旅游佣金"
       },
-      "commission": {
-        "title": "佣金规则",
-        "description": "订单、服务、推荐和 VIP 奖励"
+      "wholesale": {
+        "title": "批发业务设置",
+        "description": "批发订单业务员佣金和推荐佣金"
       },
       "exchangeRates": {
         "title": "汇率设置",
-        "description": "币种汇率和自动更新"
+        "description": "币种汇率、自动获取和历史记录"
       }
     },
     "states": {
@@ -1057,8 +1078,7 @@
       "client": "我的订单"
     },
     "tabs": {
-      "orders": "订单列表",
-      "exchange-rates": "系统设置"
+      "orders": "订单列表"
     },
     "modes": {
       "admin": {
@@ -1115,6 +1135,8 @@
       "orderEntryUserPlaceholder": "输入录入员姓名或邮箱",
       "orderingUserLabel": "订单客户",
       "orderingUserPlaceholder": "输入客户姓名或邮箱",
+      "createdFromDateLabel": "下单日期从",
+      "createdToDateLabel": "下单日期到",
       "resultSummary": "共 {total} 条，匹配 {matched} 条",
       "clear": "清空筛选"
     },
@@ -1138,15 +1160,15 @@
       "serviceFees": {
         "badge": "服务费",
         "title": "服务费设置",
-        "description": "零售和批发订单的服务费按固定档位维护；服务订单没有服务费，价格和折扣在下方单独维护。",
+        "description": "零售订单的服务费按固定档位维护；服务订单没有服务费，价格和折扣在下方单独维护。",
         "retail": {
           "title": "零售服务费设置",
           "description": "零售订单会按客户在零售订单中的情况自动匹配：新用户、零售/服务VIP或普通零售。",
           "summaryLabel": "零售服务费"
         },
         "wholesale": {
-          "title": "批发服务费设置",
-          "description": "批发订单会按客户在批发订单中的情况自动匹配：新用户、高级批发、普通批发或批发VIP。",
+          "title": "批发服务费",
+          "description": "批发业务不在旅游订单的服务费设置里维护，费用规则在批发订单中单独处理。",
           "summaryLabel": "批发服务费"
         },
         "service": {
@@ -1242,14 +1264,12 @@
     },
     "categories": {
       "purchase": "零售类",
-      "dropshipping": "批发类",
       "service": "服务订单",
       "vipRecharge": "VIP充值"
     },
     "subtypes": {
       "purchase": {
         "sourcing": "货源采购",
-        "dropshipping": "批发",
         "touristShopping": "旅游购物",
         "groupBuying": "团购"
       },
@@ -1262,7 +1282,7 @@
       },
       "vipRecharge": {
         "retail": "零售/服务VIP",
-        "wholesale": "批发VIP"
+        "wholesale": "已停用"
       }
     },
     "formSections": {
@@ -1282,8 +1302,8 @@
       "orderingUser": "订单客户",
       "orderStatus": "订单状态",
       "orderType": "订单类型",
-      "purchaseSubtype": "采购/批发小类",
-      "purchaseDetails": "采购/批发明细",
+      "purchaseSubtype": "采购小类",
+      "purchaseDetails": "采购明细",
       "serviceSubtype": "服务小类",
       "serviceDiscount": "订单折扣",
       "serviceFeeType": "服务费档位",
@@ -1333,7 +1353,7 @@
       "orderEntryUser": "请选择订单录入员",
       "orderingUser": "请选择订单客户",
       "orderType": "请选择订单类型",
-      "purchaseSubtype": "请选择采购/批发小类",
+      "purchaseSubtype": "请选择采购小类",
       "serviceSubtype": "请选择服务小类",
       "serviceDiscount": "请选择订单折扣",
       "serviceFeeType": "请选择服务费档位",
@@ -1349,8 +1369,8 @@
     },
     "errors": {
       "duplicateOrderNumber": "订单编号生成冲突，请稍后重试。",
-      "exchangeRateMissing": "这个币种的汇率还没有准备好，请先到系统设置中补充。",
-      "invalidForeignKeys": "请选择有效的订单录入员、订单客户、订单类型，以及对应的采购、批发或服务信息选项。",
+      "exchangeRateMissing": "这个币种的汇率还没有准备好，请先到系统设置的汇率设置中补充。",
+      "invalidForeignKeys": "请选择有效的订单录入员、订单客户、订单类型，以及对应的采购或服务信息选项。",
       "cannotCreate": "你没有创建该订单的权限。",
       "cannotUpdate": "你没有修改该订单的权限。",
       "updatedScopeNotAllowed": "更新后的订单范围超出了你的可操作范围。",
@@ -1363,8 +1383,8 @@
     },
     "purchaseSection": {
       "title": "零售信息",
-      "createDescription": "当前订单类型需要继续填写采购或批发补充信息。点击“创建类别”添加一行，左侧填写类别名称，右侧填写对应内容。",
-      "editDescription": "当前订单类型可直接修改采购或批发补充信息。点击“创建类别”添加一行，左侧填写类别名称，右侧填写对应内容。",
+      "createDescription": "当前订单类型需要继续填写采购补充信息。点击“创建类别”添加一行，左侧填写类别名称，右侧填写对应内容。",
+      "editDescription": "当前订单类型可直接修改采购补充信息。点击“创建类别”添加一行，左侧填写类别名称，右侧填写对应内容。",
       "loading": "加载中"
     },
     "serviceSection": {
@@ -1375,8 +1395,8 @@
     },
     "vipSection": {
       "title": "VIP充值信息",
-      "createDescription": "VIP充值统一按 200 美金记录，选择零售/服务VIP或批发VIP后保存。",
-      "editDescription": "可修改这笔VIP充值对应的会员类型和补充信息。",
+      "createDescription": "VIP充值统一按 200 美金记录，保存后会开通零售/服务VIP。",
+      "editDescription": "可修改这笔VIP充值的补充信息。",
       "loading": "加载中"
     },
     "details": {
@@ -1404,11 +1424,11 @@
       },
       "supplementary": {
         "loading": "加载中",
-        "empty": "当前订单还没有对应的采购、批发、服务或VIP充值内容。",
-        "purchaseForm": "采购/批发表单",
+        "empty": "当前订单还没有对应的采购、服务或VIP充值内容。",
+        "purchaseForm": "采购表单",
         "serviceForm": "服务订单表单",
         "vipForm": "VIP充值表单",
-        "purchaseSubtype": "采购/批发小类",
+        "purchaseSubtype": "采购小类",
         "serviceSubtype": "服务小类",
         "servicePrice": "服务价格",
         "vipScope": "VIP类型",
@@ -1685,8 +1705,8 @@
       "title": "推荐树"
     },
     "boards": {
-      "tourism": "零售",
-      "dropshipping": "批发"
+      "tourism": "旅游业务",
+      "wholesale": "批发业务"
     },
     "summary": {
       "visibleEdges": "可见关系",
@@ -2652,11 +2672,12 @@
     "directory": {
       "eyebrow": "人员目录",
       "title": "账号列表",
-      "description": "这里可调整账号身份、状态和城市。推荐关系、团队归属、佣金等业务记录不会被自动改变。",
+      "description": "列表只保留账号、身份、状态等关键信息。点开账号可查看完整资料；推荐关系、团队归属、佣金等业务记录不会被自动改变。",
       "emptyTitle": "没有符合条件的人员",
       "emptyDescription": "请调整搜索内容或筛选条件后再查看。",
       "columns": {
         "account": "账号",
+        "accountState": "身份与状态",
         "privateNote": "我的备注",
         "role": "身份",
         "status": "账号状态",
@@ -2690,24 +2711,49 @@
       }
     },
     "dialog": {
-      "title": "调整 {name}",
-      "description": "保存后，新的账号信息会在对方下次登录或刷新页面后生效。",
+      "title": "账号详情：{name}",
+      "description": "完整资料集中在这里，下方可以调整账号信息。",
+      "adjustTitle": "调整账号",
+      "adjustDescription": "保存后，新的账号信息会在对方下次登录或刷新页面后生效。",
       "nextRole": "调整为身份",
       "nextStatus": "调整为状态",
       "nextCity": "城市",
       "cityPlaceholder": "填写城市，留空表示暂不填写",
       "customerType": "客户标记",
-      "customerTypeHint": "当前标记：{value}。这个标记只用于内部区分零售客户和批发客户。",
+      "customerTypeHint": "当前标记：{value}。这个标记只用于内部标记零售客户。",
       "customerTypePlaceholder": "请选择客户标记",
       "businessAccess": "可见业务",
-      "businessAccessHint": "只影响业务员可查看和可处理的业务板块，不改变推荐关系或团队归属。",
+        "businessAccessHint": "控制这个账号左侧栏里可见的旅游业务和批发业务，不改变推荐关系或团队归属。",
       "note": "备注",
       "notePlaceholder": "填写本次调整原因，方便后续核对"
+    },
+    "details": {
+      "basicTitle": "账号信息",
+      "businessTitle": "关系与业务",
+      "noteTitle": "我的备注",
+      "email": "邮箱",
+      "phone": "手机号",
+      "role": "身份",
+      "status": "账号状态",
+      "city": "城市",
+      "createdAt": "创建时间",
+      "customerType": "客户标记",
+      "customerTypeMarkedBy": "标记人",
+      "customerTypeMarkedAt": "标记时间",
+      "businessAccess": "可见业务",
+      "noBusinessAccess": "当前身份暂无可见业务",
+      "referralCode": "邀请码",
+      "referrer": "推荐人",
+      "team": "团队",
+      "directReferrals": "直接推荐",
+      "directReferralsValue": "{count} 人",
+      "latestChangeAt": "最近调整"
     },
     "actions": {
       "adjust": "调整账号",
       "note": "备注",
       "currentAccount": "当前账号",
+      "openDetailsFor": "查看 {name} 的账号详情",
       "cancel": "取消",
       "save": "保存调整",
       "saving": "保存中..."
@@ -2729,15 +2775,15 @@
     },
     "customerTypes": {
       "retail": "零售",
-      "wholesale": "批发"
+      "wholesale": "已停用"
     },
     "businessBoards": {
-      "tourism": "零售",
-      "dropshipping": "批发"
+      "tourism": "旅游业务",
+      "wholesale": "批发业务"
     },
     "businessBoardShortLabels": {
-      "tourism": "零售",
-      "dropshipping": "批发"
+      "tourism": "旅游",
+      "wholesale": "批发"
     },
     "fallback": {
       "unnamedUser": "未命名人员",
@@ -2765,7 +2811,7 @@
     },
     "vip": {
       "retail": "零售/服务VIP",
-      "wholesale": "批发VIP",
+      "wholesale": "已停用",
       "activeUntil": "有效至 {value}",
       "inactive": "未开通",
       "pendingRequest": "{value} 待处理",
@@ -2780,7 +2826,7 @@
     },
     "vip": {
       "retail": "零售/服务VIP",
-      "wholesale": "批发VIP",
+      "wholesale": "已停用",
       "activeUntil": "有效至 {value}",
       "inactive": "未开通",
       "open": "申请开通",
@@ -2790,13 +2836,13 @@
     "header": {
       "badge": "我的客户",
       "title": "客户管理",
-      "description": "这里展示你名下的客户，并可以把客户标记为零售或批发。",
+      "description": "这里展示你名下的客户，并可以把客户标记为零售。",
       "descriptionRetailOnly": "这里展示你名下的客户，并可以把客户标记为零售。"
     },
     "summary": {
       "total": "客户总数",
       "retail": "零售客户",
-      "wholesale": "批发客户",
+      "wholesale": "已停用",
       "unmarked": "待标记"
     },
     "states": {
@@ -2833,7 +2879,7 @@
     },
     "customerTypes": {
       "retail": "零售",
-      "wholesale": "批发"
+      "wholesale": "已停用"
     },
     "actions": {
       "adjust": "调整标记",

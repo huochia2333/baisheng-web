@@ -47,6 +47,18 @@ export function useAdminOrdersRouteState({
         nextParams.delete("orderNumber");
       }
 
+      if (nextFilters.createdFromDate) {
+        nextParams.set("createdFromDate", nextFilters.createdFromDate);
+      } else {
+        nextParams.delete("createdFromDate");
+      }
+
+      if (nextFilters.createdToDate) {
+        nextParams.set("createdToDate", nextFilters.createdToDate);
+      } else {
+        nextParams.delete("createdToDate");
+      }
+
       if (nextFilters.orderEntryUser) {
         nextParams.set("orderEntryUser", nextFilters.orderEntryUser);
       } else {
@@ -156,6 +168,24 @@ export function useAdminOrdersRouteState({
     }));
   }, []);
 
+  const handleCreatedFromDateChange = useCallback((value: string) => {
+    setFilters((current) => ({
+      ...current,
+      createdFromDate: value,
+      createdToDate:
+        current.createdToDate && value && current.createdToDate < value
+          ? value
+          : current.createdToDate,
+    }));
+  }, []);
+
+  const handleCreatedToDateChange = useCallback((value: string) => {
+    setFilters((current) => ({
+      ...current,
+      createdToDate: value,
+    }));
+  }, []);
+
   const clearFilters = useCallback(() => {
     setFilters(EMPTY_ORDER_FILTERS);
   }, []);
@@ -163,6 +193,8 @@ export function useAdminOrdersRouteState({
   return {
     clearFilters,
     filters,
+    handleCreatedFromDateChange,
+    handleCreatedToDateChange,
     handleOrderEntryUserChange,
     handleOrderNumberChange,
     handleOrderingUserChange,

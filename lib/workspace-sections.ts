@@ -1,16 +1,12 @@
 export const workspaceSectionKeys = [
-  "announcements",
   "orders",
   "referrals",
   "team",
   "people",
   "records",
   "commission",
-  "exchange-rates",
-  "settings",
   "tasks",
   "reviews",
-  "feedback",
 ] as const;
 
 export type WorkspaceSectionKey = (typeof workspaceSectionKeys)[number];

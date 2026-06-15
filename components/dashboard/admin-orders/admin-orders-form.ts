@@ -366,5 +366,5 @@ function parseBaseOrderForm(
 }
 
 export function isPurchaseDetailsCategory(category: string | null | undefined) {
-  return category === "purchase" || category === "dropshipping";
+  return category === "purchase";
 }

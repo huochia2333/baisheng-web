@@ -30,8 +30,8 @@ type LocalNotice = {
 };
 
 const BOARD_COPY_KEYS = {
-  dropshipping: "businessReferralDropshipping",
   tourism: "businessReferralTourism",
+  wholesale: "businessReferralWholesale",
 } as const satisfies Record<SalesmanBusinessBoard, string>;
 
 export function DashboardBusinessReferralPanel({

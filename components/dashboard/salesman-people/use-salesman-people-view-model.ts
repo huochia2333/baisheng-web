@@ -55,7 +55,6 @@ export function useSalesmanPeopleViewModel({
   const customerTypeLabels = useMemo<SalesmanCustomerTypeLabels>(
     () => ({
       retail: t("customerTypes.retail"),
-      wholesale: t("customerTypes.wholesale"),
     }),
     [t],
   );
@@ -78,15 +77,11 @@ export function useSalesmanPeopleViewModel({
     const retailCount = customers.filter(
       (customer) => customer.customer_type === "retail",
     ).length;
-    const wholesaleCount = customers.filter(
-      (customer) => customer.customer_type === "wholesale",
-    ).length;
 
     return {
       retailCount,
       totalCount: customers.length,
-      unmarkedCount: customers.length - retailCount - wholesaleCount,
-      wholesaleCount,
+      unmarkedCount: customers.length - retailCount,
     };
   }, [customers]);
 

@@ -23,9 +23,6 @@ const REVIEW_MUTATION_TIMEOUT_MS = 30_000;
 const REVIEW_MUTATION_TIMEOUT_MESSAGE = "Review action timed out. Please try again.";
 const PENDING_MEDIA_REVIEW_SELECT =
   "asset_id,user_id,name,email,kind,bucket_name,storage_path,original_name,mime_type,file_size_bytes,status,created_at,ai_review_status,ai_review_decision,ai_review_risk_score,ai_review_reasons,ai_review_provider,ai_review_model,ai_review_completed_at,ai_review_error_message";
-const PENDING_MEDIA_REVIEW_LEGACY_SELECT =
-  "asset_id,user_id,name,email,kind,bucket_name,storage_path,original_name,mime_type,file_size_bytes,status,created_at";
-const AI_REVIEW_NOT_CONFIGURED_REASON = "not_configured";
 
 export type AiImageReviewStatus = "queued" | "processing" | "completed" | "failed";
 export type AiImageReviewDecision = "auto_pass" | "manual_review";
@@ -64,18 +61,6 @@ export type PendingMediaReviewRow = {
   ai_review_completed_at: string | null;
   ai_review_error_message: string | null;
 };
-
-type PendingMediaReviewLegacyRow = Omit<
-  PendingMediaReviewRow,
-  | "ai_review_status"
-  | "ai_review_decision"
-  | "ai_review_risk_score"
-  | "ai_review_reasons"
-  | "ai_review_provider"
-  | "ai_review_model"
-  | "ai_review_completed_at"
-  | "ai_review_error_message"
->;
 
 export type PendingMediaReviewWithPreview = PendingMediaReviewRow & {
   previewUrl: string | null;
@@ -158,30 +143,6 @@ function parseRpcRow<T>(
   }
 
   throw new Error(`Unexpected RPC response from ${rpcName}.`);
-}
-
-function isMissingAiReviewFieldsError(error: unknown) {
-  const message = isRecord(error) && typeof error.message === "string" ? error.message : "";
-
-  return (
-    message.includes("ai_review_") ||
-    message.includes("PENDING_MEDIA_REVIEW_SELECT") ||
-    (message.includes("schema cache") && message.includes("pending_user_media_assets"))
-  );
-}
-
-function withManualAiReviewFallback(row: PendingMediaReviewLegacyRow): PendingMediaReviewRow {
-  return {
-    ...row,
-    ai_review_status: "completed",
-    ai_review_decision: "manual_review",
-    ai_review_risk_score: null,
-    ai_review_reasons: [AI_REVIEW_NOT_CONFIGURED_REASON],
-    ai_review_provider: "disabled",
-    ai_review_model: null,
-    ai_review_completed_at: null,
-    ai_review_error_message: null,
-  };
 }
 
 async function attachMediaPreviewUrls(
@@ -276,7 +237,7 @@ export async function getPendingPrivacyReviews(
 export async function getPendingMediaReviews(
   supabase: SupabaseClient,
 ): Promise<PendingMediaReviewWithPreview[]> {
-  const result = await withRequestTimeout(
+  const { data, error } = await withRequestTimeout(
     supabase
       .from("pending_user_media_assets")
       .select(PENDING_MEDIA_REVIEW_SELECT)
@@ -284,30 +245,11 @@ export async function getPendingMediaReviews(
       .returns<PendingMediaReviewRow[]>(),
   );
 
-  if (!result.error) {
-    return attachMediaPreviewUrls(supabase, result.data ?? []);
+  if (error) {
+    throw error;
   }
 
-  if (!isMissingAiReviewFieldsError(result.error)) {
-    throw result.error;
-  }
-
-  const { data: legacyData, error: legacyError } = await withRequestTimeout(
-    supabase
-      .from("pending_user_media_assets")
-      .select(PENDING_MEDIA_REVIEW_LEGACY_SELECT)
-      .order("created_at", { ascending: false })
-      .returns<PendingMediaReviewLegacyRow[]>(),
-  );
-
-  if (legacyError) {
-    throw legacyError;
-  }
-
-  return attachMediaPreviewUrls(
-    supabase,
-    (legacyData ?? []).map(withManualAiReviewFallback),
-  );
+  return attachMediaPreviewUrls(supabase, data ?? []);
 }
 
 export async function approvePrivacyReview(

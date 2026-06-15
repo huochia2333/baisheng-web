@@ -7,6 +7,8 @@ export const ADMIN_ORDER_SELECT =
   "id,order_number,original_currency,amount,daily_exchange_rate,transaction_rate,rmb_amount,order_entry_user,ordering_user,order_status,order_type,created_at,reviewed_at,deleted_at,service_fee_type_id:service_fee_type";
 
 export type AdminOrderOverviewFilters = {
+  createdFrom?: string;
+  createdTo?: string;
   orderEntryUserIds?: string[];
   orderNumber?: string;
   orderStatus?: string;
@@ -24,8 +26,10 @@ type AdminOrderQueryOptions = {
 
 type AdminOrderFilterQuery<TQuery> = {
   eq(column: string, value: string): TQuery;
+  gte(column: string, value: string): TQuery;
   ilike(column: string, value: string): TQuery;
   in(column: string, values: string[]): TQuery;
+  lte(column: string, value: string): TQuery;
 };
 
 export async function queryAdminOrders(
@@ -95,6 +99,14 @@ function applyAdminOrderOverviewFilters<TQuery extends AdminOrderFilterQuery<TQu
 
   if (filters?.orderNumber) {
     nextQuery = nextQuery.ilike("order_number", `%${filters.orderNumber}%`);
+  }
+
+  if (filters?.createdFrom) {
+    nextQuery = nextQuery.gte("created_at", filters.createdFrom);
+  }
+
+  if (filters?.createdTo) {
+    nextQuery = nextQuery.lte("created_at", filters.createdTo);
   }
 
   if (filters?.orderEntryUserIds && filters.orderEntryUserIds.length > 0) {

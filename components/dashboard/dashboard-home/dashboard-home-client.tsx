@@ -53,8 +53,8 @@ export function DashboardHomeClient({ initialData }: DashboardHomeClientProps) {
   const inviteCopy = useMemo(
     () => ({
       businessBoards: {
-        dropshipping: t("invite.businessBoards.dropshipping"),
         tourism: t("invite.businessBoards.tourism"),
+        wholesale: t("invite.businessBoards.wholesale"),
       },
       codeLabel: t("invite.codeLabel"),
       copiedBoardLink: (board: string) =>

@@ -203,6 +203,8 @@ export function useAdminOrdersViewModel({
     handleEditDialogOpenChange: editDialogState.handleEditDialogOpenChange,
     handleEditOrder: editDialogState.handleEditOrder,
     handleForceDeleteOrder: deleteActions.handleForceDeleteOrder,
+    handleCreatedFromDateChange: routeState.handleCreatedFromDateChange,
+    handleCreatedToDateChange: routeState.handleCreatedToDateChange,
     handleOrderDetailsOpenChange: selectionState.handleOrderDetailsOpenChange,
     handleOrderEntryUserChange: routeState.handleOrderEntryUserChange,
     handleOrderNumberChange: routeState.handleOrderNumberChange,

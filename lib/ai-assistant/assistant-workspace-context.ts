@@ -26,10 +26,12 @@ const ROLE_LABELS = {
 const NAV_LABELS = {
   announcements: "公告管理",
   commission: "佣金",
-  exchangeRates: "汇率",
   feedback: "反馈管理",
   home: "首页",
+  incentives: "提成",
+  logistics: "物流管理",
   my: "我的",
+  orderClaims: "订单认领",
   orders: "订单",
   people: "人员管理",
   records: "操作记录",
@@ -38,27 +40,31 @@ const NAV_LABELS = {
   settings: "系统设置",
   tasks: "任务",
   team: "团队",
+  wholesaleOrders: "批发订单",
 } as const satisfies Record<WorkspaceNavLabelKey, string>;
 
 const NAV_ENTRY_DESCRIPTIONS = {
   announcements: "发布和管理系统公告",
   commission: "查看或处理订单佣金与任务奖励",
-  exchangeRates: "查看当前可用汇率",
   feedback: "管理员查看和跟进用户反馈",
   home: "查看问候、公告和当前提醒",
+  incentives: "查看批发业务员提成、待结算金额和结算状态",
+  logistics: "记录批发物流订单、国际订单号、目的地订单号、货代进度和物流费用",
   my: "从头像进入个人资料、邀请码和账号入口",
+  orderClaims: "接收 1688 采购订单并由业务员认领归属客户",
   orders: "查看或处理当前账号可见的订单",
   people: "管理账号、状态、角色和业务范围",
   records: "查看重要处理动作的留痕",
   referrals: "按当前可见业务板块查看推荐关系和邀请码线索",
   reviews: "处理资料和媒体审核",
-  settings: "集中维护订单规则、佣金规则和汇率设置",
+  settings: "集中维护旅游业务设置、批发业务设置和汇率设置",
   tasks: "查看、领取、提交或管理任务",
   team: "查看当前账号可见的团队范围",
+  wholesaleOrders: "管理批发客户订单、费用、毛利、订单月份和关联 1688 采购订单",
 } as const satisfies Record<WorkspaceNavLabelKey, string>;
 
 const SYSTEM_UPDATE_GUIDES = [
-  "推荐树、邀请码、团队范围和部分订单/人员范围会按业务板块区分；回答时不要把零售和批发混在一起，也不要引导用户选择当前未开放的业务。",
+  "后台采用一套登录壳、旅游业务和批发业务两个分组；旅游订单继续使用当前订单结构，批发业务使用独立的客户、订单、1688 认领、物流、提成和推荐模型。",
   "任务支持按目标角色发放、多人分别领取、分别提交审核；管理员可以设置提交任务时是否必须上传文件。",
   "管理员可以通过操作记录核对重要处理动作，也可以通过反馈管理跟进用户提交的问题。",
   "个人照片上传后的图片初审只是辅助检查，是否通过以审核结果和页面提示为准。",
@@ -102,7 +108,14 @@ function getRoleWorkspaceConfig(role: AppRole | null) {
 }
 
 function buildRoleGuide(config: WorkspaceRouteConfig) {
-  const entries = config.navItems.map((item) => buildNavEntryGuide(config, item));
+  const entries = [
+    ...config.globalNavItems.map((item) => buildNavEntryGuide(config, item)),
+    ...config.navGroups.flatMap((group) =>
+      group.navItems.map((item) =>
+        `${group.business === "tourism" ? "旅游业务" : "批发业务"} / ${buildNavEntryGuide(config, item)}`,
+      ),
+    ),
+  ];
   const profileEntry = `${NAV_LABELS.my}：${NAV_ENTRY_DESCRIPTIONS.my}`;
 
   return `${ROLE_LABELS[config.authRole]}可使用：${[...entries, profileEntry].join("；")}。`;
@@ -120,7 +133,9 @@ function getNavEntryDescription(
   item: WorkspaceNavItem,
 ) {
   if (isSalesStaffRole(config.authRole) && item.segment === "orders") {
-    return "按当前账号可见业务处理订单；如果页面没有该入口，以当前工作台实际显示为准";
+    return item.business === "wholesale"
+      ? NAV_ENTRY_DESCRIPTIONS.wholesaleOrders
+      : "按当前账号可见旅游业务处理订单；如果页面没有该入口，以当前工作台实际显示为准";
   }
 
   if (isSalesStaffRole(config.authRole) && item.segment === "people") {
@@ -144,13 +159,22 @@ function buildCurrentPageGuide(
 
   const section = pathname
     .replace(`${currentPageConfig.basePath}/`, "")
-    .split("/")[0];
-  const navItem = currentPageConfig.navItems.find(
-    (item) => item.segment === section,
+    .split("/")
+    .filter(Boolean);
+  const globalSection = section[0] ?? "";
+  const business = section[0] ?? "";
+  const businessSection = section[1] ?? "";
+  const navItem = findWorkspaceNavItem(currentPageConfig, business, businessSection);
+  const globalNavItem = currentPageConfig.globalNavItems.find(
+    (item) => item.segment === globalSection,
   );
 
-  if (section === "my") {
+  if (globalSection === "my") {
     return `${ROLE_LABELS[currentPageConfig.authRole]}当前在“我的”页面，只能说明个人资料、邀请码和账号入口相关操作。`;
+  }
+
+  if (globalNavItem) {
+    return `${ROLE_LABELS[currentPageConfig.authRole]}当前在“${NAV_LABELS[globalNavItem.labelKey]}”页面，主要用途是${getNavEntryDescription(currentPageConfig, globalNavItem)}。`;
   }
 
   if (!navItem) {
@@ -160,6 +184,16 @@ function buildCurrentPageGuide(
   const description = getNavEntryDescription(currentPageConfig, navItem);
 
   return `${ROLE_LABELS[currentPageConfig.authRole]}当前在“${NAV_LABELS[navItem.labelKey]}”页面，主要用途是${description}。`;
+}
+
+function findWorkspaceNavItem(
+  config: WorkspaceRouteConfig,
+  business: string,
+  section: string,
+) {
+  return config.navGroups
+    .find((group) => group.business === business)
+    ?.navItems.find((item) => item.segment === section);
 }
 
 function buildSystemGuide(config: WorkspaceRouteConfig | null) {
@@ -176,10 +210,7 @@ function buildPageVariantGuide(pageVariants: WorkspacePageVariants) {
     pageVariants.people ? getPeopleGuide(pageVariants.people) : null,
     pageVariants.tasks ? getTasksGuide(pageVariants.tasks) : null,
     pageVariants.commission ? getCommissionGuide(pageVariants.commission) : null,
-    pageVariants.settings ? "系统设置由管理员集中维护订单规则、佣金规则和汇率设置。" : null,
-    pageVariants.exchangeRates === "manage"
-      ? "汇率管理入口已经集中到系统设置。"
-      : null,
+    pageVariants.settings ? "系统设置由管理员集中维护旅游业务设置、批发业务设置和汇率设置；采购订单业务员佣金和采购订单推荐佣金归在批发业务设置里。" : null,
     pageVariants.feedback ? "反馈管理只用于管理员查看和处理用户反馈。" : null,
     pageVariants.records ? "操作记录只用于管理员核对重要处理动作。" : null,
     pageVariants.reviews ? "审核中心由管理员处理资料和媒体审核。" : null,
@@ -194,7 +225,7 @@ function buildPageVariantGuide(pageVariants: WorkspacePageVariants) {
 
 function getOrdersGuide(mode: WorkspacePageVariants["orders"]) {
   if (mode === "admin") {
-    return "管理员订单页用于订单处理；订单规则和汇率设置在系统设置中维护。";
+    return "管理员订单页用于订单处理；旅游订单规则和汇率都在系统设置中维护。";
   }
 
   if (mode === "salesman") {

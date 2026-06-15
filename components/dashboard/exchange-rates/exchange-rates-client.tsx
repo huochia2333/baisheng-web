@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { useTranslations } from "next-intl";
-import { ShieldAlert } from "lucide-react";
+import { Plus, ShieldAlert } from "lucide-react";
 
 import {
   markBrowserCloudSyncActivity,
@@ -29,6 +29,7 @@ import {
   normalizeSearchText,
   type NoticeTone,
 } from "@/components/dashboard/dashboard-shared-ui";
+import { Button } from "@/components/ui/button";
 import {
   ExchangeRateFormDialog,
   ExchangeRatesHeaderSection,
@@ -146,7 +147,7 @@ export function ExchangeRatesClient({
   useWorkspaceSyncEffect(refreshExchangeRates);
 
   const canManage = mode === "manage" && hasPermission === true;
-  const canManageDirectRates = canManage && !embedded;
+  const canManageDirectRates = canManage;
   const syncSettings = useExchangeRateSyncSettings({
     canManage,
     formatError: (error) => toExchangeRateErrorMessage(error, exchangeRateCopy),
@@ -457,12 +458,25 @@ export function ExchangeRatesClient({
         <PageBanner tone={pageFeedback.tone}>{pageFeedback.message}</PageBanner>
       ) : null}
 
-      {embedded ? null : (
+      {!embedded ? (
         <ExchangeRatesHeaderSection
           canManage={canManageDirectRates}
           onCreate={openCreateDialog}
         />
-      )}
+      ) : null}
+
+      {embedded && canManageDirectRates ? (
+        <div className="flex justify-end">
+          <Button
+            className="h-11 rounded-full bg-[#486782] px-5 text-white hover:bg-[#3e5f79]"
+            onClick={openCreateDialog}
+            type="button"
+          >
+            <Plus className="size-4" />
+            {t("actions.create")}
+          </Button>
+        </div>
+      ) : null}
 
       {hasPermission === false ? (
         <section className="rounded-[28px] border border-white/85 bg-white/72 p-6 shadow-[0_18px_45px_rgba(96,113,128,0.06)] xl:p-8">

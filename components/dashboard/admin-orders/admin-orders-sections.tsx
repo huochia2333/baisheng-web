@@ -62,9 +62,13 @@ type OrdersTableSectionProps = {
     orderEntryUser: string;
     orderNumber: string;
     orderingUser: string;
+    createdFromDate: string;
+    createdToDate: string;
   };
   matchedOrdersCount: number;
   onClearFilters: () => void;
+  onCreatedFromDateChange: (value: string) => void;
+  onCreatedToDateChange: (value: string) => void;
   onOrderEntryUserChange: (value: string) => void;
   onOrderNumberChange: (value: string) => void;
   onOrderingUserChange: (value: string) => void;
@@ -124,6 +128,8 @@ export const OrdersTableSection = memo(function OrdersTableSection({
   filters,
   matchedOrdersCount,
   onClearFilters,
+  onCreatedFromDateChange,
+  onCreatedToDateChange,
   onOrderEntryUserChange,
   onOrderNumberChange,
   onOrderingUserChange,
@@ -144,7 +150,11 @@ export const OrdersTableSection = memo(function OrdersTableSection({
   const { locale } = useLocale();
   const orderUiCopy = createOrdersUiCopy(ordersUiT);
   const hasActiveFilters = Boolean(
-    filters.orderNumber || filters.orderEntryUser || filters.orderingUser,
+    filters.orderNumber ||
+      filters.orderEntryUser ||
+      filters.orderingUser ||
+      filters.createdFromDate ||
+      filters.createdToDate,
   );
 
   return (
@@ -153,10 +163,10 @@ export const OrdersTableSection = memo(function OrdersTableSection({
         className="mb-5"
         gridClassName={
           showOrderEntryFilter && showOrderingFilter
-            ? "lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_auto]"
+            ? "md:grid-cols-2 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,0.8fr)_minmax(0,0.8fr)_auto]"
             : showOrderingFilter
-              ? "lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto]"
-              : "lg:grid-cols-[minmax(0,1fr)_auto]"
+              ? "md:grid-cols-2 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,0.8fr)_minmax(0,0.8fr)_auto]"
+              : "md:grid-cols-2 xl:grid-cols-[minmax(0,1fr)_minmax(0,0.8fr)_minmax(0,0.8fr)_auto]"
         }
       >
         <DashboardFilterField label={t("filters.orderNumberLabel")}>
@@ -192,6 +202,25 @@ export const OrdersTableSection = memo(function OrdersTableSection({
             />
           </DashboardFilterField>
         ) : null}
+
+        <DashboardFilterField label={t("filters.createdFromDateLabel")}>
+          <input
+            className={dashboardFilterInputClassName}
+            onChange={(event) => onCreatedFromDateChange(event.target.value)}
+            type="date"
+            value={filters.createdFromDate}
+          />
+        </DashboardFilterField>
+
+        <DashboardFilterField label={t("filters.createdToDateLabel")}>
+          <input
+            className={dashboardFilterInputClassName}
+            min={filters.createdFromDate || undefined}
+            onChange={(event) => onCreatedToDateChange(event.target.value)}
+            type="date"
+            value={filters.createdToDate}
+          />
+        </DashboardFilterField>
 
         <div className="flex flex-col justify-end gap-3 lg:items-end">
           <p className="text-sm text-[#69747d]">

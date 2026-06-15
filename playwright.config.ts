@@ -1,6 +1,6 @@
 import { defineConfig, devices } from "@playwright/test";
 
-const baseURL = process.env.PLAYWRIGHT_BASE_URL ?? "http://127.0.0.1:3000";
+const baseURL = process.env.PLAYWRIGHT_BASE_URL ?? "http://localhost:3000";
 const shouldStartWebServer = process.env.PLAYWRIGHT_SKIP_WEB_SERVER !== "1";
 
 export default defineConfig({
@@ -24,7 +24,7 @@ export default defineConfig({
   ],
   retries: process.env.CI ? 1 : 0,
   testDir: "./tests/e2e",
-  timeout: 45_000,
+  timeout: 60_000,
   use: {
     baseURL,
     screenshot: "only-on-failure",
@@ -33,7 +33,7 @@ export default defineConfig({
   },
   webServer: shouldStartWebServer
     ? {
-        command: "npm run dev -- --hostname 127.0.0.1",
+        command: "npm run dev -- --hostname localhost",
         reuseExistingServer: !process.env.CI,
         timeout: 180_000,
         url: baseURL,

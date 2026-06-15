@@ -105,17 +105,6 @@ export function OrderFormDialog({
       orderTypeOptions.find((option) => option.id === formState.orderType)?.category ?? null
     );
   }, [formState.orderType, orderTypeOptions]);
-  const visiblePurchaseOrderTypeOptions = useMemo(() => {
-    if (selectedOrderCategory === "dropshipping") {
-      return purchaseOrderTypeOptions.filter(
-        (option) => option.business_subcategory === "dropshipping",
-      );
-    }
-
-    return purchaseOrderTypeOptions.filter(
-      (option) => option.business_subcategory !== "dropshipping",
-    );
-  }, [purchaseOrderTypeOptions, selectedOrderCategory]);
   const isFormBusy = pending || supplementaryLoading;
   const showCostInput = showCostField && selectedOrderCategory !== "vip_recharge";
   const isAmountLocked =
@@ -363,7 +352,7 @@ export function OrderFormDialog({
             isFormBusy={isFormBusy}
             mode={mode}
             orderDiscountOptions={orderDiscountOptions}
-            purchaseOrderTypeOptions={visiblePurchaseOrderTypeOptions}
+            purchaseOrderTypeOptions={purchaseOrderTypeOptions}
             selectedOrderCategory={selectedOrderCategory}
             serviceOrderPriceOptions={serviceOrderPriceOptions}
             serviceOrderTypeOptions={serviceOrderTypeOptions}

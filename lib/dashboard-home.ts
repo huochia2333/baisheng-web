@@ -14,6 +14,11 @@ import {
   getCurrentSalesmanBusinessBoards,
   type SalesmanBusinessBoard,
 } from "./salesman-business-access";
+import {
+  getCurrentWorkspaceBusinessAccess,
+  workspaceBusinessAccessIncludes,
+  type WorkspaceBusinessKey,
+} from "./workspace-business-access";
 import { isSalesStaffRole } from "./sales-staff-roles";
 import {
   getUserHomeWidgetLayout,
@@ -59,7 +64,7 @@ export async function getDashboardHomePageData(
   const layoutScope = `${role ?? "workspace"}:${user.id}`;
   const businessBoardsPromise: Promise<SalesmanBusinessBoard[]> =
     isSalesStaffRole(role) && status === "active"
-      ? getCurrentSalesmanBusinessBoards(supabase)
+      ? getVisibleHomeBusinessBoards(supabase, role)
       : Promise.resolve([]);
   const [profile, announcements, todos, homeLayout, businessBoards] =
     await Promise.all([
@@ -133,4 +138,47 @@ async function getHomeProfile(supabase: SupabaseClient, userId: string) {
   }
 
   return data;
+}
+
+async function getVisibleHomeBusinessBoards(
+  supabase: SupabaseClient,
+  role: AppRole | null,
+) {
+  const roleBoard = getFixedSalesStaffBusinessBoard(role);
+
+  if (!roleBoard) {
+    return [];
+  }
+
+  const [businessBoards, workspaceAccess] = await Promise.all([
+    getCurrentSalesmanBusinessBoards(supabase),
+    getCurrentWorkspaceBusinessAccess(supabase),
+  ]);
+  const requiredBusiness = getWorkspaceBusinessForReferralBoard(roleBoard);
+
+  if (!workspaceBusinessAccessIncludes(workspaceAccess, requiredBusiness)) {
+    return [];
+  }
+
+  return businessBoards.includes(roleBoard) ? [roleBoard] : [];
+}
+
+function getFixedSalesStaffBusinessBoard(
+  role: AppRole | null,
+): SalesmanBusinessBoard | null {
+  if (role === "salesman") {
+    return "wholesale";
+  }
+
+  if (role === "promoter") {
+    return "tourism";
+  }
+
+  return null;
+}
+
+function getWorkspaceBusinessForReferralBoard(
+  board: SalesmanBusinessBoard,
+): WorkspaceBusinessKey {
+  return board === "wholesale" ? "wholesale" : "tourism";
 }

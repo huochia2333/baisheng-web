@@ -18,10 +18,7 @@ import {
   type VipRechargeRequestSummary,
 } from "./vip-memberships";
 
-export const SALESMAN_CUSTOMER_TYPE_OPTIONS = [
-  "retail",
-  "wholesale",
-] as const;
+export const SALESMAN_CUSTOMER_TYPE_OPTIONS = ["retail"] as const;
 
 export type SalesmanCustomerType =
   (typeof SALESMAN_CUSTOMER_TYPE_OPTIONS)[number];
@@ -59,7 +56,7 @@ export function canViewSalesmanPeople(
 export function isSalesmanCustomerType(
   value: unknown,
 ): value is SalesmanCustomerType {
-  return value === "retail" || value === "wholesale";
+  return value === "retail";
 }
 
 export function getSalesmanCustomerTypeOptionsForBusinessBoards(
@@ -69,10 +66,6 @@ export function getSalesmanCustomerTypeOptionsForBusinessBoards(
 
   if (salesmanBusinessBoardsInclude(businessBoards, "tourism")) {
     options.push("retail");
-  }
-
-  if (salesmanBusinessBoardsInclude(businessBoards, "dropshipping")) {
-    options.push("wholesale");
   }
 
   return options;
@@ -98,7 +91,6 @@ export async function getSalesmanPeoplePageData(
   const businessBoards = await getCurrentSalesmanBusinessBoards(supabase);
 
   if (
-    !salesmanBusinessBoardsInclude(businessBoards, "dropshipping") &&
     !salesmanBusinessBoardsInclude(businessBoards, "tourism")
   ) {
     return {

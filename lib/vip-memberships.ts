@@ -1,4 +1,4 @@
-export const VIP_SCOPE_VALUES = ["retail", "wholesale"] as const;
+export const VIP_SCOPE_VALUES = ["retail"] as const;
 
 export type VipMembershipScope = (typeof VIP_SCOPE_VALUES)[number];
 
@@ -21,11 +21,13 @@ export type VipRechargeRequestSummary = {
 export function isVipMembershipScope(
   value: unknown,
 ): value is VipMembershipScope {
-  return value === "retail" || value === "wholesale";
+  return value === "retail";
 }
 
 export function getVipScopeLabel(scope: VipMembershipScope) {
-  return scope === "wholesale" ? "批发VIP" : "零售/服务VIP";
+  void scope;
+
+  return "零售/服务VIP";
 }
 
 export function normalizeVipMembershipSummary(

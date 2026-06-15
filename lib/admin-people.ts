@@ -10,6 +10,10 @@ import {
   type SalesmanBusinessBoard,
 } from "./salesman-business-access";
 import {
+  normalizeWorkspaceBusinessAccess,
+  type WorkspaceBusinessKey,
+} from "./workspace-business-access";
+import {
   normalizeVipMembershipSummary,
   normalizeVipRechargeRequests,
   type VipMembershipSummary,
@@ -37,12 +41,9 @@ export const ADMIN_PEOPLE_CITY_MAX_LENGTH = 80;
 
 export type AdminPeopleRole = (typeof ADMIN_PEOPLE_ROLE_OPTIONS)[number];
 export type AdminPeopleStatus = (typeof ADMIN_PEOPLE_STATUS_OPTIONS)[number];
-export type CustomerTypeMark = "retail" | "wholesale";
+export type CustomerTypeMark = "retail";
 
-export const CUSTOMER_TYPE_MARK_OPTIONS = [
-  "retail",
-  "wholesale",
-] as const satisfies readonly CustomerTypeMark[];
+export const CUSTOMER_TYPE_MARK_OPTIONS = ["retail"] as const satisfies readonly CustomerTypeMark[];
 
 export type AdminPersonRow = {
   user_id: string;
@@ -69,6 +70,7 @@ export type AdminPersonRow = {
   pending_vip_requests: VipRechargeRequestSummary[];
   retail_vip: VipMembershipSummary;
   salesman_business_boards: SalesmanBusinessBoard[];
+  workspace_business_access: WorkspaceBusinessKey[];
   wholesale_vip: VipMembershipSummary;
 };
 
@@ -103,6 +105,7 @@ export type AdminPersonAccountUpdatePayload = {
   nextStatus: AdminPeopleStatus;
   nextCity?: string | null;
   salesmanBusinessBoards?: SalesmanBusinessBoard[] | null;
+  workspaceBusinessAccess?: WorkspaceBusinessKey[] | null;
   note?: string | null;
 };
 
@@ -126,7 +129,7 @@ export function isAdminPeopleStatus(
 }
 
 export function isCustomerTypeMark(value: unknown): value is CustomerTypeMark {
-  return value === "retail" || value === "wholesale";
+  return value === "retail";
 }
 
 export async function getAdminPeoplePageData(
@@ -262,6 +265,9 @@ function normalizeAdminPersonRow(value: unknown): AdminPersonRow | null {
     retail_vip: normalizeVipMembershipSummary(value.retail_vip),
     salesman_business_boards: normalizeSalesmanBusinessBoards(
       value.salesman_business_boards,
+    ),
+    workspace_business_access: normalizeWorkspaceBusinessAccess(
+      value.workspace_business_access,
     ),
     wholesale_vip: normalizeVipMembershipSummary(value.wholesale_vip),
   };

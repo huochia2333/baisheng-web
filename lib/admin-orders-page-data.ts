@@ -50,6 +50,8 @@ export function normalizeAdminOrdersFilters(
   filters?: Partial<AdminOrdersFilters> | null,
 ): AdminOrdersFilters {
   return {
+    createdFromDate: normalizeDateFilter(filters?.createdFromDate),
+    createdToDate: normalizeDateFilter(filters?.createdToDate),
     orderEntryUser: normalizeOptionalString(filters?.orderEntryUser) ?? "",
     orderNumber: normalizeOptionalString(filters?.orderNumber) ?? "",
     orderingUser: normalizeOptionalString(filters?.orderingUser) ?? "",
@@ -61,6 +63,8 @@ export function parseAdminOrdersSearchParams(
 ) {
   return {
     filters: normalizeAdminOrdersFilters({
+      createdFromDate: getSingleSearchParam(searchParams.createdFromDate),
+      createdToDate: getSingleSearchParam(searchParams.createdToDate),
       orderEntryUser: getSingleSearchParam(searchParams.orderEntryUser),
       orderNumber: getSingleSearchParam(searchParams.orderNumber),
       orderingUser: getSingleSearchParam(searchParams.orderingUser),
@@ -203,6 +207,8 @@ export async function getAdminOrdersPageData(
     orderEntryUserFilter.hasNoMatches || orderingUserFilter.hasNoMatches;
   const orderFilters: AdminOrderOverviewFilters = {
     ...businessOrderFilter,
+    createdFrom: toDateBoundary(filters.createdFromDate, "start"),
+    createdTo: toDateBoundary(filters.createdToDate, "end"),
     orderEntryUserIds: orderEntryUserFilter.userIds,
     orderNumber: filters.orderNumber,
     orderingUserIds: orderingUserFilter.userIds,
@@ -375,4 +381,22 @@ function getSingleSearchParam(value: string | string[] | undefined) {
   }
 
   return value;
+}
+
+function normalizeDateFilter(value: unknown) {
+  const normalized = normalizeOptionalString(value);
+
+  return normalized && /^\d{4}-\d{2}-\d{2}$/.test(normalized)
+    ? normalized
+    : "";
+}
+
+function toDateBoundary(value: string, boundary: "start" | "end") {
+  if (!value) {
+    return undefined;
+  }
+
+  return boundary === "start"
+    ? `${value}T00:00:00.000+08:00`
+    : `${value}T23:59:59.999+08:00`;
 }

@@ -11,7 +11,6 @@ import {
   type ServiceOrderPriceOption,
   type ServiceOrderTypeOption,
 } from "@/lib/admin-orders";
-import { VIP_SCOPE_VALUES } from "@/lib/vip-memberships";
 import { useLocale } from "@/components/i18n/locale-provider";
 
 import {
@@ -30,6 +29,8 @@ import {
   type OrderFormState,
 } from "./admin-orders-utils";
 import { formatServicePriceOptionLabel } from "./admin-orders-service-pricing";
+
+const VISIBLE_VIP_SCOPE_VALUES = ["retail"] as const;
 
 type OrderSupplementaryFormSectionsProps = {
   formState: OrderFormState;
@@ -318,7 +319,7 @@ function VipRechargeSupplementaryFormSection({
             onChange={(event) => onFieldChange("vipScope", event.target.value)}
             value={formState.vipScope}
           >
-            {VIP_SCOPE_VALUES.map((scope) => (
+            {VISIBLE_VIP_SCOPE_VALUES.map((scope) => (
               <option key={scope} value={scope}>
                 {formatVipScope(scope, orderUiCopy)}
               </option>

@@ -40,10 +40,12 @@ type SettingsErrorTranslator = (key: SettingsErrorKey) => string;
 export function AdminCommissionSettingsSection({
   canManageSettings,
   onRowsChange,
+  ruleCodes,
   rows,
 }: {
   canManageSettings: boolean;
   onRowsChange?: (rows: CommissionRuleSetting[]) => void;
+  ruleCodes?: readonly CommissionRuleCode[];
   rows: CommissionRuleSetting[];
 }) {
   const supabase = getBrowserSupabaseClient();
@@ -65,13 +67,19 @@ export function AdminCommissionSettingsSection({
     () => new Map(settingsRows.map((row) => [row.ruleCode, row])),
     [settingsRows],
   );
+  const ruleCodeSet = useMemo(
+    () => (ruleCodes ? new Set<CommissionRuleCode>(ruleCodes) : null),
+    [ruleCodes],
+  );
   const visibleRules = useMemo(
     () =>
-      COMMISSION_RULE_DEFINITIONS.map((definition) => ({
+      COMMISSION_RULE_DEFINITIONS.filter(
+        (definition) => !ruleCodeSet || ruleCodeSet.has(definition.code),
+      ).map((definition) => ({
         definition,
         row: rowsByCode.get(definition.code) ?? null,
       })),
-    [rowsByCode],
+    [rowsByCode, ruleCodeSet],
   );
   function startEditing(definition: CommissionRuleDefinition) {
     const row = rowsByCode.get(definition.code);

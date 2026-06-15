@@ -24,6 +24,7 @@ export async function loginAs(
     { timeout: 30_000 },
   );
   await expectWorkspaceShell(page);
+  await dismissWorkspaceAnnouncements(page);
 
   return account;
 }
@@ -47,4 +48,13 @@ export async function expectNotForbiddenPage(page: Page) {
 
 function escapeRegExp(value: string) {
   return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+async function dismissWorkspaceAnnouncements(page: Page) {
+  const acknowledgeButton = page.getByRole("button", { name: "我知道了" });
+
+  if (await acknowledgeButton.isVisible().catch(() => false)) {
+    await acknowledgeButton.click();
+    await expect(acknowledgeButton).toHaveCount(0);
+  }
 }

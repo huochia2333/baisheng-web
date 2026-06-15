@@ -11,13 +11,17 @@ import {
 import { getSupabaseServiceRoleClient } from "./supabase-admin-server";
 import { withRequestTimeout } from "./request-timeout";
 import {
-  areSalesmanBusinessBoardsEqual,
-  isSalesmanBusinessBoard,
-  uniqueSalesmanBusinessBoards,
   type SalesmanBusinessBoard,
 } from "./salesman-business-access";
 import { isSalesStaffRole } from "./sales-staff-roles";
 import { getCurrentSessionContext } from "./user-self-service";
+import {
+  areWorkspaceBusinessAccessListsEqual,
+  getDefaultWorkspaceBusinessAccessForRole,
+  isWorkspaceBusinessAccessKey,
+  uniqueWorkspaceBusinessAccess,
+  type WorkspaceBusinessKey,
+} from "./workspace-business-access";
 
 export type AdminPeopleUpdateErrorCode =
   | "forbidden"
@@ -64,19 +68,24 @@ export async function updateAdminPersonAccount(
     throw new AdminPeopleMutationError("notFound");
   }
 
+  if (currentPerson.user_id === sessionContext.user.id) {
+    throw new AdminPeopleMutationError("selfChange");
+  }
+
   const accountWillChange =
     currentPerson.role !== payload.nextRole ||
     currentPerson.status !== payload.nextStatus;
   const cityWillChange =
     normalizeAccountCity(currentPerson.city) !== payload.nextCity;
-  const businessBoards = normalizePayloadBusinessBoards(payload);
+  const workspaceBusinessAccess = resolveWorkspaceBusinessAccessForUpdate(
+    currentPerson,
+    payload,
+  );
   const businessAccessWillChange =
-    isSalesStaffRole(currentPerson.role) || isSalesStaffRole(payload.nextRole)
-      ? !areSalesmanBusinessBoardsEqual(
-          currentPerson.salesman_business_boards,
-          businessBoards,
-        )
-      : false;
+    !areWorkspaceBusinessAccessListsEqual(
+      currentPerson.workspace_business_access,
+      workspaceBusinessAccess,
+    );
 
   if (!accountWillChange && !cityWillChange && !businessAccessWillChange) {
     throw new AdminPeopleMutationError("noChange");
@@ -90,11 +99,19 @@ export async function updateAdminPersonAccount(
     }
   }
 
+  if (businessAccessWillChange || accountWillChange) {
+    await setWorkspaceBusinessAccess(
+      supabase,
+      payload.targetUserId,
+      workspaceBusinessAccess,
+    );
+  }
+
   if (isSalesStaffRole(currentPerson.role) || isSalesStaffRole(payload.nextRole)) {
     await setSalesmanBusinessAccess(
       supabase,
       payload.targetUserId,
-      businessBoards,
+      getSalesmanBusinessBoardsForRole(payload.nextRole),
     );
   }
 
@@ -147,6 +164,7 @@ export function getAdminPeopleUpdateErrorCode(
   if (
     message.includes("admin_people_invalid_input") ||
     message.includes("admin_people_invalid_business_access") ||
+    message.includes("admin_people_invalid_workspace_business_access") ||
     message.includes("admin_people_business_access_requires_salesman") ||
     message.includes("admin_people_customer_type_requires_client") ||
     message.includes("admin_people_role_not_found") ||
@@ -196,35 +214,63 @@ function normalizeAdminPersonAccountUpdatePayload(
       input.salesmanBusinessBoards === null ||
       input.salesmanBusinessBoards === undefined
         ? null
-        : normalizeInputBusinessBoards(input.salesmanBusinessBoards),
+        : input.salesmanBusinessBoards,
+    workspaceBusinessAccess:
+      input.workspaceBusinessAccess === null ||
+      input.workspaceBusinessAccess === undefined
+        ? null
+        : normalizeInputWorkspaceBusinessAccess(input.workspaceBusinessAccess),
     note,
   };
 }
 
-function normalizeInputBusinessBoards(value: unknown): SalesmanBusinessBoard[] {
-  if (!Array.isArray(value) || !value.every(isSalesmanBusinessBoard)) {
+function normalizeInputWorkspaceBusinessAccess(
+  value: unknown,
+): WorkspaceBusinessKey[] {
+  if (!Array.isArray(value) || !value.every(isWorkspaceBusinessAccessKey)) {
     throw new AdminPeopleMutationError("invalidInput");
   }
 
-  return uniqueSalesmanBusinessBoards(value);
+  return uniqueWorkspaceBusinessAccess(value);
 }
 
-function normalizePayloadBusinessBoards(
+function resolveWorkspaceBusinessAccessForUpdate(
+  currentPerson: AdminPersonRow,
   input: AdminPersonAccountUpdatePayload,
+): WorkspaceBusinessKey[] {
+  if (isFixedWorkspaceBusinessAccessRole(input.nextRole)) {
+    return getDefaultWorkspaceBusinessAccessForRole(input.nextRole);
+  }
+
+  if (!input.workspaceBusinessAccess) {
+    if (currentPerson.role !== input.nextRole) {
+      return getDefaultWorkspaceBusinessAccessForRole(input.nextRole);
+    }
+
+    return currentPerson.workspace_business_access.length > 0
+      ? currentPerson.workspace_business_access
+      : getDefaultWorkspaceBusinessAccessForRole(input.nextRole);
+  }
+
+  return uniqueWorkspaceBusinessAccess(input.workspaceBusinessAccess);
+}
+
+function isFixedWorkspaceBusinessAccessRole(role: string) {
+  return role === "administrator" || role === "salesman" || role === "promoter";
+}
+
+function getSalesmanBusinessBoardsForRole(
+  nextRole: AdminPersonAccountUpdatePayload["nextRole"],
 ): SalesmanBusinessBoard[] {
-  if (!isSalesStaffRole(input.nextRole)) {
-    return [];
+  if (nextRole === "salesman") {
+    return ["wholesale"];
   }
 
-  if (input.nextRole === "promoter") {
+  if (nextRole === "promoter") {
     return ["tourism"];
   }
 
-  if (!input.salesmanBusinessBoards) {
-    return ["tourism"];
-  }
-
-  return uniqueSalesmanBusinessBoards(input.salesmanBusinessBoards);
+  return [];
 }
 
 async function prepareAdminPersonAccountChange(
@@ -279,6 +325,26 @@ async function setSalesmanBusinessAccess(
     supabase.rpc("admin_set_salesman_business_access", {
       _salesman_user_id: targetUserId,
       _business_boards: businessBoards,
+    }),
+    {
+      timeoutMs: ADMIN_PEOPLE_MUTATION_TIMEOUT_MS,
+    },
+  );
+
+  if (error) {
+    throw error;
+  }
+}
+
+async function setWorkspaceBusinessAccess(
+  supabase: SupabaseClient,
+  targetUserId: string,
+  workspaceBusinessAccess: WorkspaceBusinessKey[],
+) {
+  const { error } = await withRequestTimeout(
+    supabase.rpc("admin_set_workspace_business_access", {
+      _target_user_id: targetUserId,
+      _business_keys: workspaceBusinessAccess,
     }),
     {
       timeoutMs: ADMIN_PEOPLE_MUTATION_TIMEOUT_MS,

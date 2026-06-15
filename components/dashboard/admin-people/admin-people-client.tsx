@@ -65,22 +65,17 @@ export function AdminPeopleClient({
           />
 
           <AdminPeopleAccountDialog
-            businessAccessLocked={viewModel.businessAccessLocked}
             businessBoardLabels={viewModel.businessBoardLabels}
-            businessBoardOptions={viewModel.businessBoardOptions}
             canSaveDraft={viewModel.canSaveDraft}
             customerTypeLabels={viewModel.customerTypeLabels}
             customerTypeOptions={viewModel.customerTypeOptions}
-            draftBusinessBoards={viewModel.draftBusinessBoards}
             draftCity={viewModel.draftCity}
             draftCustomerType={viewModel.draftCustomerType}
             draftNote={viewModel.draftNote}
             draftRole={viewModel.draftRole}
             draftStatus={viewModel.draftStatus}
+            locale={locale}
             onClose={viewModel.closeAccountDialog}
-            onDraftBusinessBoardChange={
-              viewModel.handleDraftBusinessBoardChange
-            }
             onDraftCityChange={viewModel.handleDraftCityChange}
             onDraftCustomerTypeChange={viewModel.handleDraftCustomerTypeChange}
             onDraftNoteChange={viewModel.setDraftNote}

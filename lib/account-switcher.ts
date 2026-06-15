@@ -7,7 +7,7 @@ import {
 
 const ACCOUNT_SWITCHER_STORAGE_KEY = "baisheng.account-switcher.alternate";
 const ACCOUNT_SWITCHER_PENDING_KEY = "baisheng.account-switcher.pending";
-const ACCOUNT_SWITCHER_TTL_MS = 15 * 24 * 60 * 60 * 1000;
+const ACCOUNT_SWITCHER_TTL_MS = 8 * 60 * 60 * 1000;
 const PENDING_LOGIN_TTL_MS = 30 * 60 * 1000;
 
 export type AccountSwitcherStoredAccount = {
@@ -300,7 +300,8 @@ function readJson(key: string) {
   }
 
   try {
-    const value = window.localStorage.getItem(key);
+    clearLegacyLocalStorageItem(key);
+    const value = window.sessionStorage.getItem(key);
     return value ? (JSON.parse(value) as unknown) : null;
   } catch {
     return null;
@@ -312,7 +313,8 @@ function writeJson(key: string, value: unknown) {
     return;
   }
 
-  window.localStorage.setItem(key, JSON.stringify(value));
+  clearLegacyLocalStorageItem(key);
+  window.sessionStorage.setItem(key, JSON.stringify(value));
 }
 
 function removeStorageItem(key: string) {
@@ -320,7 +322,16 @@ function removeStorageItem(key: string) {
     return;
   }
 
-  window.localStorage.removeItem(key);
+  window.sessionStorage.removeItem(key);
+  clearLegacyLocalStorageItem(key);
+}
+
+function clearLegacyLocalStorageItem(key: string) {
+  try {
+    window.localStorage.removeItem(key);
+  } catch {
+    // Ignore storage access failures. Session storage remains the active store.
+  }
 }
 
 function isStoredAccount(value: unknown): value is AccountSwitcherStoredAccount {

@@ -165,6 +165,8 @@ export type OrderViewerContext = {
 };
 
 export type AdminOrdersFilters = {
+  createdFromDate: string;
+  createdToDate: string;
   orderEntryUser: string;
   orderNumber: string;
   orderingUser: string;

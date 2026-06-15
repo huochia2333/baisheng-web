@@ -220,7 +220,7 @@
     "submitting": "Signing in...",
     "registeredNotice": "Your registration request has been submitted. If email verification is required, complete it before signing in.",
     "passwordResetNotice": "Your password has been updated. Please sign in again with the new password.",
-    "accountSwitcherAddNotice": "Sign in with another account to add it as a common account on this device.",
+    "accountSwitcherAddNotice": "Sign in with another account to add it as a common account for this browser session.",
     "accountSwitcherReauthenticateNotice": "Sign in again with {email} to keep switching from the My page.",
     "accountSwitcherDifferentAccountRequired": "Sign in with another account. The current account is already in use.",
     "accountSwitcherTargetMismatch": "Sign in with {email} to keep switching this common account.",
@@ -339,11 +339,19 @@
       "people": "People Management",
       "commission": "Commission",
       "settings": "System Settings",
-      "exchangeRates": "FX Rates",
       "tasks": "Tasks",
       "reviews": "Reviews",
       "feedback": "Feedback",
-      "records": "Operation Records"
+      "records": "Operation Records",
+      "orderClaims": "Order Claims",
+      "incentives": "Incentives",
+      "logistics": "Logistics",
+      "wholesaleOrders": "Wholesale Orders"
+    },
+    "business": {
+      "noAccess": "This account does not have any visible business yet.",
+      "tourism": "Tourism Business",
+      "wholesale": "Wholesale Business"
     },
     "roles": {
       "admin": {
@@ -454,6 +462,38 @@
     "viewMyPage": "Back to Home",
     "badge": "This page will continue adding useful content for different roles."
   },
+  "WholesaleBusiness": {
+    "sections": {
+      "orders": {
+        "title": "Wholesale Orders",
+        "description": "Manage wholesale customer orders, purchase cost, shipping, fees, gross profit, order month, and related 1688 purchase orders."
+      },
+      "order-claims": {
+        "title": "Order Claims",
+        "description": "Receive 1688 purchase orders from files or automatic syncs so sales staff can claim them and assign them to the right customer. Original order data stays protected from casual edits."
+      },
+      "logistics": {
+        "title": "Logistics",
+        "description": "Track international order numbers, destination order numbers, freight forwarder progress, and logistics costs so each customer can review daily shipment status."
+      },
+      "people": {
+        "title": "People Management",
+        "description": "Manage wholesale customer profiles and the sales or promoter accounts that can handle wholesale work in one place."
+      },
+      "referrals": {
+        "title": "Wholesale Referral Tree",
+        "description": "Show wholesale customer referral relationships and summarize customer referral commission."
+      },
+      "commission": {
+        "title": "Wholesale Commission",
+        "description": "Summarize wholesale customer referral commission separately from tourism business commission."
+      },
+      "incentives": {
+        "title": "Wholesale Incentives",
+        "description": "Calculate sales incentives from wholesale order profit and order amount separately from tourism order commission."
+      }
+    }
+  },
   "WorkspaceSections": {
     "fallbacks": {
       "admin": {
@@ -515,11 +555,7 @@
     },
     "settings": {
       "title": "System Settings",
-      "description": "Manage order rules, commission rules, and exchange rates in one place."
-    },
-    "exchange-rates": {
-      "title": "FX Rate Management",
-      "description": "This section will show FX sources, update times, historical trends, and manual adjustments so orders and finance can rely on the same reference."
+      "description": "Manage tourism settings, wholesale settings, and exchange rate settings in one place."
     },
     "tasks": {
       "title": "Task Board",
@@ -573,8 +609,8 @@
         "noCodeDescription": "This account does not have an invite code available yet. Contact an administrator to confirm.",
         "noLinkAccess": "This account does not have any available business registration link yet.",
         "businessBoards": {
-          "tourism": "Retail",
-          "dropshipping": "Wholesale"
+          "tourism": "Tourism Business",
+          "wholesale": "Wholesale Business"
         }
       },
       "customizer": {
@@ -875,28 +911,13 @@
     "businessInviteTitle": "Business Invite Links",
     "businessInviteDescription": "Copy an available business registration link so new clients enter the matching referral relationship.",
     "businessReferralLoading": "Loading business access...",
-    "businessReferralTourism": "Retail",
-    "businessReferralDropshipping": "Wholesale",
+    "businessReferralTourism": "Tourism Business",
+    "businessReferralWholesale": "Wholesale Business",
     "businessInviteCopyBoardLink": "Copy {board} Link",
     "businessInviteCopied": "{board} registration link copied.",
     "businessInviteCopyFailed": "The registration link could not be copied. Please try again later.",
     "businessInviteNoCode": "This account does not have an invite code yet.",
     "businessInviteNoAccess": "This account does not have any available business invite access.",
-    "businessReferralUnavailable": "The service is temporarily unavailable. Please try again later.",
-    "dropshippingActivationTitle": "Open Wholesale",
-    "dropshippingActivationDescription": "To start wholesale, enter the invite code from the salesperson for that business.",
-    "dropshippingInvitePlaceholder": "Enter wholesale salesperson invite code",
-    "dropshippingActivationSubmit": "Submit Code",
-    "dropshippingActivationSubmitting": "Submitting...",
-    "dropshippingActivationSuccess": "Wholesale has been opened.",
-    "dropshippingAlreadyLinked": "Wholesale is already open.",
-    "dropshippingActivationRequired": "Enter a wholesale salesperson invite code.",
-    "dropshippingActivationNotFound": "The invite code does not exist. Please check and try again.",
-    "dropshippingActivationMaxUses": "The invite code has reached its usage limit.",
-    "dropshippingActivationExpired": "The invite code has expired. Please confirm with the salesperson.",
-    "dropshippingActivationForbidden": "This invite code cannot be used for wholesale. Use the correct salesperson invite code.",
-    "dropshippingActivationSelfReferral": "You cannot use your own invite code.",
-    "dropshippingActivationNoPermission": "This account cannot perform this action.",
     "refreshProfile": "Refresh Profile",
     "verificationTitle": "Identity Verification",
     "verificationApproved": "Verified",
@@ -948,7 +969,7 @@
     "accountVerificationTitle": "Account & Verification",
     "accountVerificationDescription": "Manage identity information, travel details, profile photos, and profile videos.",
     "accountSwitcherTitle": "Common Accounts",
-    "accountSwitcherDescription": "Save one other common account on this device for quick switching. Passwords are not saved. Do not use this on a shared computer.",
+    "accountSwitcherDescription": "Save one other common account for this browser session for short-term quick switching. Passwords are not saved. Do not use this on a shared computer.",
     "accountSwitcherAdd": "Add Common Account",
     "accountSwitcherAddHint": "Add an account",
     "accountSwitcherCurrent": "Current Account",
@@ -958,18 +979,18 @@
     "accountSwitcherReauthenticate": "Sign In Again",
     "accountSwitcherRemove": "Remove",
     "accountSwitcherClear": "Clear Saved Account",
-    "accountSwitcherEmpty": "No other common account is saved yet. After adding one, you can switch between two accounts on this device.",
-    "accountSwitcherCurrentOnlySaved": "This device only has the current account saved. Clear it before adding another account again.",
+    "accountSwitcherEmpty": "No other common account is saved yet. After adding one, you can switch between two accounts in this browser session.",
+    "accountSwitcherCurrentOnlySaved": "This browser session only has the current account saved. Clear it before adding another account again.",
     "accountSwitcherUnknownEmail": "Email not shown",
     "accountSwitcherUnavailable": "This account cannot be added right now. Refresh the page and try again.",
-    "accountSwitcherExpiredNotice": "This common account has not been used for more than 15 days. Sign in again before switching.",
+    "accountSwitcherExpiredNotice": "This common account has not been used for more than 8 hours. Sign in again before switching.",
     "accountSwitcherSessionExpiredNotice": "Sign in again with this common account before switching.",
     "accountSwitcherRemoved": "Common account removed.",
-    "accountSwitcherCleared": "Saved common account cleared from this device.",
+    "accountSwitcherCleared": "Saved common account cleared from this browser session.",
     "accountSwitcherRemoveConfirm": "Remove this common account?",
     "accountSwitcherRemoveConfirmDescription": "This device will stop showing this common account. The account itself will not be deleted.",
-    "accountSwitcherClearConfirm": "Clear the common account saved on this device?",
-    "accountSwitcherClearConfirmDescription": "Only the saved common account on this device will be cleared. The current account stays signed in.",
+    "accountSwitcherClearConfirm": "Clear the common account saved in this browser session?",
+    "accountSwitcherClearConfirmDescription": "Only the saved common account in this browser session will be cleared. The current account stays signed in.",
     "accountSwitcherCancel": "Cancel",
     "accountSwitcherRoleAdministrator": "Administrator account",
     "accountSwitcherRoleSalesman": "Salesperson account",
@@ -1029,20 +1050,20 @@
     "header": {
       "badge": "System Settings",
       "title": "System Settings",
-      "description": "Manage order rules, commission rules, and exchange rates from one place. Order and commission pages now focus on daily work and records."
+      "description": "Manage tourism business rules, wholesale business rules, and exchange rate rules from one place. Business pages focus on daily work and records."
     },
     "tabs": {
-      "orders": {
-        "title": "Order Rules",
-        "description": "Service fees, service prices, and discounts"
+      "tourism": {
+        "title": "Tourism Settings",
+        "description": "Tourism orders, service prices, discounts, and tourism commission"
       },
-      "commission": {
-        "title": "Commission Rules",
-        "description": "Order, service, referral, and VIP rewards"
+      "wholesale": {
+        "title": "Wholesale Settings",
+        "description": "Wholesale order sales commission and referral commission"
       },
       "exchangeRates": {
-        "title": "Exchange Rates",
-        "description": "Currency rates and automatic updates"
+        "title": "Exchange Rate Settings",
+        "description": "Currency rates, automatic fetch, and history"
       }
     },
     "states": {
@@ -1057,8 +1078,7 @@
       "client": "My Orders"
     },
     "tabs": {
-      "orders": "Order List",
-      "exchange-rates": "System Settings"
+      "orders": "Order List"
     },
     "modes": {
       "admin": {
@@ -1115,6 +1135,8 @@
       "orderEntryUserPlaceholder": "Search by user name or email",
       "orderingUserLabel": "Ordering User",
       "orderingUserPlaceholder": "Search by client name or email",
+      "createdFromDateLabel": "Order Date From",
+      "createdToDateLabel": "Order Date To",
       "resultSummary": "{total} total, {matched} matched",
       "clear": "Clear Filters"
     },
@@ -1138,15 +1160,15 @@
       "serviceFees": {
         "badge": "Service Fee",
         "title": "Service Fee Settings",
-        "description": "Retail and wholesale service fees are managed as fixed tiers. Service orders have no service fee; their prices and discounts are managed below.",
+        "description": "Retail service fees are managed as fixed tiers. Service orders have no service fee; their prices and discounts are managed below.",
         "retail": {
           "title": "Retail Service Fee Settings",
           "description": "Retail orders match the customer's retail-order status: new customers use the new-customer tier for three months from their first retail order; customers with an active Retail/Service VIP use the VIP tier; other returning customers use the standard tier.",
           "summaryLabel": "Retail Service Fee"
         },
         "wholesale": {
-          "title": "Wholesale Service Fee Settings",
-          "description": "Wholesale orders match the customer's wholesale-order status: new customers use the new-customer tier for three months from their first wholesale order; after that, customers keep the lower rate when the last 30 days of orders reach $20000, otherwise they use the standard tier or the VIP tier when Wholesale VIP is active.",
+          "title": "Wholesale Service Fee",
+          "description": "Wholesale fees are not maintained in tourism order service-fee settings. They are handled separately inside wholesale orders.",
           "summaryLabel": "Wholesale Service Fee"
         },
         "service": {
@@ -1242,14 +1264,12 @@
     },
     "categories": {
       "purchase": "Retail",
-      "dropshipping": "Wholesale",
       "service": "Service Order",
       "vipRecharge": "VIP Recharge"
     },
     "subtypes": {
       "purchase": {
         "sourcing": "Sourcing",
-        "dropshipping": "Wholesale",
         "touristShopping": "Tourist Shopping",
         "groupBuying": "Group Buying"
       },
@@ -1262,7 +1282,7 @@
       },
       "vipRecharge": {
         "retail": "Retail/Service VIP",
-        "wholesale": "Wholesale VIP"
+        "wholesale": "Disabled"
       }
     },
     "formSections": {
@@ -1333,7 +1353,7 @@
       "orderEntryUser": "Select an order entry user",
       "orderingUser": "Select an ordering user",
       "orderType": "Select an order type",
-      "purchaseSubtype": "Select a purchase or wholesale subtype",
+      "purchaseSubtype": "Select a purchase subtype",
       "serviceSubtype": "Select a service subtype",
       "serviceDiscount": "Select an order discount",
       "serviceFeeType": "Select a service fee tier",
@@ -1349,8 +1369,8 @@
     },
     "errors": {
       "duplicateOrderNumber": "Order number generation conflicted. Please try again later.",
-      "exchangeRateMissing": "The selected currency does not have an exchange rate yet. Add it in system settings first.",
-      "invalidForeignKeys": "Select a valid order owner, customer, order type, and matching purchase, wholesale, or service options.",
+      "exchangeRateMissing": "The selected currency does not have an exchange rate yet. Add it in System Settings first.",
+      "invalidForeignKeys": "Select a valid order owner, customer, order type, and matching purchase or service options.",
       "cannotCreate": "You do not have permission to create this order.",
       "cannotUpdate": "You do not have permission to update this order.",
       "updatedScopeNotAllowed": "The updated order scope is outside your allowed range.",
@@ -1363,8 +1383,8 @@
     },
     "purchaseSection": {
       "title": "Retail Details",
-      "createDescription": "This order type needs purchase or wholesale details. Add rows, then enter the category name on the left and the matching content on the right.",
-      "editDescription": "Update purchase or wholesale details by entering the category name on the left and the matching content on the right.",
+      "createDescription": "This order type needs purchase details. Add rows, then enter the category name on the left and the matching content on the right.",
+      "editDescription": "Update purchase details by entering the category name on the left and the matching content on the right.",
       "loading": "loading"
     },
     "serviceSection": {
@@ -1375,8 +1395,8 @@
     },
     "vipSection": {
       "title": "VIP Recharge Details",
-      "createDescription": "VIP recharge orders are recorded as 200 USD. Select Retail/Service VIP or Wholesale VIP, then save.",
-      "editDescription": "Update the VIP type or supporting details for this recharge order.",
+      "createDescription": "VIP recharge orders are recorded as 200 USD and open Retail/Service VIP after saving.",
+      "editDescription": "Update supporting details for this recharge order.",
       "loading": "loading"
     },
     "details": {
@@ -1685,8 +1705,8 @@
       "title": "Referral Tree"
     },
     "boards": {
-      "tourism": "Retail",
-      "dropshipping": "Wholesale"
+      "tourism": "Tourism Business",
+      "wholesale": "Wholesale Business"
     },
     "summary": {
       "visibleEdges": "Visible Links",
@@ -2652,11 +2672,12 @@
     "directory": {
       "eyebrow": "People Directory",
       "title": "Accounts",
-      "description": "This area adjusts account role, status, and city. Referral relationships, team membership, and commission records are not changed automatically.",
+      "description": "The list keeps account, role, status, and other key items visible. Open an account to review full details; referral relationships, team membership, and commission records are not changed automatically.",
       "emptyTitle": "No people match these filters",
       "emptyDescription": "Adjust the search text or filters and try again.",
       "columns": {
         "account": "Account",
+        "accountState": "Role & Status",
         "privateNote": "My Note",
         "role": "Role",
         "status": "Account Status",
@@ -2690,24 +2711,49 @@
       }
     },
     "dialog": {
-      "title": "Adjust {name}",
-      "description": "After saving, the updated account information applies after the person signs in again or refreshes the page.",
+      "title": "Account Details: {name}",
+      "description": "Full account details are shown here. Account changes can be made below.",
+      "adjustTitle": "Adjust Account",
+      "adjustDescription": "After saving, the updated account information applies after the person signs in again or refreshes the page.",
       "nextRole": "New Role",
       "nextStatus": "New Status",
       "nextCity": "City",
       "cityPlaceholder": "Enter a city, or leave it blank",
       "customerType": "Customer Mark",
-      "customerTypeHint": "Current mark: {value}. This mark is only used internally to distinguish retail and wholesale customers.",
+      "customerTypeHint": "Current mark: {value}. This mark is only used internally for retail customers.",
       "customerTypePlaceholder": "Choose a customer mark",
       "businessAccess": "Visible Business",
-      "businessAccessHint": "This only controls the business boards a sales account can view and handle. It does not change referrals or team membership.",
+        "businessAccessHint": "Controls whether this account can see the tourism business and wholesale business in the sidebar. It does not change referrals or team membership.",
       "note": "Note",
       "notePlaceholder": "Add a reason so the change is easy to review later"
+    },
+    "details": {
+      "basicTitle": "Account Info",
+      "businessTitle": "Relationships & Business",
+      "noteTitle": "My Note",
+      "email": "Email",
+      "phone": "Phone",
+      "role": "Role",
+      "status": "Account Status",
+      "city": "City",
+      "createdAt": "Created",
+      "customerType": "Customer Mark",
+      "customerTypeMarkedBy": "Marked By",
+      "customerTypeMarkedAt": "Marked At",
+      "businessAccess": "Visible Business",
+      "noBusinessAccess": "No visible business for this role",
+      "referralCode": "Invite Code",
+      "referrer": "Referrer",
+      "team": "Team",
+      "directReferrals": "Direct Referrals",
+      "directReferralsValue": "{count}",
+      "latestChangeAt": "Latest Change"
     },
     "actions": {
       "adjust": "Adjust Account",
       "note": "Note",
       "currentAccount": "Current Account",
+      "openDetailsFor": "Review account details for {name}",
       "cancel": "Cancel",
       "save": "Save Change",
       "saving": "Saving..."
@@ -2729,15 +2775,15 @@
     },
     "customerTypes": {
       "retail": "Retail",
-      "wholesale": "Wholesale"
+      "wholesale": "Disabled"
     },
     "businessBoards": {
-      "tourism": "Retail",
-      "dropshipping": "Wholesale"
+      "tourism": "Tourism Business",
+      "wholesale": "Wholesale Business"
     },
     "businessBoardShortLabels": {
-      "tourism": "Retail",
-      "dropshipping": "Wholesale"
+      "tourism": "Tourism",
+      "wholesale": "Wholesale"
     },
     "fallback": {
       "unnamedUser": "Unnamed Person",
@@ -2765,7 +2811,7 @@
     },
     "vip": {
       "retail": "Retail/Service VIP",
-      "wholesale": "Wholesale VIP",
+      "wholesale": "Disabled",
       "activeUntil": "Valid until {value}",
       "inactive": "Not active",
       "pendingRequest": "{value} pending",
@@ -2781,13 +2827,13 @@
     "header": {
       "badge": "My Customers",
       "title": "Customer Management",
-      "description": "Review your customers and mark them as retail or wholesale for internal use.",
+      "description": "Review your customers and mark them as retail for internal use.",
       "descriptionRetailOnly": "Review your customers and mark them as retail for internal use."
     },
     "summary": {
       "total": "Total Customers",
       "retail": "Retail Customers",
-      "wholesale": "Wholesale Customers",
+      "wholesale": "Disabled",
       "unmarked": "Unmarked"
     },
     "states": {
@@ -2824,7 +2870,7 @@
     },
     "customerTypes": {
       "retail": "Retail",
-      "wholesale": "Wholesale"
+      "wholesale": "Disabled"
     },
     "actions": {
       "adjust": "Adjust Mark",
@@ -2852,7 +2898,7 @@
     },
     "vip": {
       "retail": "Retail/Service VIP",
-      "wholesale": "Wholesale VIP",
+      "wholesale": "Disabled",
       "activeUntil": "Valid until {value}",
       "inactive": "Not active",
       "open": "Request",

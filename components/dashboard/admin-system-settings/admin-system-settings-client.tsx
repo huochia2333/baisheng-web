@@ -4,23 +4,36 @@ import { useMemo, useState } from "react";
 
 import {
   ArrowLeftRight,
+  Building2,
   Settings,
   ShieldAlert,
   ShoppingCart,
-  WalletCards,
 } from "lucide-react";
 import { useTranslations } from "next-intl";
 
 import type { AdminSystemSettingsPageData } from "@/lib/admin-system-settings";
+import type { CommissionRuleCode } from "@/lib/commission-settings";
 import { DashboardSectionHeader } from "@/components/dashboard/dashboard-section-header";
 import { DashboardSegmentedTabs } from "@/components/dashboard/dashboard-segmented-tabs";
 import { EmptyState } from "@/components/dashboard/dashboard-shared-ui";
-import { ExchangeRatesClient } from "@/components/dashboard/exchange-rates/exchange-rates-client";
 import { AdminOrdersServiceFeeSettings } from "@/components/dashboard/admin-orders/admin-orders-service-fee-settings";
 import { AdminOrdersServiceOrderSettings } from "@/components/dashboard/admin-orders/admin-orders-service-order-settings";
 import { AdminCommissionSettingsSection } from "@/components/dashboard/commission/admin-commission-settings-section";
+import { ExchangeRatesClient } from "@/components/dashboard/exchange-rates/exchange-rates-client";
 
-type SettingsPanel = "commission" | "exchange-rates" | "orders";
+type SettingsPanel = "exchangeRates" | "tourism" | "wholesale";
+
+const TOURISM_COMMISSION_RULE_CODES = [
+  "service_escort_salesman",
+  "digital_survival_salesman",
+  "service_referral_rate",
+  "vip_first_year_referral_bonus",
+] as const satisfies readonly CommissionRuleCode[];
+
+const WHOLESALE_COMMISSION_RULE_CODES = [
+  "purchase_salesman_tier",
+  "purchase_referral_rate",
+] as const satisfies readonly CommissionRuleCode[];
 
 export function AdminSystemSettingsClient({
   initialData,
@@ -28,7 +41,7 @@ export function AdminSystemSettingsClient({
   initialData: AdminSystemSettingsPageData;
 }) {
   const t = useTranslations("SystemSettings");
-  const [activePanel, setActivePanel] = useState<SettingsPanel>("orders");
+  const [activePanel, setActivePanel] = useState<SettingsPanel>("tourism");
   const [serviceFeeTypeOptions, setServiceFeeTypeOptions] = useState(
     initialData.serviceFeeTypeOptions,
   );
@@ -44,21 +57,21 @@ export function AdminSystemSettingsClient({
   const tabOptions = useMemo(
     () => [
       {
-        description: t("tabs.orders.description"),
+        description: t("tabs.tourism.description"),
         icon: <ShoppingCart className="size-4" />,
-        key: "orders" as const,
-        label: t("tabs.orders.title"),
+        key: "tourism" as const,
+        label: t("tabs.tourism.title"),
       },
       {
-        description: t("tabs.commission.description"),
-        icon: <WalletCards className="size-4" />,
-        key: "commission" as const,
-        label: t("tabs.commission.title"),
+        description: t("tabs.wholesale.description"),
+        icon: <Building2 className="size-4" />,
+        key: "wholesale" as const,
+        label: t("tabs.wholesale.title"),
       },
       {
         description: t("tabs.exchangeRates.description"),
         icon: <ArrowLeftRight className="size-4" />,
-        key: "exchange-rates" as const,
+        key: "exchangeRates" as const,
         label: t("tabs.exchangeRates.title"),
       },
     ],
@@ -91,7 +104,7 @@ export function AdminSystemSettingsClient({
             value={activePanel}
           />
 
-          {activePanel === "orders" ? (
+          {activePanel === "tourism" ? (
             <div className="flex flex-col gap-8">
               <AdminOrdersServiceFeeSettings
                 commissionRuleSettings={commissionRuleSettings}
@@ -105,21 +118,30 @@ export function AdminSystemSettingsClient({
                 onDiscountsChange={setOrderDiscountOptions}
                 onPricesChange={setServiceOrderPriceOptions}
               />
+              <AdminCommissionSettingsSection
+                canManageSettings={initialData.canManageCommissionSettings}
+                onRowsChange={setCommissionRuleSettings}
+                rows={commissionRuleSettings}
+                ruleCodes={TOURISM_COMMISSION_RULE_CODES}
+              />
             </div>
-          ) : activePanel === "commission" ? (
-            <AdminCommissionSettingsSection
-              canManageSettings={initialData.canManageCommissionSettings}
-              onRowsChange={setCommissionRuleSettings}
-              rows={commissionRuleSettings}
-            />
-          ) : (
+          ) : activePanel === "wholesale" ? (
+            <div className="flex flex-col gap-8">
+              <AdminCommissionSettingsSection
+                canManageSettings={initialData.canManageCommissionSettings}
+                onRowsChange={setCommissionRuleSettings}
+                rows={commissionRuleSettings}
+                ruleCodes={WHOLESALE_COMMISSION_RULE_CODES}
+              />
+            </div>
+          ) : activePanel === "exchangeRates" ? (
             <ExchangeRatesClient
               embedded
-              homeHref="/admin/settings"
+              homeHref="/admin/home"
               initialData={initialData.exchangeRates}
               mode="manage"
             />
-          )}
+          ) : null}
         </>
       )}
     </section>

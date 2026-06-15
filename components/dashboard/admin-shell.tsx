@@ -2,11 +2,12 @@ import type { ReactNode } from "react";
 
 import { getTranslations } from "next-intl/server";
 
-import {
-  AdminShellLogoutButton,
-  AdminShellNav,
-  type AdminShellNavLink,
-} from "@/components/dashboard/admin-shell-client";
+import { AdminShellNav } from "@/components/dashboard/admin-shell-nav";
+import { AdminShellLogoutButton } from "@/components/dashboard/admin-shell-client";
+import type {
+  AdminShellNavGroup,
+  AdminShellNavLink,
+} from "@/components/dashboard/admin-shell-nav-types";
 import { AiAssistantClient } from "@/components/dashboard/ai-assistant/ai-assistant-client";
 import { BrandMark } from "@/components/brand/brand-mark";
 import { WorkspaceHeaderActions } from "@/components/dashboard/workspace-header-actions";
@@ -18,16 +19,16 @@ import {
 import { ScopedIntlProvider } from "@/components/i18n/scoped-intl-provider";
 import { LanguageToggle } from "@/components/i18n/language-toggle";
 import {
+  getWorkspaceBusinessNavHref,
   getWorkspaceNavHref,
-  type WorkspaceNavItem,
+  type WorkspaceBusinessKey,
   type WorkspaceRouteConfig,
 } from "@/lib/workspace-config";
 import { getServerSupabaseClient } from "@/lib/supabase-server";
 import {
-  getCurrentSalesmanBusinessBoards,
-  type SalesmanBusinessBoard,
-} from "@/lib/salesman-business-access";
-import { isSalesStaffRole } from "@/lib/sales-staff-roles";
+  getCurrentWorkspaceBusinessAccess,
+  workspaceBusinessAccessIncludes,
+} from "@/lib/workspace-business-access";
 import {
   EMPTY_WORKSPACE_ANNOUNCEMENTS_STATE,
   getWorkspaceAnnouncementsState,
@@ -35,9 +36,10 @@ import {
 
 type WorkspaceConfig = {
   accountLabel: string;
+  globalNavItems: AdminShellNavLink[];
   initials: string;
   myHref: string;
-  navItems: AdminShellNavLink[];
+  navGroups: AdminShellNavGroup[];
   subtitle: string;
   title: string;
   workspaceLabel: string;
@@ -51,12 +53,12 @@ type AdminShellProps = {
 };
 
 export async function AdminShell({ children, config }: AdminShellProps) {
-  const [t, initialAnnouncementsState, salesmanBusinessBoards] = await Promise.all([
+  const [t, initialAnnouncementsState, workspaceBusinessAccess] = await Promise.all([
     getTranslations("DashboardShell"),
     getInitialWorkspaceAnnouncementsState(),
-    getSalesmanShellBusinessBoards(config),
+    getShellWorkspaceBusinessAccess(),
   ]);
-  const workspace = getWorkspaceConfig(config, t, salesmanBusinessBoards);
+  const workspace = getWorkspaceConfig(config, t, workspaceBusinessAccess);
 
   return (
     <ScopedIntlProvider namespaces={["DashboardShell", "LanguageToggle"]}>
@@ -84,7 +86,12 @@ export async function AdminShell({ children, config }: AdminShellProps) {
                     </div>
                   </div>
 
-                  <AdminShellNav items={workspace.navItems} mode="desktop" />
+                  <AdminShellNav
+                    emptyGroupsLabel={t("business.noAccess")}
+                    globalItems={workspace.globalNavItems}
+                    groups={workspace.navGroups}
+                    mode="desktop"
+                  />
 
                   <AdminShellLogoutButton label={t("logout")} />
                 </>
@@ -119,7 +126,12 @@ export async function AdminShell({ children, config }: AdminShellProps) {
                 </div>
 
                 <div className="px-3 pb-3 md:hidden">
-                  <AdminShellNav items={workspace.navItems} mode="mobile" />
+                  <AdminShellNav
+                    emptyGroupsLabel={t("business.noAccess")}
+                    globalItems={workspace.globalNavItems}
+                    groups={workspace.navGroups}
+                    mode="mobile"
+                  />
                 </div>
               </header>
 
@@ -147,60 +159,55 @@ async function getInitialWorkspaceAnnouncementsState() {
 function getWorkspaceConfig(
   config: WorkspaceRouteConfig,
   t: Translator,
-  salesmanBusinessBoards: readonly SalesmanBusinessBoard[],
+  workspaceBusinessAccess: readonly WorkspaceBusinessKey[],
 ): WorkspaceConfig {
   const roleKey = config.routeSegment;
-  const navItems = config.navItems.filter((item) =>
-    canShowWorkspaceNavItem(config, item, salesmanBusinessBoards),
-  );
+  const globalNavItems = config.globalNavItems;
+  const navGroups = config.navGroups
+    .filter((group) =>
+      workspaceBusinessAccessIncludes(workspaceBusinessAccess, group.business),
+    )
+    .map((group) => {
+      return {
+        items: group.navItems.map((item) => {
+          const business = item.business ?? group.business;
+
+          return {
+            groupKey: group.business,
+            groupLabel: t(`business.${group.labelKey}`),
+            href: getWorkspaceBusinessNavHref(config, business, item.segment),
+            icon: item.segment,
+            label: t(`nav.${item.labelKey}`),
+          };
+        }),
+        key: group.business,
+        label: t(`business.${group.labelKey}`),
+      };
+    })
+    .filter((group) => group.items.length > 0);
 
   return {
     accountLabel: t(`roles.${roleKey}.accountLabel`),
-    initials: config.initials,
-    myHref: getWorkspaceNavHref(config, "my"),
-    navItems: navItems.map((item) => ({
+    globalNavItems: globalNavItems.map((item) => ({
       href: getWorkspaceNavHref(config, item.segment),
       icon: item.segment,
       label: t(`nav.${item.labelKey}`),
     })),
+    initials: config.initials,
+    myHref: getWorkspaceNavHref(config, "my"),
+    navGroups,
     subtitle: t(`roles.${roleKey}.subtitle`),
     title: t(`roles.${roleKey}.title`),
     workspaceLabel: t(`roles.${roleKey}.workspaceLabel`),
   };
 }
 
-async function getSalesmanShellBusinessBoards(
-  config: WorkspaceRouteConfig,
-): Promise<SalesmanBusinessBoard[]> {
-  if (!isSalesStaffRole(config.authRole)) {
-    return [];
-  }
-
+async function getShellWorkspaceBusinessAccess() {
   try {
     const supabase = await getServerSupabaseClient();
 
-    return await getCurrentSalesmanBusinessBoards(supabase);
+    return await getCurrentWorkspaceBusinessAccess(supabase);
   } catch {
     return [];
   }
-}
-
-function canShowWorkspaceNavItem(
-  config: WorkspaceRouteConfig,
-  item: WorkspaceNavItem,
-  salesmanBusinessBoards: readonly SalesmanBusinessBoard[],
-) {
-  if (!isSalesStaffRole(config.authRole)) {
-    return true;
-  }
-
-  if (item.segment === "orders") {
-    return salesmanBusinessBoards.length > 0;
-  }
-
-  if (item.segment === "people") {
-    return salesmanBusinessBoards.length > 0;
-  }
-
-  return true;
 }

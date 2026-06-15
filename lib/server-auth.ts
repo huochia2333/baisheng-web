@@ -1,8 +1,7 @@
 import { cookies } from "next/headers";
 import { forbidden, redirect } from "next/navigation";
 
-import { readAuthClaimsFromAccessToken } from "./auth-access-token";
-import { getAuthClaimsUserId, getAppRoleFromClaims } from "./auth-claims";
+import { getAppRoleFromMetadataContainer } from "./auth-metadata";
 import {
   canAccessWorkspaceBasePath,
   getDefaultSignedInPathForRole,
@@ -30,22 +29,20 @@ export async function getServerAuthContext(): Promise<ServerAuthContext> {
 
   const supabase = await getServerSupabaseClient();
   const {
-    data: { session },
+    data: { user },
     error,
-  } = await supabase.auth.getSession();
+  } = await supabase.auth.getUser();
 
-  if (error) {
+  if (error || !user) {
     return {
       role: null,
       userId: null,
     };
   }
 
-  const claims = readAuthClaimsFromAccessToken(session?.access_token);
-
   return {
-    role: getAppRoleFromClaims(claims),
-    userId: getAuthClaimsUserId(claims),
+    role: getAppRoleFromMetadataContainer(user),
+    userId: user.id,
   };
 }
 

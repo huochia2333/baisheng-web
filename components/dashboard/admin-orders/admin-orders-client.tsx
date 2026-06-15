@@ -79,6 +79,8 @@ export function AdminOrdersClient({
           filters={viewModel.filters}
           matchedOrdersCount={viewModel.matchedOrdersCount}
           onClearFilters={viewModel.clearFilters}
+          onCreatedFromDateChange={viewModel.handleCreatedFromDateChange}
+          onCreatedToDateChange={viewModel.handleCreatedToDateChange}
           onOrderEntryUserChange={viewModel.handleOrderEntryUserChange}
           onOrderNumberChange={viewModel.handleOrderNumberChange}
           onOrderingUserChange={viewModel.handleOrderingUserChange}

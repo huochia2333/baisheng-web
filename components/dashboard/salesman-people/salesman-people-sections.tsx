@@ -4,7 +4,6 @@ import {
   Filter,
   Search,
   StickyNote,
-  Tags,
   UserCheck,
   UsersRound,
 } from "lucide-react";
@@ -26,7 +25,6 @@ import { Button } from "@/components/ui/button";
 import type { SalesmanCustomerRow } from "@/lib/salesman-people";
 import type { Locale } from "@/lib/locale";
 import type { VipMembershipScope } from "@/lib/vip-memberships";
-import { salesmanBusinessBoardsInclude } from "@/lib/salesman-business-access";
 import { cn } from "@/lib/utils";
 
 import {
@@ -41,17 +39,12 @@ import { SalesmanPeopleVipCell } from "./salesman-people-vip-cell";
 type SalesmanPeopleViewModel = ReturnType<typeof useSalesmanPeopleViewModel>;
 
 export function SalesmanPeopleHeaderSection({
-  businessBoards,
   summary,
 }: {
   businessBoards: SalesmanPeopleViewModel["businessBoards"];
   summary: SalesmanPeopleViewModel["summary"];
 }) {
   const t = useTranslations("SalesmanPeople");
-  const canViewWholesale = salesmanBusinessBoardsInclude(
-    businessBoards,
-    "dropshipping",
-  );
   const metrics = [
     {
       accent: "blue",
@@ -68,13 +61,6 @@ export function SalesmanPeopleHeaderSection({
       value: summary.retailCount,
     },
     {
-      accent: "gold",
-      icon: <Tags className="size-5" />,
-      key: "wholesale",
-      label: t("summary.wholesale"),
-      value: summary.wholesaleCount,
-    },
-    {
       accent: "blue",
       icon: <Filter className="size-5" />,
       key: "unmarked",
@@ -87,15 +73,9 @@ export function SalesmanPeopleHeaderSection({
     <DashboardSectionHeader
       badge={t("header.badge")}
       badgeIcon={<UsersRound className="size-4" />}
-      description={
-        canViewWholesale ? t("header.description") : t("header.descriptionRetailOnly")
-      }
-      metrics={metrics.filter(
-        (metric) => canViewWholesale || metric.key !== "wholesale",
-      )}
-      metricsClassName={
-        canViewWholesale ? "grid-cols-2 md:grid-cols-4" : "grid-cols-2 md:grid-cols-3"
-      }
+      description={t("header.descriptionRetailOnly")}
+      metrics={metrics}
+      metricsClassName="grid-cols-2 md:grid-cols-3"
       metricsPlacement="below"
       title={t("header.title")}
     />

@@ -4,15 +4,15 @@ import { withRequestTimeout } from "./request-timeout";
 
 export const SALESMAN_BUSINESS_BOARD_OPTIONS = [
   "tourism",
-  "dropshipping",
+  "wholesale",
 ] as const;
 
 export type SalesmanBusinessBoard =
   (typeof SALESMAN_BUSINESS_BOARD_OPTIONS)[number];
 
 export const SALESMAN_BUSINESS_ORDER_CATEGORIES = {
-  dropshipping: ["dropshipping"],
   tourism: ["purchase", "service"],
+  wholesale: [],
 } as const satisfies Record<SalesmanBusinessBoard, readonly string[]>;
 
 export type SalesmanBusinessBoardLabels = Record<SalesmanBusinessBoard, string>;
@@ -20,7 +20,7 @@ export type SalesmanBusinessBoardLabels = Record<SalesmanBusinessBoard, string>;
 export function isSalesmanBusinessBoard(
   value: unknown,
 ): value is SalesmanBusinessBoard {
-  return value === "tourism" || value === "dropshipping";
+  return value === "tourism" || value === "wholesale";
 }
 
 export function normalizeSalesmanBusinessBoards(

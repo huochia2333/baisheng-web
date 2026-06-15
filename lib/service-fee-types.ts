@@ -31,6 +31,7 @@ export async function getServiceFeeTypes(
     supabase
       .from("service_fee_type")
       .select(SERVICE_FEE_TYPE_SELECT)
+      .in("fee_scope", ["retail", "service"])
       .order("sort_order", { ascending: true })
       .returns<ServiceFeeTypeOption[]>(),
   );
@@ -80,6 +81,10 @@ export async function previewOrderServiceFeeType(
 
   if (error) {
     throw error;
+  }
+
+  if (data?.fee_scope === "wholesale") {
+    return null;
   }
 
   return data ?? null;

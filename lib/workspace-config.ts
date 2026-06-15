@@ -20,7 +20,34 @@ export type WorkspaceRouteSegment = (typeof workspaceRouteSegments)[number];
 
 export type WorkspaceLoadingTitleKey = WorkspaceRouteSegment;
 
-export type WorkspaceNavSegment = "home" | "my" | WorkspaceSectionKey;
+export const workspaceBusinessKeys = ["tourism", "wholesale"] as const;
+
+export type WorkspaceBusinessKey = (typeof workspaceBusinessKeys)[number];
+
+export const workspaceWholesaleSectionKeys = [
+  "orders",
+  "order-claims",
+  "logistics",
+  "people",
+  "referrals",
+  "commission",
+  "incentives",
+] as const;
+
+export type WorkspaceWholesaleSectionKey =
+  (typeof workspaceWholesaleSectionKeys)[number];
+
+export type WorkspaceGlobalNavSegment =
+  | "announcements"
+  | "feedback"
+  | "home"
+  | "my"
+  | "settings";
+
+export type WorkspaceNavSegment =
+  | WorkspaceGlobalNavSegment
+  | WorkspaceSectionKey
+  | WorkspaceWholesaleSectionKey;
 
 export type WorkspaceNavLabelKey =
   | "announcements"
@@ -32,27 +59,37 @@ export type WorkspaceNavLabelKey =
   | "referrals"
   | "team"
   | "commission"
-  | "exchangeRates"
   | "feedback"
   | "tasks"
   | "reviews"
-  | "settings";
+  | "settings"
+  | "incentives"
+  | "orderClaims"
+  | "logistics"
+  | "wholesaleOrders";
+
+export type WorkspaceBusinessLabelKey = WorkspaceBusinessKey;
 
 export type WorkspaceOrdersPageMode = "admin" | "salesman" | "client";
 export type WorkspaceCommissionPageMode = "admin" | "salesman";
-export type WorkspaceExchangeRatesMode = "manage" | "readonly";
 export type WorkspaceTasksPageMode = "admin" | "staff";
 export type WorkspacePeoplePageMode = "admin" | "salesman";
 
 export type WorkspaceNavItem = {
+  business?: WorkspaceBusinessKey;
   segment: WorkspaceNavSegment;
   labelKey: WorkspaceNavLabelKey;
+};
+
+export type WorkspaceNavGroup = {
+  business: WorkspaceBusinessKey;
+  labelKey: WorkspaceBusinessLabelKey;
+  navItems: readonly WorkspaceNavItem[];
 };
 
 export type WorkspacePageVariants = {
   announcements?: true;
   commission?: WorkspaceCommissionPageMode;
-  exchangeRates?: WorkspaceExchangeRatesMode;
   feedback?: true;
   orders?: WorkspaceOrdersPageMode;
   people?: WorkspacePeoplePageMode;
@@ -67,21 +104,32 @@ export type WorkspacePageVariants = {
 export type WorkspaceRouteConfig = {
   authRole: AppRole;
   basePath: WorkspaceBasePath;
+  globalNavItems: readonly WorkspaceNavItem[];
   initials: string;
-  navItems: readonly WorkspaceNavItem[];
+  navGroups: readonly WorkspaceNavGroup[];
   pageVariants: WorkspacePageVariants;
   routeSegment: WorkspaceRouteSegment;
+  wholesalePageVariants?: Partial<Record<WorkspaceWholesaleSectionKey, true>>;
 };
 
-const managerNavItems = [
+const homeNavItems = [
   { segment: "home", labelKey: "home" },
+] as const satisfies readonly WorkspaceNavItem[];
+
+const adminGlobalNavItems = [
+  { segment: "home", labelKey: "home" },
+  { segment: "announcements", labelKey: "announcements" },
+  { segment: "feedback", labelKey: "feedback" },
+  { segment: "settings", labelKey: "settings" },
+] as const satisfies readonly WorkspaceNavItem[];
+
+const managerNavItems = [
   { segment: "referrals", labelKey: "referrals" },
   { segment: "team", labelKey: "team" },
   { segment: "tasks", labelKey: "tasks" },
 ] as const satisfies readonly WorkspaceNavItem[];
 
 const staffReadNavItems = [
-  { segment: "home", labelKey: "home" },
   { segment: "referrals", labelKey: "referrals" },
   { segment: "team", labelKey: "team" },
   { segment: "tasks", labelKey: "tasks" },
@@ -93,53 +141,138 @@ const financeNavItems = [
 ] as const satisfies readonly WorkspaceNavItem[];
 
 const clientNavItems = [
-  { segment: "home", labelKey: "home" },
   { segment: "orders", labelKey: "orders" },
   { segment: "referrals", labelKey: "referrals" },
 ] as const satisfies readonly WorkspaceNavItem[];
 
 const recruiterNavItems = [
-  { segment: "home", labelKey: "home" },
   { segment: "referrals", labelKey: "referrals" },
   { segment: "tasks", labelKey: "tasks" },
 ] as const satisfies readonly WorkspaceNavItem[];
 
 const sharedNavItems = [
-  { segment: "home", labelKey: "home" },
   { segment: "orders", labelKey: "orders" },
   { segment: "people", labelKey: "people" },
   { segment: "referrals", labelKey: "referrals" },
   { segment: "team", labelKey: "team" },
   { segment: "commission", labelKey: "commission" },
-  { segment: "exchange-rates", labelKey: "exchangeRates" },
   { segment: "tasks", labelKey: "tasks" },
 ] as const satisfies readonly WorkspaceNavItem[];
 
 const adminNavItems = [
-  { segment: "home", labelKey: "home" },
-  { segment: "announcements", labelKey: "announcements" },
   { segment: "orders", labelKey: "orders" },
   { segment: "referrals", labelKey: "referrals" },
   { segment: "team", labelKey: "team" },
   { segment: "people", labelKey: "people" },
   { segment: "records", labelKey: "records" },
   { segment: "commission", labelKey: "commission" },
-  { segment: "settings", labelKey: "settings" },
   { segment: "tasks", labelKey: "tasks" },
   { segment: "reviews", labelKey: "reviews" },
-  { segment: "feedback", labelKey: "feedback" },
 ] as const satisfies readonly WorkspaceNavItem[];
+
+const adminWholesaleNavItems = [
+  { business: "wholesale", segment: "orders", labelKey: "wholesaleOrders" },
+  { business: "wholesale", segment: "order-claims", labelKey: "orderClaims" },
+  { business: "wholesale", segment: "logistics", labelKey: "logistics" },
+  { business: "wholesale", segment: "people", labelKey: "people" },
+  { business: "wholesale", segment: "referrals", labelKey: "referrals" },
+  { business: "wholesale", segment: "commission", labelKey: "commission" },
+  { business: "wholesale", segment: "incentives", labelKey: "incentives" },
+] as const satisfies readonly WorkspaceNavItem[];
+
+const salesWholesaleNavItems = [
+  { business: "wholesale", segment: "orders", labelKey: "wholesaleOrders" },
+  { business: "wholesale", segment: "order-claims", labelKey: "orderClaims" },
+  { business: "wholesale", segment: "logistics", labelKey: "logistics" },
+  { business: "wholesale", segment: "people", labelKey: "people" },
+  { business: "wholesale", segment: "referrals", labelKey: "referrals" },
+  { business: "wholesale", segment: "commission", labelKey: "commission" },
+  { business: "wholesale", segment: "incentives", labelKey: "incentives" },
+] as const satisfies readonly WorkspaceNavItem[];
+
+const clientWholesaleNavItems = [
+  { business: "wholesale", segment: "orders", labelKey: "wholesaleOrders" },
+  { business: "wholesale", segment: "logistics", labelKey: "logistics" },
+  { business: "wholesale", segment: "referrals", labelKey: "referrals" },
+  { business: "wholesale", segment: "commission", labelKey: "commission" },
+] as const satisfies readonly WorkspaceNavItem[];
+
+const financeWholesaleNavItems = [
+  { business: "wholesale", segment: "orders", labelKey: "wholesaleOrders" },
+  { business: "wholesale", segment: "logistics", labelKey: "logistics" },
+  { business: "wholesale", segment: "commission", labelKey: "commission" },
+  { business: "wholesale", segment: "incentives", labelKey: "incentives" },
+] as const satisfies readonly WorkspaceNavItem[];
+
+const managerWholesaleNavItems = [
+  { business: "wholesale", segment: "orders", labelKey: "wholesaleOrders" },
+  { business: "wholesale", segment: "logistics", labelKey: "logistics" },
+  { business: "wholesale", segment: "referrals", labelKey: "referrals" },
+  { business: "wholesale", segment: "commission", labelKey: "commission" },
+  { business: "wholesale", segment: "incentives", labelKey: "incentives" },
+] as const satisfies readonly WorkspaceNavItem[];
+
+const operatorWholesaleNavItems = [
+  { business: "wholesale", segment: "orders", labelKey: "wholesaleOrders" },
+  { business: "wholesale", segment: "logistics", labelKey: "logistics" },
+] as const satisfies readonly WorkspaceNavItem[];
+
+const recruiterWholesaleNavItems = [
+  { business: "wholesale", segment: "referrals", labelKey: "referrals" },
+] as const satisfies readonly WorkspaceNavItem[];
+
+function createTourismNavGroup(
+  navItems: readonly WorkspaceNavItem[],
+): WorkspaceNavGroup {
+  return {
+    business: "tourism",
+    labelKey: "tourism",
+    navItems: navItems.map((item) => ({ ...item, business: "tourism" })),
+  };
+}
+
+function createWholesaleNavGroup(
+  navItems: readonly WorkspaceNavItem[],
+): WorkspaceNavGroup {
+  return {
+    business: "wholesale",
+    labelKey: "wholesale",
+    navItems,
+  };
+}
+
+const adminNavGroups = [
+  createTourismNavGroup(adminNavItems),
+  createWholesaleNavGroup(adminWholesaleNavItems),
+] as const satisfies readonly WorkspaceNavGroup[];
+
+const createBusinessNavGroups = (
+  tourismItems: readonly WorkspaceNavItem[],
+  wholesaleItems: readonly WorkspaceNavItem[],
+) =>
+  [
+    createTourismNavGroup(tourismItems),
+    createWholesaleNavGroup(wholesaleItems),
+  ] as const satisfies readonly WorkspaceNavGroup[];
+
+function createWholesalePageVariants(
+  navItems: readonly WorkspaceNavItem[],
+): Partial<Record<WorkspaceWholesaleSectionKey, true>> {
+  return Object.fromEntries(
+    navItems.map((item) => [item.segment, true]),
+  ) as Partial<Record<WorkspaceWholesaleSectionKey, true>>;
+}
 
 const WORKSPACE_ROUTE_CONFIG_BY_SEGMENT = {
   admin: {
     authRole: "administrator",
     basePath: "/admin",
+    globalNavItems: adminGlobalNavItems,
     initials: "AD",
-    navItems: adminNavItems,
+    navGroups: adminNavGroups,
     pageVariants: {
       announcements: true,
       commission: "admin",
-      exchangeRates: "manage",
       feedback: true,
       orders: "admin",
       people: "admin",
@@ -151,23 +284,35 @@ const WORKSPACE_ROUTE_CONFIG_BY_SEGMENT = {
       team: true,
     },
     routeSegment: "admin",
+    wholesalePageVariants: {
+      commission: true,
+      incentives: true,
+      logistics: true,
+      "order-claims": true,
+      orders: true,
+      people: true,
+      referrals: true,
+    },
   },
   client: {
     authRole: "client",
     basePath: "/client",
+    globalNavItems: homeNavItems,
     initials: "CL",
-    navItems: clientNavItems,
+    navGroups: createBusinessNavGroups(clientNavItems, clientWholesaleNavItems),
     pageVariants: {
       orders: "client",
       referrals: true,
     },
     routeSegment: "client",
+    wholesalePageVariants: createWholesalePageVariants(clientWholesaleNavItems),
   },
   finance: {
     authRole: "finance",
     basePath: "/finance",
+    globalNavItems: homeNavItems,
     initials: "FN",
-    navItems: financeNavItems,
+    navGroups: createBusinessNavGroups(financeNavItems, financeWholesaleNavItems),
     pageVariants: {
       commission: "admin",
       referrals: true,
@@ -175,50 +320,57 @@ const WORKSPACE_ROUTE_CONFIG_BY_SEGMENT = {
       team: true,
     },
     routeSegment: "finance",
+    wholesalePageVariants: createWholesalePageVariants(financeWholesaleNavItems),
   },
   manager: {
     authRole: "manager",
     basePath: "/manager",
+    globalNavItems: homeNavItems,
     initials: "MG",
-    navItems: managerNavItems,
+    navGroups: createBusinessNavGroups(managerNavItems, managerWholesaleNavItems),
     pageVariants: {
       referrals: true,
       tasks: "staff",
       team: true,
     },
     routeSegment: "manager",
+    wholesalePageVariants: createWholesalePageVariants(managerWholesaleNavItems),
   },
   operator: {
     authRole: "operator",
     basePath: "/operator",
+    globalNavItems: homeNavItems,
     initials: "OP",
-    navItems: staffReadNavItems,
+    navGroups: createBusinessNavGroups(staffReadNavItems, operatorWholesaleNavItems),
     pageVariants: {
       referrals: true,
       tasks: "staff",
       team: true,
     },
     routeSegment: "operator",
+    wholesalePageVariants: createWholesalePageVariants(operatorWholesaleNavItems),
   },
   recruiter: {
     authRole: "recruiter",
     basePath: "/recruiter",
+    globalNavItems: homeNavItems,
     initials: "RC",
-    navItems: recruiterNavItems,
+    navGroups: createBusinessNavGroups(recruiterNavItems, recruiterWholesaleNavItems),
     pageVariants: {
       referrals: true,
       tasks: "staff",
     },
     routeSegment: "recruiter",
+    wholesalePageVariants: createWholesalePageVariants(recruiterWholesaleNavItems),
   },
   salesman: {
     authRole: "salesman",
     basePath: "/salesman",
+    globalNavItems: homeNavItems,
     initials: "YW",
-    navItems: sharedNavItems,
+    navGroups: createBusinessNavGroups(sharedNavItems, salesWholesaleNavItems),
     pageVariants: {
       commission: "salesman",
-      exchangeRates: "readonly",
       orders: "salesman",
       people: "salesman",
       referrals: true,
@@ -226,15 +378,16 @@ const WORKSPACE_ROUTE_CONFIG_BY_SEGMENT = {
       team: true,
     },
     routeSegment: "salesman",
+    wholesalePageVariants: createWholesalePageVariants(salesWholesaleNavItems),
   },
   promoter: {
     authRole: "promoter",
     basePath: "/promoter",
+    globalNavItems: homeNavItems,
     initials: "DT",
-    navItems: sharedNavItems,
+    navGroups: createBusinessNavGroups(sharedNavItems, salesWholesaleNavItems),
     pageVariants: {
       commission: "salesman",
-      exchangeRates: "readonly",
       orders: "salesman",
       people: "salesman",
       referrals: true,
@@ -242,6 +395,7 @@ const WORKSPACE_ROUTE_CONFIG_BY_SEGMENT = {
       team: true,
     },
     routeSegment: "promoter",
+    wholesalePageVariants: createWholesalePageVariants(salesWholesaleNavItems),
   },
 } as const satisfies Record<WorkspaceRouteSegment, WorkspaceRouteConfig>;
 
@@ -257,9 +411,34 @@ const WORKSPACE_ROUTE_CONFIG_BY_BASE_PATH = {
 } as const satisfies Record<WorkspaceBasePath, WorkspaceRouteConfig>;
 
 const workspaceRouteSegmentSet = new Set<string>(workspaceRouteSegments);
+const workspaceBusinessKeySet = new Set<string>(workspaceBusinessKeys);
+const workspaceWholesaleSectionKeySet = new Set<string>(workspaceWholesaleSectionKeys);
+const workspaceGlobalNavSegmentSet = new Set<string>([
+  "announcements",
+  "feedback",
+  "home",
+  "my",
+  "settings",
+]);
 
 export function isWorkspaceRouteSegment(value: string): value is WorkspaceRouteSegment {
   return workspaceRouteSegmentSet.has(value);
+}
+
+export function isWorkspaceBusinessKey(value: string): value is WorkspaceBusinessKey {
+  return workspaceBusinessKeySet.has(value);
+}
+
+export function isWorkspaceWholesaleSectionKey(
+  value: string,
+): value is WorkspaceWholesaleSectionKey {
+  return workspaceWholesaleSectionKeySet.has(value);
+}
+
+export function isWorkspaceGlobalNavSegment(
+  value: string,
+): value is WorkspaceGlobalNavSegment {
+  return workspaceGlobalNavSegmentSet.has(value);
 }
 
 export function getWorkspaceConfigByRouteSegment(
@@ -295,7 +474,32 @@ export function getWorkspaceNavHref(
       ? WORKSPACE_ROUTE_CONFIG_BY_SEGMENT[configOrSegment]
       : configOrSegment;
 
-  return `${config.basePath}/${segment}`;
+  if (isWorkspaceGlobalNavSegment(segment)) {
+    return `${config.basePath}/${segment}`;
+  }
+
+  return getWorkspaceBusinessNavHref(config, "tourism", segment);
+}
+
+export function getWorkspaceBusinessNavHref(
+  configOrSegment: WorkspaceRouteConfig | WorkspaceRouteSegment,
+  business: WorkspaceBusinessKey,
+  segment: WorkspaceNavSegment,
+) {
+  const config =
+    typeof configOrSegment === "string"
+      ? WORKSPACE_ROUTE_CONFIG_BY_SEGMENT[configOrSegment]
+      : configOrSegment;
+
+  if (isWorkspaceGlobalNavSegment(segment)) {
+    return `${config.basePath}/${segment}`;
+  }
+
+  if (business === "tourism") {
+    return `${config.basePath}/tourism/${segment}`;
+  }
+
+  return `${config.basePath}/wholesale/${segment}`;
 }
 
 export function getWorkspaceHomeHref(

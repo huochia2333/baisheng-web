@@ -30,12 +30,6 @@ export function useDashboardHomeLayout({
   scope,
 }: UseDashboardHomeLayoutOptions) {
   const supabase = getBrowserSupabaseClient();
-  const hasInitialCloudLayout =
-    initialWidgets !== null && initialWidgets !== undefined;
-  const legacyStorageKey = useMemo(
-    () => `baisheng.home.widgets.v1:${scope}`,
-    [scope],
-  );
   const normalizedInitialWidgets = useMemo(
     () => normalizeHomeWidgetLayout(initialWidgets),
     [initialWidgets],
@@ -59,30 +53,6 @@ export function useDashboardHomeLayout({
   );
 
   useEffect(() => {
-    if (hasInitialCloudLayout || typeof window === "undefined") {
-      return;
-    }
-
-    try {
-      const storedValue = window.localStorage.getItem(legacyStorageKey);
-
-      if (!storedValue) {
-        return;
-      }
-
-      const legacyWidgets = normalizeHomeWidgetLayout(JSON.parse(storedValue));
-      const migrationTimer = window.setTimeout(() => {
-        lastSavedWidgetsJsonRef.current = "";
-        setWidgets(legacyWidgets);
-      }, 0);
-
-      return () => window.clearTimeout(migrationTimer);
-    } catch {
-      return;
-    }
-  }, [hasInitialCloudLayout, legacyStorageKey]);
-
-  useEffect(() => {
     if (!supabase) {
       return;
     }
@@ -104,13 +74,12 @@ export function useDashboardHomeLayout({
 
           markBrowserCloudSyncActivity();
           lastSavedWidgetsJsonRef.current = JSON.stringify(normalizedWidgets);
-          window.localStorage.removeItem(legacyStorageKey);
         })
         .catch(() => {
           lastSavedWidgetsJsonRef.current = "";
         });
     }, 250);
-  }, [legacyStorageKey, scope, supabase, widgets]);
+  }, [scope, supabase, widgets]);
 
   const refreshLayout = useCallback(
     async ({ isMounted }: { isMounted: () => boolean }) => {

@@ -33,7 +33,6 @@ export function useAdminCustomerTypeMark({
   const customerTypeLabels = useMemo<CustomerTypeLabels>(
     () => ({
       retail: t("customerTypes.retail"),
-      wholesale: t("customerTypes.wholesale"),
     }),
     [t],
   );

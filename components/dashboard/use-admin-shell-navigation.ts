@@ -7,7 +7,7 @@ import { usePathname, useRouter } from "next/navigation";
 
 import { useStaleFocusRecovery } from "@/lib/use-stale-focus-recovery";
 
-import type { AdminShellNavLink } from "./admin-shell-client";
+import type { AdminShellNavLink } from "./admin-shell-nav-types";
 
 type PendingNavigation = {
   href: string;

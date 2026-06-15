@@ -45,15 +45,15 @@ export async function getAdminSystemSettingsPageData(
     serviceOrderTypeOptions,
     serviceOrderPriceOptions,
     orderDiscountOptions,
-    exchangeRates,
     commissionRuleSettings,
+    exchangeRates,
   ] = await Promise.all([
     getServiceFeeTypeOptions(supabase),
     getServiceOrderTypeOptions(supabase),
     getServiceOrderPriceOptions(supabase),
     getOrderDiscountTypeOptions(supabase),
-    getExchangeRatesPageData(supabase, "manage"),
     getCommissionRuleSettings(supabase),
+    getExchangeRatesPageData(supabase, "manage"),
   ]);
 
   return {

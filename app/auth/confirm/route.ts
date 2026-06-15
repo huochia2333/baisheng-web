@@ -6,6 +6,12 @@ import { getServerSupabaseClient } from "@/lib/supabase-server";
 const EMAIL_CONFIRMATION_TYPE = "email" satisfies EmailOtpType;
 const DEFAULT_REDIRECT_PATH = "/login";
 const DEFAULT_PUBLIC_ORIGIN = "https://account.pt5china.com";
+const LOCAL_PUBLIC_HOST_PATTERN = /^(?:localhost|127\.0\.0\.1)(?::\d+)?$/;
+const ALLOWED_PUBLIC_HOSTS = new Set(
+  [DEFAULT_PUBLIC_ORIGIN, process.env.NEXT_PUBLIC_SITE_URL]
+    .map(getOriginHost)
+    .filter((host): host is string => Boolean(host)),
+);
 
 export async function GET(request: NextRequest) {
   const requestUrl = request.nextUrl;
@@ -36,20 +42,47 @@ export async function GET(request: NextRequest) {
 
 function getPublicOrigin(request: NextRequest) {
   const forwardedHost = getFirstHeaderValue(request.headers.get("x-forwarded-host"));
-  const host = forwardedHost ?? getFirstHeaderValue(request.headers.get("host"));
-  const forwardedProto = getFirstHeaderValue(request.headers.get("x-forwarded-proto"));
-  const protocol =
-    forwardedProto ?? request.nextUrl.protocol.replace(/:$/, "") ?? "https";
+  const host = normalizePublicHost(
+    forwardedHost ?? getFirstHeaderValue(request.headers.get("host")),
+  );
 
-  if (!host || host.startsWith("0.0.0.0")) {
+  if (!host || !isAllowedPublicHost(host)) {
     return DEFAULT_PUBLIC_ORIGIN;
   }
+
+  const protocol = LOCAL_PUBLIC_HOST_PATTERN.test(host) ? "http" : "https";
 
   return `${protocol}://${host}`;
 }
 
 function getFirstHeaderValue(value: string | null) {
   return value?.split(",")[0]?.trim() || null;
+}
+
+function getOriginHost(origin: string | undefined) {
+  if (!origin) {
+    return null;
+  }
+
+  try {
+    return new URL(origin).host.toLowerCase();
+  } catch {
+    return null;
+  }
+}
+
+function normalizePublicHost(value: string | null) {
+  const host = value?.trim().toLowerCase();
+
+  if (!host || host.startsWith("0.0.0.0") || /[/?#@\\]/.test(host)) {
+    return null;
+  }
+
+  return host;
+}
+
+function isAllowedPublicHost(host: string) {
+  return ALLOWED_PUBLIC_HOSTS.has(host) || LOCAL_PUBLIC_HOST_PATTERN.test(host);
 }
 
 function getSafeRedirectPath(value: string | null, origin: string) {

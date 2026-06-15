@@ -177,7 +177,7 @@ export function DashboardDialog({
             aria-describedby={description ? descriptionId : undefined}
             aria-labelledby={titleId}
             aria-modal="true"
-            className="relative z-10 flex max-h-[calc(100dvh-2rem)] w-full max-w-4xl flex-col overflow-hidden rounded-[30px] border border-white/85 bg-[#fbfaf8] shadow-[0_20px_60px_rgba(35,49,58,0.18)]"
+            className="relative z-10 flex max-h-[calc(100dvh-2rem)] min-w-0 w-full max-w-4xl flex-col overflow-hidden rounded-[30px] border border-white/85 bg-[#fbfaf8] shadow-[0_20px_60px_rgba(35,49,58,0.18)]"
             exit={{ opacity: 0, scale: 0.985, y: 16 }}
             initial={{ opacity: 0, scale: 0.985, y: 20 }}
             ref={dialogRef}
@@ -189,8 +189,8 @@ export function DashboardDialog({
             tabIndex={-1}
             transition={dialogTransition}
           >
-            <div className="flex items-start justify-between gap-6 border-b border-[#ebe7e1] px-6 py-5 sm:px-8">
-              <div className="min-w-0">
+            <div className="flex min-w-0 items-start justify-between gap-6 border-b border-[#ebe7e1] px-6 py-5 sm:px-8">
+              <div className="min-w-0 flex-1">
                 <h3
                   className="break-words text-2xl font-bold tracking-tight text-[#23313a] [overflow-wrap:anywhere]"
                   id={titleId}
@@ -219,12 +219,12 @@ export function DashboardDialog({
             </div>
 
             {actions ? (
-              <div className="flex flex-wrap items-center justify-end gap-3 border-b border-[#ebe7e1] px-6 py-4 sm:px-8">
+              <div className="flex min-w-0 flex-wrap items-center justify-end gap-3 border-b border-[#ebe7e1] px-6 py-4 sm:px-8">
                 {actions}
               </div>
             ) : null}
 
-            <div className="overflow-y-auto overscroll-contain px-6 py-6 sm:px-8 sm:py-8">
+            <div className="min-w-0 overflow-y-auto overscroll-contain px-6 py-6 sm:px-8 sm:py-8">
               {children}
             </div>
           </motion.div>

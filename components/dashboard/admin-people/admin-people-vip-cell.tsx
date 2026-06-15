@@ -8,7 +8,6 @@ import type { AdminPersonRow } from "@/lib/admin-people";
 import type { AdminVipRequestAction } from "@/lib/admin-people-vip-mutations";
 import type { Locale } from "@/lib/locale";
 import type {
-  VipMembershipScope,
   VipMembershipSummary,
   VipRechargeRequestSummary,
 } from "@/lib/vip-memberships";
@@ -30,6 +29,9 @@ export function AdminPeopleVipCell({
   pendingRequestId: string | null;
 }) {
   const t = useTranslations("AdminPeople");
+  const visiblePendingVipRequests = person.pending_vip_requests.filter(
+    (request) => request.vip_scope === "retail",
+  );
 
   return (
     <div className="flex min-w-0 flex-col gap-2">
@@ -38,14 +40,9 @@ export function AdminPeopleVipCell({
         locale={locale}
         membership={person.retail_vip}
       />
-      <VipStatusLine
-        label={t("vip.wholesale")}
-        locale={locale}
-        membership={person.wholesale_vip}
-      />
-      {person.pending_vip_requests.length > 0 ? (
+      {visiblePendingVipRequests.length > 0 ? (
         <div className="mt-1 flex flex-col gap-2">
-          {person.pending_vip_requests.map((request) => (
+          {visiblePendingVipRequests.map((request) => (
             <PendingVipRequest
               key={request.id}
               locale={locale}
@@ -108,7 +105,7 @@ function PendingVipRequest({
     <div className="rounded-md border border-[#f0dfbf] bg-[#fffaf0] px-2.5 py-2 text-xs text-[#6f5c33]">
       <p className="font-semibold">
         {t("vip.pendingRequest", {
-          value: getVipScopeLabel(request.vip_scope, t),
+          value: t("vip.retail"),
         })}
       </p>
       <p className="mt-1">
@@ -180,11 +177,4 @@ function VipRequestButton({
       {t(`vip.${action}`)}
     </Button>
   );
-}
-
-function getVipScopeLabel(
-  scope: VipMembershipScope,
-  t: ReturnType<typeof useTranslations>,
-) {
-  return scope === "wholesale" ? t("vip.wholesale") : t("vip.retail");
 }

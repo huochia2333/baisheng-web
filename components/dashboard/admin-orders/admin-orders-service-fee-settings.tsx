@@ -62,10 +62,6 @@ export function AdminOrdersServiceFeeSettings({
     () => getServiceFeeRowsByScope(rows, "retail"),
     [rows],
   );
-  const wholesaleRows = useMemo(
-    () => getServiceFeeRowsByScope(rows, "wholesale"),
-    [rows],
-  );
   const commissionRowsByCode = useMemo(
     () => new Map(commissionRuleSettings.map((row) => [row.ruleCode, row])),
     [commissionRuleSettings],
@@ -163,28 +159,6 @@ export function AdminOrdersServiceFeeSettings({
         onStartEditing={startEditing}
       />
 
-      <AdminOrdersServiceFeeTierSection
-        copy={tierCopy}
-        description={t("settings.serviceFees.wholesale.description")}
-        editValue={editValue}
-        editingId={editingId}
-        locale={locale}
-        pendingAction={pendingAction}
-        rows={wholesaleRows}
-        title={t("settings.serviceFees.wholesale.title")}
-        getRuleLines={(row) =>
-          getServiceFeeRuleLines({
-            commissionLine: t("settings.serviceFees.calculations.noWholesaleCommissionShort"),
-            locale,
-            row,
-            t,
-          })
-        }
-        onCancelEditing={cancelEditing}
-        onEditValueChange={setEditValue}
-        onSave={(row) => void handleSave(row)}
-        onStartEditing={startEditing}
-      />
     </DashboardListSection>
   );
 }

@@ -86,7 +86,7 @@ function getInviteCodeBoardSuffix(value: string | undefined) {
     return "T";
   }
 
-  if (normalized === "dropshipping") {
+  if (normalized === "wholesale") {
     return "D";
   }
 

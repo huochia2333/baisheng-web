@@ -68,10 +68,6 @@ export function getOrderTypeMetaFromCategory(
     return { label: copy.categories.purchase, tone: "blue" as const };
   }
 
-  if (normalizedCategory === "dropshipping") {
-    return { label: copy.categories.dropshipping, tone: "gold" as const };
-  }
-
   if (normalizedCategory === "service") {
     return { label: copy.categories.service, tone: "green" as const };
   }
@@ -156,6 +152,10 @@ export function formatVipScope(
   }
 
   const matchedKey = VIP_SCOPE_KEYS[normalizedValue as keyof typeof VIP_SCOPE_KEYS];
+
+  if (normalizedValue === "wholesale") {
+    return copy.fallback.notProvided;
+  }
 
   return matchedKey
     ? copy.subtypes.vipRecharge[normalizedValue as keyof typeof VIP_SCOPE_KEYS]

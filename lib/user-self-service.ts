@@ -1,20 +1,25 @@
-import type { Session, SupabaseClient, User } from "@supabase/supabase-js";
+import type { SupabaseClient, User } from "@supabase/supabase-js";
 
-import { getAppRoleFromClaims, getUserStatusFromClaims } from "./auth-claims";
 import {
   getDefaultSignedInPathForRole,
   getDefaultWorkspaceBasePath,
   type AppRole,
 } from "./auth-routing";
+import type { UserStatus } from "./auth-metadata";
 import {
-  getAppRoleFromMetadataContainer,
-  getUserStatusFromMetadataContainer,
-  type UserStatus,
-} from "./auth-metadata";
+  getCurrentSessionContext,
+  resetCurrentAuthContextCache,
+} from "./current-session-context";
 import { withRequestTimeout } from "./request-timeout";
 import { normalizeOptionalString } from "./value-normalizers";
 
 export { getDefaultSignedInPathForRole, getDefaultWorkspaceBasePath };
+export {
+  getCurrentSession,
+  getCurrentSessionContext,
+  getRoleFromUser,
+  getStatusFromUser,
+} from "./current-session-context";
 export type { AppRole, UserStatus };
 export type PrivacyRequestStatus = "pending" | "pass" | "denied";
 export type MediaKind = "image" | "video";
@@ -89,26 +94,12 @@ export type CurrentUserBundle = {
 
 const SIGNED_URL_TTL_SECONDS = 60 * 60;
 const SIGNED_URL_CACHE_GRACE_MS = 30_000;
-const AUTH_SESSION_TIMEOUT_MS = 8_000;
-const AUTH_SESSION_RETRY_DELAY_MS = 350;
-const AUTH_SESSION_TIMEOUT_MESSAGE = "登录状态同步较慢，请稍后重试。";
 const USER_MEDIA_MUTATION_TIMEOUT_MS = 60_000;
 const USER_MEDIA_MUTATION_TIMEOUT_MESSAGE = "媒体操作超时，请稍后重试。";
 
 const PROFILE_MUTATION_TIMEOUT_MS = 20_000;
 const PROFILE_MUTATION_TIMEOUT_MESSAGE = "Profile update timed out. Please try again.";
 
-type SessionCacheState = {
-  currentClaimsRequest: Promise<unknown | null> | null;
-  currentClaimsSnapshot: unknown | null | undefined;
-  currentSessionRequest: Promise<Session | null> | null;
-  currentSessionSnapshot: Session | null | undefined;
-  sessionTrackingCleanup: (() => void) | null;
-  sessionTrackingReady: boolean;
-  resetVersion: number;
-};
-
-const sessionCacheByClient = new WeakMap<SupabaseClient, SessionCacheState>();
 const userMediaPreviewUrlCache = new Map<
   string,
   {
@@ -117,99 +108,11 @@ const userMediaPreviewUrlCache = new Map<
   }
 >();
 const userMediaPreviewUrlRequestCache = new Map<string, Promise<string | null>>();
-const SESSION_TRACKING_REGISTRY_KEY = "__baishengSessionTrackingRegistry__" as const;
-
-let sessionCacheResetVersion = 0;
 
 export function resetCurrentSessionCache() {
-  sessionCacheResetVersion += 1;
+  resetCurrentAuthContextCache();
   userMediaPreviewUrlCache.clear();
   userMediaPreviewUrlRequestCache.clear();
-}
-
-export function getRoleFromUser(user: User | null | undefined): AppRole | null {
-  return getAppRoleFromMetadataContainer(user);
-}
-
-export function getStatusFromUser(user: User | null | undefined): UserStatus | null {
-  return getUserStatusFromMetadataContainer(user);
-}
-
-export async function getCurrentSession(
-  supabase: SupabaseClient,
-): Promise<Session | null> {
-  const sessionCache = getSessionCache(supabase);
-
-  ensureSessionTracking(supabase, sessionCache);
-
-  if (sessionCache.currentSessionSnapshot !== undefined) {
-    return sessionCache.currentSessionSnapshot;
-  }
-
-  if (!sessionCache.currentSessionRequest) {
-    sessionCache.currentSessionRequest = resolveCurrentSession(
-      supabase,
-      sessionCache,
-    ).finally(() => {
-      sessionCache.currentSessionRequest = null;
-    });
-  }
-
-  return sessionCache.currentSessionRequest;
-}
-
-function getSessionCache(supabase: SupabaseClient) {
-  const existingCache = sessionCacheByClient.get(supabase);
-
-  if (existingCache) {
-    if (existingCache.resetVersion !== sessionCacheResetVersion) {
-      existingCache.sessionTrackingCleanup?.();
-      existingCache.currentClaimsRequest = null;
-      existingCache.currentClaimsSnapshot = undefined;
-      existingCache.currentSessionRequest = null;
-      existingCache.currentSessionSnapshot = undefined;
-      existingCache.sessionTrackingCleanup = null;
-      existingCache.sessionTrackingReady = false;
-      existingCache.resetVersion = sessionCacheResetVersion;
-    }
-
-    return existingCache;
-  }
-
-  const sessionCache: SessionCacheState = {
-    currentClaimsRequest: null,
-    currentClaimsSnapshot: undefined,
-    currentSessionRequest: null,
-    currentSessionSnapshot: undefined,
-    sessionTrackingCleanup: null,
-    sessionTrackingReady: false,
-    resetVersion: sessionCacheResetVersion,
-  };
-
-  sessionCacheByClient.set(supabase, sessionCache);
-  return sessionCache;
-}
-
-export async function getCurrentSessionContext(
-  supabase: SupabaseClient,
-): Promise<{
-  session: Session | null;
-  user: User | null;
-  role: AppRole | null;
-  status: UserStatus | null;
-}> {
-  const [session, claims] = await Promise.all([
-    getCurrentSession(supabase),
-    getCurrentClaims(supabase),
-  ]);
-  const user = session?.user ?? null;
-
-  return {
-    session,
-    user,
-    role: getAppRoleFromClaims(claims) ?? getRoleFromUser(user),
-    status: getUserStatusFromClaims(claims) ?? getStatusFromUser(user),
-  };
 }
 
 export async function getCurrentUserBundle(
@@ -482,163 +385,6 @@ async function syncProfileFromAuthMetadataIfPossible(
   }
 
   return data ?? profile;
-}
-
-async function resolveCurrentSession(
-  supabase: SupabaseClient,
-  sessionCache: SessionCacheState,
-) {
-  try {
-    const session = await withRequestTimeout(
-      fetchCurrentSession(supabase),
-      {
-        timeoutMs: AUTH_SESSION_TIMEOUT_MS,
-        message: AUTH_SESSION_TIMEOUT_MESSAGE,
-      },
-    );
-
-    sessionCache.currentSessionSnapshot = session;
-    return session;
-  } catch (error) {
-    if (sessionCache.currentSessionSnapshot !== undefined) {
-      return sessionCache.currentSessionSnapshot;
-    }
-
-    if (!isSessionTimeoutError(error)) {
-      throw error;
-    }
-
-    await delay(AUTH_SESSION_RETRY_DELAY_MS);
-
-    if (sessionCache.currentSessionSnapshot !== undefined) {
-      return sessionCache.currentSessionSnapshot;
-    }
-
-    const retriedSession = await withRequestTimeout(
-      fetchCurrentSession(supabase),
-      {
-        timeoutMs: AUTH_SESSION_TIMEOUT_MS,
-        message: AUTH_SESSION_TIMEOUT_MESSAGE,
-      },
-    );
-
-    sessionCache.currentSessionSnapshot = retriedSession;
-    return retriedSession;
-  }
-}
-
-async function fetchCurrentSession(supabase: SupabaseClient) {
-  const {
-    data: { session },
-    error,
-  } = await supabase.auth.getSession();
-
-  if (error) {
-    throw error;
-  }
-
-  return session;
-}
-
-async function getCurrentClaims(supabase: SupabaseClient): Promise<unknown | null> {
-  const sessionCache = getSessionCache(supabase);
-
-  ensureSessionTracking(supabase, sessionCache);
-
-  if (sessionCache.currentSessionSnapshot === null) {
-    sessionCache.currentClaimsSnapshot = null;
-    return null;
-  }
-
-  if (sessionCache.currentClaimsSnapshot !== undefined) {
-    return sessionCache.currentClaimsSnapshot;
-  }
-
-  if (!sessionCache.currentClaimsRequest) {
-    sessionCache.currentClaimsRequest = resolveCurrentClaims(
-      supabase,
-      sessionCache,
-    ).finally(() => {
-      sessionCache.currentClaimsRequest = null;
-    });
-  }
-
-  return sessionCache.currentClaimsRequest;
-}
-
-async function resolveCurrentClaims(
-  supabase: SupabaseClient,
-  sessionCache: SessionCacheState,
-) {
-  const { data, error } = await supabase.auth.getClaims();
-
-  if (error) {
-    sessionCache.currentClaimsSnapshot = null;
-    return null;
-  }
-
-  const claims = data?.claims ?? null;
-  sessionCache.currentClaimsSnapshot = claims;
-  return claims;
-}
-
-function ensureSessionTracking(
-  supabase: SupabaseClient,
-  sessionCache: SessionCacheState,
-) {
-  if (sessionCache.sessionTrackingReady) {
-    return;
-  }
-
-  const sessionTrackingRegistry = getSessionTrackingRegistry();
-  sessionTrackingRegistry.get(supabase)?.();
-
-  const {
-    data: { subscription },
-  } = supabase.auth.onAuthStateChange((_event, session) => {
-    sessionCache.currentClaimsRequest = null;
-    sessionCache.currentClaimsSnapshot = undefined;
-    sessionCache.currentSessionSnapshot = session;
-  });
-
-  const cleanup = () => {
-    subscription.unsubscribe();
-
-    if (sessionTrackingRegistry.get(supabase) === cleanup) {
-      sessionTrackingRegistry.delete(supabase);
-    }
-
-    if (sessionCache.sessionTrackingCleanup === cleanup) {
-      sessionCache.sessionTrackingCleanup = null;
-      sessionCache.sessionTrackingReady = false;
-    }
-  };
-
-  sessionCache.sessionTrackingCleanup = cleanup;
-  sessionCache.sessionTrackingReady = true;
-  sessionTrackingRegistry.set(supabase, cleanup);
-}
-
-function getSessionTrackingRegistry() {
-  const globalScope = globalThis as typeof globalThis & {
-    [SESSION_TRACKING_REGISTRY_KEY]?: WeakMap<SupabaseClient, () => void>;
-  };
-
-  if (!globalScope[SESSION_TRACKING_REGISTRY_KEY]) {
-    globalScope[SESSION_TRACKING_REGISTRY_KEY] = new WeakMap<SupabaseClient, () => void>();
-  }
-
-  return globalScope[SESSION_TRACKING_REGISTRY_KEY];
-}
-
-function isSessionTimeoutError(error: unknown) {
-  return error instanceof Error && error.message === AUTH_SESSION_TIMEOUT_MESSAGE;
-}
-
-function delay(timeoutMs: number) {
-  return new Promise<void>((resolve) => {
-    globalThis.setTimeout(resolve, timeoutMs);
-  });
 }
 
 async function invokeUserMediaMutation(

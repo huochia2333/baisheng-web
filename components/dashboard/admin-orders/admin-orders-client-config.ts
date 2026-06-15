@@ -14,6 +14,8 @@ type OrdersTranslator = (
 export type OrdersClientMode = "admin" | "salesman" | "client";
 
 export const EMPTY_ORDER_FILTERS: AdminOrdersFilters = {
+  createdFromDate: "",
+  createdToDate: "",
   orderEntryUser: "",
   orderNumber: "",
   orderingUser: "",
@@ -168,6 +170,8 @@ export function areOrderFiltersEqual(
   right: AdminOrdersFilters,
 ) {
   return (
+    left.createdFromDate === right.createdFromDate &&
+    left.createdToDate === right.createdToDate &&
     left.orderEntryUser === right.orderEntryUser &&
     left.orderNumber === right.orderNumber &&
     left.orderingUser === right.orderingUser

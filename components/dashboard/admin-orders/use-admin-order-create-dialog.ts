@@ -213,9 +213,7 @@ export function useAdminOrderCreateDialog({
       !supabase ||
       !createFormState.orderType ||
       !createFormState.orderingUser ||
-      !["purchase", "dropshipping"].includes(
-        orderCategoryByTypeId.get(createFormState.orderType) ?? "",
-      )
+      orderCategoryByTypeId.get(createFormState.orderType) !== "purchase"
     ) {
       serviceFeePreviewTokenRef.current += 1;
       setCreateServiceFeePreview({ feeType: null, status: "idle" });

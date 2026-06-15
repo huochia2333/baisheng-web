@@ -2,7 +2,6 @@ type TranslationValues = Record<string, string | number>;
 type OrdersUiTranslator = (key: string, values?: TranslationValues) => string;
 
 export const PURCHASE_SUBTYPE_KEYS = {
-  dropshipping: "subtypes.purchase.dropshipping",
   group_buying: "subtypes.purchase.groupBuying",
   sourcing: "subtypes.purchase.sourcing",
   tourist_shopping: "subtypes.purchase.touristShopping",
@@ -18,7 +17,6 @@ export const SERVICE_SUBTYPE_KEYS = {
 
 export const VIP_SCOPE_KEYS = {
   retail: "subtypes.vipRecharge.retail",
-  wholesale: "subtypes.vipRecharge.wholesale",
 } as const;
 
 type OrderFieldKey =
@@ -44,7 +42,6 @@ type OrderFieldKey =
 
 export type OrdersUiCopy = {
   categories: {
-    dropshipping: string;
     purchase: string;
     service: string;
     vip_recharge: string;
@@ -97,7 +94,6 @@ export type OrdersUiCopy = {
 export function createOrdersUiCopy(t: OrdersUiTranslator): OrdersUiCopy {
   return {
     categories: {
-      dropshipping: t("categories.dropshipping"),
       purchase: t("categories.purchase"),
       service: t("categories.service"),
       vip_recharge: t("categories.vipRecharge"),
@@ -155,7 +151,6 @@ export function createOrdersUiCopy(t: OrdersUiTranslator): OrdersUiCopy {
     },
     subtypes: {
       purchase: {
-        dropshipping: t("subtypes.purchase.dropshipping"),
         group_buying: t("subtypes.purchase.groupBuying"),
         sourcing: t("subtypes.purchase.sourcing"),
         tourist_shopping: t("subtypes.purchase.touristShopping"),
@@ -169,7 +164,6 @@ export function createOrdersUiCopy(t: OrdersUiTranslator): OrdersUiCopy {
       },
       vipRecharge: {
         retail: t("subtypes.vipRecharge.retail"),
-        wholesale: t("subtypes.vipRecharge.wholesale"),
       },
     },
     validation: {

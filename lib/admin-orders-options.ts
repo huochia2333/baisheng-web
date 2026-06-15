@@ -63,6 +63,7 @@ export async function getOrderTypeOptions(
     supabase
       .from("business_category")
       .select("id,category")
+      .in("category", ["purchase", "service", "vip_recharge"])
       .order("category", { ascending: true })
       .returns<BusinessCategoryOption[]>(),
   );

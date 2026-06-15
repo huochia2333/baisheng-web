@@ -11,7 +11,6 @@ import {
   type SalesmanBusinessBoard,
 } from "@/lib/salesman-business-access";
 import {
-  VIP_SCOPE_VALUES,
   type VipMembershipScope,
   type VipMembershipSummary,
 } from "@/lib/vip-memberships";
@@ -35,11 +34,12 @@ export function SalesmanPeopleVipCell({
   ) => void;
   pendingKey: string | null;
 }) {
-  const visibleScopes = VIP_SCOPE_VALUES.filter((scope) =>
-    scope === "retail"
-      ? salesmanBusinessBoardsInclude(businessBoards, "tourism")
-      : salesmanBusinessBoardsInclude(businessBoards, "dropshipping"),
-  );
+  const visibleScopes: readonly VipMembershipScope[] = salesmanBusinessBoardsInclude(
+    businessBoards,
+    "tourism",
+  )
+    ? ["retail"]
+    : [];
 
   return (
     <div className="flex min-w-0 flex-col gap-2">
@@ -48,7 +48,7 @@ export function SalesmanPeopleVipCell({
           customer={customer}
           key={scope}
           locale={locale}
-          membership={scope === "retail" ? customer.retail_vip : customer.wholesale_vip}
+          membership={customer.retail_vip}
           onRequestVip={onRequestVip}
           pendingKey={pendingKey}
           scope={scope}
@@ -89,7 +89,7 @@ function VipScopeCard({
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div>
           <p className="text-xs font-semibold text-[#23313a]">
-            {scope === "wholesale" ? t("vip.wholesale") : t("vip.retail")}
+            {t("vip.retail")}
           </p>
           <p className={active ? "mt-1 text-xs text-[#4c7259]" : "mt-1 text-xs text-[#8a949c]"}>
             {active

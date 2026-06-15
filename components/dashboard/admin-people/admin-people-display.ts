@@ -2,11 +2,11 @@ import type { AppRole } from "@/lib/auth-routing";
 import type { UserStatus } from "@/lib/user-self-service";
 import type { AdminPersonRow, CustomerTypeMark } from "@/lib/admin-people";
 import type { Locale } from "@/lib/locale";
-import type {
-  SalesmanBusinessBoard,
-  SalesmanBusinessBoardLabels,
-} from "@/lib/salesman-business-access";
 import { normalizeSearchText } from "@/lib/value-normalizers";
+import type {
+  WorkspaceBusinessAccessLabels,
+} from "@/lib/workspace-business-access";
+import type { WorkspaceBusinessKey } from "@/lib/workspace-config";
 
 export type AdminPeopleRoleLabels = Record<AppRole, string>;
 export type AdminPeopleStatusLabels = Record<UserStatus, string>;
@@ -60,26 +60,16 @@ export function getCustomerTypeLabel(
   return value ? labels[value] : fallback;
 }
 
-export function getSalesmanBusinessAccessLabel(
-  boards: readonly SalesmanBusinessBoard[],
-  labels: SalesmanBusinessBoardLabels,
+export function getWorkspaceBusinessAccessLabel(
+  businesses: readonly WorkspaceBusinessKey[],
+  labels: WorkspaceBusinessAccessLabels,
   fallback: string,
 ) {
-  if (boards.length === 0) {
+  if (businesses.length === 0) {
     return fallback;
   }
 
-  return boards.map((board) => labels[board]).join(" / ");
-}
-
-export function getSalesmanBusinessAccessItems(
-  boards: readonly SalesmanBusinessBoard[],
-  labels: SalesmanBusinessBoardLabels,
-) {
-  return boards.map((board) => ({
-    board,
-    label: labels[board],
-  }));
+  return businesses.map((business) => labels[business]).join(" / ");
 }
 
 export function formatPeopleDate(
@@ -126,5 +116,6 @@ export function personMatchesSearch(person: AdminPersonRow, searchText: string) 
     person.customer_type_marked_by_name,
     person.private_note,
     ...person.salesman_business_boards,
+    ...person.workspace_business_access,
   ].some((value) => normalizeSearchText(value).includes(normalizedSearch));
 }

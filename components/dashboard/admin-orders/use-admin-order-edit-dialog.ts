@@ -171,9 +171,7 @@ export function useAdminOrderEditDialog({
       !supabase ||
       !editFormState.orderType ||
       !editFormState.orderingUser ||
-      !["purchase", "dropshipping"].includes(
-        orderCategoryByTypeId.get(editFormState.orderType) ?? "",
-      )
+      orderCategoryByTypeId.get(editFormState.orderType) !== "purchase"
     ) {
       editServiceFeePreviewTokenRef.current += 1;
       setEditServiceFeePreview({ feeType: null, status: "idle" });
