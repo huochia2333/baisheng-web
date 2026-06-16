@@ -312,6 +312,7 @@ baisheng-web/
 - 系统设置页只在页面顶部保留总页头；旅游业务设置、批发业务设置和汇率设置的页签内容统一使用内容卡片，卡片内直接进入实际小节、表格或控件，不再放重复的一级说明标题。
 - 首页组件编辑态只保留必要操作：编辑组件、完成、添加、移除、移动和拖动改大小；小尺寸组件必须显示摘要内容，不把完整表单或长列表硬塞进 `1 x 1`、`2 x 1` 等小卡片。
 - 常用账号切换只在当前浏览器会话保存会话快照，不保存密码，不再写入长期本地存储；备用账号超过 8 小时未使用、关闭浏览器会话或会话失效时改为重新登录入口，界面保持单行轻量展示：无备用账号时显示加号入口，有备用账号时显示头像、角色、姓名、邮箱和切换按钮。
+- 账号中心的修改密码入口发送重置邮件后要显示再次发送倒计时，避免用户因为邮箱暂未收到而连续触发发信限制；成功提示只说明邮件已开始发送，不能承诺已经进入收件箱。
 - 页面长时间隐藏或窗口失焦后，涉及客户端跳转或刷新时要使用 `lib/use-stale-focus-recovery.ts` 做整页加载兜底。
 - 移动端需要检查文字竖排、换行挤压、遮挡、横向溢出、按钮压缩和表格挤压；标题、备注、弹窗说明等用户可输入长文本要在组件内自然换行，不能撑出横向滚动。
 - 共享组件的响应式问题要从组件层修复，不只修截图里的单个位置。
@@ -386,7 +387,10 @@ Supabase Auth 建议：
 - Site URL：线上站点根地址，当前线上为 `https://account.pt5china.com`；默认值集中在 `lib/company-config.ts`。
 - `NEXT_PUBLIC_SITE_URL` 应与线上 Site URL 保持一致；邮箱确认路由只接受该域名、公司配置默认线上域名和本地开发域名作为回跳来源。
 - Redirect URLs：线上根地址、`/login`、`/auth/confirm`、`/forgot-password`，以及本地开发地址 `http://localhost:3000`、`http://localhost:3000/auth/confirm`、`http://localhost:3000/forgot-password`。
+- `/auth/confirm` 统一处理注册确认和密码重置确认：`type=email` 成功后进入 `next` 指向的登录页；`type=recovery` 成功后进入 `/forgot-password?type=recovery` 设置新密码。
 - Confirm sign up 邮件模板使用自有域名确认路由：`{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=email&next={{ .RedirectTo }}`，不要直接使用 `{{ .ConfirmationURL }}`，避免注册确认邮件里的主链接显示为 Supabase 项目域名。
+- Reset password 邮件模板也使用自有域名确认路由：`{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=recovery&next={{ .RedirectTo }}`，避免重置邮件里的主链接显示为 Supabase 项目域名。
+- Password recovery 邮件由登录页和账号中心共同触发，回跳地址固定为当前站点的 `/forgot-password`；Resend 显示 sent 只代表发信服务已接收或开始发送，delivered 只代表收件方服务器已接收，仍需结合 Resend Insights、收件箱、垃圾邮件和域名 DNS 认证状态判断最终可见性。
 - 自定义 SMTP 发件人使用可回复的业务邮箱，不使用 `noreply`。当前发件地址和发件名以公司配置和 Supabase Auth 设置为准。
 
 ## 相关文档

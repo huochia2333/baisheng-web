@@ -53,6 +53,7 @@ export type DashboardMyCopy = {
   accountSwitcherRoleRecruiter: string;
   editProfile: string;
   changePassword: string;
+  passwordResetCountdown: (seconds: number) => string;
   copyInviteCode: string;
   refreshProfile: string;
   verificationTitle: string;
@@ -154,6 +155,7 @@ export function useDashboardMyCopy(): DashboardMyCopy {
     accountSwitcherRoleRecruiter: t("accountSwitcherRoleRecruiter"),
     editProfile: t("editProfile"),
     changePassword: t("changePassword"),
+    passwordResetCountdown: (seconds) => t("passwordResetCountdown", { seconds }),
     copyInviteCode: t("copyInviteCode"),
     refreshProfile: t("refreshProfile"),
     verificationTitle: t("verificationTitle"),

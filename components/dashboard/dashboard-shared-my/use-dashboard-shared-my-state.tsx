@@ -28,6 +28,7 @@ import { Button } from "../../ui/button";
 import { useDashboardSharedMyStateCopy } from "./dashboard-shared-my-state-copy";
 import { createDashboardSharedMyViewModel } from "./dashboard-shared-my-view-model";
 import { useDashboardAccountSwitcher } from "./use-dashboard-account-switcher";
+import { useDashboardPasswordReset } from "./use-dashboard-password-reset";
 import { useDashboardProfileDialog } from "./use-dashboard-profile-dialog";
 
 export function useDashboardSharedMyState(initialData: CurrentUserBundle | null = null) {
@@ -230,6 +231,16 @@ export function useDashboardSharedMyState(initialData: CurrentUserBundle | null 
     supabase,
   });
 
+  const { passwordResetCooldownRemaining, sendPasswordReset } =
+    useDashboardPasswordReset({
+      authUser,
+      copy,
+      setBusyKey,
+      setPageNotice,
+      sharedCopy,
+      supabase,
+    });
+
   const openDialog = (key: MediaAssetKey) => {
     setDialogNotice(null);
     setActiveDialog(key);
@@ -254,37 +265,6 @@ export function useDashboardSharedMyState(initialData: CurrentUserBundle | null 
     setDialogNotice(null);
     setIdentityEditing(false);
     setPassportEditing(false);
-  };
-
-  const sendPasswordReset = async () => {
-    if (!supabase || !authUser?.email) {
-      setPageNotice({ tone: "error", message: copy.missingEmailForReset });
-      return;
-    }
-
-    setBusyKey("password");
-    setPageNotice(null);
-
-    const redirectTo =
-      typeof window !== "undefined"
-        ? `${window.location.origin}/forgot-password`
-        : undefined;
-
-    try {
-      const { error } = await supabase.auth.resetPasswordForEmail(authUser.email, {
-        redirectTo,
-      });
-
-      if (error) {
-        throw error;
-      }
-
-      setPageNotice({ tone: "success", message: copy.resetSent });
-    } catch (error) {
-      setPageNotice({ tone: "error", message: toErrorMessage(error, sharedCopy) });
-    } finally {
-      setBusyKey(null);
-    }
   };
 
   const copyInviteCode = async () => {
@@ -538,6 +518,7 @@ export function useDashboardSharedMyState(initialData: CurrentUserBundle | null 
       profileStats,
       referralCode,
       role,
+      passwordResetCooldownRemaining,
       sendPasswordReset,
       verificationStatus,
     },

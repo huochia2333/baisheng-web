@@ -5,7 +5,9 @@ import { getCompanyPublicOrigin } from "@/lib/company-config";
 import { getServerSupabaseClient } from "@/lib/supabase-server";
 
 const EMAIL_CONFIRMATION_TYPE = "email" satisfies EmailOtpType;
+const PASSWORD_RECOVERY_TYPE = "recovery" satisfies EmailOtpType;
 const DEFAULT_REDIRECT_PATH = "/login";
+const DEFAULT_RECOVERY_REDIRECT_PATH = "/forgot-password?type=recovery";
 const DEFAULT_PUBLIC_ORIGIN = getCompanyPublicOrigin();
 const LOCAL_PUBLIC_HOST_PATTERN = /^(?:localhost|127\.0\.0\.1)(?::\d+)?$/;
 const ALLOWED_PUBLIC_HOSTS = new Set(
@@ -18,20 +20,21 @@ export async function GET(request: NextRequest) {
   const requestUrl = request.nextUrl;
   const publicOrigin = getPublicOrigin(request);
   const tokenHash = requestUrl.searchParams.get("token_hash");
-  const type = requestUrl.searchParams.get("type");
-  const nextPath = getSafeRedirectPath(
-    requestUrl.searchParams.get("next"),
-    publicOrigin,
-  );
+  const type = getSupportedEmailOtpType(requestUrl.searchParams.get("type"));
+  // Recovery verification creates the reset session; always land on the reset form.
+  const nextPath =
+    type === PASSWORD_RECOVERY_TYPE
+      ? DEFAULT_RECOVERY_REDIRECT_PATH
+      : getSafeRedirectPath(requestUrl.searchParams.get("next"), publicOrigin);
 
-  if (!tokenHash || type !== EMAIL_CONFIRMATION_TYPE) {
+  if (!tokenHash || !type) {
     return NextResponse.redirect(new URL(DEFAULT_REDIRECT_PATH, publicOrigin));
   }
 
   const supabase = await getServerSupabaseClient();
   const { error } = await supabase.auth.verifyOtp({
     token_hash: tokenHash,
-    type: EMAIL_CONFIRMATION_TYPE,
+    type,
   });
 
   if (error) {
@@ -39,6 +42,14 @@ export async function GET(request: NextRequest) {
   }
 
   return NextResponse.redirect(new URL(nextPath, publicOrigin));
+}
+
+function getSupportedEmailOtpType(value: string | null): EmailOtpType | null {
+  if (value === EMAIL_CONFIRMATION_TYPE || value === PASSWORD_RECOVERY_TYPE) {
+    return value;
+  }
+
+  return null;
 }
 
 function getPublicOrigin(request: NextRequest) {
