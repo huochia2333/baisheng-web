@@ -149,14 +149,9 @@ function loadOrderedAccounts(
 }
 
 function loadLocalDockerAccounts(): Partial<Record<RegressionRole, RegressionAccount>> {
-  const localSeedPath = path.resolve(
-    process.cwd(),
-    "..",
-    "supabase",
-    "local-test-data.sql",
-  );
+  const localSeedPath = findLocalSeedPath();
 
-  if (!fs.existsSync(localSeedPath)) {
+  if (!localSeedPath) {
     return {};
   }
 
@@ -186,6 +181,15 @@ function loadLocalDockerAccounts(): Partial<Record<RegressionRole, RegressionAcc
   }
 
   return accounts;
+}
+
+function findLocalSeedPath() {
+  // 本地开发仓库可能叫 supabase 或 baisheng-supabase，测试优先读取真实存在的种子文件。
+  const candidatePaths = ["supabase", "baisheng-supabase"].map((directory) =>
+    path.resolve(process.cwd(), "..", directory, "local-test-data.sql"),
+  );
+
+  return candidatePaths.find((candidatePath) => fs.existsSync(candidatePath));
 }
 
 function shouldPreferLocalSupabaseAccounts() {

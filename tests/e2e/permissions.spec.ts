@@ -1,6 +1,11 @@
 import { test } from "@playwright/test";
 
-import { expectForbiddenPage, loginAs } from "./helpers/auth";
+import {
+  expectForbiddenPage,
+  expectNotForbiddenPage,
+  expectWorkspaceShell,
+  loginAs,
+} from "./helpers/auth";
 
 test.describe("workspace permission regression", () => {
   test("client cannot open the administrator workspace", async ({ page }) => {
@@ -43,10 +48,19 @@ test.describe("workspace permission regression", () => {
     await expectForbiddenPage(page);
   });
 
-  test("finance cannot open wholesale business", async ({ page }) => {
+  test("finance can open wholesale business", async ({ page }) => {
     await loginAs(page, "finance");
 
     await page.goto("/finance/wholesale/orders");
+
+    await expectWorkspaceShell(page);
+    await expectNotForbiddenPage(page);
+  });
+
+  test("finance cannot open hidden wholesale management pages", async ({ page }) => {
+    await loginAs(page, "finance");
+
+    await page.goto("/finance/wholesale/customers");
 
     await expectForbiddenPage(page);
   });
