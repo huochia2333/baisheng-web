@@ -1,6 +1,6 @@
-import Link from "next/link";
-
 import { getTranslations } from "next-intl/server";
+
+import { ForbiddenSessionActions } from "@/components/auth/forbidden-session-actions";
 
 export default async function Forbidden() {
   const t = await getTranslations("ForbiddenPage");
@@ -15,14 +15,10 @@ export default async function Forbidden() {
           {t("title")}
         </h1>
         <p className="mt-3 text-sm leading-7 text-[#69747d]">{t("description")}</p>
-        <div className="mt-8">
-          <Link
-            className="inline-flex h-11 items-center justify-center rounded-full bg-[#486782] px-5 text-sm font-semibold text-white transition hover:bg-[#3e5f79]"
-            href="/"
-          >
-            {t("primaryAction")}
-          </Link>
-        </div>
+        <ForbiddenSessionActions
+          homeLabel={t("primaryAction")}
+          reloginLabel={t("reloginAction")}
+        />
       </section>
     </main>
   );

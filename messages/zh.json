@@ -19,8 +19,9 @@
   "ForbiddenPage": {
     "badge": "访问出错",
     "title": "当前账号无权访问这个页面",
-    "description": "你访问的地址不在当前角色的允许范围内。请返回主入口后，从自己的工作台继续操作。",
-    "primaryAction": "返回主入口"
+    "description": "这个页面不属于当前账号可使用的范围。可以先回到自己的首页；如果要换账号，请重新登录。",
+    "primaryAction": "返回我的首页",
+    "reloginAction": "重新登录"
   },
   "LanguageToggle": {
     "zh": "中文",

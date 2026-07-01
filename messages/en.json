@@ -19,8 +19,9 @@
   "ForbiddenPage": {
     "badge": "Access Error",
     "title": "This account cannot access the current page",
-    "description": "The requested address is outside the pages allowed for the current role. Return to the main entry and continue from the correct workspace.",
-    "primaryAction": "Back to Main Entry"
+    "description": "This page is not available to the current account. You can return to your home page, or sign in again if you need to use a different account.",
+    "primaryAction": "Back to My Home",
+    "reloginAction": "Sign In Again"
   },
   "LanguageToggle": {
     "zh": "中文",

@@ -146,7 +146,7 @@ npm run supabase:admin -- summary
 - `/admin/wholesale/settings` 是批发业务设置，维护批发订单可直接修改天数、批发订单业务员提成和批发客户推荐佣金。
 - `/[role]/tourism/[section]` 承载当前旅游业务页面。
 - `/[role]/wholesale/[section]` 承载批发业务页面，使用独立批发模型，不复用旅游订单结构。
-- 越权访问直接展示访问错误页，不改写到其他角色工作台。
+- 越权访问直接展示访问错误页，不改写到其他角色工作台；访问错误页提供“返回我的首页”和“重新登录”，方便浏览器保留了其他账号会话时直接换号。
 - 左侧导航先按账号当前可见业务过滤，再展示当前角色在该业务下可用的模块。
 - 桌面端左侧业务分组会在进入对应页面时自动展开，当前所在业务也可以通过分组按钮手动收起或再次展开；展开和收起带平滑过渡，移动端顶部菜单下拉也带淡入下拉动画。
 - 当前阶段批发业务允许管理员、财务、业务员、以及拥有批发业务标记的客户访问；财务在批发业务中按业务员同类范围使用，不再访问旅游业务；地推、经理、运营、招聘员和只有旅游业务标记的客户只能访问旅游业务。
@@ -190,6 +190,7 @@ app/
 - `lib/workspace-route-segments.ts`：工作台角色路由段枚举。
 - `lib/workspace-business-access.ts`：当前账号可见业务读取、业务键规范化和导航过滤辅助。
 - `lib/auth-routing.ts`：角色与工作台 base path 映射。
+- `components/auth/forbidden-session-actions.tsx`：访问错误页的返回首页和重新登录按钮，重新登录会清理当前浏览器会话后进入登录页。
 - `lib/business-vip-management*.ts`：业务 VIP 的服务端边界；`queries` 读取旅游/批发 VIP 列表，`mutations` 调用旅游申请审批 RPC 和批发直接开通/续费 RPC，`normalizers` 统一整理 RPC 返回值，`errors` 把技术错误映射成页面提示。
 - `lib/company-expenses.ts`：公司费用页面的数据读取、权限判断和增删改操作。
 - `components/dashboard/company-expenses/`：公司费用页面的展示区块、表单弹窗、状态 hook 和显示工具。
