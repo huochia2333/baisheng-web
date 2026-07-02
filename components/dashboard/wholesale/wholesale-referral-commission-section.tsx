@@ -12,10 +12,7 @@ import {
 } from "@/components/dashboard/dashboard-section-panel";
 import { Button } from "@/components/ui/button";
 import { normalizeSearchText } from "@/lib/value-normalizers";
-import type {
-  WholesaleCustomer,
-  WholesaleLogisticsOrder,
-} from "@/lib/wholesale";
+import type { WholesaleCustomer } from "@/lib/wholesale";
 
 import {
   formatCurrency,
@@ -35,11 +32,9 @@ const ALL = "all";
 
 export function WholesaleReferralCommissionSection({
   customersById,
-  logisticsOrders,
   referralRows,
 }: {
   customersById: Map<string, WholesaleCustomer>;
-  logisticsOrders: WholesaleLogisticsOrder[];
   referralRows: WholesaleReferralCommissionRow[];
 }) {
   const [search, setSearch] = useState("");
@@ -70,6 +65,10 @@ export function WholesaleReferralCommissionSection({
     (sum, row) => sum + row.amount,
     0,
   );
+  const chargedWaybillCount = referralRows.reduce(
+    (sum, row) => sum + row.waybillCount,
+    0,
+  );
   const hasActiveFilters = search || customerFilter !== ALL;
 
   return (
@@ -83,7 +82,7 @@ export function WholesaleReferralCommissionSection({
           { label: "佣金合计", value: formatCurrency(totalReferralCommission) },
           { label: "月度记录", value: `${referralRows.length}` },
           { label: "当前显示", value: `${filteredRows.length}` },
-          { label: "运单记录", value: `${logisticsOrders.length}` },
+          { label: "计佣运单", value: `${chargedWaybillCount}` },
         ]}
       />
       <DashboardListSection

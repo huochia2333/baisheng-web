@@ -48,6 +48,7 @@ export function WholesaleClient({ initialData }: { initialData: WholesalePageDat
           customersById={customersById}
           exchangeRates={initialData.exchangeRates}
           logisticsOrders={initialData.logisticsOrders}
+          logisticsStatuses={initialData.logisticsStatuses}
           onApproveOrderEditRequest={actions.approveOrderEditRequest}
           onMarkOrderSettled={actions.markOrderSettled}
           onCreateOrder={actions.createOrder}
@@ -86,7 +87,8 @@ export function WholesaleClient({ initialData }: { initialData: WholesalePageDat
           customers={initialData.customers}
           customersById={customersById}
           logisticsOrders={initialData.logisticsOrders}
-          onCreateLogisticsOrder={actions.createLogisticsOrder}
+          logisticsStatuses={initialData.logisticsStatuses}
+          onCreateLogisticsStatus={actions.createLogisticsStatus}
           orders={initialData.orders}
           pendingKey={actions.pendingKey}
         />
@@ -131,6 +133,7 @@ export function WholesaleClient({ initialData }: { initialData: WholesalePageDat
           customersById={customersById}
           exchangeRates={initialData.exchangeRates}
           logisticsOrders={initialData.logisticsOrders}
+          logisticsStatuses={initialData.logisticsStatuses}
           onSettleCommission={actions.settleCommission}
           orders={initialData.orders}
           pendingKey={actions.pendingKey}

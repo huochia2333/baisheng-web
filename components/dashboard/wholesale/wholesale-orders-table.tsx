@@ -15,6 +15,7 @@ import type {
   WholesaleOrder,
   WholesaleProfile,
 } from "@/lib/wholesale";
+import type { WholesaleLogisticsStatus } from "@/lib/wholesale-logistics-statuses";
 
 import {
   formatCurrency,
@@ -52,6 +53,7 @@ type WholesaleOrdersTableProps = {
   customersById: Map<string, WholesaleCustomer>;
   getOrderEditAction: (order: WholesaleOrder) => WholesaleOrderEditAction | null;
   logisticsOrdersByOrderId: Map<string, WholesaleLogisticsOrder[]>;
+  logisticsStatusesByOrderId: Map<string, WholesaleLogisticsStatus[]>;
   onOpenOrderEdit: (order: WholesaleOrder) => void;
   onOpenOrderSettlement: (order: WholesaleOrder) => void;
   onToggleOrderSelection: (orderId: string, selected: boolean) => void;
@@ -68,6 +70,7 @@ export function WholesaleOrdersTable({
   customersById,
   getOrderEditAction,
   logisticsOrdersByOrderId,
+  logisticsStatusesByOrderId,
   onOpenOrderEdit,
   onOpenOrderSettlement,
   onToggleOrderSelection,
@@ -229,6 +232,7 @@ export function WholesaleOrdersTable({
               <WholesaleTd className="min-w-[320px] whitespace-normal">
                 <LinkedLogisticsOrders
                   logisticsOrders={logisticsOrdersByOrderId.get(order.id) ?? []}
+                  logisticsStatuses={logisticsStatusesByOrderId.get(order.id) ?? []}
                 />
               </WholesaleTd>
               <WholesaleTd className="min-w-[240px] whitespace-normal">

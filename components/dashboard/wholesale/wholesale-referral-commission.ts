@@ -9,6 +9,7 @@ import type {
   WholesaleOrder,
   WholesaleReferral,
 } from "@/lib/wholesale";
+import type { WholesaleLogisticsStatus } from "@/lib/wholesale-logistics-statuses";
 
 export type WholesaleReferralCommissionRow = {
   amount: number;
@@ -37,6 +38,7 @@ export function buildReferralCommissionRows({
   customersById,
   exchangeRates,
   logisticsOrders,
+  logisticsStatuses,
   orders,
   referrals,
 }: {
@@ -44,6 +46,7 @@ export function buildReferralCommissionRows({
   customersById: Map<string, WholesaleCustomer>;
   exchangeRates: ExchangeRateRow[];
   logisticsOrders: WholesaleLogisticsOrder[];
+  logisticsStatuses: WholesaleLogisticsStatus[];
   orders: WholesaleOrder[];
   referrals: WholesaleReferral[];
 }) {
@@ -58,6 +61,7 @@ export function buildReferralCommissionRows({
     ]),
   );
   const grouped = new Map<string, WholesaleReferralCommissionRow>();
+  const countedWaybills = new Set<string>();
 
   for (const order of orders) {
     const referrerCustomerId = referredToReferrer.get(order.customer_id);
@@ -99,7 +103,47 @@ export function buildReferralCommissionRows({
       usdToCnyRate,
     });
 
-    row.waybillCount += 1;
+    addWaybillCount({
+      countedWaybills,
+      monthKey: row.monthKey,
+      referredCustomerId: row.referredCustomerId,
+      referrerCustomerId: row.referrerCustomerId,
+      row,
+      trackingNumber: logisticsOrder.international_tracking_number,
+    });
+  }
+
+  for (const logisticsStatus of logisticsStatuses) {
+    if (!logisticsStatus.customer_id) {
+      continue;
+    }
+
+    const referrerCustomerId = referredToReferrer.get(logisticsStatus.customer_id);
+
+    if (!referrerCustomerId || !customersById.has(referrerCustomerId)) {
+      continue;
+    }
+
+    const row = getOrCreateRow({
+      grouped,
+      monthKey: toMonthKey(
+        logisticsStatus.last_checked_at ??
+          logisticsStatus.source_updated_at ??
+          logisticsStatus.created_at,
+      ),
+      referredCustomerId: logisticsStatus.customer_id,
+      referrerCustomerId,
+      usdToCnyRate,
+    });
+
+    addWaybillCount({
+      countedWaybills,
+      monthKey: row.monthKey,
+      referredCustomerId: row.referredCustomerId,
+      referrerCustomerId: row.referrerCustomerId,
+      row,
+      trackingNumber: logisticsStatus.tracking_number,
+    });
   }
 
   for (const row of grouped.values()) {
@@ -124,6 +168,39 @@ export function buildReferralCommissionRows({
         row.amount > 0,
     )
     .sort((left, right) => right.monthKey.localeCompare(left.monthKey));
+}
+
+function addWaybillCount({
+  countedWaybills,
+  monthKey,
+  referredCustomerId,
+  referrerCustomerId,
+  row,
+  trackingNumber,
+}: {
+  countedWaybills: Set<string>;
+  monthKey: string;
+  referredCustomerId: string;
+  referrerCustomerId: string;
+  row: WholesaleReferralCommissionRow;
+  trackingNumber: string;
+}) {
+  // 同一物流号可能同时存在于旧费用记录和新状态表里。
+  // 计佣时按推荐人、被推荐客户、月份和物流号去重，避免重复加运单数。
+  const normalizedTrackingNumber = trackingNumber.trim().toUpperCase();
+  const key = [
+    referrerCustomerId,
+    referredCustomerId,
+    monthKey,
+    normalizedTrackingNumber,
+  ].join(":");
+
+  if (countedWaybills.has(key)) {
+    return;
+  }
+
+  countedWaybills.add(key);
+  row.waybillCount += 1;
 }
 
 function getOrCreateRow({

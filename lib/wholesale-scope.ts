@@ -10,6 +10,7 @@ import type {
   WholesaleProfile,
   WholesaleReferral,
 } from "./wholesale";
+import type { WholesaleLogisticsStatus } from "./wholesale-logistics-statuses";
 
 type ScopeWholesaleRowsInput = {
   commissions: WholesaleCommission[];
@@ -17,6 +18,7 @@ type ScopeWholesaleRowsInput = {
   currentUserId: string | null;
   customers: WholesaleCustomer[];
   logisticsOrders: WholesaleLogisticsOrder[];
+  logisticsStatuses: WholesaleLogisticsStatus[];
   orderChangeLogs: WholesaleOrderChangeLog[];
   orderEditRequests: WholesaleOrderEditRequest[];
   orders: WholesaleOrder[];
@@ -32,6 +34,7 @@ export function scopeWholesaleRows({
   currentUserId,
   customers,
   logisticsOrders,
+  logisticsStatuses,
   orderChangeLogs,
   orderEditRequests,
   orders,
@@ -67,6 +70,13 @@ export function scopeWholesaleRows({
     logisticsOrders,
     orderIds,
   });
+  const scopedLogisticsStatuses = scopeWholesaleLogisticsStatuses({
+    currentRole,
+    currentUserId,
+    customerIds,
+    logisticsStatuses,
+    orderIds,
+  });
   const scopedCommissions = scopeWholesaleCommissions({
     currentRole,
     currentUserId,
@@ -97,6 +107,7 @@ export function scopeWholesaleRows({
     currentUserId,
     customers: scopedCustomers,
     logisticsOrders: scopedLogisticsOrders,
+    logisticsStatuses: scopedLogisticsStatuses,
     orderChangeLogs: scopedOrderChangeLogs,
     orderEditRequests: scopedOrderEditRequests,
     orders: scopedOrders,
@@ -109,6 +120,7 @@ export function scopeWholesaleRows({
     commissions: scopedCommissions,
     customers: scopedCustomers,
     logisticsOrders: scopedLogisticsOrders,
+    logisticsStatuses: scopedLogisticsStatuses,
     orderChangeLogs: scopedOrderChangeLogs,
     orderEditRequests: scopedOrderEditRequests,
     orders: scopedOrders,
@@ -116,6 +128,39 @@ export function scopeWholesaleRows({
     purchaseOrders: scopedPurchaseOrders,
     referrals: scopedReferrals,
   };
+}
+
+function scopeWholesaleLogisticsStatuses({
+  currentRole,
+  currentUserId,
+  customerIds,
+  logisticsStatuses,
+  orderIds,
+}: {
+  currentRole: AppRole | null;
+  currentUserId: string | null;
+  customerIds: Set<string>;
+  logisticsStatuses: WholesaleLogisticsStatus[];
+  orderIds: Set<string>;
+}) {
+  if (
+    currentRole === "administrator" ||
+    currentRole === "finance" ||
+    currentRole === "salesman"
+  ) {
+    return logisticsStatuses;
+  }
+
+  if (!currentUserId) {
+    return [];
+  }
+
+  return logisticsStatuses.filter(
+    (status) =>
+      (status.customer_id ? customerIds.has(status.customer_id) : false) ||
+      (status.wholesale_order_id ? orderIds.has(status.wholesale_order_id) : false) ||
+      status.created_by_user_id === currentUserId,
+  );
 }
 
 function scopeWholesaleCustomers({
@@ -356,6 +401,7 @@ function scopeWholesaleProfiles({
   currentUserId,
   customers,
   logisticsOrders,
+  logisticsStatuses,
   orderChangeLogs,
   orderEditRequests,
   orders,
@@ -367,6 +413,7 @@ function scopeWholesaleProfiles({
   currentUserId: string | null;
   customers: WholesaleCustomer[];
   logisticsOrders: WholesaleLogisticsOrder[];
+  logisticsStatuses: WholesaleLogisticsStatus[];
   orderChangeLogs: WholesaleOrderChangeLog[];
   orderEditRequests: WholesaleOrderEditRequest[];
   orders: WholesaleOrder[];
@@ -400,6 +447,10 @@ function scopeWholesaleProfiles({
 
   for (const order of logisticsOrders) {
     addOptionalId(visibleProfileIds, order.created_by_user_id);
+  }
+
+  for (const status of logisticsStatuses) {
+    addOptionalId(visibleProfileIds, status.created_by_user_id);
   }
 
   for (const request of orderEditRequests) {

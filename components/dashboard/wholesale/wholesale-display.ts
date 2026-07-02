@@ -2,6 +2,7 @@ import type {
   WholesaleCustomer,
   WholesaleProfile,
 } from "@/lib/wholesale";
+import type { WholesaleLogisticsStatusKind } from "@/lib/wholesale-logistics-statuses";
 
 export const WHOLESALE_STATUS_LABELS = {
   cancelled: "已取消",
@@ -15,6 +16,16 @@ export const WHOLESALE_ORDER_STATUS_LABELS = {
   settled: "已结汇",
   unsettled: "未结汇",
 } as const;
+
+export const WHOLESALE_LOGISTICS_STATUS_LABELS: Record<
+  WholesaleLogisticsStatusKind,
+  string
+> = {
+  checking: "核对中",
+  delivered: "已送达",
+  exception: "异常",
+  stopped: "已停止",
+};
 
 export function formatCurrency(value: number | null | undefined, currency = "CNY") {
   const amount = Number(value ?? 0);

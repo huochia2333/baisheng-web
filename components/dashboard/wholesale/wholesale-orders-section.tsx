@@ -25,6 +25,7 @@ import type {
   WholesaleOrder,
   WholesaleProfile,
 } from "@/lib/wholesale";
+import type { WholesaleLogisticsStatus } from "@/lib/wholesale-logistics-statuses";
 
 import {
   formatCurrency,
@@ -65,6 +66,7 @@ type WholesaleOrdersSectionProps = {
   customersById: Map<string, WholesaleCustomer>;
   exchangeRates: ExchangeRateRow[];
   logisticsOrders: WholesaleLogisticsOrder[];
+  logisticsStatuses: WholesaleLogisticsStatus[];
   onCreateOrder: (formData: FormData) => void | Promise<void>;
   onApproveOrderEditRequest: (requestId: string) => void | Promise<void>;
   onMarkOrderSettled: (formData: FormData) => void | Promise<void>;
@@ -92,6 +94,7 @@ export function WholesaleOrdersSection({
   customersById,
   exchangeRates,
   logisticsOrders,
+  logisticsStatuses,
   onApproveOrderEditRequest,
   onCreateOrder,
   onMarkOrderSettled,
@@ -145,6 +148,18 @@ export function WholesaleOrdersSection({
 
     return grouped;
   }, [logisticsOrders]);
+  const logisticsStatusesByOrderId = useMemo(() => {
+    const grouped = new Map<string, WholesaleLogisticsStatus[]>();
+
+    for (const logisticsStatus of logisticsStatuses) {
+      if (!logisticsStatus.wholesale_order_id) continue;
+      const rows = grouped.get(logisticsStatus.wholesale_order_id) ?? [];
+      rows.push(logisticsStatus);
+      grouped.set(logisticsStatus.wholesale_order_id, rows);
+    }
+
+    return grouped;
+  }, [logisticsStatuses]);
   const ordersById = useMemo(
     () => new Map(orders.map((order) => [order.id, order])),
     [orders],
@@ -181,6 +196,8 @@ export function WholesaleOrdersSection({
       const salesName = getProfileName(profilesById, order.sales_user_id);
       const linkedPurchaseOrders = purchaseOrdersByOrderId.get(order.id) ?? [];
       const linkedLogisticsOrders = logisticsOrdersByOrderId.get(order.id) ?? [];
+      const linkedLogisticsStatuses =
+        logisticsStatusesByOrderId.get(order.id) ?? [];
 
       return [
         order.order_number,
@@ -200,6 +217,11 @@ export function WholesaleOrdersSection({
           logisticsOrder.freight_forwarder ?? "",
           logisticsOrder.latest_status ?? "",
         ]),
+        ...linkedLogisticsStatuses.flatMap((logisticsStatus) => [
+          logisticsStatus.tracking_number,
+          logisticsStatus.customer_name,
+          logisticsStatus.status_text,
+        ]),
       ].some((value) => normalizeSearchText(value).includes(searchValue));
     });
   }, [
@@ -211,6 +233,7 @@ export function WholesaleOrdersSection({
     profilesById,
     purchaseOrdersByOrderId,
     logisticsOrdersByOrderId,
+    logisticsStatusesByOrderId,
     salesFilter,
     searchText,
     statusFilter,
@@ -459,6 +482,7 @@ export function WholesaleOrdersSection({
             customersById={customersById}
             getOrderEditAction={getOrderEditAction}
             logisticsOrdersByOrderId={logisticsOrdersByOrderId}
+            logisticsStatusesByOrderId={logisticsStatusesByOrderId}
             onOpenOrderEdit={setSelectedEditOrder}
             onOpenOrderSettlement={setSelectedSettlementOrder}
             onToggleOrderSelection={toggleOrderSelection}

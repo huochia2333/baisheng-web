@@ -11,6 +11,10 @@ import {
   getLatestCnyExchangeRates,
   type ExchangeRateRow,
 } from "./exchange-rates";
+import {
+  getWholesaleLogisticsStatuses,
+  type WholesaleLogisticsStatus,
+} from "./wholesale-logistics-statuses";
 import { scopeWholesaleRows } from "./wholesale-scope";
 import {
   getWholesaleOrderEditSettings,
@@ -185,6 +189,7 @@ export type WholesalePageData = {
   orders: WholesaleOrder[];
   purchaseOrders: Wholesale1688Order[];
   logisticsOrders: WholesaleLogisticsOrder[];
+  logisticsStatuses: WholesaleLogisticsStatus[];
   commissions: WholesaleCommission[];
   referrals: WholesaleReferral[];
   profiles: WholesaleProfile[];
@@ -209,6 +214,7 @@ export async function getWholesalePageData(
     ordersResult,
     purchaseOrdersResult,
     logisticsOrdersResult,
+    logisticsStatusesResult,
     commissionsResult,
     referralsResult,
     orderEditRequestsResult,
@@ -246,6 +252,7 @@ export async function getWholesalePageData(
       .order("updated_at", { ascending: false }) as unknown as Promise<
       QueryResult<WholesaleLogisticsOrder>
     >,
+    getWholesaleLogisticsStatuses(supabase),
     supabase
       .from("wholesale_commissions")
       .select("*")
@@ -321,6 +328,7 @@ export async function getWholesalePageData(
     currentUserId,
     customers: readRows(customersResult),
     logisticsOrders: readRows(logisticsOrdersResult),
+    logisticsStatuses: readRows(logisticsStatusesResult),
     orderChangeLogs: readRows(orderChangeLogsResult),
     orderEditRequests: readRows(orderEditRequestsResult),
     orders: readRows(ordersResult),
@@ -342,6 +350,7 @@ export async function getWholesalePageData(
     orders: scopedRows.orders,
     purchaseOrders: scopedRows.purchaseOrders,
     logisticsOrders: scopedRows.logisticsOrders,
+    logisticsStatuses: scopedRows.logisticsStatuses,
     commissions: scopedRows.commissions,
     referrals: scopedRows.referrals,
     profiles: scopedRows.profiles,

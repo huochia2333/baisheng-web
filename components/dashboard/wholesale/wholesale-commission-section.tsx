@@ -23,6 +23,7 @@ import type {
   WholesaleProfile,
   WholesaleReferral,
 } from "@/lib/wholesale";
+import type { WholesaleLogisticsStatus } from "@/lib/wholesale-logistics-statuses";
 
 import {
   formatCurrency,
@@ -53,6 +54,7 @@ type WholesaleCommissionSectionProps = {
   customersById: Map<string, WholesaleCustomer>;
   exchangeRates: ExchangeRateRow[];
   logisticsOrders: WholesaleLogisticsOrder[];
+  logisticsStatuses: WholesaleLogisticsStatus[];
   onSettleCommission: (commissionId: string) => void;
   orders: WholesaleOrder[];
   pendingKey: string | null;
@@ -70,6 +72,7 @@ export function WholesaleCommissionSection({
   customersById,
   exchangeRates,
   logisticsOrders,
+  logisticsStatuses,
   onSettleCommission,
   orders,
   pendingKey,
@@ -96,10 +99,19 @@ export function WholesaleCommissionSection({
         customersById,
         exchangeRates,
         logisticsOrders,
+        logisticsStatuses,
         orders,
         referrals,
       }),
-    [commissionRuleSettings, customersById, exchangeRates, logisticsOrders, orders, referrals],
+    [
+      commissionRuleSettings,
+      customersById,
+      exchangeRates,
+      logisticsOrders,
+      logisticsStatuses,
+      orders,
+      referrals,
+    ],
   );
   const filteredCommissions = useMemo(() => {
     const searchValue = normalizeSearchText(incentiveSearch);
@@ -162,7 +174,6 @@ export function WholesaleCommissionSection({
     return (
       <WholesaleReferralCommissionSection
         customersById={customersById}
-        logisticsOrders={logisticsOrders}
         referralRows={referralRows}
       />
     );

@@ -47,6 +47,10 @@ export function filterWholesaleOrdersForAssessment(
   );
   const purchaseOrdersByOrderId = new Map<string, AssessmentData["purchaseOrders"]>();
   const logisticsOrdersByOrderId = new Map<string, AssessmentData["logisticsOrders"]>();
+  const logisticsStatusesByOrderId = new Map<
+    string,
+    AssessmentData["logisticsStatuses"]
+  >();
   const searchValue = normalizeSearchText(filters.searchText);
   const orderedFromTime = getDateBoundaryTime(filters.orderedFromDate, "start");
   const orderedToTime = getDateBoundaryTime(filters.orderedToDate, "end");
@@ -63,6 +67,14 @@ export function filterWholesaleOrdersForAssessment(
     const rows = logisticsOrdersByOrderId.get(logisticsOrder.wholesale_order_id) ?? [];
     rows.push(logisticsOrder);
     logisticsOrdersByOrderId.set(logisticsOrder.wholesale_order_id, rows);
+  }
+
+  for (const logisticsStatus of data.logisticsStatuses) {
+    if (!logisticsStatus.wholesale_order_id) continue;
+    const rows =
+      logisticsStatusesByOrderId.get(logisticsStatus.wholesale_order_id) ?? [];
+    rows.push(logisticsStatus);
+    logisticsStatusesByOrderId.set(logisticsStatus.wholesale_order_id, rows);
   }
 
   return data.orders.filter((order) => {
@@ -89,6 +101,8 @@ export function filterWholesaleOrdersForAssessment(
     const salesName = salesProfile?.name || salesProfile?.email || "未分配";
     const linkedPurchaseOrders = purchaseOrdersByOrderId.get(order.id) ?? [];
     const linkedLogisticsOrders = logisticsOrdersByOrderId.get(order.id) ?? [];
+    const linkedLogisticsStatuses =
+      logisticsStatusesByOrderId.get(order.id) ?? [];
 
     return [
       order.order_number,
@@ -108,6 +122,11 @@ export function filterWholesaleOrdersForAssessment(
         logisticsOrder.freight_forwarder ?? "",
         logisticsOrder.latest_status ?? "",
       ]),
+      ...linkedLogisticsStatuses.flatMap((logisticsStatus) => [
+        logisticsStatus.tracking_number,
+        logisticsStatus.customer_name,
+        logisticsStatus.status_text,
+      ]),
     ].some((text) => normalizeSearchText(text).includes(searchValue));
   });
 }
@@ -126,7 +145,11 @@ export function buildWholesaleOrderAssessmentMessages({
     data.profiles.map((profile) => [profile.user_id, profile]),
   );
   const purchaseOrderCounts = countLinkedRecords(data.purchaseOrders, orders);
-  const logisticsOrderCounts = countLinkedRecords(data.logisticsOrders, orders);
+  const logisticsOrderCounts = countDistinctLogisticsRecords({
+    logisticsOrders: data.logisticsOrders,
+    logisticsStatuses: data.logisticsStatuses,
+    orders,
+  });
   const summary = buildOrderSummary({
     logisticsOrderCount: logisticsOrderCounts.total,
     orders,
@@ -265,6 +288,41 @@ function countLinkedRecords<
   ).length;
 
   return { total };
+}
+
+function countDistinctLogisticsRecords({
+  logisticsOrders,
+  logisticsStatuses,
+  orders,
+}: {
+  logisticsOrders: AssessmentData["logisticsOrders"];
+  logisticsStatuses: AssessmentData["logisticsStatuses"];
+  orders: WholesaleOrder[];
+}) {
+  const orderIds = new Set(orders.map((order) => order.id));
+  const trackingNumbers = new Set<string>();
+
+  for (const logisticsOrder of logisticsOrders) {
+    if (
+      logisticsOrder.wholesale_order_id &&
+      orderIds.has(logisticsOrder.wholesale_order_id)
+    ) {
+      trackingNumbers.add(
+        logisticsOrder.international_tracking_number.trim().toUpperCase(),
+      );
+    }
+  }
+
+  for (const logisticsStatus of logisticsStatuses) {
+    if (
+      logisticsStatus.wholesale_order_id &&
+      orderIds.has(logisticsStatus.wholesale_order_id)
+    ) {
+      trackingNumbers.add(logisticsStatus.tracking_number.trim().toUpperCase());
+    }
+  }
+
+  return { total: trackingNumbers.size };
 }
 
 function sumOrders(orders: WholesaleOrder[], key: keyof WholesaleOrder) {

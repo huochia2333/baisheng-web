@@ -8,7 +8,6 @@ import { getBrowserSupabaseClient } from "@/lib/supabase";
 import {
   getWholesaleOrderIds,
   getWholesaleOrderRpcPayload,
-  nonnegativeNumber,
   optionalPositiveNumber,
   optionalString,
   positiveNumber,
@@ -16,6 +15,7 @@ import {
   splitList,
   toWholesaleActionErrorMessage,
 } from "./wholesale-action-utils";
+import { createWholesaleLogisticsStatus } from "./wholesale-logistics-mutations";
 
 type ActionFeedback = {
   tone: "error" | "success";
@@ -374,45 +374,13 @@ export function useWholesaleActions() {
     [runAction],
   );
 
-  const createLogisticsOrder = useCallback(
+  const createLogisticsStatus = useCallback(
     (formData: FormData) =>
-      runAction("logistics:create", "物流记录已保存。", async () => {
+      runAction("logistics-status:create", "物流号已加入每日核对。", async () => {
         const supabase = getBrowserSupabaseClient();
         if (!supabase) throw new Error("client unavailable");
 
-        const customerId = optionalString(formData.get("customer_id"));
-        const { data: batch, error: batchError } = await supabase
-          .from("wholesale_logistics_batches")
-          .insert({
-            customer_id: customerId,
-            source: optionalString(formData.get("batch_source")),
-          })
-          .select("id")
-          .single();
-
-        if (batchError || !batch) throw batchError ?? new Error("batch failed");
-
-        const { error } = await supabase.from("wholesale_logistics_orders").insert({
-          batch_id: batch.id,
-          currency: optionalString(formData.get("currency")) ?? "CNY",
-          customer_id: customerId,
-          destination_tracking_number: optionalString(
-            formData.get("destination_tracking_number"),
-          ),
-          freight_forwarder: optionalString(formData.get("freight_forwarder")),
-          international_tracking_number: requiredString(
-            formData.get("international_tracking_number"),
-          ),
-          latest_checkpoint_at: optionalString(formData.get("latest_checkpoint_at")),
-          latest_status: optionalString(formData.get("latest_status")),
-          logistics_fee: nonnegativeNumber(formData.get("logistics_fee")),
-          source_workflow_order_number: optionalString(
-            formData.get("source_workflow_order_number"),
-          ),
-          wholesale_order_id: optionalString(formData.get("wholesale_order_id")),
-        });
-
-        if (error) throw error;
+        await createWholesaleLogisticsStatus(supabase, formData);
       }),
     [runAction],
   );
@@ -456,7 +424,7 @@ export function useWholesaleActions() {
     approveOrderEditRequest,
     claim1688Order,
     createCustomer,
-    createLogisticsOrder,
+    createLogisticsStatus,
     createOrder,
     createReferral,
     delete1688Order,
