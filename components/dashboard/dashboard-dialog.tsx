@@ -53,6 +53,13 @@ export function DashboardDialog({
   const dialogRef = useRef<HTMLDivElement | null>(null);
   const closeButtonRef = useRef<HTMLButtonElement | null>(null);
   const previousFocusedElementRef = useRef<HTMLElement | null>(null);
+  const onOpenChangeRef = useRef(onOpenChange);
+
+  useEffect(() => {
+    // 父组件经常会传入临时创建的关闭函数，例如输入框每次输入都会让父组件重新渲染。
+    // 这里把最新关闭函数放进 ref，键盘事件就能拿到最新逻辑，同时避免重新启动焦点锁。
+    onOpenChangeRef.current = onOpenChange;
+  }, [onOpenChange]);
 
   useEffect(() => {
     if (!open || !portalHost) {
@@ -76,7 +83,7 @@ export function DashboardDialog({
 
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
-        onOpenChange(false);
+        onOpenChangeRef.current(false);
         return;
       }
 
@@ -146,7 +153,7 @@ export function DashboardDialog({
       window.removeEventListener("keydown", handleKeyDown);
       previousFocusedElementRef.current?.focus();
     };
-  }, [onOpenChange, open, portalHost]);
+  }, [open, portalHost]);
 
   if (!portalHost) {
     return null;
@@ -165,7 +172,7 @@ export function DashboardDialog({
             className="absolute inset-0 bg-[rgba(24,31,38,0.34)]"
             exit={{ opacity: 0 }}
             initial={{ opacity: 0 }}
-            onClick={() => onOpenChange(false)}
+            onClick={() => onOpenChangeRef.current(false)}
             style={{ willChange: "opacity" }}
             tabIndex={-1}
             transition={overlayTransition}

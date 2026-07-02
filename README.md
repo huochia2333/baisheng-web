@@ -256,8 +256,10 @@ baisheng-web/
 
 工作台共享能力：
 
+- `admin-shell-nav.tsx`：左侧工作栏和移动端业务导航；桌面端保留菜单滚动能力，但隐藏浏览器自带滚动滑块，避免工作栏出现多余视觉控件。
 - `dashboard-section-header.tsx`：业务板块页头。
 - `dashboard-section-panel.tsx`：筛选面板、列表面板和表格外框。
+- `dashboard-dialog.tsx`：工作台通用弹窗，统一处理遮罩、滚动锁定、初始聚焦、Tab 焦点循环和关闭后回到原操作位置；弹窗内输入内容时不能重启焦点锁，避免备注、说明、城市等输入框在连续输入时失焦。
 - `dashboard-segmented-tabs.tsx`：订单、任务、佣金、审核等板块内切换按钮。
 - `dashboard-pill.tsx` 与 `components/dashboard/tasks/task-ui.tsx`：标签、任务状态、目标角色、搜索筛选和信息块。
 - `workspace-header-actions.tsx`：顶部公告、反馈、语言切换和头像菜单入口。

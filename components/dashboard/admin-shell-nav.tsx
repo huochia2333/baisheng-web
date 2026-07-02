@@ -66,6 +66,10 @@ const NAV_ICONS: Record<WorkspaceNavSegment, LucideIcon> = {
   vip: BadgeCheck,
 };
 
+// 左侧工作栏内容仍然需要能滚动，但视觉上不显示浏览器自带的滚动滑块。
+const HIDDEN_NAV_SCROLLBAR_CLASS =
+  "[scrollbar-width:none] [&::-webkit-scrollbar]:hidden";
+
 export function AdminShellNav({
   emptyGroupsLabel,
   globalItems,
@@ -202,7 +206,12 @@ export function AdminShellNav({
   }
 
   return (
-    <nav className="min-h-0 flex-1 space-y-2 overflow-y-auto pr-1">
+    <nav
+      className={cn(
+        "min-h-0 flex-1 space-y-2 overflow-y-auto pr-1",
+        HIDDEN_NAV_SCROLLBAR_CLASS,
+      )}
+    >
       {globalItems.map((item) => (
         <DesktopNavLink
           handleNavClick={handleNavClick}
